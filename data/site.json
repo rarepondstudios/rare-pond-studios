@@ -1,0 +1,52 @@
+{
+  "logos": {
+    "color": "/media/logos/rare-pond-color.png",
+    "duckMark": "/media/logos/duck-mark.png"
+  },
+  "water": "/media/site/water.jpg",
+  "hero": {
+    "title": "Countless Worlds.",
+    "titleEm": "One Pond.",
+    "subtitle": "We create escapist films that transport you somewhere new. See where you can go..."
+  },
+  "about": {
+    "eyebrow": "What we do",
+    "heading": "Worlds worth escaping into.",
+    "paragraphs": [
+      "Rare Pond Studios is an independent film studio crafting escapist stories that feel like peering into an alternate world. We work across live-action and 2D / 3D animation, blending mediums to build immersive little universes — from a retired superspy breaking out of her nursing home to a surreal vision of Heaven and Earth.",
+      "Founded by writer-director Jack Carlsen, the studio is built on a simple idea: every project is a window into somewhere else. We develop, shoot, animate, and finish our films in-house, and we love collaborating with other creatives to bring ambitious worlds to life."
+    ],
+    "button": "Learn who we are →"
+  },
+  "socials": [
+    {
+      "label": "YouTube",
+      "url": "https://www.youtube.com/@zytopian",
+      "icon": "yt"
+    },
+    {
+      "label": "Instagram",
+      "url": "https://www.instagram.com/rarepond",
+      "icon": "ig"
+    },
+    {
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/company/rare-pond-studios/",
+      "icon": "li"
+    }
+  ],
+  "orbits": [
+    "/media/stills/geri-anim-1.jpg",
+    "/media/stills/geri-anim-2.jpg",
+    "/media/stills/geri-madeline.jpg",
+    "/media/stills/rev-earth-2.jpg",
+    "/media/stills/rev-heaven-1.jpg",
+    "/media/stills/invalid-5.jpg",
+    "/media/projects/invalid-shot-2.jpg"
+  ],
+  "hubspot": {
+    "portalId": "245995240",
+    "region": "na2",
+    "formId": "2f174b0e-b67d-4ca2-b12c-bd877ac8cab3"
+  }
+}

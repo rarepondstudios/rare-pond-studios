@@ -1,0 +1,16 @@
+{
+  "team": [
+    {
+      "name": "Jack Carlsen",
+      "role": "Founder · Director",
+      "photo": "/media/team/jack.png",
+      "desc": "Hi — I'm Jack, writer-director and the reason there's a duck in the logo. I work across live-action and 2D / 3D animation, usually chasing whatever daydream refuses to leave me alone. I started Rare Pond on a simple itch: build worlds escapist enough to disappear into, but honest enough that you spot a little of your own life once you're inside. LMU Film & TV grad, based in Los Angeles, and pretty much always mid-project."
+    },
+    {
+      "name": "Karina Salerno",
+      "role": "Production Design · Logistics",
+      "photo": "/media/team/karina.jpg",
+      "desc": "Hey, I'm Karina — if it actually has to happen on set, odds are it runs through me. I handle logistics, jump in on producing, and lead production design, with plenty of hours logged in the camera, electrical, and sound departments when a shoot needs them. I love the puzzle of turning a big idea and a tight budget into a day that somehow stays on schedule — and a frame that looks like none of the chaos ever happened."
+    }
+  ]
+}

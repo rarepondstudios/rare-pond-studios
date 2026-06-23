@@ -1,0 +1,111 @@
+media:
+  input: media
+  output: /media
+  extensions: [png, jpg, jpeg, webp, gif, svg, mp4]
+
+content:
+  - name: site
+    label: Site Settings
+    type: file
+    path: data/site.json
+    fields:
+      - name: logos
+        label: Logos
+        type: object
+        fields:
+          - { name: color, label: Full-color logo (About + footer), type: image }
+          - { name: duckMark, label: Duck mark (header icon), type: image }
+      - { name: water, label: Water / caustics background, type: image }
+      - name: hero
+        label: Hero
+        type: object
+        fields:
+          - { name: title, label: Headline, type: string }
+          - { name: titleEm, label: Headline accent, type: string }
+          - { name: subtitle, label: Subtitle, type: text }
+      - name: about
+        label: About blurb
+        type: object
+        fields:
+          - { name: eyebrow, label: Eyebrow, type: string }
+          - { name: heading, label: Heading, type: string }
+          - { name: paragraphs, label: Paragraphs, type: text, list: true }
+          - { name: button, label: Button text, type: string }
+      - name: socials
+        label: Social links
+        type: object
+        list: true
+        fields:
+          - { name: label, label: Label, type: string }
+          - { name: url, label: URL, type: string }
+          - { name: icon, label: Icon, type: select, options: { values: [yt, ig, li] } }
+      - { name: orbits, label: About-logo floating images, type: image, list: true }
+      - name: hubspot
+        label: Contact form (HubSpot)
+        type: object
+        fields:
+          - { name: portalId, label: Portal ID, type: string }
+          - { name: region, label: Region, type: string }
+          - { name: formId, label: Form ID, type: string }
+
+  - name: projects
+    label: Projects (bubbles + pages)
+    type: file
+    path: data/projects.json
+    fields:
+      - name: projects
+        label: Projects
+        type: object
+        list: true
+        fields:
+          - { name: key, label: ID (url-safe, e.g. geri), type: string }
+          - { name: title, label: Title, type: string }
+          - { name: subtitle, label: Card subtitle / genre line, type: string }
+          - { name: theme, label: Theme, type: select, options: { values: [geri, rev, invalid] } }
+          - { name: placeholder, label: Coming-soon placeholder bubble, type: boolean }
+          - { name: bubbleImage, label: Bubble image, type: image }
+          - { name: titleLogo, label: Title logo (transparent PNG), type: image }
+          - { name: focusBg, label: Feature / page background, type: image }
+          - { name: cardLogline, label: Carousel logline, type: text }
+          - { name: logoText, label: Placeholder text, type: string }
+          - { name: eyebrow, label: Eyebrow, type: string }
+          - { name: kicker, label: Kicker, type: string }
+          - { name: pageTitle, label: Project-page title (optional), type: string }
+          - { name: tagline, label: Tagline, type: string }
+          - { name: pageLogline, label: Project-page logline (HTML allowed), type: text }
+          - { name: chips, label: Genre chips, type: string, list: true }
+          - name: watch
+            label: Where to watch
+            type: object
+            fields:
+              - { name: type, label: Type, type: select, options: { values: [festival, post, youtube] } }
+              - { name: text, label: Status text, type: string }
+              - { name: id, label: YouTube video ID, type: string }
+              - { name: url, label: YouTube URL, type: string }
+              - { name: ig, label: Instagram handle, type: string }
+          - { name: stills, label: Stills gallery, type: image, list: true }
+          - { name: credits, label: Credits (HTML allowed), type: text }
+          - name: shots
+            label: Highlight shots
+            type: object
+            list: true
+            fields:
+              - { name: img, label: Image, type: image }
+              - { name: lbl, label: Label, type: string }
+          - { name: note, label: Note, type: string }
+          - { name: blurb, label: Short blurb, type: text }
+
+  - name: team
+    label: Team
+    type: file
+    path: data/team.json
+    fields:
+      - name: team
+        label: Team members
+        type: object
+        list: true
+        fields:
+          - { name: name, label: Name, type: string }
+          - { name: role, label: Role, type: string }
+          - { name: photo, label: Photo, type: image }
+          - { name: desc, label: Bio, type: text }

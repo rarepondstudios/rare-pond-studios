@@ -1,0 +1,170 @@
+{
+  "projects": [
+    {
+      "key": "geri",
+      "title": "Geri-Action",
+      "subtitle": "Hybrid Short Film",
+      "theme": "geri",
+      "placeholder": false,
+      "bubbleImage": "/media/projects/geri-bubble.jpg",
+      "titleLogo": "/media/projects/geri-logo.png",
+      "focusBg": "/media/projects/geri-split.jpg",
+      "cardLogline": "The world's greatest superspy is now old and decades past her prime — and she'll break out of her nursing home at any cost.",
+      "blurb": "A retired superspy breaks out of her nursing home — a live-action x 2D animation hybrid.",
+      "logoText": "",
+      "eyebrow": "Rare Pond Studios · 2024",
+      "kicker": "Live-Action + 2D Animation Hybrid",
+      "pageTitle": "",
+      "tagline": "Old Spy. New Mission.",
+      "pageLogline": "Once the world's greatest superspy, <b>Agent M</b> is now old and decades past her prime. Now she takes on a new mission: using her old skills to escape her elderly nursing home — at any cost.",
+      "chips": [
+        "Comedy / Action"
+      ],
+      "watch": {
+        "type": "festival",
+        "text": "Coming to Film Festivals — Fall 2026",
+        "id": "",
+        "url": "",
+        "ig": "geri_action_film"
+      },
+      "stills": [
+        "/media/stills/geri-anim-1.jpg",
+        "/media/stills/geri-anim-2.jpg",
+        "/media/stills/geri-anim-3.jpg",
+        "/media/stills/geri-nursing-1.jpg",
+        "/media/stills/geri-nursing-2.jpg",
+        "/media/stills/geri-madeline.jpg"
+      ],
+      "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Cameron Quinn · Rachael DeBoer · Kennedy Porter · Adam Kezele",
+      "shots": [
+        {
+          "img": "/media/projects/geri-bubble.jpg",
+          "lbl": "Animated × Live-Action"
+        },
+        {
+          "img": "/media/projects/geri-poster.jpg",
+          "lbl": "Poster"
+        }
+      ],
+      "note": ""
+    },
+    {
+      "key": "rev",
+      "title": "Revelations",
+      "subtitle": "Short Film",
+      "theme": "rev",
+      "placeholder": false,
+      "bubbleImage": "/media/projects/revelations-bubble.jpg",
+      "titleLogo": "/media/projects/revelations-logo.png",
+      "focusBg": "/media/projects/revelations-earth.jpg",
+      "cardLogline": "Angels work a vast Heaven office, quarantined from the sinful world below. When the angel Emmanuel goes missing, his manager Michael must descend to Earth to bring him back.",
+      "blurb": "Heaven is an office. Earth is the problem.",
+      "logoText": "",
+      "eyebrow": "Rare Pond Studios · In Post-Production",
+      "kicker": "Live-Action + VFX Short",
+      "pageTitle": "",
+      "tagline": "Even angels answer to management.",
+      "pageLogline": "A surreal vision of Heaven and Earth, where angels work a vast office space and keep themselves quarantined from the sinful humans below. When the angel <b>Emmanuel</b> goes missing, his angelic manager <b>Michael</b> must descend to Earth to bring him back — before they are both corrupted by the world they find there.",
+      "chips": [
+        "Surreal Fantasy"
+      ],
+      "watch": {
+        "type": "post",
+        "text": "In Post-Production",
+        "id": "",
+        "url": "",
+        "ig": "revelations_film"
+      },
+      "stills": [
+        "/media/stills/rev-earth-1.jpg",
+        "/media/stills/rev-earth-2.jpg",
+        "/media/stills/rev-heaven-1.jpg",
+        "/media/stills/rev-heaven-2.jpg"
+      ],
+      "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Lawrence Lacey · Jesse Shafroth · John Klenk · Trinity Medina",
+      "shots": [],
+      "note": ""
+    },
+    {
+      "key": "invalid",
+      "title": "Invalid Opinion",
+      "subtitle": "Comedy Short",
+      "theme": "invalid",
+      "placeholder": false,
+      "bubbleImage": "/media/projects/invalid-bubble.jpg",
+      "titleLogo": "/media/projects/invalid-logo.png",
+      "focusBg": "/media/projects/invalid-focus.jpg",
+      "cardLogline": "Everybody's a critic — a fast, funny short about a guy who's always right, even when he's gloriously, completely wrong.",
+      "blurb": "A fast, funny short about a guy who is always right.",
+      "logoText": "Invalid Opinion",
+      "eyebrow": "Rare Pond Studios · Released",
+      "kicker": "Comedy Short",
+      "pageTitle": "INVALID OPINION",
+      "tagline": "Everybody's a critic.",
+      "pageLogline": "When a self-proclaimed <b>expert Redditor</b> stumbles on a distasteful meme, he does what any genius would — fires up his most advanced AI tech to engineer the <i>perfect</i> witty comeback. A fast, funny send-up of online self-importance, where <b>Tony Stonk</b> is never in doubt and never more wrong.",
+      "chips": [
+        "Comedy"
+      ],
+      "watch": {
+        "type": "youtube",
+        "text": "",
+        "id": "XGYQv3h3-y4",
+        "url": "https://www.youtube.com/watch?v=XGYQv3h3-y4",
+        "ig": ""
+      },
+      "stills": [
+        "/media/stills/invalid-1.jpg",
+        "/media/stills/invalid-2.jpg",
+        "/media/stills/invalid-3.jpg",
+        "/media/stills/invalid-sourpatch.jpg",
+        "/media/stills/invalid-5.jpg"
+      ],
+      "credits": "<b>Created by</b> Jack Carlsen<br><b>Starring</b> Iago Lashua · Nick Wittcoff<br><b>Director of Photography</b> Jash Shah · <b>Sound</b> Jacob Gensheimer",
+      "shots": [
+        {
+          "img": "/media/projects/invalid-shot-1.jpg",
+          "lbl": "The Setup"
+        },
+        {
+          "img": "/media/projects/invalid-shot-2.jpg",
+          "lbl": "Going Viral"
+        },
+        {
+          "img": "/media/projects/invalid-shot-3.jpg",
+          "lbl": "Misspelling Detected"
+        }
+      ],
+      "note": ""
+    },
+    {
+      "key": "more",
+      "title": "More to come...",
+      "subtitle": "Stay tuned",
+      "theme": "invalid",
+      "placeholder": true,
+      "bubbleImage": "",
+      "titleLogo": "",
+      "focusBg": "/media/site/water.jpg",
+      "cardLogline": "New worlds are in the works.",
+      "blurb": "New worlds are in the works.",
+      "logoText": "More to come...",
+      "eyebrow": "",
+      "kicker": "",
+      "pageTitle": "",
+      "tagline": "",
+      "pageLogline": "",
+      "chips": [],
+      "watch": {
+        "type": "",
+        "text": "",
+        "id": "",
+        "url": "",
+        "ig": ""
+      },
+      "stills": [],
+      "credits": "",
+      "shots": [],
+      "note": ""
+    }
+  ]
+}

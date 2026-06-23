@@ -1,0 +1,3 @@
+# Always re-check content JSON so CMS edits show up immediately
+/data/*
+  Cache-Control: public, max-age=0, must-revalidate
