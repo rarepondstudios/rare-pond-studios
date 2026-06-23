@@ -36,16 +36,6 @@
         "/media/stills/geri-madeline.jpg"
       ],
       "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Cameron Quinn · Rachael DeBoer · Kennedy Porter · Adam Kezele",
-      "shots": [
-        {
-          "img": "/media/projects/geri-bubble.jpg",
-          "lbl": "Animated × Live-Action"
-        },
-        {
-          "img": "/media/projects/geri-poster.jpg",
-          "lbl": "Poster"
-        }
-      ],
       "note": ""
     },
     {
@@ -82,7 +72,6 @@
         "/media/stills/rev-heaven-2.jpg"
       ],
       "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Lawrence Lacey · Jesse Shafroth · John Klenk · Trinity Medina",
-      "shots": [],
       "note": ""
     },
     {
@@ -120,20 +109,6 @@
         "/media/stills/invalid-5.jpg"
       ],
       "credits": "<b>Created by</b> Jack Carlsen<br><b>Starring</b> Iago Lashua · Nick Wittcoff<br><b>Director of Photography</b> Jash Shah · <b>Sound</b> Jacob Gensheimer",
-      "shots": [
-        {
-          "img": "/media/projects/invalid-shot-1.jpg",
-          "lbl": "The Setup"
-        },
-        {
-          "img": "/media/projects/invalid-shot-2.jpg",
-          "lbl": "Going Viral"
-        },
-        {
-          "img": "/media/projects/invalid-shot-3.jpg",
-          "lbl": "Misspelling Detected"
-        }
-      ],
       "note": ""
     },
     {
@@ -163,7 +138,6 @@
       },
       "stills": [],
       "credits": "",
-      "shots": [],
       "note": ""
     }
   ]

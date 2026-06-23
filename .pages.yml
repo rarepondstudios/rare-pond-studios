@@ -85,13 +85,6 @@ content:
               - { name: ig, label: Instagram handle, type: string }
           - { name: stills, label: Stills gallery, type: image, list: true }
           - { name: credits, label: Credits (HTML allowed), type: text }
-          - name: shots
-            label: Highlight shots
-            type: object
-            list: true
-            fields:
-              - { name: img, label: Image, type: image }
-              - { name: lbl, label: Label, type: string }
           - { name: note, label: Note, type: string }
           - { name: blurb, label: Short blurb, type: text }
 
