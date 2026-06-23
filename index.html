@@ -64,12 +64,12 @@
 
   /* ===== carousel ===== */
   .carousel{position:relative;z-index:1;padding:clamp(34px,6vh,78px) 0 clamp(34px,5vh,70px)}
-  .stage{position:relative;height:calc(clamp(300px,34vw,476px) + 70px);margin:0 auto;perspective:1500px}
+  .stage{position:relative;height:calc(clamp(300px,36.5vw,531px) + 70px);margin:0 auto;perspective:1500px}
   .citem{position:absolute;top:50%;left:50%;cursor:pointer;transform:translate(-50%,-50%) translateX(var(--off,0)) rotateX(var(--tiltx,0deg)) rotateY(var(--tilty,0deg));transition:transform .5s cubic-bezier(.3,.7,.2,1),width .6s cubic-bezier(.5,0,.2,1),height .6s cubic-bezier(.5,0,.2,1),opacity .5s;will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;contain:layout}
   .citem.placeholder{cursor:default}
-  .citem.feat{--off:0;width:clamp(360px,60vw,860px);height:clamp(300px,34vw,476px);z-index:5;opacity:1}
-  .citem.sideL{--off:calc(-1 * min(46vw,615px));width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
-  .citem.sideR{--off:min(46vw,615px);width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
+  .citem.feat{--off:0;width:clamp(360px,66vw,960px);height:clamp(300px,36.5vw,531px);z-index:5;opacity:1}
+  .citem.sideL{--off:calc(-1 * min(44vw,608px));width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
+  .citem.sideR{--off:min(44vw,608px);width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
   .citem.hide{--off:0;width:150px;height:150px;opacity:0;z-index:1;pointer-events:none}
   .cglow{position:absolute;inset:-16px;border-radius:42%;z-index:0;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));-webkit-mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);filter:blur(6px);opacity:.2;transition:opacity .5s;animation:hue 6s linear infinite;animation-play-state:paused}
   .citem.feat .cglow{opacity:.32;border-radius:18%}
@@ -302,6 +302,7 @@
   .team-head p{color:#1f4e86;font-size:15px;margin:0 auto;max-width:540px}
   .team-list{position:relative;z-index:1;max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(44px,7vh,86px);padding:clamp(34px,6vh,72px) 0 90px}
   .member{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:clamp(28px,5vw,66px);align-items:center}
+  .member.flip{grid-template-columns:1fr minmax(0,300px)}
   .member.flip .m-photo{order:2}
   .member.flip .m-copy{order:1}
   .m-photo{display:flex;justify-content:center}
@@ -384,7 +385,7 @@
   <header class="site-header">
     <div class="hdr-bg"></div>
     <a class="hdr-logo" data-go="home"><img class="hdr-duck" id="hdrDuck" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
-    <nav class="nav"><a data-go="team">About&nbsp;Us</a><a data-go="projects" id="navProjects">Projects</a><a data-go="contact">Contact</a></nav>
+    <nav class="nav"><a data-go="team">Our&nbsp;Team</a><a data-go="projects" id="navProjects">Projects</a><a data-go="contact">Contact</a></nav>
     <div class="socials" id="socialsHost"></div>
   </header>
 
@@ -451,7 +452,7 @@
     <div class="footer-logo"><img class="rpColor" alt="Rare Pond Studios"></div>
     <div class="tag">Let's Make Something Amazing...</div>
     <div class="fsoc" data-socials></div>
-    <div class="flinks"><a data-go="team">About</a><a data-go="projects">Projects</a><a data-go="contact">Contact</a></div>
+    <div class="flinks"><a data-go="team">Our Team</a><a data-go="projects">Projects</a><a data-go="contact">Contact</a></div>
     <div class="copy"><a href="https://rarepond.com" target="_blank" rel="noopener">rarepond.com</a> · © Rare Pond Studios 2026</div>
   </template>
 
