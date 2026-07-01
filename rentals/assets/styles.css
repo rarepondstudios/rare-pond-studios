@@ -1,15 +1,15 @@
-:root{--header-h:82px}
+:root{--header-h:86px}
 *{box-sizing:border-box}
 html{overflow-x:hidden}
 body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#eaf3ff;background:linear-gradient(180deg,#2f72b8 0%,#256199 16%,#1d5089 40%,#183f72 72%,#123056 100%);background-attachment:fixed;min-height:100vh;overflow-x:hidden}
 .wrap{max-width:1180px;margin:0 auto;padding:calc(var(--header-h) + 40px) 22px 0}
 .site-header{position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:300;display:flex;align-items:center;gap:18px;padding:0 clamp(16px,4vw,46px)}
-.hdr-bg{position:absolute;left:0;right:0;top:0;height:168px;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.92) 34%,rgba(255,255,255,.6) 64%,rgba(255,255,255,0) 100%);-webkit-mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%);mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%)}
+.hdr-bg{position:absolute;left:0;right:0;top:0;height:170px;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.92) 34%,rgba(255,255,255,.6) 64%,rgba(255,255,255,0) 100%);-webkit-mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%);mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%)}
 .hdr-logo{display:flex;align-items:center;gap:12px;cursor:pointer;text-decoration:none}
-.hdr-logo img{height:56px;width:auto;filter:drop-shadow(0 3px 8px rgba(10,30,70,.2))}
+.hdr-logo img{height:60px;width:auto;filter:drop-shadow(0 3px 8px rgba(10,30,70,.2))}
 .brandname{display:flex;flex-direction:column;justify-content:center;line-height:.9}
-.bn-rare{font-family:"Kaushan Script",cursive;font-size:36px;color:#2f57a6;margin-bottom:2px}
-.bn-sub{font-family:"Heebo",sans-serif;font-weight:700;font-size:14px;letter-spacing:.36em;color:#5e7bab;text-transform:uppercase;padding-left:3px}
+.bn-rare{font-family:"Kaushan Script",cursive;font-size:38px;color:#2f57a6;margin-bottom:2px}
+.bn-sub{font-family:"Heebo",sans-serif;font-weight:700;font-size:15px;letter-spacing:.38em;color:#5e7bab;text-transform:uppercase;padding-left:3px}
 .hnav{display:flex;gap:6px;margin-left:16px}
 .hnav a{padding:9px 15px;border-radius:50px;font-weight:700;font-size:14.5px;color:#13325e;text-decoration:none;transition:.18s;white-space:nowrap;cursor:pointer}
 .hnav a:hover{background:rgba(40,95,180,.12);color:#0b59c4}
@@ -21,7 +21,7 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .hsoc{display:flex;gap:9px}
 .hsoc a{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#16386b;box-shadow:0 3px 10px rgba(10,30,70,.18);transition:.18s}
 .hsoc a:hover{transform:translateY(-2px);color:#fff;background:#1f6fd0}.hsoc svg{width:18px;height:18px;fill:currentColor}
-@media(max-width:900px){.hnav a{padding:8px 10px;font-size:13px}.brandname{display:none}.hsoc a{width:33px;height:33px}.xsite{padding:7px 11px;font-size:13px}}@media(max-width:760px){.hnav{display:none}}@media(max-width:600px){.fab{right:14px;bottom:14px;padding:11px 15px;font-size:14px}.fab .badge{min-width:20px;height:20px;font-size:12px}.panel{padding-bottom:84px}.home{padding-bottom:90px}.home::before{height:300px}}
+@media(max-width:900px){.hnav a{padding:8px 10px;font-size:13px}.brandname{display:none}.hsoc a{width:33px;height:33px}.xsite{padding:7px 11px;font-size:13px}}@media(max-width:760px){.hnav{display:none}}@media(max-width:600px){.hdr-logo img{height:50px}.fab{right:14px;bottom:14px;padding:11px 15px;font-size:14px}.fab .badge{min-width:20px;height:20px;font-size:12px}.panel{padding-bottom:84px}.home{padding-bottom:90px}.home::before{height:300px}}
 .tabs{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px;position:relative;z-index:3}
 .tab{padding:9px 16px;border-radius:12px 12px 0 0;font-size:14.5px;font-weight:700;cursor:pointer;color:#dbe9fb;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.14);border-bottom:none;display:flex;gap:7px;align-items:center;transition:box-shadow .2s,background .2s,color .2s}
 .tab svg{width:17px;height:17px}
