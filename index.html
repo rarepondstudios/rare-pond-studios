@@ -45,6 +45,14 @@
   .socials a{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#16386b;box-shadow:0 3px 10px rgba(10,30,70,.18);transition:.18s}
   .socials a:hover{transform:translateY(-2px);color:#fff;background:#1f6fd0}
   .socials svg{width:19px;height:19px;fill:currentColor}
+  .hright2{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .hright2 .socials{margin-left:0}
+  .xsite{display:flex;align-items:center;gap:6px;padding:8px 15px;border-radius:50px;font-weight:700;font-size:14px;color:#13325e;text-decoration:none;border:1px solid rgba(40,95,180,.32);background:rgba(255,255,255,.55);transition:.18s;cursor:pointer;white-space:nowrap}
+  .xsite .xarrow{font-size:19px;line-height:1;transition:.2s;color:#2f6cb0}
+  .xsite:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
+  .xsite:hover .xarrow{color:#0b59c4;filter:drop-shadow(0 0 6px rgba(31,111,208,.95));transform:translateX(4px)}
+  @media(max-width:780px){.xsite{padding:7px 11px;font-size:13px}}
+  @media(max-width:560px){.hright2 .socials{display:none}}
   @media(max-width:780px){.nav a{padding:8px 10px;font-size:13px}.brandname{display:none}.socials a{width:34px;height:34px}}
 
   /* ===== depth sections ===== */
@@ -383,8 +391,8 @@
   <header class="site-header">
     <div class="hdr-bg"></div>
     <a class="hdr-logo" data-go="home"><img class="hdr-duck" id="hdrDuck" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
-    <nav class="nav"><a data-go="team">Our&nbsp;Team</a><a data-go="projects" id="navProjects">Projects</a><a href="/rentals">Rentals</a><a data-go="contact">Contact</a></nav>
-    <div class="socials" id="socialsHost"></div>
+    <nav class="nav"><a data-go="team">Our&nbsp;Team</a><a data-go="projects" id="navProjects">Projects</a><a data-go="contact">Contact</a></nav>
+    <div class="hright2"><a class="xsite" href="/rentals" title="Go to the Rare Pond Rentals site">Rentals&nbsp;<span class="xarrow">&rarr;</span></a><div class="socials" id="socialsHost"></div></div>
   </header>
 
   <div id="view-home" class="view">
@@ -450,7 +458,7 @@
     <div class="footer-logo"><img class="rpColor" alt="Rare Pond Studios"></div>
     <div class="tag">Let's Make Something Amazing...</div>
     <div class="fsoc" data-socials></div>
-    <div class="flinks"><a data-go="team">Our Team</a><a data-go="projects">Projects</a><a data-go="contact">Contact</a></div>
+    <div class="flinks"><a data-go="team">Our Team</a><a data-go="projects">Projects</a><a href="/rentals">Rentals</a><a data-go="contact">Contact</a></div>
     <div class="copy"><a href="https://rarepond.com" target="_blank" rel="noopener">rarepond.com</a> · © Rare Pond Studios 2026</div>
   </template>
 
@@ -653,6 +661,8 @@ function showView(name,scrollTo){
 }
 function go(dest){if(currentOpen)closeUniverse(currentOpen);if(dest==='home')showView('home');else if(dest==='projects')showView('projects');else if(dest==='team')showView('team');else if(dest==='about')showView('home','#about');else if(dest==='contact')showView('home','#contact');}
 document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(a){e.preventDefault();go(a.getAttribute('data-go'));}});
+function routeHash(){var h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about')go(h);}
+window.addEventListener('hashchange',routeHash);routeHash();
 
 }
 __main().catch(e=>console.error("init error",e));</script>
