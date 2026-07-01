@@ -287,3 +287,4 @@ async function reqSend(){
 document.getElementById('reqpop').onclick=e=>{if(e.target===document.getElementById('reqpop'))closeReq();};
 (function(){var SEL='.browse,.crewsend,.add,.dpadd,.crewbtn';document.addEventListener('pointermove',function(e){var b=e.target.closest(SEL);if(!b)return;var r=b.getBoundingClientRect();var px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;b.style.setProperty('--bty',((px-.5)*9).toFixed(2)+'deg');b.style.setProperty('--btx',((.5-py)*9).toFixed(2)+'deg');});document.addEventListener('pointerout',function(e){var b=e.target.closest(SEL);if(b){b.style.setProperty('--btx','0deg');b.style.setProperty('--bty','0deg');}});})();
 render();uc();
+(function(){var hl=document.getElementById('rpHome');if(hl)hl.addEventListener('click',function(e){e.preventDefault();active='Home';q='';render();window.scrollTo(0,0);});})();
