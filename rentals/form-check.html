@@ -1,0 +1,63 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Form Health Check — Rare Pond Rentals</title>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#0f2947;color:#eaf3ff;padding:26px;line-height:1.5}
+h1{font-size:20px;margin:0 0 4px}p.sub{color:#bcd9f7;font-size:13px;margin:0 0 18px;max-width:680px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+input{padding:10px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:14px;min-width:320px}
+button{padding:10px 18px;border-radius:9px;border:0;font-weight:800;cursor:pointer;background:linear-gradient(90deg,#5aa0ff,#8f7bff);color:#fff;font-size:14px}
+.card{background:#143562;border:1px solid rgba(255,255,255,.14);border-radius:13px;padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:16px;margin:0 0 10px}
+.ln{font-size:13.5px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:9px;align-items:flex-start}
+.ok{color:#8ff0c4}.warn{color:#ffce88}.err{color:#ff9a9a}.mut{color:#9fb6d6}
+code{background:rgba(255,255,255,.1);padding:1px 6px;border-radius:5px;font-size:12.5px}
+.legend{font-size:12px;color:#9fb6d6;margin-top:8px}
+</style></head><body>
+<h1>Form Health Check</h1>
+<p class="sub">Confirms every field the website sends is actually mapped to a live Jotform field, and flags any Jotform field the site isn't sending yet. Your API key is used only in this browser (nothing is stored or uploaded). Get a key at Jotform → Account → API → Create New Key (read access is enough).</p>
+<div class="row">
+  <input id="key" type="password" placeholder="Paste your Jotform API key">
+  <button id="run">Run check</button>
+</div>
+<div id="out"></div>
+<script src="assets/form-config.js"></script>
+<script>
+const out=document.getElementById('out');
+function line(cls,html){return '<div class="ln '+cls+'"><span>'+({ok:'✅',warn:'⚠️',err:'⛔',mut:'•'}[cls]||'')+'</span><span>'+html+'</span></div>';}
+async function checkForm(name,cfg,key){
+  let html='<div class="card"><h2>'+name+' — <code>formId: '+(cfg.formId||'(none)')+'</code></h2>';
+  if(!cfg.formId||/PASTE|XXXX/i.test(cfg.formId)){html+=line('warn','No form ID set yet. Paste the Jotform form ID into <code>assets/form-config.js</code>.')+'</div>';return html;}
+  let live;
+  try{
+    const r=await fetch('https://api.jotform.com/form/'+cfg.formId+'/questions?apiKey='+encodeURIComponent(key));
+    const j=await r.json();
+    if(j.responseCode!==200){html+=line('err','Jotform API error: '+(j.message||j.responseCode))+'</div>';return html;}
+    live=j.content;
+  }catch(e){html+=line('err','Could not reach Jotform API: '+e.message)+'</div>';return html;}
+  // Build the set of real input names:  q<qid>_<uniqueName>
+  const liveNames={};Object.keys(live).forEach(qid=>{const q=live[qid];if(q.name)liveNames['q'+qid+'_'+q.name]={text:q.text||q.name,type:q.type};});
+  const mapped=new Set(Object.values(cfg.fields||{}));
+  // 1) each mapped field must exist live
+  let allGood=true;
+  Object.keys(cfg.fields||{}).forEach(k=>{const inp=cfg.fields[k];
+    if(liveNames[inp]) html+=line('ok','<code>'+k+'</code> → <code>'+inp+'</code>  ("'+liveNames[inp].text+'")');
+    else {allGood=false;html+=line('err','<code>'+k+'</code> maps to <code>'+inp+'</code> but that field does NOT exist in Jotform. Fix the name in form-config.js.');}
+  });
+  // 2) each render key must have a fields entry
+  (cfg.render||[]).forEach(f=>{if(!(f.key in (cfg.fields||{}))){allGood=false;html+=line('err','Render field <code>'+f.key+'</code> has no mapping in <code>fields</code>. Add <code>'+f.key+': "qN_'+f.key+'"</code>.');}});
+  // 3) live fields not sent by the site
+  Object.keys(liveNames).forEach(inp=>{if(!mapped.has(inp)&&!/submit|button|head|control_head|control_button|typeA|honeypot/i.test(liveNames[inp].type)){html+=line('warn','Jotform has <code>'+inp+'</code> ("'+liveNames[inp].text+'") that the site is NOT sending. Add it to <code>fields</code> (and to <code>render</code> if it should show on the site).');}});
+  if(allGood)html+=line('ok','<b>All mapped fields exist and are wired correctly.</b>');
+  html+='<div class="legend">✅ mapped &amp; live · ⚠️ exists in Jotform but not sent by the site · ⛔ broken mapping (fix required)</div></div>';
+  return html;
+}
+document.getElementById('run').onclick=async()=>{
+  const key=document.getElementById('key').value.trim();
+  if(!key){out.innerHTML=line('warn','Paste your Jotform API key first.');return;}
+  out.innerHTML='<div class="mut">Checking…</div>';
+  let html='';
+  for(const [id,cfg] of Object.entries(window.FORMS||{})) html+=await checkForm(id,cfg,key);
+  out.innerHTML=html||line('warn','No forms found in form-config.js');
+};
+</script></body></html>
