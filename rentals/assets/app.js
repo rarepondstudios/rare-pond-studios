@@ -62,7 +62,7 @@ function card(p,col){
  const inC=cart[p._id];
  const thumb=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  const avq=p.qty>1?'<span class="avq">'+p.qty+' available</span>':'';
- const kit=p.contents.length?('<div class="kit" data-k="'+p._id+'">View kit contents ('+p.contents.length+')</div><div class="kitlist" id="kl'+p._id+'">'+p.contents.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+'</span>'+(c.v?'<span class="v">'+esc(c.v)+'</span>':'')+'</div>').join('')+'</div>'):'';
+ const kit=p.contents.length?('<div class="kit" data-k="'+p._id+'">View kit contents ('+p.contents.length+')</div><div class="kitlist" id="kl'+p._id+'">'+p.contents.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+'</span></div>').join('')+'</div>'):'';
  const ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add to cart</button>');
  return '<div class="card" data-open="'+p._id+'" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+avq+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+kit
  +'<div class="row2">'+priceBlk(p,false)+(p.val?'<span class="rv">value '+esc(p.val)+'</span>':'')+'</div>'
@@ -80,7 +80,7 @@ function refresh(){if(active!=='Home')renderResults();uc();if(dpOpen!=null)openD
 function openDP(id){const p=RENTALS[id];dpOpen=id;
  const grps=[...new Set(p.contents.map(c=>c.g))];const multiG=grps.length>1;
  let kh='';if(p.contents.length){kh='<div class="kh">Kit contents — '+p.contents.length+' items</div>';
-  grps.forEach(g=>{if(multiG)kh+='<div class="ggrp">'+esc(g)+'</div>';kh+='<div class="kgrid">'+p.contents.filter(c=>c.g===g).map(c=>'<div class="kc">'+(c.img?'<img src="'+c.img+'" loading="lazy" decoding="async">':catIcon(p.cat,'ic'))+'<div><div class="kl">'+esc(c.l)+'</div>'+(c.v?'<div class="kv">'+esc(c.v)+'</div>':'')+'</div></div>').join('')+'</div>';});}
+  grps.forEach(g=>{if(multiG)kh+='<div class="ggrp">'+esc(g)+'</div>';kh+='<div class="kgrid">'+p.contents.filter(c=>c.g===g).map(c=>'<div class="kc">'+(c.img?'<img src="'+c.img+'" loading="lazy" decoding="async">':catIcon(p.cat,'ic'))+'<div><div class="kl">'+esc(c.l)+'</div>'+(c.v?'<div class="kv">Replacement value '+esc(c.v)+'</div>':'')+'</div></div>').join('')+'</div>';});}
  const hero=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');const inC=cart[id];
  const ctl=inC?('<div class="qty" style="max-width:220px;margin:0"><button data-dm="'+id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-dp="'+id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="dpadd" data-da="'+id+'">Add to cart</button>');
  $('dp').innerHTML='<div class="dpc"><button class="dpx" id="dpx">&times;</button><div class="dphero">'+hero+'</div><div class="dpbody">'
