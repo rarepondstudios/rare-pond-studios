@@ -262,6 +262,12 @@
   .lightbox img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.7);cursor:default}
   .lb-close{position:absolute;top:20px;right:24px;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(12,22,46,.72);color:#fff;font-size:20px;cursor:pointer;display:grid;place-items:center;transition:.18s;z-index:2}
   .lb-close:hover{background:rgba(40,70,120,.85);transform:scale(1.08)}
+  .lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:56px;height:56px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(12,22,46,.5);color:#fff;font-size:30px;line-height:1;cursor:pointer;display:grid;place-items:center;transition:background .18s,opacity .18s,transform .18s;z-index:2;opacity:.7;padding-bottom:3px}
+  .lb-nav:hover{background:rgba(40,70,120,.85);opacity:1;transform:translateY(-50%) scale(1.08)}
+  .lb-prev{left:clamp(8px,3vw,32px)}
+  .lb-next{right:clamp(8px,3vw,32px)}
+  .lightbox.single .lb-nav{display:none}
+  @media(max-width:600px){.lb-nav{width:44px;height:44px;font-size:24px}}
   /* ===== mobile / small screens ===== */
   @media(max-width:640px){
     .hdr-logo .hdr-duck{height:46px}
@@ -523,7 +529,7 @@ function makeGridBubble(p,i){
   bubble.addEventListener('pointermove',e=>{if(!INTERACTIVE)return;const r=bubble.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){bubble.style.setProperty('--mx',(px*100).toFixed(1)+'%');bubble.style.setProperty('--my',(py*100).toFixed(1)+'%');}const tm=7;bubble.style.setProperty('--tilty',((px-.5)*tm*2).toFixed(2)+'deg');bubble.style.setProperty('--tiltx',((.5-py)*tm*2).toFixed(2)+'deg');});
   bubble.addEventListener('pointerleave',()=>{if(INTERACTIVE){bubble.style.setProperty('--mx','73%');bubble.style.setProperty('--my','26%');bubble.style.setProperty('--tiltx','0deg');bubble.style.setProperty('--tilty','0deg');}});
   if(!p.placeholder){
-    const open=()=>{const r=bubble.getBoundingClientRect();openUniverse(p.key,r.left+r.width/2,r.top+r.height/2);};
+    const open=()=>{const r=bubble.getBoundingClientRect();openProject(p.key,r.left+r.width/2,r.top+r.height/2);};
     bubble.addEventListener('click',open);bubble.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
   }
   return bubble;
@@ -570,7 +576,7 @@ const citems=CAROUSEL.map((p,i)=>{
   el.innerHTML=`<div class="cglow"></div><div class="cbub">${side}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
   el.addEventListener('pointermove',e=>{if(INTERACTIVE&&el.classList.contains('feat')){const r=el.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){el.style.setProperty('--mx',(px*100).toFixed(1)+'%');el.style.setProperty('--my',(py*100).toFixed(1)+'%');}el.style.setProperty('--tilty',((px-.5)*9).toFixed(2)+'deg');el.style.setProperty('--tiltx',((.5-py)*7).toFixed(2)+'deg');}});
   el.addEventListener('pointerleave',()=>{if(INTERACTIVE){el.style.setProperty('--mx','80%');el.style.setProperty('--my','16%');el.style.setProperty('--tiltx','0deg');el.style.setProperty('--tilty','0deg');}});
-  el.addEventListener('click',()=>{if(dragFlag)return;if(el.classList.contains('feat')){const r=el.getBoundingClientRect();openUniverse(p.key,r.left+r.width/2,r.top+r.height/2);}else setActive(i);});
+  el.addEventListener('click',()=>{if(dragFlag)return;if(el.classList.contains('feat')){const r=el.getBoundingClientRect();openProject(p.key,r.left+r.width/2,r.top+r.height/2);}else setActive(i);});
   stage.appendChild(el);return el;
 });
 CAROUSEL.forEach((p,i)=>{const b=document.createElement('button');b.setAttribute('aria-label',p.title);b.addEventListener('click',()=>setActive(i));cdots.appendChild(b);});
@@ -610,11 +616,14 @@ if(teamList){TEAM.forEach((m,i)=>{
   teamList.appendChild(row);
 });}
 const universes=document.getElementById('universes');
-const lightbox=document.createElement('div');lightbox.className='lightbox';lightbox.innerHTML='<button class="lb-close" aria-label="Close">✕</button><img alt="">';document.body.appendChild(lightbox);
+const lightbox=document.createElement('div');lightbox.className='lightbox';lightbox.innerHTML='<button class="lb-close" aria-label="Close">✕</button><button class="lb-nav lb-prev" type="button" aria-label="Previous image">‹</button><img alt=""><button class="lb-nav lb-next" type="button" aria-label="Next image">›</button>';document.body.appendChild(lightbox);
 const lbImg=lightbox.querySelector('img');
-function closeLB(){lightbox.classList.remove('open');lbImg.removeAttribute('src');}
-lightbox.addEventListener('click',e=>{if(e.target===lightbox||e.target.classList.contains('lb-close'))closeLB();});
-document.addEventListener('click',e=>{const b=e.target.closest('.still');if(b){lbImg.src=b.dataset.full;lightbox.classList.add('open');}});
+let lbList=[],lbIdx=0;
+function lbShow(i){if(!lbList.length)return;lbIdx=((i%lbList.length)+lbList.length)%lbList.length;lbImg.src=lbList[lbIdx];}
+function openLB(btn){const grid=btn.closest('.stills-grid');lbList=[...(grid?grid.querySelectorAll('.still'):[btn])].map(b=>b.dataset.full);lbIdx=Math.max(0,lbList.indexOf(btn.dataset.full));lightbox.classList.toggle('single',lbList.length<2);lbImg.src=lbList[lbIdx];lightbox.classList.add('open');}
+function closeLB(){lightbox.classList.remove('open');lbImg.removeAttribute('src');lbList=[];}
+lightbox.addEventListener('click',e=>{const nav=e.target.closest('.lb-nav');if(nav){e.stopPropagation();lbShow(lbIdx+(nav.classList.contains('lb-next')?1:-1));return;}if(e.target===lightbox||e.target.classList.contains('lb-close'))closeLB();});
+document.addEventListener('click',e=>{const b=e.target.closest('.still');if(b)openLB(b);});
 document.addEventListener('click',e=>{const f=e.target.closest('.yt-facade');if(f){const id=f.dataset.id;const ifr=document.createElement('iframe');ifr.src='https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0&playsinline=1';ifr.title='Watch on YouTube';ifr.setAttribute('allow','accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share');ifr.setAttribute('allowfullscreen','');ifr.setAttribute('referrerpolicy','strict-origin-when-cross-origin');f.replaceWith(ifr);}});
 function renderWatch(w){
   if(!w)return '';
@@ -630,11 +639,12 @@ function buildUniverse(key){
   const watchHTML=renderWatch(s.watch);
   const stillsHTML=(s.stills&&s.stills.length)?`<div class="u-stills"><h3 class="stills-h">Stills</h3><div class="stills-grid">${s.stills.map(src=>`<button class="still" type="button" data-full="${src}"><img src="${src}" loading="lazy" alt=""></button>`).join('')}</div></div>`:'';
   sec.innerHTML=`<div class="u-bg" style="background-image:url('${s.bg||SITE.water}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${s.eyebrow}</span></div><div class="u-hero"><div class="u-kicker">${s.kicker}</div>${titleEl}<div class="u-tagline">${s.tagline}</div><p class="u-logline">${s.logline}</p><div class="u-meta">${s.chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${s.credits}</div></div>${stillsHTML}</div>`;
-  sec.querySelector('.back').addEventListener('click',()=>closeUniverse(sec));universes.appendChild(sec);return sec;
+  sec.querySelector('.back').addEventListener('click',()=>history.back());universes.appendChild(sec);return sec;
 }
 const built={};let currentOpen=null;
 function openUniverse(key,ox,oy){
   if(!SECTIONS[key])return;
+  if(ox==null){ox=innerWidth/2;oy=innerHeight/2;}
   const sec=built[key]||(built[key]=buildUniverse(key));
   sec.querySelector('.back').textContent=(activeView==='projects')?'‹ Back to projects':'‹ Back to the pond';
   sec.style.setProperty('--ox',ox+'px');sec.style.setProperty('--oy',oy+'px');
@@ -649,7 +659,7 @@ function closeUniverse(sec){
   const done=(e)=>{if(e.target!==sec||(e.propertyName!=='clip-path'&&e.propertyName!=='-webkit-clip-path'))return;sec.style.visibility='hidden';sec.classList.remove('closing','flash','flash-out');sec.removeEventListener('transitionend',done);};
   sec.addEventListener('transitionend',done);setTimeout(()=>{if(sec.style.visibility!=='hidden'){sec.style.visibility='hidden';sec.classList.remove('closing','flash','flash-out');}},800);
 }
-addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(lightbox.classList.contains('open')){closeLB();return;}if(currentOpen)closeUniverse(currentOpen);});
+addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){if(e.key==='Escape')closeLB();else if(e.key==='ArrowRight')lbShow(lbIdx+1);else if(e.key==='ArrowLeft')lbShow(lbIdx-1);return;}if(e.key==='Escape'&&currentOpen)history.back();});
 
 /* router */
 let activeView='home';
@@ -659,10 +669,25 @@ function showView(name,scrollTo){
   document.getElementById('navProjects').classList.toggle('active',name==='projects');
   if(scrollTo){const t=document.querySelector(scrollTo);if(t){window.scrollTo(0,0);requestAnimationFrame(()=>t.scrollIntoView({behavior:'smooth'}));}}else window.scrollTo(0,0);
 }
-function go(dest){if(currentOpen)closeUniverse(currentOpen);if(dest==='home')showView('home');else if(dest==='projects')showView('projects');else if(dest==='team')showView('team');else if(dest==='about')showView('home','#about');else if(dest==='contact')showView('home','#contact');}
-document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(a){e.preventDefault();go(a.getAttribute('data-go'));}});
-function routeHash(){var h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about')go(h);}
-window.addEventListener('hashchange',routeHash);routeHash();
+/* slug <-> key (auto from title; optional "slug" in projects.json overrides) */
+const slugify=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
+const SLUG2KEY={},KEY2SLUG={};
+__projects.filter(p=>!p.placeholder).forEach(p=>{const sl=p.slug||slugify(p.title);SLUG2KEY[sl]=p.key;KEY2SLUG[p.key]=sl;});
+function pathForDest(d){return d==='team'?'/team':d==='projects'?'/projects':'/';}
+/* render app state for a path (no history writes) */
+function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]){openUniverse(SLUG2KEY[seg]);return;}if(currentOpen)closeUniverse(currentOpen);if(seg==='team')showView('team');else if(seg==='projects')showView('projects');else showView('home');}
+/* push a URL then render (in-page nav clicks) */
+function nav(path){if(location.pathname!==path)history.pushState({},'',path);renderPath(path);}
+/* open a project from a bubble/card click — keeps the zoom-from-bubble animation */
+function openProject(key,ox,oy){const sl='/'+KEY2SLUG[key];if(location.pathname!==sl)history.pushState({},'',sl);openUniverse(key,ox,oy);}
+document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();const d=a.getAttribute('data-go');if(d==='contact'||d==='about'){nav('/');showView('home','#'+d);}else nav(pathForDest(d));});
+/* browser back / forward drives the view (this is how the universe closes on Back) */
+addEventListener('popstate',()=>renderPath(location.pathname));
+/* hash links from other pages (rentals): /#team /#projects /#contact /#about */
+function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if(currentOpen)closeUniverse(currentOpen);if(h==='team')showView('team');else if(h==='projects')showView('projects');else if(h==='contact')showView('home','#contact');else if(h==='about')showView('home','#about');}
+addEventListener('hashchange',routeHash);
+/* initial route */
+(function initRoute(){const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
 
 }
 __main().catch(e=>console.error("init error",e));</script>

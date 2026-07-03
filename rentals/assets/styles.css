@@ -113,8 +113,8 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .calsum{margin-top:10px;text-align:center;font-size:13.5px;color:#dceaff}.dpsub{margin:-6px 0 12px;font-size:12.5px;color:#bcd9f7}.calnote{margin-top:9px;text-align:center;font-size:12px;color:#bcd9f7;line-height:1.55}.calnote b{color:#eaf3ff}
 .calacts{display:flex;gap:10px;margin-top:14px}.calacts button{flex:1;padding:11px;border-radius:11px;border:0;font-weight:700;cursor:pointer}
 .calacts .ap{background:linear-gradient(90deg,#5aa0ff,#8f7bff);color:#fff}.calacts .cl{background:rgba(255,255,255,.14);color:#fff}
-.rfoot{position:relative;margin-top:70px;padding:64px clamp(18px,5vw,60px) 40px;text-align:center;overflow:hidden;background:linear-gradient(180deg,rgba(12,44,87,0) 0%,#0c2c57 42%,#06122b 100%)}
-.rfoot .caustics{position:absolute;left:0;right:0;bottom:0;height:90%;z-index:0;pointer-events:none;opacity:.42;background-size:cover;background-position:center bottom;-webkit-mask:linear-gradient(180deg,transparent 0%,#000 60%);mask:linear-gradient(180deg,transparent 0%,#000 60%)}
+.rfoot{position:relative;margin-top:32px;padding:190px clamp(18px,5vw,60px) 46px;text-align:center;overflow:hidden;background:linear-gradient(180deg,rgba(18,48,86,0) 0%,rgba(13,45,86,.5) 30%,#0c2c57 62%,#06122b 100%)}
+.rfoot .caustics{position:absolute;left:0;right:0;bottom:0;height:100%;z-index:0;pointer-events:none;opacity:.46;background-size:cover;background-position:center bottom;-webkit-mask:linear-gradient(180deg,transparent 0%,#000 58%);mask:linear-gradient(180deg,transparent 0%,#000 58%)}
 .rfoot .in{position:relative;z-index:1}
 .footer-logo img{width:150px;height:auto;margin:0 auto 6px;filter:drop-shadow(0 0 18px rgba(255,255,255,.3)) drop-shadow(0 8px 20px rgba(0,0,0,.5))}
 .rfoot .tag{font-size:clamp(18px,2.6vw,26px);font-weight:800;margin:8px 0 18px;color:#eaf2ff}
