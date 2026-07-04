@@ -295,3 +295,5 @@ async function loadCatalog(){var u=SB_URL+"/rest/v1/items?select=*&order=sort_or
 RENTALS.forEach(function(p,i){p._id=i;});render();uc();
 (async function(){try{var d=await loadCatalog();if(d&&d.length){RENTALS=d;RENTALS.forEach(function(p,i){p._id=i;});render();uc();console.log("[RP Rentals] catalog refreshed from Supabase: "+RENTALS.length+" items");}}catch(e){console.warn("[RP Rentals] keeping built-in catalog (Supabase load failed): "+(e&&e.message));}})();
 (function(){var hl=document.getElementById('rpHome');if(hl)hl.addEventListener('click',function(e){e.preventDefault();active='Home';q='';render();window.scrollTo(0,0);});})();
+/* Deep link: /rentals#crew opens the crew inquiry directly (e.g. from the studio Our Team page). */
+(function(){if((location.hash||'').toLowerCase()==='#crew'){try{history.replaceState(null,'',location.pathname);}catch(e){}active='Home';render();uc();openCrew();}})();

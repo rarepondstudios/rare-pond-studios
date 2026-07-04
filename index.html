@@ -209,6 +209,15 @@
   footer .flinks{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;font-size:13.5px}
   footer .flinks a{color:#a7c4e8;text-decoration:none;font-weight:600;cursor:pointer}footer .flinks a:hover{color:#fff}
   footer .copy{font-size:12px;color:#7e9cc6}footer .copy a{color:#9bb8e0;text-decoration:none}
+  /* Footer on a light-background page: reverse text to dark for legibility (dark pages keep the styles above). */
+  footer.site-footer.footer-light .tag{color:#0c2c57}
+  footer.site-footer.footer-light .footer-logo img{filter:drop-shadow(0 8px 20px rgba(12,44,87,.28))}
+  footer.site-footer.footer-light .fsoc a{background:rgba(12,44,87,.07);color:#1f5bc0;border-color:rgba(12,44,87,.2)}
+  footer.site-footer.footer-light .fsoc a:hover{background:#1f6fd0;color:#fff}
+  footer.site-footer.footer-light .flinks a{color:#1a4b86}
+  footer.site-footer.footer-light .flinks a:hover{color:#0c2c57}
+  footer.site-footer.footer-light .copy{color:#4a6890}
+  footer.site-footer.footer-light .copy a{color:#1f6fd0}
 
   /* ===== universe ===== */
   .universe{position:fixed;inset:0;z-index:100;visibility:hidden;overflow-y:auto;clip-path:circle(0px at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(0px at var(--ox,50%) var(--oy,50%));transition:clip-path .6s cubic-bezier(.6,0,.2,1),-webkit-clip-path .6s cubic-bezier(.6,0,.2,1);background:#05101f}
@@ -314,7 +323,10 @@
   .team-head .ey{font-size:12.5px;letter-spacing:.24em;text-transform:uppercase;color:#0e3e7a;font-weight:700}
   .team-head h1{font-size:clamp(30px,4.4vw,52px);margin:.1em 0 .14em;font-weight:800;color:#0b2c55;letter-spacing:-.01em}
   .team-head p{color:#1f4e86;font-size:15px;margin:0 auto;max-width:540px}
-  .team-list{position:relative;z-index:1;max-width:960px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(34px,5vh,58px) clamp(30px,5vw,72px);padding:clamp(30px,5vh,60px) 0 84px}
+  .team-list{position:relative;z-index:1;max-width:960px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(34px,5vh,58px) clamp(30px,5vw,72px);padding:clamp(30px,5vh,60px) 0 40px}
+  .team-crew{position:relative;z-index:1;max-width:680px;margin:0 auto;text-align:center;background:rgba(255,255,255,.55);border:1px solid rgba(15,62,122,.16);border-radius:22px;padding:clamp(24px,4vw,38px);box-shadow:0 18px 44px rgba(12,44,87,.12)}
+  .team-crew .crewq{color:#123a63;font-size:15.5px;line-height:1.6;margin:0 auto;max-width:560px}
+  .team-crew .learn-btn{margin-top:20px}
   .member{display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px}
   .member.flip .m-photo,.member.flip .m-copy{order:0}
   .m-photo{display:flex;justify-content:center}
@@ -452,10 +464,14 @@
   </div>
 
   <div id="view-team" class="view" style="display:none">
-    <section id="team-page">
+    <section id="team-page" data-scene="light">
       <div class="surface-rays"></div>
       <div class="team-head"><div class="ey">Who we are</div><h1>Meet Rare Pond</h1><p>The people building these little universes.</p></div>
       <div class="team-list" id="teamList"></div>
+      <div class="team-crew">
+        <p class="crewq">Hiring us to crew your shoot? We can fold a basic gear package into our day rate &mdash; the exact kit depends on which department you bring us in for.</p>
+        <a class="learn-btn" href="/rentals#crew">Ask about crewing your shoot &rarr;</a>
+      </div>
       <footer class="site-footer" data-footer></footer>
     </section>
   </div>
@@ -507,6 +523,7 @@ document.getElementById('hdrDuck').src=SITE.logos.duckMark;
 document.querySelectorAll('.rpWater').forEach(d=>d.style.backgroundImage=`url("${SITE.water}")`);
 document.getElementById('socialsHost').innerHTML=socialHTML();
 document.querySelectorAll('[data-footer]').forEach(f=>f.appendChild(document.getElementById('footerTpl').content.cloneNode(true)));
+document.querySelectorAll('[data-scene="light"] [data-footer]').forEach(f=>f.classList.add('footer-light'));
 document.querySelectorAll('[data-socials]').forEach(s=>s.innerHTML=socialHTML());
 document.querySelectorAll('.rpColor').forEach(i=>i.src=SITE.logos.color);
 
