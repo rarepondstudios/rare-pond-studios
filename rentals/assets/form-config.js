@@ -26,14 +26,17 @@ window.FORMS = {
     fields: {
       firstName: "q7_firstName",
       lastName:  "q8_lastName",
-      email:     "q9_email",
-      film:      "q10_film",
-      insurance: "q11_insurance",
+      email:     "q9_contactEmail",
+      film:      "q10_nameOf",
+      insurance: "q11_doYou",
       // hidden fields the SITE fills automatically from cart + calendar:
       gear:      "q12_gear",
-      dates:     "q13_dates",
-      days:      "q14_days",
-      total:     "q15_total"
+      dates:     "q13_rentalDates",
+      days:      "q14_rentalDays",
+      total:     "q15_estimatedTotal",
+      // Real Date field (q16_date) for the Google Calendar integration; the site
+      // posts q16_date[month]/[day]/[year] from the shoot start date.
+      shootDateField: "q16_date"
     },
     // Visible questions, rendered in the site's own style.
     // Add a question: add an entry here + a matching line in `fields` above.
@@ -56,13 +59,13 @@ window.FORMS = {
     fields: {
       firstName: "q18_firstName",
       lastName:  "q19_lastName",
-      email:     "q20_email",
-      roles:     "q12_roles",
-      people:    "q13_assignedTo",
-      dates:     "q14_dates",
-      insurance: "q15_insurance",
+      email:     "q20_contactEmail",
+      roles:     "q12_rolesNeeded",
+      people:    "q13_handledBy",
+      dates:     "q14_shootDates",
+      insurance: "q15_doYou",
       budget:    "q16_budget",
-      notes:     "q17_notes"
+      notes:     "q17_aboutYour"
     }
   }
 };

@@ -565,7 +565,7 @@ document.querySelectorAll('[data-scene="light"] [data-footer]').forEach(f=>f.cla
     jack:{name:"Jack Carlsen",roles:"Cinematography · Gaffing · On-Set VFX",link:"https://jackcarlsen.com",img:tphoto('jack')},
     karina:{name:"Karina Salerno",roles:"Production Design · Costume",link:"https://www.instagram.com/karinayourfriend",img:tphoto('karina')}
   };
-  const CFG={formId:"261816743694064",fields:{firstName:"q18_firstName",lastName:"q19_lastName",email:"q20_email",roles:"q12_roles",people:"q13_assignedTo",dates:"q14_dates",insurance:"q15_insurance",budget:"q16_budget",notes:"q17_notes"}};
+  const CFG={formId:"261816743694064",fields:{firstName:"q18_firstName",lastName:"q19_lastName",email:"q20_contactEmail",roles:"q12_rolesNeeded",people:"q13_handledBy",dates:"q14_shootDates",insurance:"q15_doYou",budget:"q16_budget",notes:"q17_aboutYour"}};
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let isOpen=false,roles=[],first="",last="",email="",dates="",ins="",budget="",notes="";
   const pop=document.getElementById('crewpop'),g=id=>document.getElementById(id);

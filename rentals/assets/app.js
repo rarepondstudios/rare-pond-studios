@@ -263,7 +263,9 @@ function reqSubmitData(){
  if(F.gear)out[F.gear]=gear;
  if(F.dates)out[F.dates]=(D.s&&D.e)?fmtRange():'';
  if(F.days)out[F.days]=dd||'';
- if(F.total)out[F.total]=fmt(reqTotal());
+ if(F.total)out[F.total]=(Math.round(reqTotal()*100)/100).toFixed(2); // plain number for HubSpot deal amount
+ // Shoot start date as discrete Jotform date sub-fields (for the Google Calendar integration)
+ if(F.shootDateField&&D.s){var _m=String(D.s.getMonth()+1).padStart(2,'0'),_d=String(D.s.getDate()).padStart(2,'0'),_y=String(D.s.getFullYear());out[F.shootDateField+'[month]']=_m;out[F.shootDateField+'[day]']=_d;out[F.shootDateField+'[year]']=_y;}
  return out;
 }
 function jotConfigured(id){return id&&!/PASTE|XXXX/i.test(id);}
