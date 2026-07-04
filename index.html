@@ -218,6 +218,37 @@
   footer.site-footer.footer-light .flinks a:hover{color:#0c2c57}
   footer.site-footer.footer-light .copy{color:#4a6890}
   footer.site-footer.footer-light .copy a{color:#1f6fd0}
+  /* ===== crew inquiry modal (opens over the current page, closeable like a lightbox) ===== */
+  .crewpop{position:fixed;inset:0;z-index:400;display:none;place-items:center;overflow:auto;padding:40px 16px;background:rgba(4,12,30,.66)}
+  .crewpop.show{display:grid}
+  .crewbox{position:relative;width:min(560px,94vw);background:#15375f;border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:26px 28px 30px;box-shadow:0 30px 80px -20px rgba(0,0,0,.7);color:#eaf2ff}
+  .crewbox h2{margin:0 0 6px;font-size:24px;color:#fff;font-weight:800}
+  .crewpop .dpx{position:absolute;right:14px;top:14px;z-index:3;width:38px;height:38px;border-radius:50%;border:0;background:rgba(8,22,46,.66);color:#fff;font-size:22px;line-height:1;cursor:pointer}
+  .crewpop .dpx:hover{background:rgba(8,22,46,.92)}
+  .crewlede{color:#cfe0f5;font-size:14px;line-height:1.5;margin:0 0 4px}
+  .crewlab{font-size:12.5px;font-weight:700;color:#bcd9f7;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px}
+  .crewrow2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .crewroles{display:flex;flex-wrap:wrap;gap:8px}
+  .crole{padding:9px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#dbe9fb;font-weight:700;font-size:13.5px;cursor:pointer;transition:.15s;font-family:inherit}
+  .crole:hover{background:rgba(255,255,255,.16)}
+  .crole.on{background:rgba(143,123,255,.26);border-color:#8f7bff;color:#fff;box-shadow:0 0 16px -3px rgba(143,123,255,.8)}
+  .pcards{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .pcard{display:flex;gap:14px;align-items:center;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
+  .pcard img{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;border:2px solid rgba(143,123,255,.6)}
+  .pinfo .pname{font-size:16px;font-weight:800;color:#fff}
+  .pinfo .prole{font-size:12.5px;color:#bcd0ea;margin:1px 0 5px}
+  .plink{font-size:13px;color:#9fd0ff;font-weight:700;text-decoration:none}
+  .plink:hover{text-decoration:underline}
+  .crewin,.crewta{width:100%;box-sizing:border-box;padding:11px 13px;border-radius:11px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-family:inherit}
+  .crewin::placeholder,.crewta::placeholder{color:#c2d4ee}
+  .crewta{min-height:84px;resize:vertical}
+  .crewseg{display:flex;gap:8px}
+  .segb{padding:9px 24px;border-radius:10px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#dbe9fb;font-weight:700;font-size:14px;cursor:pointer;transition:.15s;font-family:inherit}
+  .segb:hover{background:rgba(255,255,255,.16)}
+  .segb.on{background:rgba(90,160,255,.26);border-color:#5aa0ff;color:#fff;box-shadow:0 0 14px -3px rgba(90,160,255,.8)}
+  .crewhint{font-weight:600;text-transform:none;letter-spacing:0;color:#9fb6d6;font-size:11px;margin-left:4px}
+  .crewsend{margin-top:20px;width:100%;padding:13px;border-radius:12px;border:0;font-weight:800;font-size:15px;cursor:pointer;background:linear-gradient(90deg,#5aa0ff,#8f7bff);color:#fff;transition:.15s;font-family:inherit}
+  .crewsend:hover{filter:brightness(1.07);box-shadow:0 12px 30px -8px rgba(90,140,255,.6)}
 
   /* ===== universe ===== */
   .universe{position:fixed;inset:0;z-index:100;visibility:hidden;overflow-y:auto;clip-path:circle(0px at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(0px at var(--ox,50%) var(--oy,50%));transition:clip-path .6s cubic-bezier(.6,0,.2,1),-webkit-clip-path .6s cubic-bezier(.6,0,.2,1);background:#05101f}
@@ -315,7 +346,7 @@
   .ig-follow{display:inline-flex;align-items:center;gap:9px;padding:11px 18px;border-radius:50px;background:linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7);color:#fff;font-weight:700;font-size:13.5px;text-decoration:none;box-shadow:0 8px 22px rgba(190,40,120,.4);transition:.18s}
   .ig-follow:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(190,40,120,.55)}
   .ig-follow svg{width:18px;height:18px;fill:currentColor;flex:0 0 auto}
-  .learn-btn{display:inline-flex;align-items:center;gap:8px;margin-top:24px;padding:13px 26px;border-radius:50px;background:linear-gradient(135deg,#2f74d6,#1f5bc0);color:#fff;font-weight:800;font-size:15px;text-decoration:none;cursor:pointer;box-shadow:0 10px 26px rgba(31,91,192,.4);transition:.18s}
+  .learn-btn{display:inline-flex;align-items:center;gap:8px;margin-top:24px;padding:13px 26px;border-radius:50px;background:linear-gradient(135deg,#2f74d6,#1f5bc0);color:#fff;font-weight:800;font-size:15px;text-decoration:none;cursor:pointer;box-shadow:0 10px 26px rgba(31,91,192,.4);transition:.18s;border:0;font-family:inherit}
   .learn-btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(31,91,192,.55)}
   /* ===== team page ===== */
   #team-page{position:relative;padding:calc(var(--header-h) + 38px) clamp(18px,5vw,60px) 0;min-height:100vh;background:linear-gradient(180deg,#e0f1ff 0%,#c1ddf6 42%,#a9cfee 100%)}
@@ -470,7 +501,7 @@
       <div class="team-list" id="teamList"></div>
       <div class="team-crew">
         <p class="crewq">Hiring us to crew your shoot? We can fold a basic gear package into our day rate &mdash; the exact kit depends on which department you bring us in for.</p>
-        <a class="learn-btn" href="/rentals#crew">Ask about crewing your shoot &rarr;</a>
+        <button class="learn-btn" id="crewOpenBtn" type="button">Ask about crewing your shoot &rarr;</button>
       </div>
       <footer class="site-footer" data-footer></footer>
     </section>
@@ -485,6 +516,7 @@
   </template>
 
   <div id="universes"></div>
+  <div class="crewpop" id="crewpop"></div>
 
 <script>async function __main(){
 
@@ -524,6 +556,67 @@ document.querySelectorAll('.rpWater').forEach(d=>d.style.backgroundImage=`url("$
 document.getElementById('socialsHost').innerHTML=socialHTML();
 document.querySelectorAll('[data-footer]').forEach(f=>f.appendChild(document.getElementById('footerTpl').content.cloneNode(true)));
 document.querySelectorAll('[data-scene="light"] [data-footer]').forEach(f=>f.classList.add('footer-light'));
+/* ===== Crew inquiry modal — opens over the current page, posts to the crew Jotform ===== */
+(function(){
+  const CREWROLES=["Cinematography","Gaffing","On-Set Visual Effects","Production Design","Costume"];
+  const CREWMAP={"Cinematography":"jack","Gaffing":"jack","On-Set Visual Effects":"jack","Production Design":"karina","Costume":"karina"};
+  const tphoto=n=>{const m=(TEAM||[]).find(x=>(x.name||'').toLowerCase().indexOf(n)===0);return m?m.photo:'';};
+  const PEOPLE={
+    jack:{name:"Jack Carlsen",roles:"Cinematography · Gaffing · On-Set VFX",link:"https://jackcarlsen.com",img:tphoto('jack')},
+    karina:{name:"Karina Salerno",roles:"Production Design · Costume",link:"https://www.instagram.com/karinayourfriend",img:tphoto('karina')}
+  };
+  const CFG={formId:"261816743694064",fields:{firstName:"q18_firstName",lastName:"q19_lastName",email:"q20_email",roles:"q12_roles",people:"q13_assignedTo",dates:"q14_dates",insurance:"q15_insurance",budget:"q16_budget",notes:"q17_notes"}};
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let isOpen=false,roles=[],first="",last="",email="",dates="",ins="",budget="",notes="";
+  const pop=document.getElementById('crewpop'),g=id=>document.getElementById(id);
+  if(!pop)return;
+  function personCard(who){const p=PEOPLE[who];return '<div class="pcard">'+(p.img?'<img src="'+p.img+'" alt="" loading="lazy" decoding="async">':'')+'<div class="pinfo"><div class="pname">'+esc(p.name)+'</div><div class="prole">'+esc(p.roles)+'</div><a class="plink" href="'+p.link+'" target="_blank" rel="noopener">See '+esc(p.name.split(" ")[0])+'’s work →</a></div></div>';}
+  function render(){
+    const who=[...new Set(roles.map(r=>CREWMAP[r]))].sort();
+    let h='<div class="crewbox"><button class="dpx" id="crewx" aria-label="Close">&times;</button><h2>Crew your shoot</h2>';
+    h+='<p class="crewlede">Tell us about your set and which department(s) you need. If you bring us on, a basic gear package for that role can be folded into our day rate.</p>';
+    h+='<div class="crewrow2"><div><div class="crewlab">First name</div><input class="crewin" id="cfn" value="'+esc(first)+'"></div><div><div class="crewlab">Last name</div><input class="crewin" id="cln" value="'+esc(last)+'"></div></div>';
+    h+='<div class="crewlab">Contact email</div><input class="crewin" id="cem" type="email" value="'+esc(email)+'">';
+    h+='<div class="crewlab">Which role(s) do you need? <span class="crewhint">select all that apply</span></div><div class="crewroles">'+CREWROLES.map(r=>'<button class="crole'+(roles.includes(r)?" on":"")+'" data-role="'+esc(r)+'">'+esc(r)+'</button>').join("")+'</div>';
+    if(who.length)h+='<div class="pcards">'+who.map(personCard).join("")+'</div>';
+    h+='<div class="crewlab">Shoot dates</div><input class="crewin" id="cdt" placeholder="e.g. Aug 12–14, or flexible" value="'+esc(dates)+'">';
+    h+='<div class="crewlab">Do you have production insurance?</div><div class="crewseg">'+["Yes","No"].map(o=>'<button class="segb'+(ins===o?" on":"")+'" data-ins="'+o+'">'+o+'</button>').join("")+'</div>';
+    h+='<div class="crewlab">Your budget</div><input class="crewin" id="cbd" placeholder="e.g. around $2,000 for the shoot" value="'+esc(budget)+'">';
+    h+='<div class="crewlab">Tell us about your set</div><textarea class="crewta" id="cnt" placeholder="Project, location, what you are shooting, and what you need...">'+esc(notes)+'</textarea>';
+    h+='<button class="crewsend" id="crewsend">Send request →</button></div>';
+    pop.innerHTML=h;
+    g('crewx').onclick=close;
+    pop.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{const r=b.dataset.role;roles=roles.includes(r)?roles.filter(x=>x!==r):roles.concat(r);render();});
+    pop.querySelectorAll('[data-ins]').forEach(b=>b.onclick=()=>{ins=b.dataset.ins;render();});
+    const bind=(id,fn)=>{const el=g(id);if(el)el.oninput=e=>fn(e.target.value);};
+    bind('cfn',v=>first=v);bind('cln',v=>last=v);bind('cem',v=>email=v);bind('cdt',v=>dates=v);bind('cbd',v=>budget=v);bind('cnt',v=>notes=v);
+    g('crewsend').onclick=send;
+  }
+  function open(){isOpen=true;render();pop.classList.add('show');document.body.style.overflow='hidden';}
+  function close(){isOpen=false;pop.classList.remove('show');document.body.style.overflow='';}
+  function send(){
+    const F=CFG.fields,data={};
+    const who=[...new Set(roles.map(r=>PEOPLE[CREWMAP[r]].name))];
+    if(F.roles)data[F.roles]=roles.join(", ");
+    if(F.people)data[F.people]=who.join(" & ");
+    if(F.dates)data[F.dates]=dates||"";
+    if(F.insurance)data[F.insurance]=ins||"";
+    if(F.budget)data[F.budget]=budget||"";
+    if(F.notes)data[F.notes]=notes||"";
+    if(F.firstName)data[F.firstName]=first||"";
+    if(F.lastName)data[F.lastName]=last||"";
+    if(F.email)data[F.email]=email||"";
+    let sent=false;
+    try{const fd=new FormData();Object.keys(data).forEach(k=>fd.append(k,data[k]));fetch('https://submit.jotform.com/submit/'+CFG.formId,{method:'POST',body:fd,mode:'no-cors'});sent=true;}catch(e){console.error('crew submit failed',e);}
+    if(!sent){const subj=encodeURIComponent("Crew request"+(roles.length?" — "+roles.join(", "):""));
+      const body=encodeURIComponent("Roles: "+(roles.join(", ")||"(none)")+"\nContact: "+(who.join(" & ")||"—")+"\nShoot dates: "+(dates||"(not set)")+"\nInsurance: "+(ins||"(n/a)")+"\nBudget: "+(budget||"(n/a)")+"\n\n"+(notes||""));
+      try{window.location.href="mailto:studio@rarepond.com?subject="+subj+"&body="+body;}catch(e){}}
+    close();alert("Thanks! Your crew inquiry is on its way — we'll be in touch soon.");
+  }
+  pop.addEventListener('click',e=>{if(e.target===pop)close();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpen)close();});
+  const ob=document.getElementById('crewOpenBtn');if(ob)ob.addEventListener('click',e=>{e.preventDefault();open();});
+})();
 document.querySelectorAll('[data-socials]').forEach(s=>s.innerHTML=socialHTML());
 document.querySelectorAll('.rpColor').forEach(i=>i.src=SITE.logos.color);
 
