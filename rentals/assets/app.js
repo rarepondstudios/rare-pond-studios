@@ -17,6 +17,10 @@ function fmt(n){n=Math.round(n*100)/100;return '$'+(n%1===0?n.toLocaleString('en
 function pISO(s){const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
 function isoOf(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function dn(s){return pISO(s).getTime();}
+// Earliest bookable shoot date = today + 3 business days (skipping Sat/Sun).
+function minStartD(){var d=new Date();d.setHours(0,0,0,0);var added=0;while(added<3){d.setDate(d.getDate()+1);var wd=d.getDay();if(wd!==0&&wd!==6)added++;}return d;}
+function minStartISO(){return isoOf(minStartD());}
+function tooEarly(is){return dn(is)<minStartD().getTime();}
 function days(){if(!D.s||!D.e)return 0;const d=Math.round((dn(D.e)-dn(D.s))/86400000)+1;return d>0?d:0;}
 function fmtOne(s){return pISO(s).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
 function fmtRange(){return fmtOne(D.s)+' – '+fmtOne(D.e);}
@@ -40,10 +44,10 @@ function renderTabs(){
  $('tabline').style.boxShadow='0 4px 14px 0 '+hx(col,.45);}
 function render(){renderTabs();active==='Home'?renderHome():renderCat();}
 function renderHome(){
- const lbl=(D.s&&D.e)?(fmtRange()+' · '+days()+' days'):(D.s?(fmtOne(D.s)+' — pick an end date'):'Select your rental dates');
+ const lbl=(D.s&&D.e)?(fmtRange()+' · '+days()+' days'):(D.s?(fmtOne(D.s)+', now pick an end date'):'Select your rental dates');
  $('stage').innerHTML='<div class="home"><div class="logowrap"><img src="'+LOGOC+'" alt="Rare Pond Rentals"></div><h2>Reserve your gear.</h2><p>Pick your rental dates, then browse our kit by category. Prices update automatically to how long you need each item.</p>'
  +'<button class="datebig" id="hdate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg> '+esc(lbl)+'</button>'
- +'<button class="browse" id="hbrowse">Browse gear →</button>'+'<div class="crew"><p class="crewq">Hiring us to crew your shoot? We can fold a basic gear package into our day rate — the exact kit depends on which department you bring us in for.</p><button class="crewbtn" id="crewbtn">Ask about crewing your shoot →</button></div></div>';
+ +'<button class="browse" id="hbrowse">Browse gear →</button>'+'<div class="crew"><p class="crewq">Hiring us to crew your shoot? We can fold a basic gear package into our day rate. The exact kit depends on which department you bring us in for.</p><button class="crewbtn" id="crewbtn">Ask about crewing your shoot →</button></div></div>';
  $('hdate').onclick=openDates;$('hbrowse').onclick=()=>{active='Camera';render();};$('crewbtn').onclick=openCrew;}
 function renderCat(){
  const c=active,col=COL[c];
@@ -79,7 +83,7 @@ function addCart(id){if(!cart[id])cartOrder.push(id);cart[id]=(cart[id]||0)+1;re
 function refresh(){if(active!=='Home')renderResults();uc();if(dpOpen!=null)openDP(dpOpen);}
 function openDP(id){const p=RENTALS[id];dpOpen=id;
  const grps=[...new Set(p.contents.map(c=>c.g))];const multiG=grps.length>1;
- let kh='';if(p.contents.length){kh='<div class="kh">Kit contents — '+p.contents.length+' items</div>';
+ let kh='';if(p.contents.length){kh='<div class="kh">Kit contents · '+p.contents.length+' items</div>';
   grps.forEach(g=>{if(multiG)kh+='<div class="ggrp">'+esc(g)+'</div>';kh+='<div class="kgrid">'+p.contents.filter(c=>c.g===g).map(c=>'<div class="kc">'+(c.img?'<img src="'+c.img+'" loading="lazy" decoding="async">':catIcon(p.cat,'ic'))+'<div><div class="kl">'+esc(c.l)+'</div>'+(c.v?'<div class="kv">Replacement value '+esc(c.v)+'</div>':'')+'</div></div>').join('')+'</div>';});}
  const hero=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');const inC=cart[id];
  const ctl=inC?('<div class="qty" style="max-width:220px;margin:0"><button data-dm="'+id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-dp="'+id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="dpadd" data-da="'+id+'">Add to cart</button>');
@@ -103,6 +107,7 @@ function calRender(){
  let cells='';for(let i=0;i<sw;i++)cells+='<div class="cd empty"></div>';
  const span=(D.s&&D.e)?(dn(D.e)-dn(D.s)):0,step=span?1/span:0,R=17;
  for(let d=1;d<=dim;d++){const is=isoOf(new Date(y,m,d));let cls='cd';
+  if(tooEarly(is))cls+=' off';
   const col=(sw+d-1)%7;
   const isS=D.s===is,isE=D.e===is,inR=D.s&&D.e&&dn(is)>dn(D.s)&&dn(is)<dn(D.e);
   let bd='';
@@ -117,7 +122,7 @@ function calRender(){
   if(isS)cls+=' selS';if(isE)cls+=' selE';if(inR)cls+=' inr';if(badDay===is)cls+=' bad';
   const dot=(isS||isE)?'<span class="dot"></span>':'';
   cells+='<div class="'+cls+'" data-d="'+is+'">'+bd+dot+'<span class="num">'+d+'</span></div>';}
- el.innerHTML='<div class="caltoggle"><button class="tS'+(pick==='start'?' on':'')+'" data-pick="start">Start date</button><button class="tE'+(pick==='end'?' on':'')+'" data-pick="end">End date</button></div>'
+ el.innerHTML='<div class="calrule">Heads up: rentals need at least <b>3 business days\'</b> lead time, so the earliest date you can pick is <b>'+fmtOne(minStartISO())+'</b>.</div><div class="caltoggle"><button class="tS'+(pick==='start'?' on':'')+'" data-pick="start">Start date</button><button class="tE'+(pick==='end'?' on':'')+'" data-pick="end">End date</button></div>'
   +'<div class="calhead"><button class="cnav" data-nav="-1">‹</button><span>'+mon+'</span><button class="cnav" data-nav="1">›</button></div>'
   +'<div class="calgrid"><div class="cw">Su</div><div class="cw">Mo</div><div class="cw">Tu</div><div class="cw">We</div><div class="cw">Th</div><div class="cw">Fr</div><div class="cw">Sa</div>'+cells+'</div>'
   +'<div class="calwarn" id="calwarn"></div><div class="calsum">'+calSum()+'</div>'+calNote();
@@ -125,12 +130,13 @@ function calRender(){
  el.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{calRef=new Date(calRef.getFullYear(),calRef.getMonth()+ +b.dataset.nav,1);calRender();});
  el.querySelectorAll('.cd[data-d]').forEach(c=>c.onclick=()=>pickDay(c.dataset.d));}
 function calNote(){if(!(D.s&&D.e))return '';return '<div class="calnote"><b>Pickup</b> '+fmtOne(D.s)+' after 11:00 AM PST&nbsp; ·&nbsp; <b>Return</b> '+fmtOne(D.e)+' by 12:00 PM PST</div>';}
-function calSum(){if(D.s&&D.e)return '<b style="color:'+CS+'">'+fmtOne(D.s)+'</b> → <b style="color:'+CE+'">'+fmtOne(D.e)+'</b> · '+days()+' day'+(days()>1?'s':'');if(D.s)return '<b style="color:'+CS+'">'+fmtOne(D.s)+'</b> — now pick an end date';return 'Pick your start date';}
+function calSum(){if(D.s&&D.e)return '<b style="color:'+CS+'">'+fmtOne(D.s)+'</b> → <b style="color:'+CE+'">'+fmtOne(D.e)+'</b> · '+days()+' day'+(days()>1?'s':'');if(D.s)return '<b style="color:'+CS+'">'+fmtOne(D.s)+'</b>, now pick an end date';return 'Pick your start date';}
 function pickDay(is){badDay=null;
+ if(tooEarly(is)){badDay=is;calRender();var we=$('calwarn');if(we){we.textContent="Rentals need at least 3 business days' notice, so the earliest date is "+fmtOne(minStartISO())+".";we.classList.add('show');}setTimeout(function(){badDay=null;calRender();},2200);return;}
  if(pick==='start'){D.s=is;if(D.e&&dn(D.e)<=dn(is))D.e='';pick='end';}
- else{if(!D.s){D.s=is;pick='end';}else if(dn(is)<=dn(D.s)){badDay=is;calRender();const w=$('calwarn');if(w){w.textContent=(dn(is)===dn(D.s))?"Rentals are a minimum of one day — pick an end date after your start date.":"You can't select an end date before your start date.";w.classList.add('show');}setTimeout(()=>{badDay=null;calRender();},1600);return;}else{D.e=is;}}
+ else{if(!D.s){D.s=is;pick='end';}else if(dn(is)<=dn(D.s)){badDay=is;calRender();const w=$('calwarn');if(w){w.textContent=(dn(is)===dn(D.s))?"Rentals are a minimum of one day, so pick an end date after your start date.":"You can't select an end date before your start date.";w.classList.add('show');}setTimeout(()=>{badDay=null;calRender();},1600);return;}else{D.e=is;}}
  calRender();afterDate();}
-function afterDate(){renderTabs();if(active==='Home')renderHome();else renderCat();uc();if(crewOpen)renderCrew();}
+function afterDate(){renderTabs();if(active==='Home')renderHome();else renderCat();uc();if(crewOpen)renderCrew();if($('reqpop')&&$('reqpop').classList.contains('show'))renderReq();}
 function openDates(){calRender();$('dpop').classList.add('show');}
 $('ddone').onclick=()=>$('dpop').classList.remove('show');
 $('dclear').onclick=()=>{D.s='';D.e='';pick='start';calRender();afterDate();};
@@ -140,12 +146,12 @@ function uc(){const ids=cartOrder.filter(id=>id in cart);const dd=days();
  $('badge').textContent=ids.reduce((a,id)=>a+cart[id],0);
  const tot=ids.reduce((a,id)=>a+RENTALS[id].fn*cart[id],0)*(dd||1);
  $('totlbl').textContent=dd?('Total · '+dd+' day'+(dd>1?'s':'')):'Daily total';$('tot').textContent=fmt(tot);
- $('cartdate').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="#bfe3ff" stroke-width="1.6" style="width:15px;height:15px"><path d="M4 5h16v16H4z M4 9h16" stroke-linecap="round"/></svg> '+(dd?fmtRange()+' · '+dd+' days — <u>change</u>':'No dates set — <u>select dates</u>');
+ $('cartdate').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="#bfe3ff" stroke-width="1.6" style="width:15px;height:15px"><path d="M4 5h16v16H4z M4 9h16" stroke-linecap="round"/></svg> '+(dd?fmtRange()+' · '+dd+' days · <u>change</u>':'No dates set · <u>select dates</u>');
  $('cartdate').onclick=openDates;
  const hasG=ids.length>0,hasD=!!(D.s&&D.e);const qb=$('quote'),rm=$('reqmsg');
  if(qb)qb.disabled=!(hasG&&hasD);
  if(rm){let msg='';if(!hasD&&!hasG)msg='Add your rental dates and at least one item to request a quote.';else if(!hasD)msg='Add your rental dates to request a quote.';else if(!hasG)msg='Add at least one piece of gear to request a quote.';rm.textContent=msg;rm.style.display=msg?'block':'none';}
- if(!ids.length){$('pit').innerHTML='<div class="empty">Your cart is empty.<br>Add gear from any category — it stays here as you browse.</div>';return;}
+ if(!ids.length){$('pit').innerHTML='<div class="empty">Your cart is empty.<br>Add gear from any category, it stays here as you browse.</div>';return;}
  const secs=CATS.filter(c=>ids.some(id=>RENTALS[id].cat===c));
  $('pit').innerHTML=secs.map(c=>{const col=COL[c];const rows=ids.filter(id=>RENTALS[id].cat===c).map(id=>{const p=RENTALS[id];const line=p.fn*cart[id]*(dd||1);return '<div class="ci"><div class="info"><b>'+esc(p.name)+'</b><div class="m">'+drTxt(p)+(p.fn?'/day':'')+(dd&&p.fn?' × '+dd+'d = '+fmt(line):'')+'</div></div><div class="q"><button data-cm="'+id+'">−</button><span>'+cart[id]+'</span><button data-cp="'+id+'" '+(cart[id]>=p.qty?'disabled':'')+'>+</button></div></div>';}).join('');return '<div class="csec" style="--scg:'+hx(col,.5)+'"><div class="csec-h" style="color:'+col+'">'+esc(c)+'</div>'+rows+'</div>';}).join('');
  $('pit').querySelectorAll('[data-cp]').forEach(b=>b.onclick=()=>inc(+b.dataset.cp));
@@ -157,7 +163,7 @@ const JACKIMG="media/gear/g_bcc32d94f19f3a3f.png",KARINAIMG="media/gear/g_6e8006
 const CREWROLES=["Cinematography","Gaffing","On-Set Visual Effects","Production Design","Costume"];
 const CREWMAP={"Cinematography":"jack","Gaffing":"jack","On-Set Visual Effects":"jack","Production Design":"karina","Costume":"karina"};
 const PEOPLE={jack:{name:"Jack Carlsen",roles:"Cinematography · Gaffing · On-Set VFX",link:"https://jackcarlsen.com",img:JACKIMG},karina:{name:"Karina Salerno",roles:"Production Design · Costume",link:"https://www.instagram.com/karinayourfriend",img:KARINAIMG}};
-let crewOpen=false,crewRoles=[],crewBudget="",crewNotes="",crewIns="",crewFirst="",crewLast="",crewEmail="";
+let crewOpen=false,crewRoles=[],crewBudget="",crewNotes="",crewIns="",crewFirst="",crewLast="",crewEmail="",crewProject="";
 function personCard(who){const p=PEOPLE[who];return '<div class="pcard"><img src="'+p.img+'" alt="" loading="lazy" decoding="async"><div class="pinfo"><div class="pname">'+esc(p.name)+'</div><div class="prole">'+esc(p.roles)+'</div><a class="plink" href="'+p.link+'" target="_blank" rel="noopener">See '+esc(p.name.split(" ")[0])+'’s work →</a></div></div>';}
 function renderCrew(){
  const cal='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>';
@@ -166,26 +172,37 @@ function renderCrew(){
  h+='<p class="crewlede">Tell us about your set and which department(s) you need. If you bring us on, a basic gear package for that role can be folded into our day rate.</p>';
  h+='<div class="rgrid2"><div><div class="crewlab">First name</div><input class="crewin" id="cfn" value="'+esc(crewFirst)+'"></div><div><div class="crewlab">Last name</div><input class="crewin" id="cln" value="'+esc(crewLast)+'"></div></div>';
  h+='<div class="crewlab">Contact email</div><input class="crewin" id="cem" type="email" value="'+esc(crewEmail)+'">';
+ h+='<div class="crewlab">Project name</div><input class="crewin" id="cpr" placeholder="Name of your film / project" value="'+esc(crewProject)+'">';
  h+='<div class="crewlab">Which role(s) do you need? <span class="crewhint">select all that apply</span></div><div class="crewroles">'+CREWROLES.map(r=>'<button class="crole'+(crewRoles.includes(r)?" on":"")+'" data-role="'+esc(r)+'">'+esc(r)+'</button>').join("")+'</div>';
  if(who.length)h+='<div class="pcards">'+who.map(personCard).join("")+'</div>';
  h+='<div class="crewlab">Shoot dates</div><button class="datechip crewdate" id="crewdate">'+cal+(D.s&&D.e?esc(fmtRange())+" · "+days()+" days":"Select shoot dates")+'</button>';
  h+='<div class="crewlab">Do you have production insurance?</div><div class="crewseg">'+["Yes","No"].map(o=>'<button class="segb'+(crewIns===o?" on":"")+'" data-ins="'+o+'">'+o+'</button>').join("")+'</div>';
  h+='<div class="crewlab">Your budget</div><input class="crewin" id="crewbud" placeholder="e.g. around $2,000 for the shoot" value="'+esc(crewBudget)+'">';
  h+='<div class="crewlab">Tell us about your set</div><textarea class="crewta" id="crewnotes" placeholder="Project, location, what you are shooting, and what you need...">'+esc(crewNotes)+'</textarea>';
- h+='<button class="crewsend" id="crewsend">Send request →</button></div>';
+ h+='<div class="reqwarn" id="crewwarn"></div><button class="crewsend" id="crewsend">Send request →</button></div>';
  $('crewpop').innerHTML=h;
  $('crewx').onclick=closeCrew;
  document.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{const r=b.dataset.role;if(crewRoles.includes(r))crewRoles=crewRoles.filter(x=>x!==r);else crewRoles.push(r);renderCrew();});
  document.querySelectorAll('[data-ins]').forEach(b=>b.onclick=()=>{crewIns=b.dataset.ins;renderCrew();});
  $('crewdate').onclick=openDates;
- const cfn=$('cfn');if(cfn)cfn.oninput=e=>crewFirst=e.target.value;const cln=$('cln');if(cln)cln.oninput=e=>crewLast=e.target.value;const cem=$('cem');if(cem)cem.oninput=e=>crewEmail=e.target.value;const bud=$('crewbud');if(bud)bud.oninput=e=>crewBudget=e.target.value;
+ const cfn=$('cfn');if(cfn)cfn.oninput=e=>crewFirst=e.target.value;const cln=$('cln');if(cln)cln.oninput=e=>crewLast=e.target.value;const cem=$('cem');if(cem)cem.oninput=e=>crewEmail=e.target.value;const cpr=$('cpr');if(cpr)cpr.oninput=e=>crewProject=e.target.value;const bud=$('crewbud');if(bud)bud.oninput=e=>crewBudget=e.target.value;
  const nt=$('crewnotes');if(nt)nt.oninput=e=>crewNotes=e.target.value;
  $('crewsend').onclick=sendCrew;}
 function openCrew(){crewOpen=true;renderCrew();$('crewpop').classList.add('show');}
 function closeCrew(){crewOpen=false;$('crewpop').classList.remove('show');}
-function sendCrew(){var CC=(window.FORMS&&window.FORMS.crewInquiry)||{formId:"",fields:{}};
+function sendCrew(){
+ if(!(D.s&&D.e)){openDates();var wd=$('crewwarn');if(wd)wd.textContent='Please set your shoot dates first.';return;}
+ var miss=[];
+ if(!crewFirst.trim())miss.push('first name');
+ if(!/.+@.+\..+/.test(crewEmail))miss.push('a valid email');
+ if(!crewProject.trim())miss.push('project name');
+ if(!crewRoles.length)miss.push('at least one role you need');
+ if(miss.length){var wm=$('crewwarn');if(wm)wm.textContent='Please add: '+miss.join(', ')+'.';return;}
+ var CC=(window.FORMS&&window.FORMS.crewInquiry)||{formId:"",fields:{}};
  var who=[...new Set(crewRoles.map(r=>PEOPLE[CREWMAP[r]].name))];
  var F=CC.fields,data={};
+ if(F.project)data[F.project]=crewProject||"";
+ if(F.dealName)data[F.dealName]='Crew: '+(crewProject.trim()||'Untitled project')+' ('+(crewRoles.join(', ')||'crew')+')';
  if(F.roles)data[F.roles]=crewRoles.join(", ");
  if(F.people)data[F.people]=who.join(" & ");
  if(F.dates)data[F.dates]=(D.s&&D.e)?fmtRange()+" ("+days()+" days)":"";
@@ -197,10 +214,10 @@ function sendCrew(){var CC=(window.FORMS&&window.FORMS.crewInquiry)||{formId:"",
  if(F.email)data[F.email]=crewEmail||"";
  var id=CC.formId,sent=false;
  if(id&&!/PASTE|XXXX/i.test(id)){try{var fd=new FormData();Object.keys(data).forEach(k=>fd.append(k,data[k]));fetch('https://submit.jotform.com/submit/'+id,{method:'POST',body:fd,mode:'no-cors'});sent=true;}catch(e){console.error('[RP Rentals] crew submit failed',e);}}
- if(!sent){var subj=encodeURIComponent("Crew request"+(crewRoles.length?" — "+crewRoles.join(", "):""));
-  var body=encodeURIComponent("Roles: "+(crewRoles.join(", ")||"(none)")+"\nContact: "+(who.join(" & ")||"—")+"\nShoot dates: "+((D.s&&D.e)?fmtRange()+" ("+days()+" days)":"(not set)")+"\nInsurance: "+(crewIns||"(n/a)")+"\nBudget: "+(crewBudget||"(n/a)")+"\n\n"+(crewNotes||"")+"\n\n(Website fallback — Jotform not configured.)");
+ if(!sent){var subj=encodeURIComponent("Crew request"+(crewRoles.length?" · "+crewRoles.join(", "):""));
+  var body=encodeURIComponent("Roles: "+(crewRoles.join(", ")||"(none)")+"\nContact: "+(who.join(" & ")||"-")+"\nShoot dates: "+((D.s&&D.e)?fmtRange()+" ("+days()+" days)":"(not set)")+"\nInsurance: "+(crewIns||"(n/a)")+"\nBudget: "+(crewBudget||"(n/a)")+"\n\n"+(crewNotes||"")+"\n\n(Website fallback: Jotform not configured.)");
   try{window.location.href="mailto:rentals@rarepond.com?subject="+subj+"&body="+body;}catch(e){}}
- closeCrew();alert("Thanks! Your crew inquiry is on its way — we'll be in touch soon.");}
+ closeCrew();alert("Thanks! Your crew inquiry is on its way, we'll be in touch soon.");}
 document.getElementById('crewpop').onclick=e=>{if(e.target===document.getElementById('crewpop'))closeCrew();};
 /* ---- Rental request: config-driven fields, posts to Jotform (see form-config.js) ---- */
 const RCFG=(window.FORMS&&window.FORMS.rentalRequest)||{formId:"",fields:{},render:[]};
@@ -228,15 +245,16 @@ function renderReq(){
  } else if(reqStep===1){
   const dd=days();const ids=cartOrder.filter(id=>id in cart);
   const gear=ids.map(id=>cart[id]+'× '+esc(RENTALS[id].name)).join('<br>');
-  const rows=RCFG.render.map(f=>'<div class="qrow"><span>'+esc(f.label.replace(/\?$/,''))+'</span><b>'+esc(reqData[f.key]||'—')+'</b></div>').join('');
+  const rows=RCFG.render.map(f=>'<div class="qrow"><span>'+esc(f.label.replace(/\?$/,''))+'</span><b>'+esc(reqData[f.key]||'-')+'</b></div>').join('');
   h='<div class="reqbox"><button class="dpx" id="reqx">&times;</button><h2>Confirm your request</h2>'
-   +'<div class="qsum">'+rows+'<div class="qrow"><span>Dates</span><b>'+(dd?esc(fmtRange())+' · '+dd+' days':'—')+'</b></div><div class="qrow"><span>Estimated total</span><b>'+fmt(reqTotal())+(dd?' ('+dd+'d)':'')+'</b></div></div>'
+   +'<div class="qsum">'+rows+'<div class="qrow"><span>Dates</span><b>'+(dd?esc(fmtRange())+' · '+dd+' days':'-')+'</b></div><div class="qrow"><span>Estimated total</span><b>'+fmt(reqTotal())+(dd?' ('+dd+'d)':'')+'</b></div></div>'
+   +'<button class="reqback" id="qdates" style="margin:10px 0 0;padding:9px 16px">Change shoot dates</button>'
    +'<div class="crewlab">Gear</div><div class="qgear">'+gear+'</div>'
    +'<div class="reqwarn" id="qwarn2">'+esc(reqErr)+'</div>'
    +'<div class="reqrow"><button class="reqback" id="qback">← Back</button><button class="crewsend" id="qsend" style="margin:0">Send rental request →</button></div></div>';
  } else {
   const nm=reqData.firstName||'there',fm=reqData.film||'your project',em=reqData.email||'your inbox';
-  h='<div class="reqbox reqdone"><div class="checkmk">&#10003;</div><h2>Request sent!</h2><p class="crewlede">Thanks, '+esc(nm)+' — your rental request for <b>'+esc(fm)+'</b> is in. A copy is on its way to you at <b>'+esc(em)+'</b>, and our team has it at <b>rentals@rarepond.com</b>. We&#8217;ll follow up to confirm availability and finalize your quote.</p><button class="crewsend" id="qclose2" style="margin-top:10px">Done</button></div>';
+  h='<div class="reqbox reqdone"><div class="checkmk">&#10003;</div><h2>Request sent!</h2><p class="crewlede">Thanks, '+esc(nm)+', your rental request for <b>'+esc(fm)+'</b> is in. A copy is on its way to you at <b>'+esc(em)+'</b>, and our team has it at <b>rentals@rarepond.com</b>. We&#8217;ll follow up to confirm availability and finalize your quote.</p><button class="crewsend" id="qclose2" style="margin-top:10px">Done</button></div>';
  }
  $('reqpop').innerHTML=h;
  const x=$('reqx');if(x)x.onclick=closeReq;
@@ -252,6 +270,7 @@ function renderReq(){
   };
  } else if(reqStep===1){
   $('qback').onclick=()=>{reqStep=0;renderReq();};
+  var qd=$('qdates');if(qd)qd.onclick=openDates;
   $('qsend').onclick=reqSend;
  } else { $('qclose2').onclick=closeReq; }
 }
@@ -264,8 +283,10 @@ function reqSubmitData(){
  if(F.dates)out[F.dates]=(D.s&&D.e)?fmtRange():'';
  if(F.days)out[F.days]=dd||'';
  if(F.total)out[F.total]=(Math.round(reqTotal()*100)/100).toFixed(2); // plain number for HubSpot deal amount
- // Shoot start date as discrete Jotform date sub-fields (for the Google Calendar integration)
- if(F.shootDateField&&D.s){var _m=String(D.s.getMonth()+1).padStart(2,'0'),_d=String(D.s.getDate()).padStart(2,'0'),_y=String(D.s.getFullYear());out[F.shootDateField+'[month]']=_m;out[F.shootDateField+'[day]']=_d;out[F.shootDateField+'[year]']=_y;}
+ // Shoot start date as discrete Jotform date sub-fields (D.s is an ISO 'YYYY-MM-DD' string)
+ if(F.shootDateField&&D.s){var _p=D.s.split('-');out[F.shootDateField+'[year]']=_p[0];out[F.shootDateField+'[month]']=_p[1];out[F.shootDateField+'[day]']=_p[2];}
+ // Composed HubSpot deal name: "Rental: {project}"
+ if(F.dealName)out[F.dealName]='Rental: '+((reqData.film||'').trim()||'Untitled project');
  return out;
 }
 function jotConfigured(id){return id&&!/PASTE|XXXX/i.test(id);}
@@ -279,8 +300,8 @@ async function reqSend(){
  }
  if(!sent){
   console.warn('[RP Rentals] mailto fallback ('+(jotConfigured(id)?'Jotform unreachable':'Jotform not configured yet')+').');
-  const subj=encodeURIComponent('Rental request — '+(reqData.film||'')+' ('+(reqData.firstName||'')+' '+(reqData.lastName||'')+')');
-  const body=encodeURIComponent(Object.keys(data).map(k=>k+': '+data[k]).join('\n')+'\n\n(Website fallback — Jotform was '+(jotConfigured(id)?'unreachable':'not configured')+'.)');
+  const subj=encodeURIComponent('Rental request: '+(reqData.film||'')+' ('+(reqData.firstName||'')+' '+(reqData.lastName||'')+')');
+  const body=encodeURIComponent(Object.keys(data).map(k=>k+': '+data[k]).join('\n')+'\n\n(Website fallback: Jotform was '+(jotConfigured(id)?'unreachable':'not configured')+'.)');
   try{window.location.href='mailto:rentals@rarepond.com?subject='+subj+'&body='+body;}catch(e){}
  }
  if(btn){btn.disabled=false;btn.textContent='Send rental request →';}

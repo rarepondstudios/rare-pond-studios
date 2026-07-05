@@ -36,7 +36,9 @@ window.FORMS = {
       total:     "q15_estimatedTotal",
       // Real Date field (q16_date) for the Google Calendar integration; the site
       // posts q16_date[month]/[day]/[year] from the shoot start date.
-      shootDateField: "q16_date"
+      shootDateField: "q16_date",
+      // Composed HubSpot deal name, e.g. "Rental: {project}" (site-filled).
+      dealName: "q19_dealName"
     },
     // Visible questions, rendered in the site's own style.
     // Add a question: add an entry here + a matching line in `fields` above.
@@ -65,7 +67,10 @@ window.FORMS = {
       dates:     "q14_shootDates",
       insurance: "q15_doYou",
       budget:    "q16_budget",
-      notes:     "q17_aboutYour"
+      notes:     "q17_aboutYour",
+      project:   "q21_projectName",
+      // Composed HubSpot deal name, e.g. "Crew: {project} ({roles})" (site-filled).
+      dealName:  "q22_dealName"
     }
   }
 };
