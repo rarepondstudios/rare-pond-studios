@@ -72,7 +72,11 @@ window.FORMS = {
       notes:     "q17_aboutYour",
       project:   "q21_projectName",
       // Composed HubSpot deal name, e.g. "Crew: {project} ({roles})" (site-filled).
-      dealName:  "q22_dealName"
+      dealName:  "q22_dealName",
+      // Shoot start/end -> Google Calendar all-day span; parsed budget -> HubSpot deal Amount.
+      shootDateField: "q23_date",
+      crewEndField:   "q24_date24",
+      budgetAmount:   "q25_typeA"
     }
   }
 };

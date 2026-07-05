@@ -127,3 +127,12 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .rfoot .flinks{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;font-size:13.5px}
 .rfoot .flinks a{color:#a7c4e8;text-decoration:none;font-weight:600;cursor:pointer}.rfoot .flinks a:hover{color:#fff}
 .rfoot .copy{font-size:12px;color:#7e9cc6}.rfoot .copy a{color:#9bb8e0;text-decoration:none}
+
+/* progress-fill submit buttons + missing-info red feedback */
+@property --fill{syntax:'<percentage>';inherits:false;initial-value:4%}
+.pbtn{position:relative;--fill:4%;background:linear-gradient(90deg,rgba(19,38,70,0) var(--fill),#26426f var(--fill)),linear-gradient(90deg,#5aa0ff,#4ec6c9,#8f7bff)!important;transition:--fill .55s cubic-bezier(.4,.85,.3,1),box-shadow .35s}
+.pbtn.ready{box-shadow:0 0 0 1px rgba(150,180,255,.55),0 0 22px -2px rgba(120,150,255,.7),0 0 42px -8px rgba(80,200,200,.55)}
+@keyframes flashred{0%,100%{box-shadow:0 0 0 0 rgba(255,74,74,0)}20%{box-shadow:0 0 0 3px rgba(255,74,74,.55),0 0 16px 2px rgba(255,74,74,.5)}}
+.flashred{animation:flashred .5s ease 0s 3;border-color:rgba(255,96,96,.95)!important;border-radius:11px}
+.datearrow{position:fixed;z-index:400;color:#ff5a5a;font-size:30px;font-weight:900;pointer-events:none;animation:arrowpulse 1.7s ease forwards;filter:drop-shadow(0 0 7px rgba(255,74,74,.85))}
+@keyframes arrowpulse{0%{opacity:0;transform:translateX(10px)}14%{opacity:1}72%{opacity:1;transform:translateX(-3px)}100%{opacity:0;transform:translateX(-3px)}}
