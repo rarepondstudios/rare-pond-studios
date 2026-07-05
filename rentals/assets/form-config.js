@@ -37,6 +37,8 @@ window.FORMS = {
       // Real Date field (q16_date) for the Google Calendar integration; the site
       // posts q16_date[month]/[day]/[year] from the shoot start date.
       shootDateField: "q16_date",
+      // Return date field (q20_date20) for the rental RETURN Google Calendar event.
+      returnDateField: "q20_date20",
       // Composed HubSpot deal name, e.g. "Rental: {project}" (site-filled).
       dealName: "q19_dealName"
     },

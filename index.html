@@ -573,7 +573,7 @@ document.querySelectorAll('[data-scene="light"] [data-footer]').forEach(f=>f.cla
     jack:{name:"Jack Carlsen",roles:"Cinematography · Gaffing · On-Set VFX",link:"https://jackcarlsen.com",img:tphoto('jack')},
     karina:{name:"Karina Salerno",roles:"Production Design · Costume",link:"https://www.instagram.com/karinayourfriend",img:tphoto('karina')}
   };
-  const CFG={formId:"261816743694064",fields:{firstName:"q18_firstName",lastName:"q19_lastName",email:"q20_contactEmail",roles:"q12_rolesNeeded",people:"q13_handledBy",dates:"q14_shootDates",insurance:"q15_doYou",budget:"q16_budget",notes:"q17_aboutYour",project:"q21_projectName",dealName:"q22_dealName",shootDateField:"q23_date"}};
+  const CFG={formId:"261816743694064",fields:{firstName:"q18_firstName",lastName:"q19_lastName",email:"q20_contactEmail",roles:"q12_rolesNeeded",people:"q13_handledBy",dates:"q14_shootDates",insurance:"q15_doYou",budget:"q16_budget",notes:"q17_aboutYour",project:"q21_projectName",dealName:"q22_dealName",shootDateField:"q23_date",crewEndField:"q24_date24"}};
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let isOpen=false,step=0,roles=[],first="",last="",email="",project="",dstart="",dend="",ins="",budget="",notes="",warn="";
   const pop=document.getElementById('crewpop'),g=id=>document.getElementById(id);
@@ -615,12 +615,17 @@ document.querySelectorAll('[data-scene="light"] [data-footer]').forEach(f=>f.cla
   function toReview(){
     var miss=[];
     if(!first.trim())miss.push('first name');
+    if(!last.trim())miss.push('last name');
     if(!/.+@.+\..+/.test(email))miss.push('a valid email');
     if(!project.trim())miss.push('project name');
     if(!roles.length)miss.push('at least one role you need');
     if(!dstart)miss.push('a shoot start date');
+    if(!dend)miss.push('a shoot end date');
     if(dstart&&dstart<MINISO)miss.push('a start date on or after '+fmtD(MINISO));
     if(dstart&&dend&&dend<dstart)miss.push('an end date on or after the start date');
+    if(!ins)miss.push('whether you have production insurance');
+    if(!budget.trim())miss.push('a budget');
+    if(!notes.trim())miss.push('a note about your set');
     if(miss.length){warn='Please add: '+miss.join(', ')+'.';render();return;}
     warn='';step=1;render();
   }
@@ -650,7 +655,7 @@ document.querySelectorAll('[data-scene="light"] [data-footer]').forEach(f=>f.cla
     if(F.dealName)data[F.dealName]='Crew: '+((project||'').trim()||'Untitled project')+' ('+(roles.join(', ')||'crew')+')';
     if(F.roles)data[F.roles]=roles.join(", ");
     if(F.people)data[F.people]=who.join(" & ");
-    if(F.dates)data[F.dates]=datesText();if(F.shootDateField&&dstart){var _p=dstart.split('-');data[F.shootDateField+'[year]']=_p[0];data[F.shootDateField+'[month]']=_p[1];data[F.shootDateField+'[day]']=_p[2];}
+    if(F.dates)data[F.dates]=datesText();if(F.shootDateField&&dstart){var _p=dstart.split('-');data[F.shootDateField+'[year]']=_p[0];data[F.shootDateField+'[month]']=_p[1];data[F.shootDateField+'[day]']=_p[2];}if(F.crewEndField&&(dend||dstart)){var _e=(dend||dstart).split('-');data[F.crewEndField+'[year]']=_e[0];data[F.crewEndField+'[month]']=_e[1];data[F.crewEndField+'[day]']=_e[2];}
     if(F.insurance)data[F.insurance]=ins||"";
     if(F.budget)data[F.budget]=budget||"";
     if(F.notes)data[F.notes]=notes||"";

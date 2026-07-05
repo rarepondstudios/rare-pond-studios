@@ -263,6 +263,7 @@ function renderReq(){
   document.querySelectorAll('#reqpop [data-seg]').forEach(seg=>seg.querySelectorAll('[data-segv]').forEach(b=>b.onclick=()=>{reqData[seg.dataset.seg]=b.dataset.segv;renderReq();}));
   $('qnext').onclick=()=>{
    const miss=RCFG.render.filter(f=>f.required&&!String(reqData[f.key]||'').trim()).map(f=>f.label.replace(/\?$/,'').toLowerCase());
+   if(!D.s||!D.e)miss.push('your rental dates');
    const ef=RCFG.render.find(f=>f.type==='email');
    if(ef&&reqData[ef.key]&&!/.+@.+\..+/.test(reqData[ef.key]))miss.push('a valid email');
    if(miss.length){reqErr='Please add: '+miss.join(', ')+'.';$('qwarn').textContent=reqErr;return;}
@@ -285,6 +286,8 @@ function reqSubmitData(){
  if(F.total)out[F.total]=(Math.round(reqTotal()*100)/100).toFixed(2); // plain number for HubSpot deal amount
  // Shoot start date as discrete Jotform date sub-fields (D.s is an ISO 'YYYY-MM-DD' string)
  if(F.shootDateField&&D.s){var _p=D.s.split('-');out[F.shootDateField+'[year]']=_p[0];out[F.shootDateField+'[month]']=_p[1];out[F.shootDateField+'[day]']=_p[2];}
+ // Return date (D.e) as discrete Jotform sub-fields for the rental RETURN calendar event
+ if(F.returnDateField&&D.e){var _q=D.e.split('-');out[F.returnDateField+'[year]']=_q[0];out[F.returnDateField+'[month]']=_q[1];out[F.returnDateField+'[day]']=_q[2];}
  // Composed HubSpot deal name: "Rental: {project}"
  if(F.dealName)out[F.dealName]='Rental: '+((reqData.film||'').trim()||'Untitled project');
  return out;
