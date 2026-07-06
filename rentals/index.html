@@ -23,4 +23,22 @@
 <script src="assets/form-config.js"></script>
 <script src="/assets/crew-form.js" defer></script>
 <script src="assets/app.js"></script>
+<script>
+/* Rentals page copy from Pages CMS (data/rentals.json). Defensive: any failure
+   leaves the hard-coded fallback copy in the HTML untouched. */
+(async function(){
+  try{
+    const r = await fetch('/data/rentals.json',{cache:'no-store'});
+    if(!r.ok) return;
+    const c = await r.json();
+    const set = (sel,val)=>{ if(val==null) return; const el=document.querySelector(sel); if(el) el.textContent=val; };
+    if(c.seoDescription){ const m=document.querySelector('meta[name="description"]'); if(m) m.setAttribute('content',c.seoDescription); }
+    set('.hdr-logo .bn-rare', c.brandLine1);
+    set('.hdr-logo .bn-sub',  c.brandLine2);
+    set('.rfoot .tag',        c.footerTagline);
+    if(c.footerCopyright){ const cp=document.querySelector('.rfoot .copy'); if(cp){ const a=cp.querySelector('a'); const link=a?a.outerHTML+' · ':''; const txt=document.createElement('span'); txt.textContent=c.footerCopyright; cp.innerHTML=link+txt.innerHTML; } }
+    if(c.cartEstimateNote){ const n=document.querySelector('#cartp .pf .note'); if(n) n.textContent=c.cartEstimateNote; }
+  }catch(e){ console.warn('rentals copy',e); }
+})();
+</script>
 </body></html>

@@ -102,3 +102,15 @@ content:
           - { name: role, label: Role, type: string }
           - { name: photo, label: Photo, type: image }
           - { name: desc, label: Bio, type: text }
+
+  - name: rentals
+    label: Rentals page
+    type: file
+    path: data/rentals.json
+    fields:
+      - { name: seoDescription, label: SEO description (search-result blurb), type: text }
+      - { name: brandLine1, label: Header brand — line 1, type: string }
+      - { name: brandLine2, label: Header brand — line 2, type: string }
+      - { name: footerTagline, label: Footer tagline, type: string }
+      - { name: footerCopyright, label: Footer copyright line, type: string }
+      - { name: cartEstimateNote, label: Cart estimate note, type: text }
