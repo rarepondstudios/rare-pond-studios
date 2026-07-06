@@ -215,7 +215,7 @@ function renderCrew(){
   var dcb=$('crewdate');if(dcb)dcb.onclick=openDates;
   var bind=function(id,fn){var el=$(id);if(el)el.oninput=function(e){fn(e.target.value);syncFills();};};
   bind('cfn',function(v){crewFirst=v;});bind('cln',function(v){crewLast=v;});bind('cem',function(v){crewEmail=v;});bind('cpr',function(v){crewProject=v;});bind('crewbud',function(v){crewBudget=v;});bind('crewnotes',function(v){crewNotes=v;});
-  $('crewnext').onclick=function(){var m=crewMiss();if(m.length){var w=$('crewwarn');if(w)w.textContent='Please add: '+m.join(', ')+'.';flashEmptyCrew();if(!(D.s&&D.e))openDates();return;}crewStep=1;renderCrew();};
+  $('crewnext').onclick=function(){var m=crewMiss();if(m.length){var w=$('crewwarn');if(w)w.textContent='Please add: '+m.join(', ')+'.';flashEmptyCrew();return;}crewStep=1;renderCrew();};
  }else if(crewStep===1){
   $('crewback').onclick=function(){crewStep=0;renderCrew();};
   var cd2=$('crewdates2');if(cd2)cd2.onclick=openDates;
