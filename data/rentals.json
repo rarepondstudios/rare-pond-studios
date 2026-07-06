@@ -2,7 +2,27 @@
   "seoDescription": "Gear rentals from Rare Pond Studios — camera, lighting, grip, electric and sound packages.",
   "brandLine1": "Rare Pond",
   "brandLine2": "Rentals",
-  "footerTagline": "Let's Make Something Amazing...",
-  "footerCopyright": "© Rare Pond Studios 2026",
-  "cartEstimateNote": "Estimate only — final quote confirmed by the team."
+  "cartEstimateNote": "Estimate only — final quote confirmed by the team.",
+  "logos": {
+    "headerMark": "media/duck-mark.png",
+    "footerColor": "/media/logos/rare-pond-color.png",
+    "footerWater": "/media/site/water.jpg",
+    "homeLogo": "media/gear/g_ff961e8ddce4f40b.png"
+  },
+  "home": {
+    "heroTitle": "Reserve your gear.",
+    "heroSubtitle": "Pick your rental dates, then browse our kit by category. Prices update automatically to how long you need each item.",
+    "datePrompt": "Select your rental dates",
+    "browseButton": "Browse gear →"
+  },
+  "crew": {
+    "blurb": "Hiring us to crew your shoot? We can fold a basic gear package into our day rate. The exact kit depends on which department you bring us in for.",
+    "button": "Ask about crewing your shoot →"
+  },
+  "cart": {
+    "title": "Your rental cart",
+    "dailyTotal": "Daily total",
+    "quoteButton": "Request rental quote",
+    "emptyMessage": "Your cart is empty.<br>Add gear from any category, it stays here as you browse."
+  }
 }

@@ -502,7 +502,7 @@ const __d=await Promise.all([
 const SITE=__d[0];
 const __projects=__d[1].projects;
 const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.bubbleImage,logo:p.titleLogo,theme:p.theme,blurb:p.blurb,focusBg:p.focusBg,characters:[],logline:p.cardLogline,logoText:p.logoText,placeholder:!!p.placeholder}));
-const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.theme,bg:p.focusBg,logo:p.titleLogo,eyebrow:p.eyebrow,kicker:p.kicker,title:p.pageTitle,tagline:p.tagline,logline:p.pageLogline,chips:p.chips||[],watch:p.watch,stills:p.stills||[],credits:p.credits,note:p.note||''}]));
+const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.theme,bg:p.focusBg,logo:p.titleLogo,eyebrow:p.eyebrow,kicker:p.kicker,title:p.pageTitle,tagline:p.tagline,logline:p.pageLogline,chips:p.chips||[],watch:p.watch,stills:p.stills||[],credits:p.credits}]));
 const TEAM=__d[2].team;
 const SOCIALS=(SITE.socials||[]).map(s=>[s.url,s.label,s.icon]);
 const ABOUT_ORBS=SITE.orbits||[];
@@ -514,6 +514,27 @@ try{
   if(ac){if(ab.eyebrow!=null)ac.querySelector('.ey').textContent=ab.eyebrow;if(ab.heading!=null)ac.querySelector('h2').textContent=ab.heading;const ps=ac.querySelectorAll('p');(ab.paragraphs||[]).forEach((t,i)=>{if(ps[i])ps[i].textContent=t;});const lb=ac.querySelector('.learn-btn');if(lb&&ab.button)lb.textContent=ab.button;}
   const hs=SITE.hubspot||{},frame=document.querySelector('.hs-form-frame');
   if(frame&&hs.formId){frame.setAttribute('data-region',hs.region||'na2');frame.setAttribute('data-form-id',hs.formId);frame.setAttribute('data-portal-id',hs.portalId||'');}
+  /* Shared header brand + nav labels (Site Settings → header). Fallback = static HTML. */
+  const hd=SITE.header||{};
+  const setTxt=(el,v)=>{if(el&&v!=null&&v!=='')el.textContent=v;};
+  setTxt(document.querySelector('.hdr-logo .bn-rare'),hd.brandLine1);
+  setTxt(document.querySelector('.hdr-logo .bn-studios'),hd.brandLine2);
+  const navA=document.querySelectorAll('.site-header .nav a');
+  if(navA[0])setTxt(navA[0],(hd.navTeam||'').replace(/ /g,' '));
+  if(navA[1])setTxt(navA[1],hd.navProjects);
+  if(navA[2])setTxt(navA[2],hd.navContact);
+  /* Section headings (Site Settings → sectionHeadings). Fallback = static HTML. */
+  const sh=SITE.sectionHeadings||{};
+  const pp=document.querySelector('#projects-page .pp-head');
+  if(pp){setTxt(pp.querySelector('.ey'),sh.projectsEyebrow);setTxt(pp.querySelector('h1'),sh.projectsHeading);setTxt(pp.querySelector('p'),sh.projectsSub);}
+  const th=document.querySelector('#team-page .team-head');
+  if(th){setTxt(th.querySelector('.ey'),sh.teamEyebrow);setTxt(th.querySelector('h1'),sh.teamHeading);setTxt(th.querySelector('p'),sh.teamSub);}
+  const ch=document.querySelector('#contact .contact-head');
+  if(ch){setTxt(ch.querySelector('.ey'),sh.contactEyebrow);setTxt(ch.querySelector('h2'),sh.contactHeading);setTxt(ch.querySelector('p'),sh.contactSub);}
+  /* Team-page crew blurb + button (Site Settings → teamCrew). Fallback = static HTML. */
+  const tc=SITE.teamCrew||{};
+  setTxt(document.querySelector('.team-crew .crewq'),tc.blurb);
+  setTxt(document.getElementById('crewOpenBtn'),tc.button);
 }catch(e){console.warn('copy',e);}
 
 
@@ -529,6 +550,30 @@ document.getElementById('hdrDuck').src=SITE.logos.duckMark;
 document.querySelectorAll('.rpWater').forEach(d=>d.style.backgroundImage=`url("${SITE.water}")`);
 document.getElementById('socialsHost').innerHTML=socialHTML();
 document.querySelectorAll('[data-footer]').forEach(f=>f.appendChild(document.getElementById('footerTpl').content.cloneNode(true)));
+/* Footer copy from Site Settings (site.json → footer), driving every footer instance.
+   Defensive: any missing value leaves the static footerTpl markup untouched. */
+try{
+  const ft=SITE.footer||{};
+  const esc2=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  document.querySelectorAll('[data-footer]').forEach(f=>{
+    const tag=f.querySelector('.tag');if(tag&&ft.tagline!=null&&ft.tagline!=='')tag.textContent=ft.tagline;
+    const copy=f.querySelector('.copy');
+    if(copy&&(ft.copyright||ft.copyrightUrlText)){
+      const url=ft.copyrightUrl||'https://rarepond.com',ut=ft.copyrightUrlText||'',cp=ft.copyright||'';
+      const link=ut?('<a href="'+esc2(url)+'" target="_blank" rel="noopener">'+esc2(ut)+'</a>'):'';
+      copy.innerHTML=(link&&cp)?(link+' · '+esc2(cp)):(link||esc2(cp));
+    }
+    const links=f.querySelector('.flinks');
+    if(links&&Array.isArray(ft.links)&&ft.links.length){
+      links.innerHTML=ft.links.map(l=>{
+        const label=esc2(l.label||'');
+        if(l.href)return '<a href="'+esc2(l.href)+'">'+label+'</a>';
+        if(l.go)return '<a data-go="'+esc2(l.go)+'">'+label+'</a>';
+        return '<a>'+label+'</a>';
+      }).join('');
+    }
+  });
+}catch(e){console.warn('footer copy',e);}
 document.querySelectorAll('[data-scene="light"] [data-footer]').forEach(f=>f.classList.add('footer-light'));
 /* ===== Crew inquiry — now handled by the shared crew-form module. Wire the trigger. ===== */
 (function(){var ob=document.getElementById('crewOpenBtn');if(ob)ob.addEventListener('click',function(e){e.preventDefault();if(window.RPCrew)window.RPCrew.open();});})();

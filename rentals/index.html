@@ -1,12 +1,12 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rare Pond Rentals</title><meta name="description" content="Gear rentals from Rare Pond Studios — camera, lighting, grip, electric and sound packages."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/styles.css"><link rel="stylesheet" href="/assets/date-picker.css"><link rel="stylesheet" href="/assets/crew-form.css"></head><body>
 <header class="site-header"><div class="hdr-bg"></div>
- <a class="hdr-logo" id="rpHome" href="/rentals" title="Rare Pond Rentals — home"><img src="media/duck-mark.png" alt="Rare Pond Rentals"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-sub">Rentals</span></span></a>
+ <a class="hdr-logo" id="rpHome" href="/rentals" title="Rare Pond Rentals — home"><img id="hdrMark" src="media/duck-mark.png" alt="Rare Pond Rentals"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-sub">Rentals</span></span></a>
  <nav class="hnav"><a href="/#team">Our&nbsp;Team</a><a href="/#projects">Projects</a><a href="/#contact">Contact</a></nav>
  <div class="hright"><a class="xsite" href="/" title="Go to the Rare Pond Studios site"><span class="xarrow">&larr;</span> Studio&nbsp;Site</a><div class="hsoc" id="hsoc"></div></div>
 </header>
 <div class="wrap"><div class="tabs" id="tabs"></div><div class="tabline" id="tabline"></div><div id="stage"></div></div>
-<footer class="rfoot"><div class="caustics" style="background-image:url('/media/site/water.jpg')"></div><div class="in">
- <div class="footer-logo"><img src="/media/logos/rare-pond-color.png" alt="Rare Pond Studios"></div>
+<footer class="rfoot"><div class="caustics" id="footWater" style="background-image:url('/media/site/water.jpg')"></div><div class="in">
+ <div class="footer-logo"><img id="footLogo" src="/media/logos/rare-pond-color.png" alt="Rare Pond Studios"></div>
  <div class="tag">Let's Make Something Amazing...</div><div class="fsoc" id="fsoc"></div>
  <div class="flinks"><a href="/#team">Our Team</a><a href="/#projects">Projects</a><a href="/rentals">Rentals</a><a href="/#contact">Contact</a></div>
  <div class="copy"><a href="https://rarepond.com" target="_blank" rel="noopener">rarepond.com</a> · © Rare Pond Studios 2026</div>
@@ -26,19 +26,31 @@
 <script src="assets/app.js"></script>
 <script>
 /* Rentals page copy from Pages CMS (data/rentals.json). Defensive: any failure
-   leaves the hard-coded fallback copy in the HTML untouched. */
+   leaves the hard-coded fallback copy in the HTML untouched. Also exposes the
+   whole payload on window.RP_RENTALS so app.js can read hero/cart/crew copy. */
 (async function(){
   try{
     const r = await fetch('/data/rentals.json',{cache:'no-store'});
     if(!r.ok) return;
     const c = await r.json();
-    const set = (sel,val)=>{ if(val==null) return; const el=document.querySelector(sel); if(el) el.textContent=val; };
+    window.RP_RENTALS = c;
+    const set = (sel,val)=>{ if(val==null||val==='') return; const el=document.querySelector(sel); if(el) el.textContent=val; };
+    const setImg = (sel,val)=>{ if(val==null||val==='') return; const el=document.querySelector(sel); if(el) el.src=val; };
     if(c.seoDescription){ const m=document.querySelector('meta[name="description"]'); if(m) m.setAttribute('content',c.seoDescription); }
     set('.hdr-logo .bn-rare', c.brandLine1);
     set('.hdr-logo .bn-sub',  c.brandLine2);
-    set('.rfoot .tag',        c.footerTagline);
-    if(c.footerCopyright){ const cp=document.querySelector('.rfoot .copy'); if(cp){ const a=cp.querySelector('a'); const link=a?a.outerHTML+' · ':''; const txt=document.createElement('span'); txt.textContent=c.footerCopyright; cp.innerHTML=link+txt.innerHTML; } }
     if(c.cartEstimateNote){ const n=document.querySelector('#cartp .pf .note'); if(n) n.textContent=c.cartEstimateNote; }
+    /* Cart UI labels that live in static markup (rentals.json → cart). */
+    const ct=c.cart||{};
+    set('#cartp .ph h2', ct.title);
+    set('#quote',        ct.quoteButton);
+    /* Rentals logos (rentals.json → logos). Fallback = static src attrs. */
+    const lg=c.logos||{};
+    setImg('#hdrMark',  lg.headerMark);
+    setImg('#footLogo', lg.footerColor);
+    if(lg.footerWater){ const w=document.getElementById('footWater'); if(w) w.style.backgroundImage="url('"+lg.footerWater+"')"; }
+    /* If app.js already painted the home hero, re-render so its copy/logo update. */
+    if(typeof window.RPRerender==='function') window.RPRerender();
   }catch(e){ console.warn('rentals copy',e); }
 })();
 /* Header + footer social icons — single shared source (data/site.json → socials),
@@ -54,12 +66,31 @@
   try{
     const r=await fetch('/data/site.json',{cache:'no-store'});
     if(!r.ok) return;
-    const socials=((await r.json()).socials)||[];
+    const site=await r.json();
+    const socials=site.socials||[];
     const html=socials.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="${esc(s.label)}" data-net="${esc(s.icon)}">${SOCIAL_SVG[s.icon]||''}</a>`).join('');
     const hs=document.getElementById('hsoc'), fs=document.getElementById('fsoc');
     if(hs) hs.innerHTML=html;
     if(fs) fs.innerHTML=html;
-  }catch(e){ console.warn('rentals socials',e); }
+    /* Shared footer from Site Settings (site.json → footer) — same source as the
+       studio footer, so editing it updates BOTH sites. Fallback = static markup. */
+    const ft=site.footer||{};
+    if(ft.tagline){ const t=document.querySelector('.rfoot .tag'); if(t) t.textContent=ft.tagline; }
+    const cp=document.querySelector('.rfoot .copy');
+    if(cp&&(ft.copyright||ft.copyrightUrlText)){
+      const url=ft.copyrightUrl||'https://rarepond.com', ut=ft.copyrightUrlText||'', c=ft.copyright||'';
+      const link=ut?`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(ut)}</a>`:'';
+      cp.innerHTML=(link&&c)?(link+' · '+esc(c)):(link||esc(c));
+    }
+    const fl=document.querySelector('.rfoot .flinks');
+    if(fl&&Array.isArray(ft.links)&&ft.links.length){
+      fl.innerHTML=ft.links.map(l=>{
+        const label=esc(l.label||'');
+        const href=l.href?l.href:(l.go?('/#'+l.go):'#');
+        return `<a href="${esc(href)}">${label}</a>`;
+      }).join('');
+    }
+  }catch(e){ console.warn('rentals socials/footer',e); }
 })();
 </script>
 </body></html>

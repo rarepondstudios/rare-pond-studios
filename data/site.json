@@ -44,6 +44,40 @@
     "/media/stills/invalid-orbit.png",
     "/media/projects/invalid-shot-2.jpg"
   ],
+  "header": {
+    "brandLine1": "Rare Pond",
+    "brandLine2": "Studios",
+    "navTeam": "Our Team",
+    "navProjects": "Projects",
+    "navContact": "Contact"
+  },
+  "sectionHeadings": {
+    "projectsEyebrow": "The catalogue",
+    "projectsHeading": "All Projects",
+    "projectsSub": "Every Rare Pond pocket universe in one place. Hover to peek, click to dive in.",
+    "teamEyebrow": "Who we are",
+    "teamHeading": "Meet Rare Pond",
+    "teamSub": "The people building these little universes.",
+    "contactEyebrow": "Get in touch",
+    "contactHeading": "Let's make something amazing.",
+    "contactSub": "Tell us about your project and we'll be in touch."
+  },
+  "teamCrew": {
+    "blurb": "Hiring us to crew your shoot? We can fold a basic gear package into our day rate — the exact kit depends on which department you bring us in for.",
+    "button": "Ask about crewing your shoot →"
+  },
+  "footer": {
+    "tagline": "Let's Make Something Amazing...",
+    "copyrightUrl": "https://rarepond.com",
+    "copyrightUrlText": "rarepond.com",
+    "copyright": "© Rare Pond Studios 2026",
+    "links": [
+      { "label": "Our Team", "go": "team" },
+      { "label": "Projects", "go": "projects" },
+      { "label": "Rentals", "go": "", "href": "/rentals" },
+      { "label": "Contact", "go": "contact" }
+    ]
+  },
   "hubspot": {
     "portalId": "245995240",
     "region": "na2",

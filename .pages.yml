@@ -40,6 +40,50 @@ content:
           - { name: url, label: URL, type: string }
           - { name: icon, label: Icon, type: select, options: { values: [yt, ig, li] } }
       - { name: orbits, label: About-logo floating images, type: image, list: true }
+      - name: header
+        label: Header (shared — studio + rentals)
+        type: object
+        fields:
+          - { name: brandLine1, label: Brand — line 1, type: string }
+          - { name: brandLine2, label: Brand — line 2 (studio), type: string }
+          - { name: navTeam, label: Nav — Team label, type: string }
+          - { name: navProjects, label: Nav — Projects label, type: string }
+          - { name: navContact, label: Nav — Contact label, type: string }
+      - name: sectionHeadings
+        label: Section headings (studio)
+        type: object
+        fields:
+          - { name: projectsEyebrow, label: Projects — eyebrow, type: string }
+          - { name: projectsHeading, label: Projects — heading, type: string }
+          - { name: projectsSub, label: Projects — subtitle, type: text }
+          - { name: teamEyebrow, label: Team — eyebrow, type: string }
+          - { name: teamHeading, label: Team — heading, type: string }
+          - { name: teamSub, label: Team — subtitle, type: text }
+          - { name: contactEyebrow, label: Contact — eyebrow, type: string }
+          - { name: contactHeading, label: Contact — heading, type: string }
+          - { name: contactSub, label: Contact — subtitle, type: text }
+      - name: teamCrew
+        label: Team page — crew blurb (studio)
+        type: object
+        fields:
+          - { name: blurb, label: Crew blurb, type: text }
+          - { name: button, label: Button label, type: string }
+      - name: footer
+        label: Footer (shared — studio + rentals)
+        type: object
+        fields:
+          - { name: tagline, label: Tagline, type: string }
+          - { name: copyrightUrl, label: Copyright link URL, type: string }
+          - { name: copyrightUrlText, label: Copyright link text, type: string }
+          - { name: copyright, label: Copyright line, type: string }
+          - name: links
+            label: Footer links
+            type: object
+            list: true
+            fields:
+              - { name: label, label: Label, type: string }
+              - { name: go, label: In-site target (home/team/projects/contact — blank if external), type: string }
+              - { name: href, label: External href (optional), type: string }
       - name: hubspot
         label: Contact form (HubSpot)
         type: object
@@ -85,7 +129,6 @@ content:
               - { name: ig, label: Instagram handle, type: string }
           - { name: stills, label: Stills gallery, type: image, list: true }
           - { name: credits, label: Credits (HTML allowed), type: text }
-          - { name: note, label: Note, type: string }
           - { name: blurb, label: Short blurb, type: text }
 
   - name: team
@@ -110,10 +153,38 @@ content:
     fields:
       - { name: seoDescription, label: SEO description (search-result blurb), type: text }
       - { name: brandLine1, label: Header brand — line 1, type: string }
-      - { name: brandLine2, label: Header brand — line 2, type: string }
-      - { name: footerTagline, label: Footer tagline, type: string }
-      - { name: footerCopyright, label: Footer copyright line, type: string }
+      - { name: brandLine2, label: Header brand — line 2 (rentals), type: string }
       - { name: cartEstimateNote, label: Cart estimate note, type: text }
+      - name: logos
+        label: Rentals logos
+        type: object
+        fields:
+          - { name: headerMark, label: Header duck mark, type: image }
+          - { name: footerColor, label: Footer full-color logo, type: image }
+          - { name: footerWater, label: Footer water / caustics background, type: image }
+          - { name: homeLogo, label: Home hero logo, type: image }
+      - name: home
+        label: Home hero copy
+        type: object
+        fields:
+          - { name: heroTitle, label: Hero title, type: string }
+          - { name: heroSubtitle, label: Hero subtitle, type: text }
+          - { name: datePrompt, label: Date button prompt (no dates yet), type: string }
+          - { name: browseButton, label: Browse-gear button, type: string }
+      - name: crew
+        label: Crew-your-shoot blurb
+        type: object
+        fields:
+          - { name: blurb, label: Crew blurb, type: text }
+          - { name: button, label: Button label, type: string }
+      - name: cart
+        label: Cart UI labels
+        type: object
+        fields:
+          - { name: title, label: Cart title, type: string }
+          - { name: dailyTotal, label: Daily-total label, type: string }
+          - { name: quoteButton, label: Request-quote button, type: string }
+          - { name: emptyMessage, label: Empty-cart message (HTML allowed), type: text }
 
   - name: formfields
     label: Form input types

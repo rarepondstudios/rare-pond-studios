@@ -35,8 +35,7 @@
         "/media/stills/geri-nursing-2.jpg",
         "/media/stills/geri-madeline.jpg"
       ],
-      "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Cameron Quinn · Rachael DeBoer · Kennedy Porter · Adam Kezele",
-      "note": ""
+      "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Cameron Quinn · Rachael DeBoer · Kennedy Porter · Adam Kezele"
     },
     {
       "key": "rev",
@@ -71,8 +70,7 @@
         "/media/stills/rev-heaven-1.jpg",
         "/media/stills/rev-heaven-2.jpg"
       ],
-      "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Lawrence Lacey · Jesse Shafroth · John Klenk · Trinity Medina",
-      "note": ""
+      "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Lawrence Lacey · Jesse Shafroth · John Klenk · Trinity Medina"
     },
     {
       "key": "invalid",
@@ -108,8 +106,7 @@
         "/media/stills/invalid-sourpatch.jpg",
         "/media/stills/invalid-5.jpg"
       ],
-      "credits": "<b>Created by</b> Jack Carlsen<br><b>Starring</b> Iago Lashua · Nick Wittcoff<br><b>Director of Photography</b> Jash Shah · <b>Sound</b> Jacob Gensheimer",
-      "note": ""
+      "credits": "<b>Created by</b> Jack Carlsen<br><b>Starring</b> Iago Lashua · Nick Wittcoff<br><b>Director of Photography</b> Jash Shah · <b>Sound</b> Jacob Gensheimer"
     },
     {
       "key": "more",
@@ -137,8 +134,7 @@
         "ig": ""
       },
       "stills": [],
-      "credits": "",
-      "note": ""
+      "credits": ""
     }
   ]
 }
