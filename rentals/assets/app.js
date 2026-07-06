@@ -48,7 +48,7 @@ function renderHome(){
  $('stage').innerHTML='<div class="home"><div class="logowrap"><img src="'+LOGOC+'" alt="Rare Pond Rentals"></div><h2>Reserve your gear.</h2><p>Pick your rental dates, then browse our kit by category. Prices update automatically to how long you need each item.</p>'
  +'<button class="datebig" id="hdate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg> '+esc(lbl)+'</button>'
  +'<button class="browse" id="hbrowse">Browse gear →</button>'+'<div class="crew"><p class="crewq">Hiring us to crew your shoot? We can fold a basic gear package into our day rate. The exact kit depends on which department you bring us in for.</p><button class="crewbtn" id="crewbtn">Ask about crewing your shoot →</button></div></div>';
- $('hdate').onclick=openDates;$('hbrowse').onclick=()=>{active='Camera';render();};$('crewbtn').onclick=openCrew;}
+ $('hdate').onclick=openDates;$('hbrowse').onclick=()=>{active='Camera';render();};$('crewbtn').onclick=function(){if(window.RPCrew)window.RPCrew.open();};}
 function renderCat(){
  const c=active,col=COL[c];
  const tool='<div class="ptool"><input class="search" id="q" placeholder="Search '+esc(c)+'…" value="'+esc(q)+'">'
@@ -136,12 +136,12 @@ function pickDay(is){badDay=null;
  if(pick==='start'){D.s=is;if(D.e&&dn(D.e)<=dn(is))D.e='';pick='end';}
  else{if(!D.s){D.s=is;pick='end';}else if(dn(is)<=dn(D.s)){badDay=is;calRender();const w=$('calwarn');if(w){w.textContent=(dn(is)===dn(D.s))?"Rentals are a minimum of one day, so pick an end date after your start date.":"You can't select an end date before your start date.";w.classList.add('show');}setTimeout(()=>{badDay=null;calRender();},1600);return;}else{D.e=is;}}
  calRender();afterDate();}
-function afterDate(){renderTabs();if(active==='Home')renderHome();else renderCat();uc();if(crewOpen)renderCrew();if($('reqpop')&&$('reqpop').classList.contains('show'))renderReq();}
+function afterDate(){renderTabs();if(active==='Home')renderHome();else renderCat();uc();if($('reqpop')&&$('reqpop').classList.contains('show'))renderReq();}
 function openDates(){calRender();$('dpop').classList.add('show');}
 $('ddone').onclick=()=>$('dpop').classList.remove('show');
 $('dclear').onclick=()=>{D.s='';D.e='';pick='start';calRender();afterDate();};
 $('dpop').onclick=e=>{if(e.target.id==='dpop')$('dpop').classList.remove('show');};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('dpop').classList.contains('show')){$('dpop').classList.remove('show');return;}if($('reqpop').classList.contains('show')){closeReq();return;}closeDP();openCart(false);if(crewOpen)closeCrew();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('dpop').classList.contains('show')){$('dpop').classList.remove('show');return;}if($('reqpop').classList.contains('show')){closeReq();return;}closeDP();openCart(false);}});
 function uc(){const ids=cartOrder.filter(id=>id in cart);const dd=days();
  $('badge').textContent=ids.reduce((a,id)=>a+cart[id],0);
  const tot=ids.reduce((a,id)=>a+RENTALS[id].fn*cart[id],0)*(dd||1);
@@ -159,98 +159,12 @@ function uc(){const ids=cartOrder.filter(id=>id in cart);const dd=days();
 function openCart(o){$('cartp').classList.toggle('show',o);$('ovl').classList.toggle('show',o);}
 $('fab').onclick=()=>openCart(true);$('closeCart').onclick=()=>openCart(false);$('ovl').onclick=()=>openCart(false);
 $('quote').onclick=function(){var ids=cartOrder.filter(function(id){return id in cart;}),hasG=ids.length>0,hasD=!!(D.s&&D.e);if(!hasG){flashRed($('pit'));if(!hasD)flashDateBtn();return;}if(!hasD){flashDateBtn();return;}openReq();};
-const JACKIMG="media/gear/g_bcc32d94f19f3a3f.png",KARINAIMG="media/gear/g_6e80063f5330de13.jpg";
-const CREWROLES=["Cinematography","Gaffing","On-Set Visual Effects","Production Design","Costume"];
-const CREWMAP={"Cinematography":"jack","Gaffing":"jack","On-Set Visual Effects":"jack","Production Design":"karina","Costume":"karina"};
-const PEOPLE={jack:{name:"Jack Carlsen",roles:"Cinematography · Gaffing · On-Set VFX",link:"https://jackcarlsen.com",img:JACKIMG},karina:{name:"Karina Salerno",roles:"Production Design · Costume",link:"https://www.instagram.com/karinayourfriend",img:KARINAIMG}};
+/* Crew-your-shoot popup is now the shared module — see /assets/crew-form.js
+   (loaded root-relative by this page). The #crewbtn trigger calls RPCrew.open(). */
 function setFill(b,fr){if(!b)return;fr=Math.max(0,Math.min(1,fr||0));b.style.setProperty('--fill',(4+fr*96).toFixed(1)+'%');b.classList.toggle('ready',fr>=0.999);}
 function flashRed(el){if(!el)return;el.classList.remove('flashred');void el.offsetWidth;el.classList.add('flashred');setTimeout(function(){el.classList.remove('flashred');},1700);}
 function flashDateBtn(){var b=$('cartdate');if(!b)return;flashRed(b);var a=document.createElement('div');a.className='datearrow';a.textContent='➜';var r=b.getBoundingClientRect();a.style.left=(r.left-34)+'px';a.style.top=(r.top+r.height/2-16)+'px';document.body.appendChild(a);setTimeout(function(){a.remove();},1700);}
-let crewOpen=false,crewStep=0,crewRoles=[],crewBudget="",crewNotes="",crewIns="",crewFirst="",crewLast="",crewEmail="",crewProject="";
-function crewMiss(){var m=[];
- if(!crewFirst.trim())m.push('first name');
- if(!crewLast.trim())m.push('last name');
- if(!/.+@.+\..+/.test(crewEmail))m.push('a valid email');
- if(!crewProject.trim())m.push('project name');
- if(!crewRoles.length)m.push('at least one role you need');
- if(!(D.s&&D.e))m.push('your shoot dates');
- if(!crewIns)m.push('whether you have production insurance');
- if(!crewBudget.trim())m.push('a budget');
- if(!crewNotes.trim())m.push('a note about your set');
- return m;}
-function personCard(who){const p=PEOPLE[who];return '<div class="pcard"><img src="'+p.img+'" alt="" loading="lazy" decoding="async"><div class="pinfo"><div class="pname">'+esc(p.name)+'</div><div class="prole">'+esc(p.roles)+'</div><a class="plink" href="'+p.link+'" target="_blank" rel="noopener">See '+esc(p.name.split(" ")[0])+'’s work →</a></div></div>';}
-function renderCrew(){
- const cal='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>';
- const who=[...new Set(crewRoles.map(r=>CREWMAP[r]))].sort();
- let h='';
- if(crewStep===0){
-  h='<div class="crewbox"><button class="dpx" id="crewx">&times;</button><h2>Crew your shoot</h2>';
-  h+='<p class="crewlede">Tell us about your set and which department(s) you need. If you bring us on, a basic gear package for that role can be folded into our day rate.</p>';
-  h+='<div class="rgrid2"><div><div class="crewlab">First name</div><input class="crewin" id="cfn" value="'+esc(crewFirst)+'"></div><div><div class="crewlab">Last name</div><input class="crewin" id="cln" value="'+esc(crewLast)+'"></div></div>';
-  h+='<div class="crewlab">Contact email</div><input class="crewin" id="cem" type="email" value="'+esc(crewEmail)+'">';
-  h+='<div class="crewlab">Project name</div><input class="crewin" id="cpr" placeholder="Name of your film / project" value="'+esc(crewProject)+'">';
-  h+='<div class="crewlab">Which role(s) do you need? <span class="crewhint">select all that apply</span></div><div class="crewroles">'+CREWROLES.map(r=>'<button class="crole'+(crewRoles.includes(r)?" on":"")+'" data-role="'+esc(r)+'">'+esc(r)+'</button>').join("")+'</div>';
-  if(who.length)h+='<div class="pcards">'+who.map(personCard).join("")+'</div>';
-  h+='<div class="crewlab">Shoot dates</div><button class="datechip crewdate" id="crewdate">'+cal+(D.s&&D.e?esc(fmtRange())+" · "+days()+" days":"Select shoot dates")+'</button>';
-  h+='<div class="crewlab">Do you have production insurance?</div><div class="crewseg">'+["Yes","No"].map(o=>'<button class="segb'+(crewIns===o?" on":"")+'" data-ins="'+o+'">'+o+'</button>').join("")+'</div>';
-  h+='<div class="crewlab">Your budget</div><input class="crewin" id="crewbud" placeholder="e.g. around $2,000 for the shoot" value="'+esc(crewBudget)+'">';
-  h+='<div class="crewlab">Tell us about your set</div><textarea class="crewta" id="crewnotes" placeholder="Project, location, what you are shooting, and what you need...">'+esc(crewNotes)+'</textarea>';
-  h+='<div class="reqwarn" id="crewwarn"></div><button class="crewsend pbtn" id="crewnext"><span>Review request →</span></button></div>';
- }else if(crewStep===1){
-  const wn=who.map(w=>PEOPLE[w].name).join(' & ');
-  const rows=[['First name',crewFirst],['Last name',crewLast],['Contact email',crewEmail],['Project',crewProject],['Role(s) needed',crewRoles.join(', ')],['Team',wn],['Shoot dates',(D.s&&D.e)?fmtRange()+' · '+days()+' days':'-'],['Production insurance',crewIns],['Budget',crewBudget],['About your set',crewNotes]].map(function(kv){return '<div class="qrow"><span>'+esc(kv[0])+'</span><b>'+esc(kv[1]||'-')+'</b></div>';}).join('');
-  h='<div class="crewbox"><button class="dpx" id="crewx">&times;</button><h2>Confirm your request</h2><div class="qsum">'+rows+'</div>';
-  h+='<button class="reqback" id="crewdates2" style="margin:10px 0 0;padding:9px 16px">Change shoot dates</button>';
-  h+='<div class="reqwarn" id="crewwarn2"></div>';
-  h+='<div class="reqrow"><button class="reqback" id="crewback">← Back</button><button class="crewsend pbtn ready" id="crewsend" style="margin:0"><span>Send request →</span></button></div></div>';
- }else{
-  const nm=crewFirst||'there',pj=crewProject||'your project',em=crewEmail||'your inbox';
-  h='<div class="crewbox reqdone"><div class="checkmk">&#10003;</div><h2>Request sent!</h2><p class="crewlede">Thanks, '+esc(nm)+', your crew inquiry for <b>'+esc(pj)+'</b> is in. A copy is on its way to you at <b>'+esc(em)+'</b>, and our team has it at <b>studio@rarepond.com</b>. We&#8217;ll follow up soon.</p><button class="crewsend" id="crewclose2" style="margin-top:10px">Done</button></div>';
- }
- $('crewpop').innerHTML=h;
- var xb=$('crewx');if(xb)xb.onclick=closeCrew;
- if(crewStep===0){
-  document.querySelectorAll('#crewpop [data-role]').forEach(b=>b.onclick=()=>{const r=b.dataset.role;if(crewRoles.includes(r))crewRoles=crewRoles.filter(x=>x!==r);else crewRoles.push(r);renderCrew();});
-  document.querySelectorAll('#crewpop [data-ins]').forEach(b=>b.onclick=()=>{crewIns=b.dataset.ins;renderCrew();});
-  var dcb=$('crewdate');if(dcb)dcb.onclick=openDates;
-  var bind=function(id,fn){var el=$(id);if(el)el.oninput=function(e){fn(e.target.value);syncFills();};};
-  bind('cfn',function(v){crewFirst=v;});bind('cln',function(v){crewLast=v;});bind('cem',function(v){crewEmail=v;});bind('cpr',function(v){crewProject=v;});bind('crewbud',function(v){crewBudget=v;});bind('crewnotes',function(v){crewNotes=v;});
-  $('crewnext').onclick=function(){var m=crewMiss();if(m.length){var w=$('crewwarn');if(w)w.textContent='Please add: '+m.join(', ')+'.';flashEmptyCrew();return;}crewStep=1;renderCrew();};
- }else if(crewStep===1){
-  $('crewback').onclick=function(){crewStep=0;renderCrew();};
-  var cd2=$('crewdates2');if(cd2)cd2.onclick=openDates;
-  $('crewsend').onclick=sendCrew;
- }else{$('crewclose2').onclick=closeCrew;}}
-function flashEmptyCrew(){
- [['cfn',crewFirst.trim()],['cln',crewLast.trim()],['cem',/.+@.+\..+/.test(crewEmail)],['cpr',crewProject.trim()],['crewbud',crewBudget.trim()],['crewnotes',crewNotes.trim()]].forEach(function(pp){if(!pp[1])flashRed($(pp[0]));});
- if(!crewRoles.length)flashRed(document.querySelector('#crewpop .crewroles'));
- if(!crewIns)flashRed(document.querySelector('#crewpop .crewseg'));
- if(!(D.s&&D.e))flashRed($('crewdate'));}
-function openCrew(){crewOpen=true;crewStep=0;renderCrew();$('crewpop').classList.add('show');syncFills();}
-function closeCrew(){crewOpen=false;$('crewpop').classList.remove('show');crewStep=0;}
-function sendCrew(){
- var CC=(window.FORMS&&window.FORMS.crewInquiry)||{formId:"",fields:{}};
- var who=[...new Set(crewRoles.map(r=>PEOPLE[CREWMAP[r]].name))];
- var F=CC.fields,data={};
- if(F.project)data[F.project]=crewProject||"";
- if(F.dealName)data[F.dealName]='Crew: '+(crewProject.trim()||'Untitled project')+' ('+(crewRoles.join(', ')||'crew')+')';
- if(F.roles)data[F.roles]=crewRoles.join(", ");
- if(F.people)data[F.people]=who.join(" & ");
- if(F.dates)data[F.dates]=(D.s&&D.e)?fmtRange()+" ("+days()+" days)":"";
- if(F.insurance)data[F.insurance]=crewIns||"";
- if(F.budget)data[F.budget]=crewBudget||"";
- if(F.notes)data[F.notes]=crewNotes||"";
- if(F.firstName)data[F.firstName]=crewFirst||"";
- if(F.lastName)data[F.lastName]=crewLast||"";
- if(F.email)data[F.email]=crewEmail||"";
- if(F.shootDateField&&D.s){var _p=D.s.split('-');data[F.shootDateField+'[year]']=_p[0];data[F.shootDateField+'[month]']=_p[1];data[F.shootDateField+'[day]']=_p[2];}
- if(F.crewEndField&&(D.e||D.s)){var _e=(D.e||D.s).split('-');data[F.crewEndField+'[year]']=_e[0];data[F.crewEndField+'[month]']=_e[1];data[F.crewEndField+'[day]']=_e[2];}
- if(F.budgetAmount){var bm=(String(crewBudget).match(/[\d,]+(\.\d+)?/)||[''])[0].replace(/,/g,'');if(bm)data[F.budgetAmount]=bm;}
- var id=CC.formId,sent=false;
- if(id&&!/PASTE|XXXX/i.test(id)){try{var fd=new FormData();Object.keys(data).forEach(k=>fd.append(k,data[k]));fetch('https://submit.jotform.com/submit/'+id,{method:'POST',body:fd,mode:'no-cors'});sent=true;}catch(e){console.error('[RP Rentals] crew submit failed',e);}}
- if(!sent){var subj=encodeURIComponent("Crew request"+(crewRoles.length?" · "+crewRoles.join(", "):""));var body=encodeURIComponent("Roles: "+(crewRoles.join(", ")||"(none)")+"\nContact: "+(who.join(" & ")||"-")+"\nShoot dates: "+((D.s&&D.e)?fmtRange()+" ("+days()+" days)":"(not set)")+"\nInsurance: "+(crewIns||"(n/a)")+"\nBudget: "+(crewBudget||"(n/a)")+"\n\n"+(crewNotes||""));try{window.location.href="mailto:studio@rarepond.com?subject="+subj+"&body="+body;}catch(e){}}
- crewStep=2;renderCrew();}
-document.getElementById('crewpop').onclick=e=>{if(e.target===document.getElementById('crewpop'))closeCrew();};
+/* crew popup state/render/send removed — now handled by shared /assets/crew-form.js */
 /* ---- Rental request: config-driven fields, posts to Jotform (see form-config.js) ---- */
 const RCFG=(window.FORMS&&window.FORMS.rentalRequest)||{formId:"",fields:{},render:[]};
 let reqStep=0,reqData={},reqErr="";
@@ -355,9 +269,8 @@ RENTALS.forEach(function(p,i){p._id=i;});render();uc();
 (function(){var hl=document.getElementById('rpHome');if(hl)hl.addEventListener('click',function(e){e.preventDefault();active='Home';q='';render();window.scrollTo(0,0);});})();
 
 function fillFrac_req(){var flds=RCFG.render,n=0;flds.forEach(function(f){var v=String(reqData[f.key]||'').trim();if(f.type==='email'){if(/.+@.+\..+/.test(v))n++;}else if(v)n++;});if(D.s&&D.e)n++;return flds.length?n/(flds.length+1):0;}
-function fillFrac_crew(){var n=0;if(crewFirst.trim())n++;if(crewLast.trim())n++;if(/.+@.+\..+/.test(crewEmail))n++;if(crewProject.trim())n++;if(crewRoles.length)n++;if(D.s&&D.e)n++;if(crewIns)n++;if(crewBudget.trim())n++;if(crewNotes.trim())n++;return n/9;}
 function flashEmptyReq(){document.querySelectorAll('#reqpop [data-fk]').forEach(function(inp){var f=RCFG.render.find(function(x){return x.key===inp.dataset.fk;});var v=String(reqData[inp.dataset.fk]||'').trim();var ok=(f&&f.type==='email')?/.+@.+\..+/.test(v):!!v;if(!ok)flashRed(inp);});RCFG.render.filter(function(f){return f.type==='yesno';}).forEach(function(f){if(!reqData[f.key])flashRed(document.querySelector('#reqpop [data-seg="'+f.key+'"]'));});}
-function syncFills(){var qb=$('quote');if(qb){var ids=cartOrder.filter(function(id){return id in cart;});setFill(qb,(ids.length?.5:0)+((D.s&&D.e)?.5:0));}var dd=$('ddone');if(dd)setFill(dd,(D.s?.5:0)+(D.e?.5:0));var qn=$('qnext');if(qn)setFill(qn,fillFrac_req());var cn=$('crewnext');if(cn)setFill(cn,fillFrac_crew());}
+function syncFills(){var qb=$('quote');if(qb){var ids=cartOrder.filter(function(id){return id in cart;});setFill(qb,(ids.length?.5:0)+((D.s&&D.e)?.5:0));}var dd=$('ddone');if(dd)setFill(dd,(D.s?.5:0)+(D.e?.5:0));var qn=$('qnext');if(qn)setFill(qn,fillFrac_req());}
 document.addEventListener('input',function(){syncFills();},true);
 document.addEventListener('click',function(){setTimeout(syncFills,0);},true);
 setTimeout(syncFills,300);

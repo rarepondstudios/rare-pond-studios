@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@600;800&family=Heebo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/crew-form.css">
 <style>
   :root{
     --yellow:#ffd21f; --ink:#0b2c55;
@@ -218,45 +219,6 @@
   footer.site-footer.footer-light .flinks a:hover{color:#0c2c57}
   footer.site-footer.footer-light .copy{color:#4a6890}
   footer.site-footer.footer-light .copy a{color:#1f6fd0}
-  /* ===== crew inquiry modal (opens over the current page, closeable like a lightbox) ===== */
-  .crewpop{position:fixed;inset:0;z-index:400;display:none;place-items:center;overflow:auto;padding:40px 16px;background:rgba(4,12,30,.66)}
-  .crewpop.show{display:grid}
-  .crewbox{position:relative;width:min(560px,94vw);background:#15375f;border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:26px 28px 30px;box-shadow:0 30px 80px -20px rgba(0,0,0,.7);color:#eaf2ff}
-  .crewbox h2{margin:0 0 6px;font-size:24px;color:#fff;font-weight:800}
-  .crewpop .dpx{position:absolute;right:14px;top:14px;z-index:3;width:38px;height:38px;border-radius:50%;border:0;background:rgba(8,22,46,.66);color:#fff;font-size:22px;line-height:1;cursor:pointer}
-  .crewpop .dpx:hover{background:rgba(8,22,46,.92)}
-  .crewlede{color:#cfe0f5;font-size:14px;line-height:1.5;margin:0 0 4px}
-  .crewlab{font-size:12.5px;font-weight:700;color:#bcd9f7;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px}
-  .crewrow2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .crewroles{display:flex;flex-wrap:wrap;gap:8px}
-  .crole{padding:9px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#dbe9fb;font-weight:700;font-size:13.5px;cursor:pointer;transition:.15s;font-family:inherit}
-  .crole:hover{background:rgba(255,255,255,.16)}
-  .crole.on{background:rgba(143,123,255,.26);border-color:#8f7bff;color:#fff;box-shadow:0 0 16px -3px rgba(143,123,255,.8)}
-  .pcards{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-  .pcard{display:flex;gap:14px;align-items:center;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
-  .pcard img{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;border:2px solid rgba(143,123,255,.6)}
-  .pinfo .pname{font-size:16px;font-weight:800;color:#fff}
-  .pinfo .prole{font-size:12.5px;color:#bcd0ea;margin:1px 0 5px}
-  .plink{font-size:13px;color:#9fd0ff;font-weight:700;text-decoration:none}
-  .plink:hover{text-decoration:underline}
-  .crewin,.crewta{width:100%;box-sizing:border-box;padding:11px 13px;border-radius:11px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-family:inherit}
-  .crewin::placeholder,.crewta::placeholder{color:#c2d4ee}
-  .crewta{min-height:84px;resize:vertical}
-  .crewseg{display:flex;gap:8px}
-  .segb{padding:9px 24px;border-radius:10px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#dbe9fb;font-weight:700;font-size:14px;cursor:pointer;transition:.15s;font-family:inherit}
-  .segb:hover{background:rgba(255,255,255,.16)}
-  .segb.on{background:rgba(90,160,255,.26);border-color:#5aa0ff;color:#fff;box-shadow:0 0 14px -3px rgba(90,160,255,.8)}
-  .crewhint{font-weight:600;text-transform:none;letter-spacing:0;color:#9fb6d6;font-size:11px;margin-left:4px}
-  .crewsend{margin-top:20px;width:100%;padding:13px;border-radius:12px;border:0;font-weight:800;font-size:15px;cursor:pointer;background:linear-gradient(90deg,#5aa0ff,#8f7bff);color:#fff;transition:.15s;font-family:inherit}
-  .crewsend:hover{filter:brightness(1.07);box-shadow:0 12px 30px -8px rgba(90,140,255,.6)}
-  .crewpop .reqwarn{font-size:12.5px;color:#ffab9c;margin-top:12px;min-height:0}
-  .crewpop .qsum{margin-top:6px;border:1px solid rgba(255,255,255,.14);border-radius:12px;overflow:hidden}
-  .crewpop .qrow{display:flex;justify-content:space-between;gap:14px;padding:9px 13px;font-size:13.5px;border-bottom:1px solid rgba(255,255,255,.09)}
-  .crewpop .qrow:last-child{border-bottom:none}
-  .crewpop .qrow span{color:#bcd0ea}.crewpop .qrow b{color:#fff;text-align:right}
-  .crewpop .qgear{margin-top:6px;font-size:13px;color:#dbe9fb;line-height:1.6;white-space:pre-wrap}
-  .crewpop .reqrow{display:flex;gap:12px;margin-top:20px}
-  .crewpop .reqback{flex:none;padding:13px 18px;border-radius:12px;border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.1);color:#fff;font-weight:700;cursor:pointer;font-family:inherit}
 
   /* ===== universe ===== */
   .universe{position:fixed;inset:0;z-index:100;visibility:hidden;overflow-y:auto;clip-path:circle(0px at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(0px at var(--ox,50%) var(--oy,50%));transition:clip-path .6s cubic-bezier(.6,0,.2,1),-webkit-clip-path .6s cubic-bezier(.6,0,.2,1);background:#05101f}
@@ -524,7 +486,6 @@
   </template>
 
   <div id="universes"></div>
-  <div class="crewpop" id="crewpop"></div>
 
 <script>async function __main(){
 
@@ -564,115 +525,8 @@ document.querySelectorAll('.rpWater').forEach(d=>d.style.backgroundImage=`url("$
 document.getElementById('socialsHost').innerHTML=socialHTML();
 document.querySelectorAll('[data-footer]').forEach(f=>f.appendChild(document.getElementById('footerTpl').content.cloneNode(true)));
 document.querySelectorAll('[data-scene="light"] [data-footer]').forEach(f=>f.classList.add('footer-light'));
-/* ===== Crew inquiry modal — opens over the current page, posts to the crew Jotform ===== */
-(function(){
-  const CREWROLES=["Cinematography","Gaffing","On-Set Visual Effects","Production Design","Costume"];
-  const CREWMAP={"Cinematography":"jack","Gaffing":"jack","On-Set Visual Effects":"jack","Production Design":"karina","Costume":"karina"};
-  const tphoto=n=>{const m=(TEAM||[]).find(x=>(x.name||'').toLowerCase().indexOf(n)===0);return m?m.photo:'';};
-  const PEOPLE={
-    jack:{name:"Jack Carlsen",roles:"Cinematography · Gaffing · On-Set VFX",link:"https://jackcarlsen.com",img:tphoto('jack')},
-    karina:{name:"Karina Salerno",roles:"Production Design · Costume",link:"https://www.instagram.com/karinayourfriend",img:tphoto('karina')}
-  };
-  const CFG={formId:"261816743694064",fields:{firstName:"q18_firstName",lastName:"q19_lastName",email:"q20_contactEmail",roles:"q12_rolesNeeded",people:"q13_handledBy",dates:"q14_shootDates",insurance:"q15_doYou",budget:"q16_budget",notes:"q17_aboutYour",project:"q21_projectName",dealName:"q22_dealName",shootDateField:"q23_date",crewEndField:"q24_date24"}};
-  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let isOpen=false,step=0,roles=[],first="",last="",email="",project="",dstart="",dend="",ins="",budget="",notes="",warn="";
-  const pop=document.getElementById('crewpop'),g=id=>document.getElementById(id);
-  if(!pop)return;
-  function bizMinISO(){var d=new Date();d.setHours(0,0,0,0);var a=0;while(a<3){d.setDate(d.getDate()+1);var w=d.getDay();if(w!==0&&w!==6)a++;}return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-  function pIso(iso){var p=iso.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
-  function fmtD(iso){if(!iso)return '';return pIso(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
-  function daysBetween(a,b){if(!a||!b)return 0;var d=(pIso(b)-pIso(a))/86400000+1;return d>0?Math.round(d):0;}
-  function datesText(){if(!dstart)return '';if(!dend||dend===dstart)return fmtD(dstart);return fmtD(dstart)+' to '+fmtD(dend)+' ('+daysBetween(dstart,dend)+' days)';}
-  const MINISO=bizMinISO();
-  function personCard(who){const p=PEOPLE[who];return '<div class="pcard">'+(p.img?'<img src="'+p.img+'" alt="" loading="lazy" decoding="async">':'')+'<div class="pinfo"><div class="pname">'+esc(p.name)+'</div><div class="prole">'+esc(p.roles)+'</div><a class="plink" href="'+p.link+'" target="_blank" rel="noopener">See '+esc(p.name.split(" ")[0])+'’s work →</a></div></div>';}
-  function render(){
-    if(step===1){renderReview();return;}
-    if(step===2){renderDone();return;}
-    const who=[...new Set(roles.map(r=>CREWMAP[r]))].sort();
-    let h='<div class="crewbox"><button class="dpx" id="crewx" aria-label="Close">&times;</button><h2>Crew your shoot</h2>';
-    h+='<p class="crewlede">Tell us about your set and which department(s) you need. If you bring us on, a basic gear package for that role can be folded into our day rate.</p>';
-    h+='<div class="crewrow2"><div><div class="crewlab">First name</div><input class="crewin" id="cfn" value="'+esc(first)+'"></div><div><div class="crewlab">Last name</div><input class="crewin" id="cln" value="'+esc(last)+'"></div></div>';
-    h+='<div class="crewlab">Contact email</div><input class="crewin" id="cem" type="email" value="'+esc(email)+'">';
-    h+='<div class="crewlab">Project name</div><input class="crewin" id="cpr" placeholder="Name of your film / project" value="'+esc(project)+'">';
-    h+='<div class="crewlab">Which role(s) do you need? <span class="crewhint">select all that apply</span></div><div class="crewroles">'+CREWROLES.map(r=>'<button class="crole'+(roles.includes(r)?" on":"")+'" data-role="'+esc(r)+'">'+esc(r)+'</button>').join("")+'</div>';
-    if(who.length)h+='<div class="pcards">'+who.map(personCard).join("")+'</div>';
-    h+='<div class="crewrow2"><div><div class="crewlab">Shoot start date</div><input class="crewin" id="cds" type="date" min="'+MINISO+'" value="'+esc(dstart)+'" style="color-scheme:dark"></div><div><div class="crewlab">Shoot end date</div><input class="crewin" id="cde" type="date" min="'+esc(dstart||MINISO)+'" value="'+esc(dend)+'" style="color-scheme:dark"></div></div>';
-    h+='<div class="crewhint" style="display:block;margin:8px 0 2px">Shoots need at least 3 business days\' lead time, so the earliest start date is '+fmtD(MINISO)+'.</div>';
-    h+='<div class="crewlab">Do you have production insurance?</div><div class="crewseg">'+["Yes","No"].map(o=>'<button class="segb'+(ins===o?" on":"")+'" data-ins="'+o+'">'+o+'</button>').join("")+'</div>';
-    h+='<div class="crewlab">Your budget</div><input class="crewin" id="cbd" placeholder="e.g. around $2,000 for the shoot" value="'+esc(budget)+'">';
-    h+='<div class="crewlab">Tell us about your set</div><textarea class="crewta" id="cnt" placeholder="Project, location, what you are shooting, and what you need...">'+esc(notes)+'</textarea>';
-    h+='<div class="reqwarn" id="crewwarn">'+esc(warn)+'</div><button class="crewsend" id="crewsend">Review request →</button></div>';
-    pop.innerHTML=h;
-    g('crewx').onclick=close;
-    pop.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{const r=b.dataset.role;roles=roles.includes(r)?roles.filter(x=>x!==r):roles.concat(r);render();});
-    pop.querySelectorAll('[data-ins]').forEach(b=>b.onclick=()=>{ins=b.dataset.ins;render();});
-    const bind=(id,fn)=>{const el=g(id);if(el)el.oninput=e=>fn(e.target.value);};
-    bind('cfn',v=>first=v);bind('cln',v=>last=v);bind('cem',v=>email=v);bind('cpr',v=>project=v);bind('cbd',v=>budget=v);bind('cnt',v=>notes=v);
-    var cds=g('cds');if(cds)cds.onchange=function(e){dstart=e.target.value;if(dend&&dend<dstart)dend='';render();};
-    var cde=g('cde');if(cde)cde.onchange=function(e){dend=e.target.value;};
-    g('crewsend').onclick=toReview;
-  }
-  function toReview(){
-    var miss=[];
-    if(!first.trim())miss.push('first name');
-    if(!last.trim())miss.push('last name');
-    if(!/.+@.+\..+/.test(email))miss.push('a valid email');
-    if(!project.trim())miss.push('project name');
-    if(!roles.length)miss.push('at least one role you need');
-    if(!dstart)miss.push('a shoot start date');
-    if(!dend)miss.push('a shoot end date');
-    if(dstart&&dstart<MINISO)miss.push('a start date on or after '+fmtD(MINISO));
-    if(dstart&&dend&&dend<dstart)miss.push('an end date on or after the start date');
-    if(!ins)miss.push('whether you have production insurance');
-    if(!budget.trim())miss.push('a budget');
-    if(!notes.trim())miss.push('a note about your set');
-    if(miss.length){warn='Please add: '+miss.join(', ')+'.';render();return;}
-    warn='';step=1;render();
-  }
-  function renderReview(){
-    var who=[...new Set(roles.map(r=>PEOPLE[CREWMAP[r]].name))];
-    function row(l,v){return '<div class="qrow"><span>'+esc(l)+'</span><b>'+esc(v||'-')+'</b></div>';}
-    var h='<div class="crewbox"><button class="dpx" id="crewx" aria-label="Close">&times;</button><h2>Confirm your inquiry</h2>';
-    h+='<div class="qsum">'+row('Name',(first+' '+last).trim())+row('Email',email)+row('Project',project)+row('Roles',roles.join(', '))+row('Handled by',who.join(' & '))+row('Shoot dates',datesText())+row('Insurance',ins)+row('Budget',budget)+'</div>';
-    if(notes.trim())h+='<div class="crewlab">About your set</div><div class="qgear">'+esc(notes)+'</div>';
-    h+='<div class="reqrow"><button class="reqback" id="cback">← Back</button><button class="crewsend" id="csend" style="margin:0">Send inquiry →</button></div></div>';
-    pop.innerHTML=h;
-    g('crewx').onclick=close;
-    g('cback').onclick=function(){step=0;render();};
-    g('csend').onclick=send;
-  }
-  function renderDone(){
-    var h='<div class="crewbox" style="text-align:center"><div style="width:60px;height:60px;border-radius:50%;margin:6px auto 14px;display:grid;place-items:center;font-size:30px;color:#fff;background:linear-gradient(135deg,#39c07a,#2f9d86)">&#10003;</div><h2>Inquiry sent!</h2><p class="crewlede">Thanks, '+esc(first||'there')+'. Your crew inquiry for <b>'+esc(project||'your project')+'</b> is on its way. We\'ll follow up at <b>'+esc(email||'your inbox')+'</b> soon.</p><button class="crewsend" id="cdone" style="margin-top:10px">Done</button></div>';
-    pop.innerHTML=h;
-    g('cdone').onclick=close;
-  }
-  function open(){isOpen=true;step=0;warn='';render();pop.classList.add('show');document.body.style.overflow='hidden';}
-  function close(){isOpen=false;pop.classList.remove('show');document.body.style.overflow='';}
-  function send(){
-    const F=CFG.fields,data={};
-    const who=[...new Set(roles.map(r=>PEOPLE[CREWMAP[r]].name))];
-    if(F.project)data[F.project]=project||"";
-    if(F.dealName)data[F.dealName]='Crew: '+((project||'').trim()||'Untitled project')+' ('+(roles.join(', ')||'crew')+')';
-    if(F.roles)data[F.roles]=roles.join(", ");
-    if(F.people)data[F.people]=who.join(" & ");
-    if(F.dates)data[F.dates]=datesText();if(F.shootDateField&&dstart){var _p=dstart.split('-');data[F.shootDateField+'[year]']=_p[0];data[F.shootDateField+'[month]']=_p[1];data[F.shootDateField+'[day]']=_p[2];}if(F.crewEndField&&(dend||dstart)){var _e=(dend||dstart).split('-');data[F.crewEndField+'[year]']=_e[0];data[F.crewEndField+'[month]']=_e[1];data[F.crewEndField+'[day]']=_e[2];}
-    if(F.insurance)data[F.insurance]=ins||"";
-    if(F.budget)data[F.budget]=budget||"";
-    if(F.notes)data[F.notes]=notes||"";
-    if(F.firstName)data[F.firstName]=first||"";
-    if(F.lastName)data[F.lastName]=last||"";
-    if(F.email)data[F.email]=email||"";
-    let sent=false;
-    try{const fd=new FormData();Object.keys(data).forEach(k=>fd.append(k,data[k]));fetch('https://submit.jotform.com/submit/'+CFG.formId,{method:'POST',body:fd,mode:'no-cors'});sent=true;}catch(e){console.error('crew submit failed',e);}
-    if(!sent){const subj=encodeURIComponent("Crew request"+(roles.length?": "+roles.join(", "):""));
-      const body=encodeURIComponent("Project: "+(project||"(none)")+"\nRoles: "+(roles.join(", ")||"(none)")+"\nContact: "+(who.join(" & ")||"-")+"\nShoot dates: "+(datesText()||"(not set)")+"\nInsurance: "+(ins||"(n/a)")+"\nBudget: "+(budget||"(n/a)")+"\n\n"+(notes||""));
-      try{window.location.href="mailto:studio@rarepond.com?subject="+subj+"&body="+body;}catch(e){}}
-    step=2;render();
-  }
-  pop.addEventListener('click',e=>{if(e.target===pop)close();});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&isOpen)close();});
-  const ob=document.getElementById('crewOpenBtn');if(ob)ob.addEventListener('click',e=>{e.preventDefault();open();});
-})();
+/* ===== Crew inquiry — now handled by the shared crew-form module. Wire the trigger. ===== */
+(function(){var ob=document.getElementById('crewOpenBtn');if(ob)ob.addEventListener('click',function(e){e.preventDefault();if(window.RPCrew)window.RPCrew.open();});})();
 document.querySelectorAll('[data-socials]').forEach(s=>s.innerHTML=socialHTML());
 document.querySelectorAll('.rpColor').forEach(i=>i.src=SITE.logos.color);
 
@@ -857,5 +711,7 @@ addEventListener('hashchange',routeHash);
 
 }
 __main().catch(e=>console.error("init error",e));</script>
+<script src="/rentals/assets/form-config.js" defer></script>
+<script src="/assets/crew-form.js" defer></script>
 </body>
 </html>

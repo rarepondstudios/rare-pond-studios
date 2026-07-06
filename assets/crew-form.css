@@ -1,0 +1,83 @@
+/* ============================================================================
+   RARE POND — SHARED CREW-INQUIRY FORM  (crew-form.css)
+   ----------------------------------------------------------------------------
+   Self-contained styles for the crew-your-shoot overlay. Loaded root-relative
+   (/assets/crew-form.css) by BOTH the studio (/) and rentals (/rentals/) pages.
+   Every class is prefixed .rpc- so it never collides with either page's own
+   CSS. This is the single source of truth — editing it updates BOTH pages.
+   ============================================================================ */
+
+.rpc-pop{position:fixed;inset:0;z-index:2000;display:none;place-items:center;overflow:auto;padding:40px 16px;background:rgba(4,12,30,.66);box-sizing:border-box;font-family:'Heebo','Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.rpc-pop.rpc-show{display:grid}
+.rpc-pop *,.rpc-pop *::before,.rpc-pop *::after{box-sizing:border-box}
+.rpc-box{position:relative;width:min(560px,94vw);background:#15375f;border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:26px 28px 30px;box-shadow:0 30px 80px -20px rgba(0,0,0,.7);color:#eaf2ff}
+.rpc-box h2{margin:0 0 6px;font-size:24px;color:#fff;font-weight:800;line-height:1.15}
+.rpc-x{position:absolute;right:14px;top:14px;z-index:3;width:38px;height:38px;border-radius:50%;border:0;background:rgba(8,22,46,.66);color:#fff;font-size:22px;line-height:1;cursor:pointer}
+.rpc-x:hover{background:rgba(8,22,46,.92)}
+.rpc-lede{color:#cfe0f5;font-size:14px;line-height:1.5;margin:0 0 4px}
+.rpc-lab{font-size:12.5px;font-weight:700;color:#bcd9f7;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px}
+.rpc-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* role chips */
+.rpc-roles{display:flex;flex-wrap:wrap;gap:8px}
+.rpc-role{padding:9px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#dbe9fb;font-weight:700;font-size:13.5px;cursor:pointer;transition:.15s;font-family:inherit}
+.rpc-role:hover{background:rgba(255,255,255,.16)}
+.rpc-role.rpc-on{background:rgba(143,123,255,.26);border-color:#8f7bff;color:#fff;box-shadow:0 0 16px -3px rgba(143,123,255,.8)}
+.rpc-hint{font-weight:600;text-transform:none;letter-spacing:0;color:#9fb6d6;font-size:11px;margin-left:4px}
+
+/* person cards */
+.rpc-cards{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.rpc-card{display:flex;gap:14px;align-items:center;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
+.rpc-card img{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;border:2px solid rgba(143,123,255,.6);background:#0e2947}
+.rpc-pname{font-size:16px;font-weight:800;color:#fff}
+.rpc-prole{font-size:12.5px;color:#bcd0ea;margin:1px 0 5px}
+.rpc-plink{font-size:13px;color:#9fd0ff;font-weight:700;text-decoration:none}
+.rpc-plink:hover{text-decoration:underline}
+
+/* text inputs / textarea / native date inputs */
+.rpc-in,.rpc-ta{width:100%;padding:11px 13px;border-radius:11px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-family:inherit}
+.rpc-in::placeholder,.rpc-ta::placeholder{color:#c2d4ee}
+.rpc-ta{min-height:84px;resize:vertical}
+.rpc-in[type=date]{color-scheme:dark;cursor:pointer;min-height:44px}
+.rpc-in[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.85;cursor:pointer}
+
+/* insurance yes/no segmented control */
+.rpc-seg{display:flex;gap:8px}
+.rpc-segb{padding:9px 24px;border-radius:10px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#dbe9fb;font-weight:700;font-size:14px;cursor:pointer;transition:.15s;font-family:inherit}
+.rpc-segb:hover{background:rgba(255,255,255,.16)}
+.rpc-segb.rpc-on{background:rgba(90,160,255,.26);border-color:#5aa0ff;color:#fff;box-shadow:0 0 14px -3px rgba(90,160,255,.8)}
+
+/* lead-time note + validation warning */
+.rpc-note{display:block;color:#9fb6d6;font-size:11px;margin:8px 0 2px}
+.rpc-warn{font-size:12.5px;color:#ffab9c;margin-top:12px;min-height:0}
+
+/* review summary */
+.rpc-sum{margin-top:6px;border:1px solid rgba(255,255,255,.14);border-radius:12px;overflow:hidden}
+.rpc-qrow{display:flex;justify-content:space-between;gap:14px;padding:9px 13px;font-size:13.5px;border-bottom:1px solid rgba(255,255,255,.09)}
+.rpc-qrow:last-child{border-bottom:none}
+.rpc-qrow span{color:#bcd0ea}
+.rpc-qrow b{color:#fff;text-align:right}
+.rpc-notes{margin-top:6px;font-size:13px;color:#dbe9fb;line-height:1.6;white-space:pre-wrap}
+.rpc-reqrow{display:flex;gap:12px;margin-top:20px}
+.rpc-back{flex:none;padding:13px 18px;border-radius:12px;border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.1);color:#fff;font-weight:700;cursor:pointer;font-family:inherit}
+.rpc-back:hover{background:rgba(255,255,255,.18)}
+
+/* confirmation ("Request sent!") */
+.rpc-done{text-align:center}
+.rpc-check{width:62px;height:62px;border-radius:50%;margin:6px auto 14px;display:grid;place-items:center;font-size:32px;color:#fff;background:linear-gradient(135deg,#39c07a,#2f9d86);box-shadow:0 0 26px -4px rgba(57,192,122,.8)}
+
+/* plain send/next button base */
+.rpc-send{margin-top:20px;width:100%;padding:13px;border-radius:12px;border:0;font-weight:800;font-size:15px;cursor:pointer;background:linear-gradient(90deg,#5aa0ff,#8f7bff);color:#fff;font-family:inherit}
+
+/* progress-fill submit button (blue->teal->purple, fills left->right; sliver
+   when empty; glow when ready) — faithful port of the rentals .pbtn/.ready. */
+@property --rpc-fill{syntax:'<percentage>';inherits:false;initial-value:4%}
+.rpc-pbtn{position:relative;--rpc-fill:4%;color:#fff;background:linear-gradient(90deg,rgba(19,38,70,0) var(--rpc-fill),#26426f var(--rpc-fill)),linear-gradient(90deg,#5aa0ff,#4ec6c9,#8f7bff)!important;transition:--rpc-fill .55s cubic-bezier(.4,.85,.3,1),box-shadow .35s}
+.rpc-pbtn.rpc-ready{box-shadow:0 0 0 1px rgba(150,180,255,.55),0 0 22px -2px rgba(120,150,255,.7),0 0 42px -8px rgba(80,200,200,.55)}
+
+/* red-glow flash for empty/missing fields on a blocked submit */
+@keyframes rpc-flashred{0%,100%{box-shadow:0 0 0 0 rgba(255,74,74,0)}20%{box-shadow:0 0 0 3px rgba(255,74,74,.55),0 0 16px 2px rgba(255,74,74,.5)}}
+.rpc-flashred{animation:rpc-flashred .5s ease 0s 3;border-color:rgba(255,96,96,.95)!important;border-radius:11px}
+
+@media(max-width:520px){.rpc-row2{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.rpc-pbtn{transition:box-shadow .35s}.rpc-flashred{animation:none;box-shadow:0 0 0 3px rgba(255,74,74,.55)}}
