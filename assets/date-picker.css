@@ -1,0 +1,57 @@
+/* ============================================================================
+   RARE POND — SHARED DATE PICKER  (date-picker.css)
+   ----------------------------------------------------------------------------
+   Styles for the shared overlay calendar (window.RPDates). Loaded root-relative
+   (/assets/date-picker.css) by BOTH the studio (/) and rentals (/rentals/)
+   pages. Every class is prefixed .rpd- so it never collides with either page's
+   own CSS. Faithful port of the rentals in-page calendar look.
+   ============================================================================ */
+
+.rpd-pop{position:fixed;inset:0;z-index:2100;display:none;place-items:center;overflow:auto;padding:40px 16px;background:rgba(4,12,30,.66);box-sizing:border-box;font-family:'Heebo','Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.rpd-pop.rpd-show{display:grid}
+.rpd-pop *,.rpd-pop *::before,.rpd-pop *::after{box-sizing:border-box}
+.rpd-box{position:relative;background:#15375f;border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:20px 22px;width:min(432px,94vw);color:#eaf3ff}
+.rpd-box h3{margin:0 0 4px;font-size:18px;color:#fff}
+.rpd-sub{margin:0 0 12px;font-size:12.5px;color:#bcd9f7}
+.rpd-x{position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(8,22,46,.66);color:#fff;font-size:20px;line-height:1;cursor:pointer}
+.rpd-x:hover{background:rgba(8,22,46,.92)}
+
+.rpd-rule{margin:0 0 12px;padding:9px 12px;border-radius:11px;background:rgba(90,160,255,.14);border:1px solid rgba(120,180,255,.28);color:#dbeafe;font-size:12.5px;line-height:1.5;text-align:center}
+.rpd-rule b{color:#fff}
+
+.rpd-toggle{display:flex;gap:8px;margin-bottom:12px}
+.rpd-toggle button{flex:1;padding:9px;border-radius:10px;border:1.5px solid transparent;background:rgba(255,255,255,.1);color:#cfe0f5;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit}
+.rpd-toggle .rpd-tS.rpd-on{background:rgba(90,160,255,.24);border-color:#5aa0ff;color:#dcebff;box-shadow:0 0 14px -2px rgba(90,160,255,.75)}
+.rpd-toggle .rpd-tE.rpd-on{background:rgba(143,123,255,.24);border-color:#8f7bff;color:#e8e2ff;box-shadow:0 0 14px -2px rgba(143,123,255,.75)}
+
+.rpd-head{display:flex;align-items:center;justify-content:space-between;margin:2px 0 8px;font-weight:700;color:#fff;font-size:15px}
+.rpd-nav{width:30px;height:30px;border-radius:8px;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:17px;cursor:pointer}
+
+.rpd-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0}
+.rpd-cw{text-align:center;font-size:11px;color:#9fb6d6;font-weight:700;padding:2px 0}
+.rpd-cd{position:relative;height:46px;min-width:0;display:grid;place-items:center;font-size:13px;color:#eaf3ff;cursor:pointer;transition:.1s}
+.rpd-cd.rpd-empty{cursor:default}
+.rpd-cd.rpd-off{opacity:.24;pointer-events:none;text-decoration:line-through;text-decoration-thickness:1px}
+.rpd-cd .rpd-num{position:relative;z-index:3}
+.rpd-cd.rpd-selS .rpd-num,.rpd-cd.rpd-selE .rpd-num,.rpd-cd.rpd-inr .rpd-num{color:#fff;font-weight:800}
+.rpd-cd .rpd-bd{position:absolute;top:50%;transform:translateY(-50%);height:34px;z-index:1;pointer-events:none}
+.rpd-cd .rpd-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;z-index:2;pointer-events:none}
+.rpd-cd.rpd-selS .rpd-dot{background:#5aa0ff;box-shadow:0 0 13px rgba(90,160,255,.9)}
+.rpd-cd.rpd-selE .rpd-dot{background:#8f7bff;box-shadow:0 0 13px rgba(143,123,255,.9)}
+.rpd-cd:not(.rpd-empty):not(.rpd-selS):not(.rpd-selE):not(.rpd-inr):hover{background:rgba(255,255,255,.14);border-radius:10px}
+.rpd-cd.rpd-bad{border-radius:50%;animation:rpd-badflash .45s ease 2}
+.rpd-cd.rpd-bad .rpd-num{color:#fff}
+@keyframes rpd-badflash{0%,100%{background:transparent}50%{background:#e24b4a;box-shadow:0 0 12px rgba(226,75,74,.9)}}
+
+.rpd-warn{min-height:16px;color:#ff9a9a;font-size:12.5px;font-weight:600;text-align:center;margin-top:8px;opacity:0;transition:.2s}
+.rpd-warn.rpd-show{opacity:1}
+.rpd-summ{margin-top:10px;text-align:center;font-size:13.5px;color:#dceaff}
+.rpd-note{margin-top:9px;text-align:center;font-size:12px;color:#bcd9f7;line-height:1.55}
+.rpd-note b{color:#eaf3ff}
+
+.rpd-acts{display:flex;gap:10px;margin-top:14px}
+.rpd-acts button{flex:1;padding:11px;border-radius:11px;border:0;font-weight:700;cursor:pointer;font-family:inherit}
+.rpd-acts .rpd-ap{background:linear-gradient(90deg,#5aa0ff,#8f7bff);color:#fff}
+.rpd-acts .rpd-cl{background:rgba(255,255,255,.14);color:#fff}
+
+@media(prefers-reduced-motion:reduce){.rpd-cd.rpd-bad{animation:none}}

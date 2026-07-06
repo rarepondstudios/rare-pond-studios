@@ -5,9 +5,11 @@
    (/assets/crew-form.js) by BOTH the studio (/) and rentals (/rentals/) pages.
    Editing this file updates BOTH pages.
 
-   Self-contained: owns its overlay markup, its own shoot start/end date-range
-   selection (two native date inputs), its own helpers, and its styling lives in
-   the sibling /assets/crew-form.css. It depends on NOTHING from rentals app.js.
+   Self-contained: owns its overlay markup, its own helpers, and its styling lives
+   in the sibling /assets/crew-form.css. Shoot start/end dates now come from the
+   site-wide SHARED date state (window.RPDates, /assets/date-picker.js) — the crew
+   form shows the currently-chosen dates + a "Change dates" button that opens the
+   SAME shared calendar. Dates entered here or in the rental cart are one value.
 
    Public API:  window.RPCrew.open()   — opens the overlay on the current page.
                 window.RPCrew.close()  — closes it.
@@ -61,9 +63,20 @@
   function datesText(){if(!S.dstart)return '';if(!S.dend||S.dend===S.dstart)return fmtD(S.dstart);return fmtD(S.dstart)+' – '+fmtD(S.dend)+' ('+daysBetween(S.dstart,S.dend)+' days)';}
   var emailOK=function(v){return /.+@.+\..+/.test(String(v||''));};
 
-  /* ---- state ---- */
+  /* ---- state ----
+     dstart / dend are a LIVE VIEW over the site-wide shared date state
+     (window.RPDates, /assets/date-picker.js) so the crew form and the rental
+     cart share ONE set of dates, entered once and changeable anywhere. Falls
+     back to plain local strings if the shared module ever fails to load. */
   var S = {open:false, step:0, roles:[], first:"", last:"", email:"", project:"",
-           dstart:"", dend:"", ins:"", budget:"", notes:"", warn:""};
+           _ds:"", _de:"", ins:"", budget:"", notes:"", warn:""};
+  if(window.RPDates){
+    Object.defineProperty(S,'dstart',{get:function(){return window.RPDates.get().start;},set:function(v){var g=window.RPDates.get();window.RPDates.set(v||'',g.end);}});
+    Object.defineProperty(S,'dend',{get:function(){return window.RPDates.get().end;},set:function(v){var g=window.RPDates.get();window.RPDates.set(g.start,v||'');}});
+  } else {
+    Object.defineProperty(S,'dstart',{get:function(){return S._ds;},set:function(v){S._ds=v||'';}});
+    Object.defineProperty(S,'dend',{get:function(){return S._de;},set:function(v){S._de=v||'';}});
+  }
 
   /* ---- overlay element (created once, appended to <body>) ---- */
   var pop = document.createElement('div');
@@ -98,6 +111,28 @@
       '<a class="rpc-plink" href="'+p.link+'" target="_blank" rel="noopener">See '+esc(p.name.split(" ")[0])+'’s work →</a></div></div>';
   }
 
+  /* ---- shared-date display block: shows the currently-chosen dates (from the
+     site-wide shared state) + a "Change dates" button that opens the SAME shared
+     calendar overlay (window.RPDates). Replaces the old native date inputs. ---- */
+  function dateBlockHTML(){
+    var have=!!(S.dstart&&S.dend), tooSoon=S.dstart&&S.dstart<MINISO;
+    var label = have ? esc(datesText()) : (S.dstart ? esc(fmtD(S.dstart))+' — <i>pick an end date</i>' : 'No dates selected yet');
+    return '<div class="rpc-dateblock'+(have?' rpc-hasdates':'')+'" id="rpc-dateblock">'+
+      '<div class="rpc-datebadge"><svg viewBox="0 0 24 24" fill="none" stroke="#bfe3ff" stroke-width="1.6"><path d="M4 5h16v16H4z M4 9h16" stroke-linecap="round"/></svg>'+
+      '<span class="rpc-datetxt">'+label+'</span></div>'+
+      '<button type="button" class="rpc-datebtn" id="rpc-datebtn">'+(have?'Change dates':'Select dates')+'</button>'+
+      (tooSoon?'<div class="rpc-datesoon">Earliest start is '+esc(fmtD(MINISO))+'.</div>':'')+
+      '</div>';
+  }
+  function wireDateBlock(){
+    var b=g('rpc-datebtn');
+    if(b) b.onclick=function(){
+      if(window.RPDates && typeof window.RPDates.open==='function'){
+        window.RPDates.open(function(){ render(); }); // on Done -> re-render with new shared dates
+      }
+    };
+  }
+
   function render(){
     if(S.step===1){ renderReview(); return; }
     if(S.step===2){ renderDone(); return; }
@@ -109,8 +144,8 @@
     h+='<div class="rpc-lab">Project name</div><input class="rpc-in" id="rpc-pr" placeholder="Name of your film / project" value="'+esc(S.project)+'">';
     h+='<div class="rpc-lab">Which role(s) do you need? <span class="rpc-hint">select all that apply</span></div><div class="rpc-roles">'+CREWROLES.map(function(r){return '<button class="rpc-role'+(S.roles.includes(r)?" rpc-on":"")+'" data-role="'+esc(r)+'">'+esc(r)+'</button>';}).join("")+'</div>';
     if(who.length)h+='<div class="rpc-cards">'+who.map(personCard).join("")+'</div>';
-    h+='<div class="rpc-row2"><div><div class="rpc-lab">Shoot start date</div><input class="rpc-in" id="rpc-ds" type="date" min="'+MINISO+'" value="'+esc(S.dstart)+'"></div><div><div class="rpc-lab">Shoot end date</div><input class="rpc-in" id="rpc-de" type="date" min="'+esc(S.dstart||MINISO)+'" value="'+esc(S.dend)+'"></div></div>';
-    h+='<span class="rpc-note">Shoots need at least 3 business days’ lead time, so the earliest start date is '+fmtD(MINISO)+'.</span>';
+    h+='<div class="rpc-lab">Shoot dates</div>'+dateBlockHTML();
+    h+='<span class="rpc-note">Shoots need at least 3 business days’ lead time, so the earliest start date is '+fmtD(MINISO)+'. These are the same dates used across the site — set them once, change them anywhere.</span>';
     h+='<div class="rpc-lab">Do you have production insurance?</div><div class="rpc-seg" id="rpc-seg">'+["Yes","No"].map(function(o){return '<button class="rpc-segb'+(S.ins===o?" rpc-on":"")+'" data-ins="'+o+'">'+o+'</button>';}).join("")+'</div>';
     h+='<div class="rpc-lab">Your budget</div><input class="rpc-in" id="rpc-bd" placeholder="'+(cType('budget')==='number'?'e.g. 2000':'e.g. around $2,000 for the shoot')+'" value="'+esc(S.budget)+'">';
     h+='<div class="rpc-lab">Tell us about your set</div><textarea class="rpc-ta" id="rpc-nt" placeholder="Project, location, what you are shooting, and what you need...">'+esc(S.notes)+'</textarea>';
@@ -123,8 +158,7 @@
     var bind=function(id,key,fn){ var el=g(id); if(!el) return; var t=cType(key); if(t==='number') el.setAttribute('inputmode','decimal'); else if(t==='tel') el.setAttribute('inputmode','tel'); el.oninput=function(e){ var mv=maskInput(t,e.target.value); if(mv!==e.target.value) e.target.value=mv; fn(mv); syncFill(); }; };
     bind('rpc-fn','first',function(v){S.first=v;}); bind('rpc-ln','last',function(v){S.last=v;}); bind('rpc-em','email',function(v){S.email=v;});
     bind('rpc-pr','project',function(v){S.project=v;}); bind('rpc-bd','budget',function(v){S.budget=v;}); bind('rpc-nt','notes',function(v){S.notes=v;});
-    var ds=g('rpc-ds'); if(ds) ds.onchange=function(e){ S.dstart=e.target.value; if(S.dend&&S.dend<S.dstart)S.dend=''; render(); };
-    var de=g('rpc-de'); if(de) de.onchange=function(e){ S.dend=e.target.value; syncFill(); };
+    wireDateBlock();
     g('rpc-next').onclick=toReview;
     syncFill();
   }
@@ -150,8 +184,7 @@
       .forEach(function(pp){ if(!pp[1]) flashRed(g(pp[0])); });
     if(!S.roles.length) flashRed(pop.querySelector('.rpc-roles'));
     if(!S.ins) flashRed(g('rpc-seg'));
-    if(!S.dstart||S.dstart<MINISO) flashRed(g('rpc-ds'));
-    if(!S.dend||(S.dstart&&S.dend<S.dstart)) flashRed(g('rpc-de'));
+    if(!S.dstart||!S.dend||S.dstart<MINISO||(S.dstart&&S.dend&&S.dend<S.dstart)) flashRed(g('rpc-dateblock'));
   }
   function toReview(){
     var m=crewMiss();
@@ -241,4 +274,11 @@
   document.addEventListener('keydown', function(e){ if(e.key==='Escape' && S.open) close(); });
 
   window.RPCrew = { open:open, close:close, _captureOnly:false, _lastPayload:null };
+
+  /* Keep the crew form's date display fresh if the shared dates change elsewhere
+     while it's open (step 0). Re-rendering the review/done steps would be jarring,
+     so only refresh the editable step. */
+  if(window.RPDates && typeof window.RPDates.onChange==='function'){
+    window.RPDates.onChange(function(){ if(S.open && S.step===0) render(); });
+  }
 })();

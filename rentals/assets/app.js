@@ -6,7 +6,19 @@ const SOC={yt:'<svg viewBox="0 0 24 24"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 5 
 const SOCLINKS=[['https://www.youtube.com/@zytopian','YouTube','yt'],['https://www.instagram.com/rarepond','Instagram','ig'],['https://www.linkedin.com/company/rare-pond-studios/','LinkedIn','li']];
 const CATS=["Camera","Lighting","Grip","Electric","Sound Packages"];
 RENTALS.forEach((p,i)=>p._id=i);
-let active="Home",q="",cart={},cartOrder=[],D={s:'',e:''},dpOpen=null,calRef=null,pick='start',badDay=null;
+let active="Home",q="",cart={},cartOrder=[],dpOpen=null,calRef=null,pick='start',badDay=null;
+/* D.s / D.e are a LIVE VIEW over the site-wide shared date state (window.RPDates,
+   /assets/date-picker.js) so the rental cart, the crew form and every page share
+   ONE set of dates (persisted in sessionStorage). All existing D.s/D.e reads and
+   assignments below flow through here unchanged. Defensive fallback to a plain
+   object if the shared module ever fails to load. */
+var _Dlocal={s:'',e:''};
+var D=(window.RPDates)?{
+  get s(){return window.RPDates.get().start;},
+  set s(v){var g=window.RPDates.get();window.RPDates.set(v||'',g.end);},
+  get e(){return window.RPDates.get().end;},
+  set e(v){var g=window.RPDates.get();window.RPDates.set(g.start,v||'');}
+}:_Dlocal;
 const $=id=>document.getElementById(id);
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
 function hx(h,a){h=h.replace('#','');return 'rgba('+parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16)+','+a+')';}
@@ -163,8 +175,11 @@ $('quote').onclick=function(){var ids=cartOrder.filter(function(id){return id in
    (loaded root-relative by this page). The #crewbtn trigger calls RPCrew.open(). */
 function setFill(b,fr){if(!b)return;fr=Math.max(0,Math.min(1,fr||0));b.style.setProperty('--fill',(4+fr*96).toFixed(1)+'%');b.classList.toggle('ready',fr>=0.999);}
 function flashRed(el){if(!el)return;el.classList.remove('flashred');void el.offsetWidth;el.classList.add('flashred');var done=function(){el.classList.remove('flashred');el.removeEventListener('animationend',done);};el.addEventListener('animationend',done);setTimeout(done,1700);}
-/* Red arrow pointing at an element (reused for the date button + empty cart). */
-function flashArrow(el){if(!el)return;var a=document.createElement('div');a.className='datearrow';a.textContent='➜';var r=el.getBoundingClientRect();a.style.left=(r.left-34)+'px';a.style.top=(r.top+r.height/2-16)+'px';document.body.appendChild(a);setTimeout(function(){a.remove();},1700);}
+/* Red arrow pointing at an element (reused for the date button + empty cart).
+   Horizontal x is anchored to the cart SIDEBAR's left edge (#cartp) so every
+   arrow lines up at the SAME x regardless of the target's own width; only the
+   vertical position tracks the individual target so it still points at it. */
+function flashArrow(el){if(!el)return;var a=document.createElement('div');a.className='datearrow';a.textContent='➜';var r=el.getBoundingClientRect();var sb=$('cartp'),sr=sb?sb.getBoundingClientRect():null;var leftX=(sr?sr.left:r.left)-34;a.style.left=leftX+'px';a.style.top=(r.top+r.height/2-16)+'px';document.body.appendChild(a);setTimeout(function(){a.remove();},1700);}
 function flashDateBtn(){var b=$('cartdate');if(!b)return;flashRed(b);flashArrow(b);}
 /* crew popup state/render/send removed — now handled by shared /assets/crew-form.js */
 /* ---- Rental request: config-driven fields, posts to Jotform (see form-config.js) ---- */
@@ -287,3 +302,7 @@ function syncFills(){var qb=$('quote');if(qb){var ids=cartOrder.filter(function(
 document.addEventListener('input',function(){syncFills();},true);
 document.addEventListener('click',function(){setTimeout(syncFills,0);},true);
 setTimeout(syncFills,300);
+
+/* Shared dates changed elsewhere on the site (e.g. the crew form) -> keep the
+   rental cart / calendar / request popup in sync. afterDate() re-renders them. */
+if(window.RPDates&&window.RPDates.onChange){window.RPDates.onChange(function(){try{if($('dpop')&&$('dpop').classList.contains('show'))calRender();afterDate();syncFills();}catch(e){}});}
