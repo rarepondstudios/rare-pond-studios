@@ -158,15 +158,26 @@ function uc(){const ids=cartOrder.filter(id=>id in cart);const dd=days();
  $('pit').querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>dec(+b.dataset.cm));}
 function openCart(o){$('cartp').classList.toggle('show',o);$('ovl').classList.toggle('show',o);}
 $('fab').onclick=()=>openCart(true);$('closeCart').onclick=()=>openCart(false);$('ovl').onclick=()=>openCart(false);
-$('quote').onclick=function(){var ids=cartOrder.filter(function(id){return id in cart;}),hasG=ids.length>0,hasD=!!(D.s&&D.e);if(!hasG){flashRed($('pit'));if(!hasD)flashDateBtn();return;}if(!hasD){flashDateBtn();return;}openReq();};
+$('quote').onclick=function(){var ids=cartOrder.filter(function(id){return id in cart;}),hasG=ids.length>0,hasD=!!(D.s&&D.e);if(!hasG){var pe=$('pit').querySelector('.empty')||$('pit');flashRed($('pit'));flashArrow(pe);if(!hasD)flashDateBtn();return;}if(!hasD){flashDateBtn();return;}openReq();};
 /* Crew-your-shoot popup is now the shared module — see /assets/crew-form.js
    (loaded root-relative by this page). The #crewbtn trigger calls RPCrew.open(). */
 function setFill(b,fr){if(!b)return;fr=Math.max(0,Math.min(1,fr||0));b.style.setProperty('--fill',(4+fr*96).toFixed(1)+'%');b.classList.toggle('ready',fr>=0.999);}
-function flashRed(el){if(!el)return;el.classList.remove('flashred');void el.offsetWidth;el.classList.add('flashred');setTimeout(function(){el.classList.remove('flashred');},1700);}
-function flashDateBtn(){var b=$('cartdate');if(!b)return;flashRed(b);var a=document.createElement('div');a.className='datearrow';a.textContent='➜';var r=b.getBoundingClientRect();a.style.left=(r.left-34)+'px';a.style.top=(r.top+r.height/2-16)+'px';document.body.appendChild(a);setTimeout(function(){a.remove();},1700);}
+function flashRed(el){if(!el)return;el.classList.remove('flashred');void el.offsetWidth;el.classList.add('flashred');var done=function(){el.classList.remove('flashred');el.removeEventListener('animationend',done);};el.addEventListener('animationend',done);setTimeout(done,1700);}
+/* Red arrow pointing at an element (reused for the date button + empty cart). */
+function flashArrow(el){if(!el)return;var a=document.createElement('div');a.className='datearrow';a.textContent='➜';var r=el.getBoundingClientRect();a.style.left=(r.left-34)+'px';a.style.top=(r.top+r.height/2-16)+'px';document.body.appendChild(a);setTimeout(function(){a.remove();},1700);}
+function flashDateBtn(){var b=$('cartdate');if(!b)return;flashRed(b);flashArrow(b);}
 /* crew popup state/render/send removed — now handled by shared /assets/crew-form.js */
 /* ---- Rental request: config-driven fields, posts to Jotform (see form-config.js) ---- */
 const RCFG=(window.FORMS&&window.FORMS.rentalRequest)||{formId:"",fields:{},render:[]};
+/* Per-field input types — CMS-editable (data/form-fields.json → "rental" map).
+   Defensive: if the fetch fails, INPUT_TYPES stays {} and everything falls back
+   to the render config's own type (text/email/url), so nothing breaks. */
+var INPUT_TYPES={};
+(function(){try{fetch('/data/form-fields.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&j.rental)INPUT_TYPES=j.rental;}).catch(function(){});}catch(e){}})();
+/* Resolve a field's effective input type: CMS override → render config type → text. */
+function fieldInputType(f){var t=INPUT_TYPES[f.key];if(t)return t;if(f.type==='email')return 'email';if(f.type==='url')return 'url';return 'text';}
+/* Live mask: "number" keeps digits + a single decimal point; others pass through. */
+function maskInput(type,v){v=String(v==null?'':v);if(type==='number'){v=v.replace(/[^0-9.]/g,'');var i=v.indexOf('.');if(i!==-1)v=v.slice(0,i+1)+v.slice(i+1).replace(/\./g,'');}else if(type==='tel'){v=v.replace(/[^0-9+()\-.\s]/g,'');}return v;}
 let reqStep=0,reqData={},reqErr="";
 RCFG.render.forEach(f=>reqData[f.key]="");
 function openReq(){reqStep=0;reqErr="";renderReq();$('reqpop').classList.add('show');syncFills();}
@@ -175,8 +186,10 @@ function reqTotal(){const dd=days();const ids=cartOrder.filter(id=>id in cart);r
 function reqFieldHTML(f){
  const v=esc(reqData[f.key]||"");
  if(f.type==='yesno')return '<div class="crewlab">'+esc(f.label)+'</div><div class="crewseg" data-seg="'+f.key+'">'+["Yes","No"].map(o=>'<button class="segb'+(reqData[f.key]===o?" on":"")+'" data-segv="'+o+'">'+o+'</button>').join("")+'</div>';
- const t=f.type==='email'?'email':(f.type==='url'?'url':'text');
- return '<div class="crewlab">'+esc(f.label)+'</div><input class="crewin" data-fk="'+f.key+'" type="'+t+'" value="'+v+'">';
+ var it=fieldInputType(f);
+ // number renders as inputmode=numeric text so live masking controls it cleanly; others use the resolved HTML type
+ var t=it==='number'?'text':it;var extra=it==='number'?' inputmode="decimal"':(it==='tel'?' inputmode="tel"':'');
+ return '<div class="crewlab">'+esc(f.label)+'</div><input class="crewin" data-fk="'+f.key+'" data-itype="'+it+'" type="'+t+'"'+extra+' value="'+v+'">';
 }
 function renderReq(){
  let h='';
@@ -205,7 +218,7 @@ function renderReq(){
  $('reqpop').innerHTML=h;
  const x=$('reqx');if(x)x.onclick=closeReq;
  if(reqStep===0){
-  document.querySelectorAll('#reqpop [data-fk]').forEach(inp=>inp.oninput=e=>{reqData[inp.dataset.fk]=e.target.value;syncFills();});
+  document.querySelectorAll('#reqpop [data-fk]').forEach(inp=>inp.oninput=e=>{var it=inp.dataset.itype||'text';var mv=maskInput(it,e.target.value);if(mv!==e.target.value)e.target.value=mv;reqData[inp.dataset.fk]=mv;syncFills();});
   document.querySelectorAll('#reqpop [data-seg]').forEach(seg=>seg.querySelectorAll('[data-segv]').forEach(b=>b.onclick=()=>{reqData[seg.dataset.seg]=b.dataset.segv;renderReq();}));
   $('qnext').onclick=()=>{
    const miss=RCFG.render.filter(f=>f.required&&!String(reqData[f.key]||'').trim()).map(f=>f.label.replace(/\?$/,'').toLowerCase());

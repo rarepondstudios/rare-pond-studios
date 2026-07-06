@@ -21,11 +21,15 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .hsoc{display:flex;gap:9px}
 .hsoc a{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#16386b;box-shadow:0 3px 10px rgba(10,30,70,.18);transition:.18s}
 .hsoc a:hover{transform:translateY(-2px);color:#fff;background:#1f6fd0}.hsoc svg{width:18px;height:18px;fill:currentColor}
+/* Per-network gradient hover (header + footer) — same schemes the studio project pages use */
+.hsoc a[data-net="yt"]:hover,.rfoot .fsoc a[data-net="yt"]:hover{background:linear-gradient(135deg,#ff3b30,#d4271d);color:#fff}
+.hsoc a[data-net="ig"]:hover,.rfoot .fsoc a[data-net="ig"]:hover{background:linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7);color:#fff}
+.hsoc a[data-net="li"]:hover,.rfoot .fsoc a[data-net="li"]:hover{background:linear-gradient(135deg,#0a66c2,#004182);color:#fff}
 @media(max-width:900px){.hnav a{padding:8px 10px;font-size:13px}.brandname{display:none}.hsoc a{width:33px;height:33px}.xsite{padding:7px 11px;font-size:13px}}@media(max-width:760px){.hnav{display:none}}@media(max-width:600px){.hdr-logo img{height:50px}.fab{right:14px;bottom:14px;padding:11px 15px;font-size:14px}.fab .badge{min-width:20px;height:20px;font-size:12px}.panel{padding-bottom:84px}.home{padding-bottom:90px}.home::before{height:300px}}
 .tabs{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px;position:relative;z-index:3}
 .tab{padding:9px 16px;border-radius:12px 12px 0 0;font-size:14.5px;font-weight:700;cursor:pointer;color:#dbe9fb;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.14);border-bottom:none;display:flex;gap:7px;align-items:center;transition:box-shadow .2s,background .2s,color .2s}
 .tab svg{width:17px;height:17px}
-.tab:not(.on):hover{background:var(--tcw);color:#fff;box-shadow:0 0 18px -2px var(--tcg)}
+.tab:not(.on):hover{background:var(--tcw);color:#fff;box-shadow:0 0 34px 2px var(--tcg),0 0 64px 6px var(--tcg),0 0 14px -3px var(--tcg);text-shadow:0 1px 4px rgba(0,10,30,.55)}
 .tabline{height:3px;border-radius:3px;margin:0 2px 0;position:relative;z-index:0;transition:background .25s,box-shadow .25s}.tabline::after{content:"";position:absolute;left:0;right:0;top:1px;height:92px;background:linear-gradient(180deg,var(--gc,rgba(150,190,255,.55)) 0%,transparent 74%);opacity:.8;filter:blur(5px);pointer-events:none;-webkit-mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
 .panel{position:relative;z-index:1;border:1.5px solid rgba(255,255,255,.14);border-top:none;border-radius:0 0 18px 18px;padding:6px 16px 26px;margin-bottom:28px;min-height:220px}
 .ptool{display:flex;align-items:center;gap:10px;margin:12px 2px 4px;flex-wrap:wrap}
@@ -132,7 +136,7 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 @property --fill{syntax:'<percentage>';inherits:false;initial-value:4%}
 .pbtn{position:relative;--fill:4%;background:linear-gradient(90deg,rgba(19,38,70,0) var(--fill),#26426f var(--fill)),linear-gradient(90deg,#5aa0ff,#4ec6c9,#8f7bff)!important;transition:--fill .55s cubic-bezier(.4,.85,.3,1),box-shadow .35s}
 .pbtn.ready{box-shadow:0 0 0 1px rgba(150,180,255,.55),0 0 22px -2px rgba(120,150,255,.7),0 0 42px -8px rgba(80,200,200,.55)}
-@keyframes flashred{0%,100%{box-shadow:0 0 0 0 rgba(255,74,74,0)}20%{box-shadow:0 0 0 3px rgba(255,74,74,.55),0 0 16px 2px rgba(255,74,74,.5)}}
-.flashred{animation:flashred .5s ease 0s 3;border-color:rgba(255,96,96,.95)!important;border-radius:11px}
+@keyframes flashred{0%,100%{box-shadow:0 0 0 0 rgba(255,74,74,0);border-color:rgba(255,96,96,0)}20%{box-shadow:0 0 0 3px rgba(255,74,74,.55),0 0 16px 2px rgba(255,74,74,.5);border-color:rgba(255,96,96,.95)}}
+.flashred{animation:flashred .5s ease 0s 3;border-color:transparent!important;border-radius:11px}
 .datearrow{position:fixed;z-index:400;color:#ff5a5a;font-size:30px;font-weight:900;pointer-events:none;animation:arrowpulse 1.7s ease forwards;filter:drop-shadow(0 0 7px rgba(255,74,74,.85))}
 @keyframes arrowpulse{0%{opacity:0;transform:translateX(10px)}14%{opacity:1}72%{opacity:1;transform:translateX(-3px)}100%{opacity:0;transform:translateX(-3px)}}

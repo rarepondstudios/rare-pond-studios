@@ -1,0 +1,16 @@
+{
+  "rental": {
+    "firstName": "text",
+    "lastName": "text",
+    "email": "email",
+    "film": "text"
+  },
+  "crew": {
+    "first": "text",
+    "last": "text",
+    "email": "email",
+    "project": "text",
+    "budget": "number",
+    "notes": "text"
+  }
+}

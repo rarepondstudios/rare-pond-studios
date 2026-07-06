@@ -57,6 +57,34 @@ Per-film title logos live in `media/projects/*-logo.png` and are set per project
 Projects → **＋ Add** → fill in: a unique `key`, title, theme, images, loglines, where-to-watch,
 stills, etc. → Save. A new bubble appears on the home carousel and Projects grid, with its own page.
 
+## Social links (one source, both sites)
+
+The social icons in the header **and** footer of BOTH the Studio site and the Rentals
+site are driven by a single list: `data/site.json → socials`. Edit it once and both
+sites update.
+
+- **In the CMS:** **Site Settings → Social links**. Each entry has a **Label**
+  (e.g. "Instagram"), a **URL**, and an **Icon** (`yt` = YouTube, `ig` = Instagram,
+  `li` = LinkedIn). Add / remove / reorder entries and Save.
+- On hover, each icon fills with that network's brand gradient (YouTube red,
+  the Instagram sunset, LinkedIn blue) — the same gradients the project pages use.
+
+## Changing a form field's input type (CMS)
+
+Which on-site form boxes accept which kind of input is controlled by
+`data/form-fields.json`, editable in the CMS under **Form input types**:
+
+- **Rental request form** and **Crew-your-shoot form** each list their fields.
+- For each field pick a type: `text`, `email`, `number`, `tel`, or `url`.
+  - `number` → the box accepts **digits only** (plus one decimal point); typed
+    letters simply never appear. Used for the crew **Budget** by default.
+  - `email` → validated as an email on submit.
+  - `tel` → accepts phone characters (digits, `+ ( ) - . space`).
+  - `text` / `url` → free text.
+
+Save and the change is live in ~1 minute — no code edit needed. If the file is ever
+missing, every field safely falls back to plain text so the forms never break.
+
 ## Local preview
 Because the site loads JSON at runtime, open it through a tiny local server (not file://):
 ```

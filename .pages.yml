@@ -114,3 +114,27 @@ content:
       - { name: footerTagline, label: Footer tagline, type: string }
       - { name: footerCopyright, label: Footer copyright line, type: string }
       - { name: cartEstimateNote, label: Cart estimate note, type: text }
+
+  - name: formfields
+    label: Form input types
+    type: file
+    path: data/form-fields.json
+    fields:
+      - name: rental
+        label: Rental request form — input type per field
+        type: object
+        fields:
+          - { name: firstName, label: First name, type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: lastName,  label: Last name,  type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: email,     label: Contact email, type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: film,      label: Film / project name, type: select, options: { values: [text, email, number, tel, url] } }
+      - name: crew
+        label: Crew-your-shoot form — input type per field
+        type: object
+        fields:
+          - { name: first,   label: First name, type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: last,    label: Last name,  type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: email,   label: Contact email, type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: project, label: Project name, type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: budget,  label: Budget (number = digits only), type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: notes,   label: Notes, type: select, options: { values: [text, email, number, tel, url] } }

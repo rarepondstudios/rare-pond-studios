@@ -42,6 +42,14 @@
     karina:{name:"Karina Salerno", roles:"Production Design · Costume",           link:"https://www.instagram.com/karinayourfriend", img:KARINAIMG}
   };
 
+  /* ---- Per-field input types — CMS-editable (data/form-fields.json → "crew" map).
+     Defensive: if the fetch fails, CTYPES stays {} and every field behaves as before. ---- */
+  var CTYPES = {};
+  try{ fetch('/data/form-fields.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){ if(j&&j.crew) CTYPES=j.crew; }).catch(function(){}); }catch(e){}
+  function cType(key){ return CTYPES[key] || 'text'; }
+  /* Live mask: "number" keeps digits + one decimal point; "tel" keeps phone chars; others pass through. */
+  function maskInput(type,v){ v=String(v==null?'':v); if(type==='number'){ v=v.replace(/[^0-9.]/g,''); var i=v.indexOf('.'); if(i!==-1) v=v.slice(0,i+1)+v.slice(i+1).replace(/\./g,''); } else if(type==='tel'){ v=v.replace(/[^0-9+()\-.\s]/g,''); } return v; }
+
   /* ---- helpers (self-contained) ---- */
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function pIso(iso){var p=String(iso).split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
@@ -104,7 +112,7 @@
     h+='<div class="rpc-row2"><div><div class="rpc-lab">Shoot start date</div><input class="rpc-in" id="rpc-ds" type="date" min="'+MINISO+'" value="'+esc(S.dstart)+'"></div><div><div class="rpc-lab">Shoot end date</div><input class="rpc-in" id="rpc-de" type="date" min="'+esc(S.dstart||MINISO)+'" value="'+esc(S.dend)+'"></div></div>';
     h+='<span class="rpc-note">Shoots need at least 3 business days’ lead time, so the earliest start date is '+fmtD(MINISO)+'.</span>';
     h+='<div class="rpc-lab">Do you have production insurance?</div><div class="rpc-seg" id="rpc-seg">'+["Yes","No"].map(function(o){return '<button class="rpc-segb'+(S.ins===o?" rpc-on":"")+'" data-ins="'+o+'">'+o+'</button>';}).join("")+'</div>';
-    h+='<div class="rpc-lab">Your budget</div><input class="rpc-in" id="rpc-bd" placeholder="e.g. around $2,000 for the shoot" value="'+esc(S.budget)+'">';
+    h+='<div class="rpc-lab">Your budget</div><input class="rpc-in" id="rpc-bd" placeholder="'+(cType('budget')==='number'?'e.g. 2000':'e.g. around $2,000 for the shoot')+'" value="'+esc(S.budget)+'">';
     h+='<div class="rpc-lab">Tell us about your set</div><textarea class="rpc-ta" id="rpc-nt" placeholder="Project, location, what you are shooting, and what you need...">'+esc(S.notes)+'</textarea>';
     h+='<div class="rpc-warn" id="rpc-warn">'+esc(S.warn)+'</div><button class="rpc-send rpc-pbtn" id="rpc-next"><span>Review request →</span></button></div>';
     pop.innerHTML=h;
@@ -112,9 +120,9 @@
     g('rpc-x').onclick=close;
     pop.querySelectorAll('[data-role]').forEach(function(b){ b.onclick=function(){ var r=b.dataset.role; S.roles=S.roles.includes(r)?S.roles.filter(function(x){return x!==r;}):S.roles.concat(r); render(); }; });
     pop.querySelectorAll('[data-ins]').forEach(function(b){ b.onclick=function(){ S.ins=b.dataset.ins; render(); }; });
-    var bind=function(id,fn){ var el=g(id); if(el) el.oninput=function(e){ fn(e.target.value); syncFill(); }; };
-    bind('rpc-fn',function(v){S.first=v;}); bind('rpc-ln',function(v){S.last=v;}); bind('rpc-em',function(v){S.email=v;});
-    bind('rpc-pr',function(v){S.project=v;}); bind('rpc-bd',function(v){S.budget=v;}); bind('rpc-nt',function(v){S.notes=v;});
+    var bind=function(id,key,fn){ var el=g(id); if(!el) return; var t=cType(key); if(t==='number') el.setAttribute('inputmode','decimal'); else if(t==='tel') el.setAttribute('inputmode','tel'); el.oninput=function(e){ var mv=maskInput(t,e.target.value); if(mv!==e.target.value) e.target.value=mv; fn(mv); syncFill(); }; };
+    bind('rpc-fn','first',function(v){S.first=v;}); bind('rpc-ln','last',function(v){S.last=v;}); bind('rpc-em','email',function(v){S.email=v;});
+    bind('rpc-pr','project',function(v){S.project=v;}); bind('rpc-bd','budget',function(v){S.budget=v;}); bind('rpc-nt','notes',function(v){S.notes=v;});
     var ds=g('rpc-ds'); if(ds) ds.onchange=function(e){ S.dstart=e.target.value; if(S.dend&&S.dend<S.dstart)S.dend=''; render(); };
     var de=g('rpc-de'); if(de) de.onchange=function(e){ S.dend=e.target.value; syncFill(); };
     g('rpc-next').onclick=toReview;
