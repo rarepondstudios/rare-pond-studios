@@ -4,10 +4,10 @@
   "brandLine2": "Rentals",
   "cartEstimateNote": "Estimate only — final quote confirmed by the team.",
   "logos": {
-    "headerMark": "media/duck-mark.png",
+    "headerMark": "/media/logos/duck-mark.png",
     "footerColor": "/media/logos/rare-pond-color.png",
     "footerWater": "/media/site/water.jpg",
-    "homeLogo": "media/gear/g_ff961e8ddce4f40b.png"
+    "homeLogo": "/media/logos/rare-pond-color.png"
   },
   "home": {
     "heroTitle": "Reserve your gear.",
