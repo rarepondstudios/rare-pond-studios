@@ -85,11 +85,20 @@ function renderCat(){
  const qi=$('q');qi.oninput=e=>{q=e.target.value.toLowerCase();renderResults();};$('dchip').onclick=openDates;renderResults();}
 function renderResults(){
  const c=active,col=COL[c];
- const rows=RENTALS.filter(p=>p.cat===c&&(p.name.toLowerCase().includes(q)||p.sec.toLowerCase().includes(q)||p.contents.some(x=>x.l.toLowerCase().includes(q))));
+ const pool=RENTALS.filter(p=>p.cat===c);
+ const hasPkg=pool.some(p=>p.kind==='package');
+ if(hasPkg)rpEnsureStyles();
+ if(!(c in catView))catView[c]='items';
+ if(!hasPkg)catView[c]='items';
+ const mode=catView[c];
+ const rows=pool.filter(p=>(mode==='packages'?p.kind==='package':p.kind!=='package')&&(p.name.toLowerCase().includes(q)||p.sec.toLowerCase().includes(q)||p.contents.some(x=>x.l.toLowerCase().includes(q))));
  const subs=[...new Set(rows.map(r=>r.sec))];
- const inner=subs.map(s=>'<div class="sub">'+esc(s)+'</div><div class="grid">'+rows.filter(r=>r.sec===s).map(p=>card(p,col)).join('')+'</div>').join('')||'<div class="empty">No items match.</div>';
- const r=$('results');if(r)r.innerHTML=inner;const cnt=$('cnt');if(cnt)cnt.textContent=rows.length+' item'+(rows.length!==1?'s':'');bind();}
+ const inner=subs.map(s=>'<div class="sub">'+esc(s)+'</div><div class="grid">'+rows.filter(r=>r.sec===s).map(p=>card(p,col)).join('')+'</div>').join('')||'<div class="empty">No '+(mode==='packages'?'packages':'items')+' match.</div>';
+ const tg=hasPkg?rpToggle(c,mode,col):'';
+ const r=$('results');if(r)r.innerHTML=tg+inner;const cnt=$('cnt');if(cnt)cnt.textContent=rows.length+(mode==='packages'?' package':' item')+(rows.length!==1?'s':'');bind();
+ if(hasPkg&&r){var tel=r.querySelector('.rp-toggle');if(tel)tel.querySelectorAll('[data-view]').forEach(function(el){el.onclick=function(){var v=el.dataset.view;if(catView[c]!==v){catView[c]=v;renderResults();}};});}}
 function card(p,col){
+ if(p.kind==='package')return rpPkgCard(p,col);
  const inC=cart[p._id];
  const thumb=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  const avq=p.qty>1?'<span class="avq">'+p.qty+' available</span>':'';
@@ -108,22 +117,92 @@ function inc(id){if((cart[id]||0)<RENTALS[id].qty){cart[id]++;refresh();}}
 function dec(id){cart[id]--;if(cart[id]<=0){delete cart[id];cartOrder=cartOrder.filter(x=>x!==id);}refresh();}
 function addCart(id){if(!cart[id])cartOrder.push(id);cart[id]=(cart[id]||0)+1;refresh();const f=$('fab');f.animate([{transform:'scale(1.12)'},{transform:'scale(1)'}],{duration:300});}
 function refresh(){if(active!=='Home')renderResults();uc();if(dpOpen!=null)openDP(dpOpen);}
-function openDP(id){const p=RENTALS[id];dpOpen=id;
- const grps=[...new Set(p.contents.map(c=>c.g))];const multiG=grps.length>1;
- let kh='';if(p.contents.length){kh='<div class="kh">Kit contents · '+p.contents.length+' items</div>';
-  grps.forEach(g=>{if(multiG)kh+='<div class="ggrp">'+esc(g)+'</div>';kh+='<div class="kgrid">'+p.contents.filter(c=>c.g===g).map(c=>'<div class="kc">'+(c.img?'<img src="'+c.img+'" loading="lazy" decoding="async">':catIcon(p.cat,'ic'))+'<div><div class="kl">'+esc(c.l)+'</div>'+(c.v?'<div class="kv">Replacement value '+esc(c.v)+'</div>':'')+'</div></div>').join('')+'</div>';});}
+function openDP(id){const p=RENTALS[id];if(!p)return;dpOpen=id;rpEnsureStyles();
+ const isPkg=p.kind==='package';const dpc=COL[p.cat]||'#2f57a6';
  const hero=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');const inC=cart[id];
- const ctl=inC?('<div class="qty" style="max-width:220px;margin:0"><button data-dm="'+id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-dp="'+id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="dpadd" data-da="'+id+'">Add to cart</button>');
- $('dp').innerHTML='<div class="dpc"><button class="dpx" id="dpx">&times;</button><div class="dphero">'+hero+'</div><div class="dpbody">'
-  +'<div class="eyb" style="color:'+COL[p.cat]+'">'+esc(p.cat)+' · '+esc(p.sec)+'</div><h2>'+esc(p.name)+'</h2>'
-  +'<div class="dpmeta">'+priceBlk(p,true)+(p.val?'<div class="rv">Replacement value '+esc(p.val)+'</div>':'')+'<span class="stat">Available'+(p.qty>1?' · '+p.qty+' units':'')+'</span></div>'
-  +'<div class="dprow">'+ctl+'<button class="chgdate" id="dpchg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>'+(D.s&&D.e?'Change dates ('+fmtRange()+')':'Set rental dates')+'</button></div>'+kh+'</div></div>';
+ const back=dpStack.length?'<button class="dpback" id="dpback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>':'';
+ const desc=p.desc?'<p class="dpdesc">'+esc(p.desc)+'</p>':'';
+ const eyb='<div class="eyb" style="color:'+dpc+'">'+esc(p.cat)+' · '+esc(p.sec)+(isPkg?' · Package':'')+'</div>';
+ let meta,ctl,extra;
+ if(isPkg){var mem=rpMembers(p);var price=rpPkgPrice(p);
+  ctl=inC?('<div class="qty" style="max-width:220px;margin:0"><button data-dm="'+id+'">−</button><span class="qn">'+inC+' in cart</span><button data-dp="'+id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="dpadd" data-da="'+id+'">Add package</button>');
+  meta='<div class="dpmeta"><div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div>'+(D.s&&D.e?'<div class="tot">'+fmt(price*(days()||1))+'</div>':'')+'</div><span class="stat">Bundle of '+mem.length+' item'+(mem.length!==1?'s':'')+'</span></div>';
+  extra='<div class="rp-sec" style="--dpc:'+dpc+'">In this package · '+mem.length+' item'+(mem.length!==1?'s':'')+'</div><div class="rp-mgrid">'+mem.map(function(m){return rpMiniCard(m);}).join('')+'</div>';
+ }else{
+  ctl=inC?('<div class="qty" style="max-width:220px;margin:0"><button data-dm="'+id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-dp="'+id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="dpadd" data-da="'+id+'">Add to cart</button>');
+  meta='<div class="dpmeta">'+priceBlk(p,true)+(p.val?'<div class="rv">Replacement value '+esc(p.val)+'</div>':'')+'<span class="stat">Available'+(p.qty>1?' · '+p.qty+' units':'')+'</span></div>';
+  var acc=rpAccessories(p);var inc=rpIncludedIn(p);
+  extra=rpKitHtml(p)
+   +(acc.length?'<div class="rp-sec" style="--dpc:'+dpc+'">Recommended accessories</div><div class="rp-mgrid">'+acc.map(function(m){return rpMiniCard(m);}).join('')+'</div>':'')
+   +(inc.length?'<div class="rp-sec" style="--dpc:'+dpc+'">Included in packages</div><div class="rp-mgrid">'+inc.map(function(m){return rpMiniCard(m,'Package');}).join('')+'</div>':'');
+ }
+ $('dp').innerHTML='<div class="dpc"><button class="dpx" id="dpx">&times;</button>'+back+'<div class="dphero">'+hero+'</div><div class="dpbody">'
+  +eyb+'<h2>'+esc(p.name)+'</h2>'+desc+meta
+  +'<div class="dprow">'+ctl+dpDateBtn()+'</div>'+extra+'</div></div>';
  $('dp').classList.add('show');document.body.style.overflow='hidden';
  $('dpx').onclick=closeDP;$('dp').onclick=e=>{if(e.target.id==='dp')closeDP();};$('dpchg').onclick=openDates;
+ var bk=$('dpback');if(bk)bk.onclick=dpBack;
  const da=$('dp').querySelector('[data-da]');if(da)da.onclick=()=>addCart(id);
  const dp=$('dp').querySelector('[data-dp]');if(dp)dp.onclick=()=>inc(id);
- const dm=$('dp').querySelector('[data-dm]');if(dm)dm.onclick=()=>dec(id);}
-function closeDP(){dpOpen=null;$('dp').classList.remove('show');document.body.style.overflow='';}
+ const dm=$('dp').querySelector('[data-dm]');if(dm)dm.onclick=()=>dec(id);
+ $('dp').querySelectorAll('[data-nav]').forEach(function(el){el.onclick=function(){dpNavigate(+el.dataset.nav);};});}
+function closeDP(){dpOpen=null;dpStack=[];$('dp').classList.remove('show');document.body.style.overflow='';}
+/* ===== packages + accessories (rp) ===== */
+var RP_DBIDX={},dpStack=[],catView={};
+function buildDbIdx(){RP_DBIDX={};RENTALS.forEach(function(p){if(p.dbid!=null)RP_DBIDX[p.dbid]=p._id;});}
+function rpItemByDb(db){var i=RP_DBIDX[db];return (i==null)?null:RENTALS[i];}
+function rpMembers(p){return (p.memIds||[]).map(function(d){return rpItemByDb(d);}).filter(Boolean);}
+function rpAccessories(p){return (p.accIds||[]).map(function(d){return rpItemByDb(d);}).filter(Boolean);}
+function rpIncludedIn(p){if(p.dbid==null)return [];return RENTALS.filter(function(x){return x.kind==='package'&&(x.memIds||[]).indexOf(p.dbid)>=0;});}
+function rpPkgPrice(p){return rpMembers(p).reduce(function(s,m){return s+(Number(m.fn)||0);},0);}
+var RP_PKG_CSS=
+".rp-toggle{position:relative;width:196px;height:58px;margin:2px 0 18px}"+
+".rp-pill{position:absolute;top:0;left:0;height:42px;width:150px;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:12px;font:800 13px/1 Heebo,sans-serif;letter-spacing:.5px;cursor:pointer;border:1.5px solid rgba(255,255,255,.28);transition:transform .34s cubic-bezier(.5,1.5,.5,1),box-shadow .34s,background .28s,color .2s;user-select:none;-webkit-user-select:none}"+
+".rp-pill.on{z-index:3;background:var(--pc);color:#fff;border-color:var(--pc);box-shadow:0 7px 22px 1px var(--pcg)}"+
+".rp-pill.off{z-index:1;background:rgba(255,255,255,.10);color:rgba(255,255,255,.9);transform:translate(30px,15px) scale(.9)}"+
+".rp-pill.off:hover{transform:translate(30px,11px) scale(.93);background:rgba(255,255,255,.17)}"+
+".rp-pill svg{width:16px;height:16px}"+
+".rp-badge{position:absolute;top:10px;left:10px;z-index:2;background:var(--cc);color:#fff;font:800 10px/1 Heebo,sans-serif;letter-spacing:1.3px;text-transform:uppercase;padding:5px 9px;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.3)}"+
+".rp-incount{font:600 12px/1.2 Heebo,sans-serif;color:#6b7a99;margin:1px 0 7px}"+
+".rp-sec{font:800 13px/1 Heebo,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:var(--dpc,#2f57a6);margin:22px 0 11px}"+
+".rp-mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}"+
+".rp-mcard{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid rgba(0,0,0,.1);border-radius:12px;background:#fff;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;text-align:left;width:100%}"+
+".rp-mcard:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(0,0,0,.13);border-color:var(--dpc,#2f57a6)}"+
+".rp-mcard img{width:46px;height:46px;object-fit:cover;border-radius:8px;flex:none}"+
+".rp-mcard .rp-mi{width:46px;height:46px;flex:none;border-radius:8px;background:#eef2fb;display:flex;align-items:center;justify-content:center}"+
+".rp-mcard .rp-mi svg{width:24px;height:24px;color:#8aa0c8}"+
+".rp-mn{font:700 13px/1.25 Heebo,sans-serif;color:#1c2b46}"+
+".rp-mp{font:600 11px/1.2 Heebo,sans-serif;color:#6b7a99;margin-top:3px}"+
+".rp-mtag{display:inline-block;font:700 9px/1 Heebo,sans-serif;letter-spacing:.8px;text-transform:uppercase;color:#fff;background:var(--dpc,#2f57a6);padding:3px 6px;border-radius:5px;margin-top:5px}"+
+".dpdesc{font:400 14px/1.5 Heebo,sans-serif;color:#4a5a76;margin:8px 0 2px}"+
+".dpback{position:absolute;top:14px;left:14px;z-index:6;width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.92);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#2f57a6;box-shadow:0 2px 10px rgba(0,0,0,.18)}"+
+".dpback:hover{background:#fff;color:#1c2b46}"+
+".dpback svg{width:20px;height:20px}";
+function rpEnsureStyles(){if(document.getElementById('rp-pkg-css'))return;var s=document.createElement('style');s.id='rp-pkg-css';s.textContent=RP_PKG_CSS;document.head.appendChild(s);}
+function rpBoxSvg(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v9"/></svg>';}
+function rpToggle(c,mode,col){var pkgOn=mode==='packages';
+ var camSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="'+ICON[c]+'"/></svg>';
+ var st='--pc:'+col+';--pcg:'+hx(col,.5);
+ var itemsPill='<div class="rp-pill '+(pkgOn?'off':'on')+'" data-view="items" style="'+st+'">'+camSvg+'Items</div>';
+ var pkgPill='<div class="rp-pill '+(pkgOn?'on':'off')+'" data-view="packages" style="'+st+'">'+rpBoxSvg()+'Packages</div>';
+ return '<div class="rp-toggle">'+itemsPill+pkgPill+'</div>';}
+function rpPkgCard(p,col){rpEnsureStyles();var mem=rpMembers(p);var price=rpPkgPrice(p);var inC=cart[p._id];
+ var thumb=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
+ var ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add package</button>');
+ return '<div class="card" data-open="'+p._id+'" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'<span class="rp-badge">Package</span></div><div class="body"><h3>'+esc(p.name)+'</h3>'
+  +'<div class="rp-incount">'+mem.length+' item'+(mem.length!==1?'s':'')+' included</div>'
+  +'<div class="row2"><div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div></div></div>'
+  +'<div class="row2"><span class="stat">Bundle price</span></div>'+ctl+'</div></div>';}
+function rpMiniCard(m,tag){var thumb=m.img?'<img src="'+m.img+'" loading="lazy" decoding="async">':'<span class="rp-mi">'+catIcon(m.cat,'ic')+'</span>';
+ var price=(m.kind==='package')?rpPkgPrice(m):(Number(m.fn)||0);var pl=price>0?(fmt(price)+'/day'):'Included in kit';
+ return '<button class="rp-mcard" data-nav="'+m._id+'">'+thumb+'<div><div class="rp-mn">'+esc(m.name)+'</div><div class="rp-mp">'+esc(pl)+'</div>'+(tag?'<span class="rp-mtag">'+esc(tag)+'</span>':'')+'</div></button>';}
+function rpKitHtml(p){if(!p.contents.length)return '';var grps=[];p.contents.forEach(function(c){if(grps.indexOf(c.g)<0)grps.push(c.g);});var multiG=grps.length>1;
+ var kh='<div class="kh">Kit contents · '+p.contents.length+' items</div>';
+ grps.forEach(function(g){if(multiG)kh+='<div class="ggrp">'+esc(g)+'</div>';kh+='<div class="kgrid">'+p.contents.filter(function(c){return c.g===g;}).map(function(c){return '<div class="kc">'+(c.img?'<img src="'+c.img+'" loading="lazy" decoding="async">':catIcon(p.cat,'ic'))+'<div><div class="kl">'+esc(c.l)+'</div>'+(c.v?'<div class="kv">Replacement value '+esc(c.v)+'</div>':'')+'</div></div>';}).join('')+'</div>';});
+ return kh;}
+function dpDateBtn(){return '<button class="chgdate" id="dpchg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>'+(D.s&&D.e?'Change dates ('+fmtRange()+')':'Set rental dates')+'</button>';}
+function dpNavigate(id){if(dpOpen!=null)dpStack.push(dpOpen);openDP(id);}
+function dpBack(){if(dpStack.length){openDP(dpStack.pop());}}
 /* ===== calendar ===== */
 function calRender(){
  const el=$('calbox');if(!el)return;
@@ -304,11 +383,11 @@ document.getElementById('reqpop').onclick=e=>{if(e.target===document.getElementB
 var SB_URL="https://gnifidmyahtzydwvaegj.supabase.co";
 var SB_KEY="sb_publishable_VFAFJq23B8hJAGViL2nDiA_uTAVxe05";
 function sbMoney(v){return (v===null||v===undefined||v==="")?"":"$"+Number(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
-function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={},i,r;for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null){var fn=Number(r.price_per_day)||0;var it={cat:r.category,sec:r.section,name:r.name,fn:fn,fee:fn>0?"$"+fn.toFixed(2):"Included",val:sbMoney(r.replacement_value),img:r.photo||"",contents:[],qty:parseInt(r.qty,10)||1};byId[r.id]=it;out.push(it);}}for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null)continue;var par=byId[r.parent_id];if(par)par.contents.push({l:r.name,v:sbMoney(r.replacement_value),g:(r.sub_group||r.section),img:r.photo||""});}return out.length?out:null;}
+function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={},i,r;for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null){var fn=Number(r.price_per_day)||0;var it={cat:r.category,sec:r.section,name:r.name,fn:fn,fee:fn>0?"$"+fn.toFixed(2):"Included",val:sbMoney(r.replacement_value),img:r.photo||"",contents:[],qty:parseInt(r.qty,10)||1,dbid:r.id,kind:r.kind||"item",accIds:Array.isArray(r.accessory_ids)?r.accessory_ids:[],memIds:Array.isArray(r.member_ids)?r.member_ids:[],desc:r.description||""};byId[r.id]=it;out.push(it);}}for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null)continue;var par=byId[r.parent_id];if(par)par.contents.push({l:r.name,v:sbMoney(r.replacement_value),g:(r.sub_group||r.section),img:r.photo||""});}return out.length?out:null;}
 async function loadCatalog(){var u=SB_URL+"/rest/v1/items?select=*&order=sort_order.asc";var r=await fetch(u,{headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY},cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);return sbToRentals(await r.json());}
 /* Paint immediately with the built-in catalog so the page never waits on the network, then refresh from Supabase in the background. */
 RENTALS.forEach(function(p,i){p._id=i;});render();uc();
-(async function(){try{var d=await loadCatalog();if(d&&d.length){RENTALS=d;RENTALS.forEach(function(p,i){p._id=i;});render();uc();console.log("[RP Rentals] catalog refreshed from Supabase: "+RENTALS.length+" items");}}catch(e){console.warn("[RP Rentals] keeping built-in catalog (Supabase load failed): "+(e&&e.message));}})();
+(async function(){try{var d=await loadCatalog();if(d&&d.length){RENTALS=d;RENTALS.forEach(function(p,i){p._id=i;});buildDbIdx();render();uc();console.log("[RP Rentals] catalog refreshed from Supabase: "+RENTALS.length+" items");}}catch(e){console.warn("[RP Rentals] keeping built-in catalog (Supabase load failed): "+(e&&e.message));}})();
 (function(){var hl=document.getElementById('rpHome');if(hl)hl.addEventListener('click',function(e){e.preventDefault();active='Home';q='';render();window.scrollTo(0,0);});})();
 
 function fillFrac_req(){var flds=RCFG.render,n=0;flds.forEach(function(f){var v=String(reqData[f.key]||'').trim();if(f.type==='email'){if(/.+@.+\..+/.test(v))n++;}else if(v)n++;});if(D.s&&D.e)n++;return flds.length?n/(flds.length+1):0;}
