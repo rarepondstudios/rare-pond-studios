@@ -91,12 +91,17 @@ function renderResults(){
  if(!(c in catView))catView[c]='items';
  if(!hasPkg)catView[c]='items';
  const mode=catView[c];
- const rows=pool.filter(p=>(mode==='packages'?p.kind==='package':p.kind!=='package')&&(p.name.toLowerCase().includes(q)||p.sec.toLowerCase().includes(q)||p.contents.some(x=>x.l.toLowerCase().includes(q))));
- const subs=[...new Set(rows.map(r=>r.sec))];
- const inner=subs.map(s=>'<div class="sub">'+esc(s)+'</div><div class="grid">'+rows.filter(r=>r.sec===s).map(p=>card(p,col)).join('')+'</div>').join('')||'<div class="empty">No '+(mode==='packages'?'packages':'items')+' match.</div>';
- const tg=hasPkg?rpToggle(c,mode,col):'';
- const r=$('results');if(r)r.innerHTML=tg+inner;const cnt=$('cnt');if(cnt)cnt.textContent=rows.length+(mode==='packages'?' package':' item')+(rows.length!==1?'s':'');bind();
- if(hasPkg&&r){var tel=r.querySelector('.rp-toggle');if(tel)tel.querySelectorAll('[data-view]').forEach(function(el){el.onclick=function(){var v=el.dataset.view;if(catView[c]!==v){catView[c]=v;renderResults();}};});}}
+ function _rowsFor(md){return pool.filter(p=>(md==='packages'?p.kind==='package':p.kind!=='package')&&(p.name.toLowerCase().includes(q)||p.sec.toLowerCase().includes(q)||p.contents.some(x=>x.l.toLowerCase().includes(q))));}
+ function _gridFor(md){var rr=_rowsFor(md);var ss=[...new Set(rr.map(x=>x.sec))];return ss.map(s=>'<div class="sub">'+esc(s)+'</div><div class="grid">'+rr.filter(x=>x.sec===s).map(p=>card(p,col)).join('')+'</div>').join('')||'<div class="empty">No '+(md==='packages'?'packages':'items')+' match.</div>';}
+ function _setCnt(md){var n=_rowsFor(md).length;var cn=$('cnt');if(cn)cn.textContent=n+(md==='packages'?' package':' item')+(n!==1?'s':'');}
+ const r=$('results');if(!r)return;
+ if(!hasPkg){r.innerHTML=_gridFor('items');_setCnt('items');bind();return;}
+ var _if=mode!=='packages';
+ var _deck='<div class="rp-deck" style="--pc:'+col+';--pcg:'+hx(col,.5)+'"><div class="rp-card rp-cA '+(_if?'rp-front':'rp-back side-left')+'">'+_gridFor('items')+'</div><div class="rp-card rp-cB '+(_if?'rp-back side-right':'rp-front')+'">'+_gridFor('packages')+'</div></div>';
+ r.innerHTML=rpToggle(c,mode,col)+_deck;_setCnt(mode);bind();
+ var tel=r.querySelector('.rp-toggle');
+ if(tel)tel.querySelectorAll('[data-view]').forEach(function(el){el.onclick=function(){var v=el.dataset.view;if(catView[c]===v)return;catView[c]=v;var fr=v!=='packages';var dk=r.querySelector('.rp-deck');if(!dk)return;var cA=dk.querySelector('.rp-cA'),cB=dk.querySelector('.rp-cB');cA.className='rp-card rp-cA '+(fr?'rp-front':'rp-back side-left');cB.className='rp-card rp-cB '+(fr?'rp-back side-right':'rp-front');tel.querySelector('[data-view=\'items\']').className='rp-pill '+(fr?'on':'off');tel.querySelector('[data-view=\'packages\']').className='rp-pill '+(fr?'off':'on');_setCnt(v);bind();};});
+ }
 function card(p,col){
  if(p.kind==='package')return rpPkgCard(p,col);
  const inC=cart[p._id];
@@ -156,12 +161,17 @@ function rpAccessories(p){return (p.accIds||[]).map(function(d){return rpItemByD
 function rpIncludedIn(p){if(p.dbid==null)return [];return RENTALS.filter(function(x){return x.kind==='package'&&(x.memIds||[]).indexOf(p.dbid)>=0;});}
 function rpPkgPrice(p){return rpMembers(p).reduce(function(s,m){return s+(Number(m.fn)||0);},0);}
 var RP_PKG_CSS=
-".rp-toggle{position:relative;width:196px;height:58px;margin:2px 0 18px}"+
-".rp-pill{position:absolute;top:0;left:0;height:42px;width:150px;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:12px;font:800 13px/1 Heebo,sans-serif;letter-spacing:.5px;cursor:pointer;border:1.5px solid rgba(255,255,255,.28);transition:transform .34s cubic-bezier(.5,1.5,.5,1),box-shadow .34s,background .28s,color .2s;user-select:none;-webkit-user-select:none}"+
-".rp-pill.on{z-index:3;background:var(--pc);color:#fff;border-color:var(--pc);box-shadow:0 7px 22px 1px var(--pcg)}"+
-".rp-pill.off{z-index:1;background:rgba(255,255,255,.10);color:rgba(255,255,255,.9);transform:translate(30px,15px) scale(.9)}"+
-".rp-pill.off:hover{transform:translate(30px,11px) scale(.93);background:rgba(255,255,255,.17)}"+
+".rp-toggle{position:relative;display:inline-flex;gap:10px;margin:2px 0 16px}"+
+".rp-pill{position:relative;height:42px;padding:0 20px;display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:12px;font:800 13px/1 Heebo,sans-serif;letter-spacing:.5px;cursor:pointer;border:1.5px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);transition:background .25s,color .25s,border-color .25s,box-shadow .3s;user-select:none;-webkit-user-select:none}"+
+".rp-pill.on{background:var(--pc);color:#fff;border-color:var(--pc);box-shadow:0 7px 22px 1px var(--pcg)}"+
+".rp-pill.off:hover{background:rgba(255,255,255,.14);color:rgba(255,255,255,.85)}"+
 ".rp-pill svg{width:16px;height:16px}"+
+".rp-deck{position:relative;margin-top:2px}"+
+".rp-card{transition:transform .52s cubic-bezier(.34,1.26,.5,1),opacity .42s,filter .42s,box-shadow .4s;transform-origin:50% 130%;border-radius:16px;box-sizing:border-box}"+
+".rp-front{position:relative;z-index:2;background:rgba(255,255,255,.045);border:1.5px solid var(--pc);padding:12px;box-shadow:0 9px 28px 1px var(--pcg)}"+
+".rp-back{position:absolute;top:0;left:0;right:0;z-index:1;background:rgba(9,14,33,.72);border:1.5px solid rgba(255,255,255,.13);padding:12px;filter:grayscale(1) brightness(.82);opacity:.7;pointer-events:none}"+
+".rp-back.side-right{transform:translate(24px,15px) rotate(1deg) scale(.955)}"+
+".rp-back.side-left{transform:translate(-24px,15px) rotate(-1deg) scale(.955)}"+
 ".rp-badge{position:absolute;top:10px;left:10px;z-index:2;background:var(--cc);color:#fff;font:800 10px/1 Heebo,sans-serif;letter-spacing:1.3px;text-transform:uppercase;padding:5px 9px;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.3)}"+
 ".rp-incount{font:600 12px/1.2 Heebo,sans-serif;color:#6b7a99;margin:1px 0 7px}"+
 ".rp-sec{font:800 13px/1 Heebo,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:var(--dpc,#2f57a6);margin:22px 0 11px}"+
@@ -183,9 +193,9 @@ function rpBoxSvg(){return '<svg viewBox="0 0 24 24" fill="none" stroke="current
 function rpToggle(c,mode,col){var pkgOn=mode==='packages';
  var camSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="'+ICON[c]+'"/></svg>';
  var st='--pc:'+col+';--pcg:'+hx(col,.5);
- var itemsPill='<div class="rp-pill '+(pkgOn?'off':'on')+'" data-view="items" style="'+st+'">'+camSvg+'Items</div>';
- var pkgPill='<div class="rp-pill '+(pkgOn?'on':'off')+'" data-view="packages" style="'+st+'">'+rpBoxSvg()+'Packages</div>';
- return '<div class="rp-toggle">'+itemsPill+pkgPill+'</div>';}
+ var itemsPill='<div class="rp-pill '+(pkgOn?'off':'on')+'" data-view="items">'+camSvg+'Items</div>';
+ var pkgPill='<div class="rp-pill '+(pkgOn?'on':'off')+'" data-view="packages">'+rpBoxSvg()+'Packages</div>';
+ return '<div class="rp-toggle" style="'+st+'">'+itemsPill+pkgPill+'</div>';}
 function rpPkgCard(p,col){rpEnsureStyles();var mem=rpMembers(p);var price=rpPkgPrice(p);var inC=cart[p._id];
  var thumb=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  var ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add package</button>');
