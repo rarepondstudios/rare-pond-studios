@@ -47,7 +47,7 @@ function datesLabel(){return (D.s&&D.e)?fmtRange():'Select a Date';}
 function drTxt(p){return p.fee==='Included'?'Included':(p.fn===0?'Free':fmt(p.fn));}
 function priceBlk(p,big){const dd=days();const b=big?' big':'';
  if(!dd||!p.fn)return '<div class="price'+b+'">'+drTxt(p)+(p.fn?'<span>/day</span>':'')+'</div>';
- return '<div class="pcalc'+b+'"><div class="dr">'+fmt(p.fn)+'<span>/day × '+dd+' day'+(dd>1?'s':'')+'</span></div><div class="tot">'+fmt(p.fn*dd)+'</div></div>';}
+ return '<div class="pcalc'+b+'"><div class="dr">'+fmt(p.fn)+'<span>/day × '+dd+' day'+(dd>1?'s':'')+'</span></div><div class="tot">'+fmt(p.fn*dd)+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px;letter-spacing:.02em">total</span></div></div>';}
 $('hsoc').innerHTML=SOCLINKS.map(([u,n,k])=>'<a href="'+u+'" target="_blank" rel="noopener" aria-label="'+n+'">'+SOC[k]+'</a>').join('');
 $('fsoc').innerHTML=$('hsoc').innerHTML;
 function tabColor(){return active==='Home'?'#9fc2ff':COL[active];}
@@ -106,12 +106,12 @@ function card(p,col){
  if(p.kind==='package')return rpPkgCard(p,col);
  const inC=cart[p._id];
  const thumb=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
- const avq=p.qty>1?'<span class="avq">'+p.qty+' available</span>':'';
+ const avb='<div class="rp-availbanner rp-in" data-avb-def="'+p.qty+' available">'+p.qty+' available</div>';
  const kit=p.contents.length?('<div class="kit" data-k="'+p._id+'">View kit contents ('+p.contents.length+')</div><div class="kitlist" id="kl'+p._id+'">'+p.contents.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+'</span></div>').join('')+'</div>'):'';
  const ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add to cart</button>');
- return '<div class="card" data-open="'+p._id+'" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+avq+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+kit
+ return '<div class="card" data-open="'+p._id+'" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+avb+kit
  +'<div class="row2">'+priceBlk(p,false)+(p.val?'<span class="rv">value '+esc(p.val)+'</span>':'')+'</div>'
- +'<div class="row2"><span class="stat">Available'+(p.qty>1?' · '+p.qty:'')+'</span></div>'+ctl+'</div></div>';}
+ +ctl+'</div></div>';}
 function bind(){
  document.querySelectorAll('[data-open]').forEach(el=>el.onclick=e=>{if(e.target.closest('[data-a],[data-m],[data-pl],[data-k]'))return;openDP(+el.dataset.open);});
  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=e=>{e.stopPropagation();addCart(+b.dataset.a);});
@@ -131,7 +131,7 @@ function openDP(id){const p=RENTALS[id];if(!p)return;dpOpen=id;rpEnsureStyles();
  let meta,ctl,extra;
  if(isPkg){var mem=rpMembers(p);var price=rpPkgPrice(p);
   ctl=inC?('<div class="qty" style="max-width:220px;margin:0"><button data-dm="'+id+'">−</button><span class="qn">'+inC+' in cart</span><button data-dp="'+id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="dpadd" data-da="'+id+'">Add package</button>');
-  meta='<div class="dpmeta"><div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div>'+(D.s&&D.e?'<div class="tot">'+fmt(price*(days()||1))+'</div>':'')+'</div><span class="stat">Bundle of '+mem.length+' item'+(mem.length!==1?'s':'')+'</span></div>';
+  meta='<div class="dpmeta"><div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div>'+(D.s&&D.e?'<div class="tot">'+fmt(price*(days()||1))+'<span style="font-size:.5em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div>':'')+'</div><span class="stat">Bundle of '+mem.length+' item'+(mem.length!==1?'s':'')+'</span></div>';
   extra='<div class="rp-sec" style="--dpc:'+dpc+'">In this package · '+mem.length+' item'+(mem.length!==1?'s':'')+'</div><div class="rp-mgrid">'+mem.map(function(m){return rpMiniCard(m);}).join('')+'</div>';
  }else{
   ctl=inC?('<div class="qty" style="max-width:220px;margin:0"><button data-dm="'+id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-dp="'+id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="dpadd" data-da="'+id+'">Add to cart</button>');
@@ -161,17 +161,17 @@ function rpAccessories(p){return (p.accIds||[]).map(function(d){return rpItemByD
 function rpIncludedIn(p){if(p.dbid==null)return [];return RENTALS.filter(function(x){return x.kind==='package'&&(x.memIds||[]).indexOf(p.dbid)>=0;});}
 function rpPkgPrice(p){return rpMembers(p).reduce(function(s,m){return s+(Number(m.fn)||0);},0);}
 var RP_PKG_CSS=
-".rp-toggle{position:relative;display:inline-flex;gap:10px;margin:2px 0 16px}"+
-".rp-pill{position:relative;height:42px;padding:0 20px;display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:12px;font:800 13px/1 Heebo,sans-serif;letter-spacing:.5px;cursor:pointer;border:1.5px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);transition:background .25s,color .25s,border-color .25s,box-shadow .3s;user-select:none;-webkit-user-select:none}"+
-".rp-pill.on{background:var(--pc);color:#fff;border-color:var(--pc);box-shadow:0 7px 22px 1px var(--pcg)}"+
-".rp-pill.off:hover{background:rgba(255,255,255,.14);color:rgba(255,255,255,.85)}"+
+".rp-toggle{position:relative;z-index:4;display:inline-flex;gap:6px;margin:6px 0 0;padding-left:2px}"+
+".rp-pill{position:relative;height:40px;padding:0 22px;display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:12px 12px 0 0;font:800 13px/1 Heebo,sans-serif;letter-spacing:.5px;cursor:pointer;border:1.5px solid rgba(255,255,255,.18);border-bottom:none;background:rgba(255,255,255,.09);color:rgba(255,255,255,.55);transition:transform .32s cubic-bezier(.34,1.1,.5,1),background .25s,color .25s,border-color .25s,box-shadow .3s;user-select:none;-webkit-user-select:none;transform:translateY(-7px)}"+
+".rp-pill.on{background:var(--pc);color:#fff;border-color:var(--pc);box-shadow:0 -3px 20px 1px var(--pcg);transform:translateY(0);z-index:3}"+
+".rp-pill.off:hover{background:rgba(255,255,255,.16);color:rgba(255,255,255,.9);transform:translateY(-4px)}"+
 ".rp-pill svg{width:16px;height:16px}"+
-".rp-deck{position:relative;margin-top:2px}"+
-".rp-card{transition:transform .52s cubic-bezier(.34,1.26,.5,1),opacity .42s,filter .42s,box-shadow .4s;transform-origin:50% 130%;border-radius:16px;box-sizing:border-box}"+
-".rp-front{position:relative;z-index:2;background:rgba(13,20,45,.96);border:1.5px solid var(--pc);padding:12px;box-shadow:0 9px 28px 1px var(--pcg)}"+
-".rp-back{position:absolute;top:0;left:0;right:0;z-index:1;background:rgba(9,14,33,.72);border:1.5px solid rgba(255,255,255,.13);padding:12px;filter:grayscale(1) brightness(.82);opacity:.7;pointer-events:none}"+
-".rp-back.side-right{transform:translate(24px,15px) rotate(1deg) scale(.955)}"+
-".rp-back.side-left{transform:translate(-24px,15px) rotate(-1deg) scale(.955)}"+
+".rp-deck{position:relative;margin-top:0}"+
+".rp-card{transition:transform .5s cubic-bezier(.4,.85,.35,1),opacity .4s,filter .4s,box-shadow .4s;transform-origin:50% 50%;border-radius:0 0 16px 16px;box-sizing:border-box}"+
+".rp-front{position:relative;z-index:2;background:rgba(13,20,45,.6);-webkit-backdrop-filter:blur(15px) saturate(1.3);backdrop-filter:blur(15px) saturate(1.3);border:1.5px solid var(--pc);padding:13px 12px 12px;box-shadow:0 10px 30px 1px var(--pcg)}"+
+".rp-back{position:absolute;top:0;left:0;right:0;z-index:1;background:rgba(11,17,38,.5);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);border:1.5px solid rgba(255,255,255,.12);padding:13px 12px 12px;pointer-events:none;filter:grayscale(.55)}"+
+".rp-back.side-right{transform:translate(32px,-18px) scale(.96)}"+
+".rp-back.side-left{transform:translate(-32px,-18px) scale(.96)}"+".rp-back .thumb{background:#dfe6f0}"+".rp-back .thumb img{filter:blur(7px);transform:scale(1.06);opacity:.85}"+".rp-back .avq,.rp-back .rp-badge,.rp-back .rp-availbanner{opacity:0!important}"+".rp-back .body h3{color:transparent!important;background:rgba(255,255,255,.17);border-radius:5px}"+".rp-back .body .kit,.rp-back .body .stat,.rp-back .body .rv,.rp-back .body .price,.rp-back .body .price span,.rp-back .body .pcalc,.rp-back .body .pcalc *,.rp-back .body .rp-incount,.rp-back .body .qn{color:transparent!important;background:rgba(255,255,255,.1);border-radius:5px}"+".rp-back .add,.rp-back .qty{filter:grayscale(1) brightness(.85);opacity:.5;color:transparent!important}"+
 ".rp-badge{position:absolute;top:10px;left:10px;z-index:2;background:var(--cc);color:#fff;font:800 10px/1 Heebo,sans-serif;letter-spacing:1.3px;text-transform:uppercase;padding:5px 9px;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.3)}"+
 ".rp-incount{font:600 12px/1.2 Heebo,sans-serif;color:#6b7a99;margin:1px 0 7px}"+
 ".rp-sec{font:800 13px/1 Heebo,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:var(--dpc,#2f57a6);margin:22px 0 11px}"+
@@ -196,12 +196,12 @@ function rpToggle(c,mode,col){var pkgOn=mode==='packages';
  var itemsPill='<div class="rp-pill '+(pkgOn?'off':'on')+'" data-view="items">'+camSvg+'Items</div>';
  var pkgPill='<div class="rp-pill '+(pkgOn?'on':'off')+'" data-view="packages">'+rpBoxSvg()+'Packages</div>';
  return '<div class="rp-toggle" style="'+st+'">'+itemsPill+pkgPill+'</div>';}
-function rpPkgCard(p,col){rpEnsureStyles();var mem=rpMembers(p);var price=rpPkgPrice(p);var inC=cart[p._id];
+function rpPkgCard(p,col){rpEnsureStyles();var mem=rpMembers(p);var price=rpPkgPrice(p);var inC=cart[p._id];var dd=days();
  var thumb=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  var ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add package</button>');
  return '<div class="card" data-open="'+p._id+'" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'<span class="rp-badge">Package</span></div><div class="body"><h3>'+esc(p.name)+'</h3>'
   +'<div class="rp-incount">'+mem.length+' item'+(mem.length!==1?'s':'')+' included</div>'
-  +'<div class="row2"><div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div></div></div>'
+  +'<div class="row2">'+(dd?('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day × '+dd+'d</span></div><div class="tot">'+fmt(price*dd)+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div></div>'):('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div></div>'))+'</div>'
   +'<div class="row2"><span class="stat">Bundle price</span></div>'+ctl+'</div></div>';}
 function rpMiniCard(m,tag){var thumb=m.img?'<img src="'+m.img+'" loading="lazy" decoding="async">':'<span class="rp-mi">'+catIcon(m.cat,'ic')+'</span>';
  var price=(m.kind==='package')?rpPkgPrice(m):(Number(m.fn)||0);var pl=price>0?(fmt(price)+'/day'):'Included in kit';

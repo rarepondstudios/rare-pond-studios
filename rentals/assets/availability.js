@@ -57,6 +57,8 @@
     return m;
   }
 
+  function fmtNice(d){ try{ var p=String(d).split("-"); var dt=new Date(+p[0],+p[1]-1,+p[2]); return dt.toLocaleDateString("en-US",{month:"short",day:"numeric"}); }catch(e){ return String(d); } }
+
   function currentRange() {
     try {
       var g = window.RPDates.get();
@@ -70,8 +72,7 @@
     cards.forEach(function (card) {
       // reset any prior overlay marks so re-applies are idempotent
       card.style.display = "";
-      var old = card.querySelector(".rp-avail");
-      if (old) old.remove();
+      var banner = card.querySelector(".rp-availbanner");
       var addBtn = card.querySelector("button.add");
       if (addBtn && addBtn.dataset.rpLabel) {
         addBtn.textContent = addBtn.dataset.rpLabel;
@@ -87,7 +88,7 @@
       // cards alone here; the item-availability map below only covers items.
       if (PKG && PKG[name]) return;
 
-      if (!AVAIL) return; // no dates chosen yet -> leave item catalog as-is
+      if (!AVAIL) { if (banner) { banner.className = "rp-availbanner rp-in"; if (banner.dataset.avbDef) banner.textContent = banner.dataset.avbDef; } return; } // no dates -> default banner
 
       var a = AVAIL[name];
       if (!a) return; // not a tracked item -> leave as-is
@@ -97,11 +98,10 @@
         return;
       }
 
-      var badge = document.createElement("div");
-      badge.className = "rp-avail";
+      if (!banner) return;
       if (!a.is_available || a.available_units <= 0) {
-        badge.classList.add("rp-out");
-        badge.textContent = "Booked out for these dates";
+        banner.className = "rp-availbanner rp-out";
+        banner.textContent = a.next_available ? ("Available starting " + fmtNice(a.next_available)) : "Booked for these dates";
         if (addBtn) {
           addBtn.dataset.rpLabel = addBtn.textContent;
           addBtn.textContent = "Booked out";
@@ -109,11 +109,9 @@
           addBtn.classList.add("rp-bookedbtn");
         }
       } else {
-        badge.classList.add("rp-in");
-        badge.textContent = a.available_units + " available";
+        banner.className = "rp-availbanner rp-in";
+        banner.textContent = a.available_units + " available";
       }
-      if (nameEl && nameEl.parentNode) nameEl.parentNode.insertBefore(badge, nameEl.nextSibling);
-      else card.appendChild(badge);
     });
   }
 
@@ -141,9 +139,10 @@
 
   function styles() {
     var css =
-      ".rp-avail{display:inline-block;font:600 12px/1.2 Heebo,system-ui,sans-serif;margin:6px 0;padding:3px 9px;border-radius:999px}" +
-      ".rp-avail.rp-in{background:#e6f4ea;color:#137333}" +
-      ".rp-avail.rp-out{background:#fce8e6;color:#c5221f}" +
+      ".rp-availbanner{display:inline-flex;align-items:center;gap:6px;font:700 12px/1.2 Heebo,system-ui,sans-serif;margin:2px 0 2px;padding:3px 10px;border-radius:8px;width:max-content;max-width:100%;align-self:flex-start}" +
+      ".rp-availbanner::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 7px currentColor;flex:none}" +
+      ".rp-availbanner.rp-in{background:rgba(120,230,180,.15);color:#8ff0c4;border:1px solid rgba(120,230,180,.4)}" +
+      ".rp-availbanner.rp-out{background:rgba(255,90,90,.16);color:#ff9a9a;border:1px solid rgba(255,90,90,.5)}" +
       "button.add.rp-bookedbtn{opacity:.55;cursor:not-allowed;filter:grayscale(1)}";
     var s = document.createElement("style");
     s.textContent = css;
