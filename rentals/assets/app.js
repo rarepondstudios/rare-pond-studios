@@ -64,6 +64,7 @@ function renderTabs(){
 function render(){renderTabs();active==='Home'?renderHome():renderCat();}
 function renderHome(){
  var homeLogo=copyStr('logos','homeLogo',LOGOC);
+ var heroMark=((!homeLogo)||/rare-pond-color|g_ff961e8ddce4f40b/i.test(homeLogo))?'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:20px"><img src="/media/logos/duck-mark.png" alt="Rare Pond Rentals" style="width:128px;height:auto;display:block;margin-bottom:2px"><span class="bn-rare" style="font-size:66px;line-height:.9;color:#dbe8ff">Rare Pond</span><span class="bn-sub" style="font-size:24px;letter-spacing:11px;padding-left:11px;margin-top:2px;color:#a9c4ec">Rentals</span></div>':('<img src="'+esc(homeLogo)+'" alt="Rare Pond Rentals">');
  var heroTitle=copyStr('home','heroTitle','Reserve your gear.');
  var heroSub=copyStr('home','heroSubtitle','Pick your rental dates, then browse our kit by category. Prices update automatically to how long you need each item.');
  var datePrompt=copyStr('home','datePrompt','Select your rental dates');
@@ -71,7 +72,7 @@ function renderHome(){
  var crewBlurb=copyStr('crew','blurb','Hiring us to crew your shoot? We can fold a basic gear package into our day rate. The exact kit depends on which department you bring us in for.');
  var crewBtn=copyStr('crew','button','Ask about crewing your shoot →');
  const lbl=(D.s&&D.e)?(fmtRange()+' · '+days()+' days'):(D.s?(fmtOne(D.s)+', now pick an end date'):datePrompt);
- $('stage').innerHTML='<div class="home"><div class="logowrap"><img src="'+esc(homeLogo)+'" alt="Rare Pond Rentals"></div><h2>'+esc(heroTitle)+'</h2><p>'+esc(heroSub)+'</p>'
+ $('stage').innerHTML='<div class="home"><div class="logowrap">'+heroMark+'</div><h2>'+esc(heroTitle)+'</h2><p>'+esc(heroSub)+'</p>'
  +'<button class="datebig" id="hdate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg> '+esc(lbl)+'</button>'
  +'<button class="browse" id="hbrowse">'+esc(browseBtn)+'</button>'+'<div class="crew"><p class="crewq">'+esc(crewBlurb)+'</p><button class="crewbtn" id="crewbtn">'+esc(crewBtn)+'</button></div></div>';
  $('hdate').onclick=openDates;$('hbrowse').onclick=()=>{active='Camera';render();};$('crewbtn').onclick=function(){if(window.RPCrew)window.RPCrew.open();};}
