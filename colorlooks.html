@@ -31,9 +31,9 @@
   .gb+.gb{border-top:1px solid rgba(255,255,255,.14)}
   .gb .lay{position:absolute;inset:-15%;filter:blur(15px)}
   .gb.pin .lay{background:conic-gradient(from var(--a),var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));opacity:.85;animation:spin 9s linear infinite}
-  .gb.str .lay{background:linear-gradient(95deg,var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));background-size:220% 100%;opacity:.9;animation:slide 12s linear infinite}
+  .gb.str .lay{right:auto;width:200%;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3),var(--c2),var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));opacity:.9;animation:slide 14s linear infinite;will-change:transform}
   @keyframes spin{to{--a:360deg}}
-  @keyframes slide{to{background-position:220% 0}}
+  @keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   .gb .tag{position:absolute;left:8px;top:6px;z-index:2;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;
     text-shadow:0 1px 6px rgba(0,0,0,.6);background:rgba(0,0,0,.3);padding:2px 7px;border-radius:6px}
   @media(prefers-reduced-motion:reduce){.gb .lay{animation:none}}
