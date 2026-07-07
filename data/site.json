@@ -72,15 +72,35 @@
     "copyrightUrlText": "rarepond.com",
     "copyright": "© Rare Pond Studios 2026",
     "links": [
-      { "label": "Our Team", "go": "team" },
-      { "label": "Projects", "go": "projects" },
-      { "label": "Rentals", "go": "", "href": "/rentals" },
-      { "label": "Contact", "go": "contact" }
+      {
+        "label": "Our Team",
+        "go": "team"
+      },
+      {
+        "label": "Projects",
+        "go": "projects"
+      },
+      {
+        "label": "Rentals",
+        "go": "",
+        "href": "/rentals"
+      },
+      {
+        "label": "Contact",
+        "go": "contact"
+      }
     ]
   },
   "hubspot": {
     "portalId": "245995240",
     "region": "na2",
     "formId": "2f174b0e-b67d-4ca2-b12c-bd877ac8cab3"
+  },
+  "eventBanner": {
+    "enabled": false,
+    "title": "Something special is coming to Rare Pond.",
+    "buttonText": "Learn more",
+    "buttonLink": "/rentals",
+    "colorLook": "spectrum"
   }
 }
