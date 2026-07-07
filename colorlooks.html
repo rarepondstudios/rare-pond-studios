@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Color Looks — Rare Pond Studios</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Heebo",-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#eaf3ff;
+    background:linear-gradient(180deg,#2f72b8 0%,#256199 16%,#1d5089 40%,#183f72 72%,#123056 100%);
+    background-attachment:fixed;min-height:100vh;padding:38px clamp(16px,4vw,54px) 80px}
+  .head{max-width:1120px;margin:0 auto 8px}
+  .bn-rare{font-family:"Kaushan Script",cursive;font-size:40px;color:#bfe0ff;line-height:1}
+  h1{font-size:clamp(22px,3vw,32px);font-weight:800;margin:10px 0 4px}
+  .lead{color:#cfe0f5;font-size:14.5px;line-height:1.55;max-width:760px;margin:0 0 4px}
+  .lead b{color:#fff}
+  .reload{margin-top:14px;display:inline-flex;gap:8px;align-items:center;padding:9px 16px;border-radius:11px;border:1px solid rgba(255,255,255,.28);
+    background:rgba(255,255,255,.12);color:#fff;font-weight:700;font-size:13.5px;cursor:pointer}
+  .reload:hover{background:rgba(255,255,255,.2)}
+  .grid{max-width:1120px;margin:26px auto 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+  .look{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.16);
+    background:rgba(9,16,38,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 12px 34px -14px rgba(0,0,0,.6)}
+  .glowbar{position:relative;height:96px;overflow:hidden}
+  .glowbar .spin{position:absolute;inset:-60%;background:conic-gradient(from 0deg,var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));
+    filter:blur(20px);opacity:.72;animation:spin 9s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .glowbar .strip{position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));
+    background-size:200% 100%;animation:slide 6s linear infinite}
+  @keyframes slide{to{background-position:200% 0}}
+  .lk-body{padding:14px 16px 16px}
+  .lk-name{font-size:16px;font-weight:800;color:#fff;line-height:1.25}
+  .lk-meta{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9fc2ff;margin:5px 0 2px}
+  .lk-key{font-size:11px;color:#8fa9cf;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .lk-note{font-size:12.5px;color:#c3d5ef;line-height:1.5;margin:9px 0 12px}
+  .sw{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .sw .c{border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04)}
+  .sw .chip{height:46px}
+  .sw .lab{padding:5px 6px;text-align:center}
+  .sw .role{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#a9c3e6}
+  .sw .hex{font-size:11px;font-weight:700;color:#eaf3ff;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;cursor:copy}
+  .sw .hex:hover{color:#8fd0ff}
+  .empty{max-width:1120px;margin:40px auto;text-align:center;color:#cfe0f5;font-size:15px}
+  .foot{max-width:1120px;margin:34px auto 0;color:#9fb6d6;font-size:12.5px;line-height:1.6}
+  .foot a{color:#bfe0ff}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="bn-rare">Rare Pond</div>
+    <h1>Color Looks</h1>
+    <p class="lead">Live preview of every color look in <b>colorlooks.json</b> — the single source of truth for the site's gradients.
+       Edit the hex codes in <b>Pages CMS → Color Looks</b>, commit, then hit Reload here to see the change. Click any hex to copy it.</p>
+    <button class="reload" onclick="load()">&#8635; Reload</button>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="foot" id="foot"></div>
+
+<script>
+  var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+  function chip(role,hex){
+    hex=(hex||'').trim();
+    return '<div class="c"><div class="chip" style="background:'+esc(hex||'transparent')+'"></div>'
+      +'<div class="lab"><div class="role">'+esc(role)+'</div><div class="hex" title="Click to copy" onclick="copyHex(this)">'+esc(hex||'—')+'</div></div></div>';
+  }
+  window.copyHex=function(el){var t=el.textContent.trim();if(!t||t==='—')return;try{navigator.clipboard.writeText(t);var o=el.textContent;el.textContent='copied!';setTimeout(function(){el.textContent=o;},900);}catch(e){}};
+  function card(L){
+    var mapline = L.kind==='project' ? ('Project · '+esc(L.project||'')) :
+                  L.kind==='category' ? ('Rentals category · '+esc(L.category||'')) :
+                  L.kind==='spectrum' ? 'Spectrum' : 'Signature';
+    return '<div class="look" style="--c1:'+esc(L.c1)+';--c2:'+esc(L.c2)+';--c3:'+esc(L.c3)+'">'
+      +'<div class="glowbar"><div class="spin"></div><div class="strip"></div></div>'
+      +'<div class="lk-body">'
+        +'<div class="lk-meta">'+mapline+'</div>'
+        +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
+        +'<div class="lk-key">'+esc(L.key)+'</div>'
+        +(L.note?'<div class="lk-note">'+esc(L.note)+'</div>':'<div style="height:8px"></div>')
+        +'<div class="sw">'+chip('Color 1',L.c1)+chip('Color 2',L.c2)+chip('Color 3',L.c3)+chip('Accent',L.accent)+'</div>'
+      +'</div></div>';
+  }
+  function load(){
+    var g=document.getElementById('grid');
+    fetch('/data/colorlooks.json?cb='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+      var looks=(j&&j.looks)||[];
+      if(!looks.length){g.innerHTML='<div class="empty">No color looks found in colorlooks.json.</div>';return;}
+      g.innerHTML=looks.map(card).join('');
+      document.getElementById('foot').innerHTML=looks.length+' looks · source: <a href="https://app.pagescms.org/rarepondstudios/rare-pond-studios/main/file/colorlooks" target="_blank" rel="noopener">Pages CMS → Color Looks</a>';
+    }).catch(function(){g.innerHTML='<div class="empty">Could not load colorlooks.json.</div>';});
+  }
+  load();
+</script>
+</body>
+</html>

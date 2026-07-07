@@ -645,7 +645,7 @@ function focusHTML(p){
   return `<div class="focus-view">${bg}<div class="focus-scrim"></div><div class="focus-content"><div class="focus-eyebrow">${p.sub}</div><p class="focus-logline">${p.logline||p.blurb}</p></div></div>`;
 }
 const citems=CAROUSEL.map((p,i)=>{
-  const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.style.setProperty('--i',i);el.style.setProperty('--accent',ACCENT[p.key]||'#74b3ff');
+  const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',ACCENT[p.key]||'#74b3ff');
   const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" src="${p.img}" alt="${p.title}">`;
   el.innerHTML=`<div class="cglow"></div><div class="cbub">${side}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
   el.addEventListener('pointermove',e=>{if(INTERACTIVE&&el.classList.contains('feat')){const r=el.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){el.style.setProperty('--mx',(px*100).toFixed(1)+'%');el.style.setProperty('--my',(py*100).toFixed(1)+'%');}el.style.setProperty('--tilty',((px-.5)*9).toFixed(2)+'deg');el.style.setProperty('--tiltx',((.5-py)*7).toFixed(2)+'deg');}});
