@@ -45,7 +45,7 @@
     var themeCss = "";
     Object.keys(byProj).forEach(function (pk) {
       var L = byProj[pk];
-      if (L && hexOk(L.accent)) themeCss += ".theme-" + pk + "{--accent:" + L.accent + "}";
+      if (L && hexOk(L.accent)) themeCss += ".theme-" + pk + "{--accent:" + L.accent + "}.citem[data-pk='" + pk + "']{--accent:" + L.accent + "!important}";
     });
     if (themeCss) {
       var st = document.getElementById("rp-look-theme") || document.createElement("style");
