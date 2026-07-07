@@ -73,20 +73,23 @@
       ".rp-evbanner{position:relative;overflow:hidden;border-radius:14px;margin:14px auto 6px;max-width:1180px;width:calc(100% - 12px);border:1px solid rgba(255,255,255,.18);background:rgba(9,16,38,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 10px 34px -12px rgba(0,0,0,.55)}",
       // angle custom-prop so we can rotate the CONIC (not an oversized element) -> pinwheel fills its box, cheap on the GPU
       "@property --rpev-a{syntax:'<angle>';inherits:false;initial-value:0deg}",
-      ".rp-evbanner .rp-evglow{position:absolute;inset:-15%;z-index:0;filter:blur(24px)}",
-      // PINWHEEL: conic that fills the whole container (no bare gaps as it turns)
-      ".rp-evbanner.rp-ev-pinwheel .rp-evglow{background:conic-gradient(from var(--rpev-a),var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));opacity:.55;animation:rpevspin 9s linear infinite}",
+      ".rp-evbanner .rp-evglow{position:absolute;inset:-15%;z-index:0;overflow:hidden}",
+      ".rp-evbanner .rp-evglow::before{content:'';position:absolute;top:0;bottom:0;left:0;right:0;filter:blur(24px);will-change:transform}",
+      // PINWHEEL: conic fills the whole box; rotating the angle 0->360 loops with NO seam (it starts and ends on --e1)
+      ".rp-evbanner.rp-ev-pinwheel .rp-evglow::before{background:conic-gradient(from var(--rpev-a),var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));opacity:.55;animation:rpevspin 9s linear infinite}",
       "@keyframes rpevspin{to{--rpev-a:360deg}}",
-      // STREAM: wide horizontal shifting gradient (Instagram-button feel), best for long headers
-      ".rp-evbanner.rp-ev-stream .rp-evglow{background:linear-gradient(95deg,var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));background-size:220% 100%;opacity:.6;animation:rpevstream 13s linear infinite}",
-      "@keyframes rpevstream{to{background-position:220% 0}}",
-      ".rp-evbanner .rp-evbar{position:absolute;left:0;right:0;top:0;height:3px;z-index:1;background:linear-gradient(90deg,var(--e1),var(--e2),var(--e3),var(--e2),var(--e1));background-size:200% 100%;animation:rpevslide 6s linear infinite}",
-      "@keyframes rpevslide{to{background-position:200% 0}}",
+      // STREAM: seamless CONVEYOR — a 200%-wide strip carrying TWO identical colour periods, slid left by exactly one period.
+      // Because the two halves are identical, translateX(-50%) lands on a pixel-identical frame => no reset/seam ever.
+      ".rp-evbanner.rp-ev-stream .rp-evglow::before{right:auto;width:200%;background:linear-gradient(90deg,var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));opacity:.6;animation:rpevstream 16s linear infinite}",
+      "@keyframes rpevstream{from{transform:translateX(0)}to{transform:translateX(-50%)}}",
+      // top accent bar uses the same seamless conveyor
+      ".rp-evbanner .rp-evbar{position:absolute;left:0;right:0;top:0;height:3px;z-index:1;overflow:hidden}",
+      ".rp-evbanner .rp-evbar::before{content:'';position:absolute;top:0;bottom:0;left:0;width:200%;background:linear-gradient(90deg,var(--e1),var(--e2),var(--e3),var(--e2),var(--e1),var(--e2),var(--e3),var(--e2),var(--e1));animation:rpevstream 16s linear infinite}",
       ".rp-evbanner .rp-evinner{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:14px 22px;flex-wrap:wrap;padding:13px 22px;text-align:center}",
       ".rp-evbanner .rp-evtitle{font:800 clamp(15px,1.9vw,19px)/1.3 Heebo,system-ui,sans-serif;color:#fff;text-shadow:0 2px 12px rgba(0,6,22,.72);letter-spacing:.2px}",
       ".rp-evbanner .rp-evbtn{flex:none;padding:9px 20px;border-radius:10px;font:800 14px/1 Heebo,system-ui,sans-serif;text-decoration:none;color:#0c1836;background:#fff;box-shadow:0 6px 18px -5px rgba(0,0,0,.5);transition:transform .16s cubic-bezier(.3,.7,.2,1.4),box-shadow .2s}",
       ".rp-evbanner .rp-evbtn:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 12px 26px -6px rgba(0,0,0,.6)}",
-      "@media(prefers-reduced-motion:reduce){.rp-evbanner .rp-evglow,.rp-evbanner .rp-evbar{animation:none}}"
+      "@media(prefers-reduced-motion:reduce){.rp-evbanner .rp-evglow::before,.rp-evbanner .rp-evbar::before{animation:none}}"
     ].join("");
     var s = document.createElement("style"); s.id = "rp-ev-css"; s.textContent = css;
     document.head.appendChild(s);
