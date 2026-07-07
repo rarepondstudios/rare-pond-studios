@@ -410,3 +410,5 @@ setTimeout(syncFills,300);
 /* Shared dates changed elsewhere on the site (e.g. the crew form) -> keep the
    rental cart / calendar / request popup in sync. afterDate() re-renders them. */
 if(window.RPDates&&window.RPDates.onChange){window.RPDates.onChange(function(){try{if($('dpop')&&$('dpop').classList.contains('show'))calRender();afterDate();syncFills();}catch(e){}});}
+
+window.RP_setCategoryColors=function(map){try{if(!map)return;Object.keys(map).forEach(function(k){if(Object.prototype.hasOwnProperty.call(COL,k))COL[k]=map[k];});if(typeof render==="function")render();}catch(e){}};
