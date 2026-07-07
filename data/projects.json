@@ -9,12 +9,9 @@
       "bubbleImage": "/media/projects/geri-bubble.jpg",
       "titleLogo": "/media/projects/geri-logo.png",
       "focusBg": "/media/projects/geri-split.jpg",
-      "cardLogline": "The world's greatest superspy is now old and decades past her prime — and she'll break out of her nursing home at any cost.",
-      "blurb": "A retired superspy breaks out of her nursing home — a live-action x 2D animation hybrid.",
-      "logoText": "",
+      "cardLogline": "The world's greatest superspy is now old and decades past her prime, and she'll break out of her nursing home at any cost.",
       "eyebrow": "Rare Pond Studios · 2024",
       "kicker": "Live-Action + 2D Animation Hybrid",
-      "pageTitle": "",
       "tagline": "Old Spy. New Mission.",
       "pageLogline": "Once the world's greatest superspy, <b>Agent M</b> is now old and decades past her prime. Now she takes on a new mission: using her old skills to escape her elderly nursing home — at any cost.",
       "chips": [
@@ -23,8 +20,6 @@
       "watch": {
         "type": "festival",
         "text": "Coming to Film Festivals — Fall 2026",
-        "id": "",
-        "url": "",
         "ig": "geri_action_film"
       },
       "stills": [
@@ -35,7 +30,8 @@
         "/media/stills/geri-nursing-2.jpg",
         "/media/stills/geri-madeline.jpg"
       ],
-      "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Cameron Quinn · Rachael DeBoer · Kennedy Porter · Adam Kezele"
+      "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Cameron Quinn · Rachael DeBoer · Kennedy Porter · Adam Kezele",
+      "blurb": "A retired superspy breaks out of her nursing home — a live-action x 2D animation hybrid."
     },
     {
       "key": "rev",
@@ -47,11 +43,8 @@
       "titleLogo": "/media/projects/revelations-logo.png",
       "focusBg": "/media/projects/revelations-earth.jpg",
       "cardLogline": "Angels work a vast Heaven office, quarantined from the sinful world below. When the angel Emmanuel goes missing, his manager Michael must descend to Earth to bring him back.",
-      "blurb": "Heaven is an office. Earth is the problem.",
-      "logoText": "",
       "eyebrow": "Rare Pond Studios · In Post-Production",
       "kicker": "Live-Action + VFX Short",
-      "pageTitle": "",
       "tagline": "Even angels answer to management.",
       "pageLogline": "A surreal vision of Heaven and Earth, where angels work a vast office space and keep themselves quarantined from the sinful humans below. When the angel <b>Emmanuel</b> goes missing, his angelic manager <b>Michael</b> must descend to Earth to bring him back — before they are both corrupted by the world they find there.",
       "chips": [
@@ -60,8 +53,6 @@
       "watch": {
         "type": "post",
         "text": "In Post-Production",
-        "id": "",
-        "url": "",
         "ig": "revelations_film"
       },
       "stills": [
@@ -70,7 +61,8 @@
         "/media/stills/rev-heaven-1.jpg",
         "/media/stills/rev-heaven-2.jpg"
       ],
-      "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Lawrence Lacey · Jesse Shafroth · John Klenk · Trinity Medina"
+      "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Lawrence Lacey · Jesse Shafroth · John Klenk · Trinity Medina",
+      "blurb": "Heaven is an office. Earth is the problem."
     },
     {
       "key": "invalid",
@@ -81,8 +73,7 @@
       "bubbleImage": "/media/projects/invalid-bubble.jpg",
       "titleLogo": "/media/projects/invalid-logo.png",
       "focusBg": "/media/projects/invalid-focus.jpg",
-      "cardLogline": "Everybody's a critic — a fast, funny short about a guy who's always right, even when he's gloriously, completely wrong.",
-      "blurb": "A fast, funny short about a guy who is always right.",
+      "cardLogline": "Everybody's a critic... A fast, funny short about a guy who's always right, even when he's gloriously, and completely wrong.",
       "logoText": "Invalid Opinion",
       "eyebrow": "Rare Pond Studios · Released",
       "kicker": "Comedy Short",
@@ -94,10 +85,8 @@
       ],
       "watch": {
         "type": "youtube",
-        "text": "",
         "id": "XGYQv3h3-y4",
-        "url": "https://www.youtube.com/watch?v=XGYQv3h3-y4",
-        "ig": ""
+        "url": "https://www.youtube.com/watch?v=XGYQv3h3-y4"
       },
       "stills": [
         "/media/stills/invalid-1.jpg",
@@ -106,7 +95,8 @@
         "/media/stills/invalid-sourpatch.jpg",
         "/media/stills/invalid-5.jpg"
       ],
-      "credits": "<b>Created by</b> Jack Carlsen<br><b>Starring</b> Iago Lashua · Nick Wittcoff<br><b>Director of Photography</b> Jash Shah · <b>Sound</b> Jacob Gensheimer"
+      "credits": "<b>Created by</b> Jack Carlsen<br><b>Starring</b> Iago Lashua · Nick Wittcoff<br><b>Director of Photography</b> Jash Shah · <b>Sound</b> Jacob Gensheimer",
+      "blurb": "A fast, funny short about a guy who is always right."
     },
     {
       "key": "more",
@@ -114,27 +104,10 @@
       "subtitle": "Stay tuned",
       "theme": "invalid",
       "placeholder": true,
-      "bubbleImage": "",
-      "titleLogo": "",
       "focusBg": "/media/site/water.jpg",
       "cardLogline": "New worlds are in the works.",
-      "blurb": "New worlds are in the works.",
       "logoText": "More to come...",
-      "eyebrow": "",
-      "kicker": "",
-      "pageTitle": "",
-      "tagline": "",
-      "pageLogline": "",
-      "chips": [],
-      "watch": {
-        "type": "",
-        "text": "",
-        "id": "",
-        "url": "",
-        "ig": ""
-      },
-      "stills": [],
-      "credits": ""
+      "blurb": "New worlds are in the works."
     }
   ]
 }
