@@ -83,8 +83,9 @@
       var nameEl = card.querySelector("h3");
       var name = (nameEl ? nameEl.textContent : "").trim().toLowerCase();
 
-      // hide raw package rows until packages have their own rendering
-      if (PKG && PKG[name]) { card.style.display = "none"; return; }
+      // packages now render natively in app.js (Packages view). Leave their
+      // cards alone here; the item-availability map below only covers items.
+      if (PKG && PKG[name]) return;
 
       if (!AVAIL) return; // no dates chosen yet -> leave item catalog as-is
 
