@@ -4,7 +4,11 @@
    include in rentals/index.html to fully disable. Loaded right AFTER app.js so
    SB_URL, SB_KEY, RENTALS and render() already exist.
 
-   What it does, per product card (.card[data-open]) once dates are chosen:
+   What it does, per product card (.card[data-open]):
+     - kind = package                -> hide the card (packages get their own
+                                        rendering later; hidden for now so a raw
+                                        package row never shows as a broken card)
+   And once dates are chosen, for item cards:
      - all copies in-repair/missing  -> hide the card entirely
      - no copy free for those dates  -> "Booked out for these dates" + disable Add
      - otherwise                     -> "N available" badge, Add stays enabled
@@ -13,12 +17,21 @@
 (function () {
   "use strict";
 
-  var AVAIL = null; // map: lowercased item name -> availability row
+  var AVAIL = null;              // map: lowercased item name -> availability row
+  var PKG = null;               // set of lowercased package names (to hide for now)
 
   function creds() {
     var url = (typeof SB_URL !== "undefined") ? SB_URL : (window.SB_URL || "");
     var key = (typeof SB_KEY !== "undefined") ? SB_KEY : (window.SB_KEY || "");
     return { url: url, key: key };
+  }
+
+  function sbGet(path) {
+    var c = creds();
+    if (!c.url || !c.key) return Promise.resolve(null);
+    return fetch(c.url.replace(/\/$/, "") + path, {
+      headers: { apikey: c.key, Authorization: "Bearer " + c.key }
+    }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
   }
 
   function fetchAvail(start, end) {
@@ -28,9 +41,14 @@
       method: "POST",
       headers: { "Content-Type": "application/json", apikey: c.key, Authorization: "Bearer " + c.key },
       body: JSON.stringify({ p_start: start, p_end: end })
-    })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .catch(function () { return null; });
+    }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+  }
+
+  function loadPackages() {
+    return sbGet("/rest/v1/items?select=name&kind=eq.package").then(function (rows) {
+      PKG = {};
+      if (Array.isArray(rows)) rows.forEach(function (r) { PKG[(r.name || "").trim().toLowerCase()] = true; });
+    });
   }
 
   function toMap(rows) {
@@ -62,12 +80,16 @@
         addBtn.classList.remove("rp-bookedbtn");
       }
 
-      if (!AVAIL) return; // no dates chosen yet -> leave catalog as-is
-
       var nameEl = card.querySelector("h3");
       var name = (nameEl ? nameEl.textContent : "").trim().toLowerCase();
+
+      // hide raw package rows until packages have their own rendering
+      if (PKG && PKG[name]) { card.style.display = "none"; return; }
+
+      if (!AVAIL) return; // no dates chosen yet -> leave item catalog as-is
+
       var a = AVAIL[name];
-      if (!a) return; // not a tracked product (e.g. a package) -> leave as-is
+      if (!a) return; // not a tracked item -> leave as-is
 
       if (!a.is_serviceable) { // every copy in-repair/missing -> hide
         card.style.display = "none";
@@ -135,7 +157,8 @@
         window.RPDates.onChange(function () { refresh(); });
       }
     } catch (e) {}
-    refresh(); // in case dates are already set on load
+    loadPackages().then(function () { apply(); });   // hide package rows asap
+    refresh();                                        // in case dates already set
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
