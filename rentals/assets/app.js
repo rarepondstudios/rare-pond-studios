@@ -168,7 +168,7 @@ var RP_PKG_CSS=
 ".rp-pill svg{width:16px;height:16px}"+
 ".rp-deck{position:relative;margin-top:2px}"+
 ".rp-card{transition:transform .52s cubic-bezier(.34,1.26,.5,1),opacity .42s,filter .42s,box-shadow .4s;transform-origin:50% 130%;border-radius:16px;box-sizing:border-box}"+
-".rp-front{position:relative;z-index:2;background:rgba(255,255,255,.045);border:1.5px solid var(--pc);padding:12px;box-shadow:0 9px 28px 1px var(--pcg)}"+
+".rp-front{position:relative;z-index:2;background:rgba(13,20,45,.96);border:1.5px solid var(--pc);padding:12px;box-shadow:0 9px 28px 1px var(--pcg)}"+
 ".rp-back{position:absolute;top:0;left:0;right:0;z-index:1;background:rgba(9,14,33,.72);border:1.5px solid rgba(255,255,255,.13);padding:12px;filter:grayscale(1) brightness(.82);opacity:.7;pointer-events:none}"+
 ".rp-back.side-right{transform:translate(24px,15px) rotate(1deg) scale(.955)}"+
 ".rp-back.side-left{transform:translate(-24px,15px) rotate(-1deg) scale(.955)}"+
