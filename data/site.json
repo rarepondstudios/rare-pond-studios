@@ -97,10 +97,10 @@
     "formId": "2f174b0e-b67d-4ca2-b12c-bd877ac8cab3"
   },
   "eventBanner": {
-    "enabled": false,
-    "title": "Something special is coming to Rare Pond.",
-    "buttonText": "Learn more",
-    "buttonLink": "/rentals",
-    "colorLook": "spectrum"
+    "enabled": true,
+    "title": "We want to read your screenplay!",
+    "buttonText": "Submit here",
+    "buttonLink": "/#team",
+    "colorLook": "signature"
   }
 }
