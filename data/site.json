@@ -82,7 +82,6 @@
       },
       {
         "label": "Rentals",
-        "go": "",
         "href": "/rentals"
       },
       {
@@ -101,6 +100,6 @@
     "title": "We want to read your screenplay!",
     "buttonText": "Submit here",
     "buttonLink": "/#team",
-    "colorLook": "signature"
+    "colorLook": "geri"
   }
 }
