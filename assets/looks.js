@@ -71,8 +71,15 @@
     if (document.getElementById("rp-ev-css")) return;
     var css = [
       ".rp-evbanner{position:relative;overflow:hidden;border-radius:14px;margin:14px auto 6px;max-width:1180px;width:calc(100% - 12px);border:1px solid rgba(255,255,255,.18);background:rgba(9,16,38,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 10px 34px -12px rgba(0,0,0,.55)}",
-      ".rp-evbanner .rp-evglow{position:absolute;inset:-45%;z-index:0;background:conic-gradient(from 0deg,var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));filter:blur(34px);opacity:.5;animation:rpevspin 9s linear infinite}",
-      "@keyframes rpevspin{to{transform:rotate(360deg)}}",
+      // angle custom-prop so we can rotate the CONIC (not an oversized element) -> pinwheel fills its box, cheap on the GPU
+      "@property --rpev-a{syntax:'<angle>';inherits:false;initial-value:0deg}",
+      ".rp-evbanner .rp-evglow{position:absolute;inset:-15%;z-index:0;filter:blur(24px)}",
+      // PINWHEEL: conic that fills the whole container (no bare gaps as it turns)
+      ".rp-evbanner.rp-ev-pinwheel .rp-evglow{background:conic-gradient(from var(--rpev-a),var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));opacity:.55;animation:rpevspin 9s linear infinite}",
+      "@keyframes rpevspin{to{--rpev-a:360deg}}",
+      // STREAM: wide horizontal shifting gradient (Instagram-button feel), best for long headers
+      ".rp-evbanner.rp-ev-stream .rp-evglow{background:linear-gradient(95deg,var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));background-size:220% 100%;opacity:.6;animation:rpevstream 13s linear infinite}",
+      "@keyframes rpevstream{to{background-position:220% 0}}",
       ".rp-evbanner .rp-evbar{position:absolute;left:0;right:0;top:0;height:3px;z-index:1;background:linear-gradient(90deg,var(--e1),var(--e2),var(--e3),var(--e2),var(--e1));background-size:200% 100%;animation:rpevslide 6s linear infinite}",
       "@keyframes rpevslide{to{background-position:200% 0}}",
       ".rp-evbanner .rp-evinner{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:14px 22px;flex-wrap:wrap;padding:13px 22px;text-align:center}",
@@ -95,7 +102,8 @@
     var L = byKey[eb.colorLook] || byKey.signature || { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" };
     var btn = eb.buttonText ? ('<a class="rp-evbtn" href="' + esc(safeLink(eb.buttonLink)) + '">' + esc(eb.buttonText) + "</a>") : "";
     var el = document.createElement("div");
-    el.className = "rp-evbanner";
+    var style = (eb.gradientStyle === "pinwheel") ? "pinwheel" : "stream";  // per-place gradient control; default Stream for this wide header
+    el.className = "rp-evbanner rp-ev-" + style;
     el.style.setProperty("--e1", hexOk(L.c1) ? L.c1 : "#3f6bff");
     el.style.setProperty("--e2", hexOk(L.c2) ? L.c2 : "#9b5cff");
     el.style.setProperty("--e3", hexOk(L.c3) ? L.c3 : "#56c8ff");
