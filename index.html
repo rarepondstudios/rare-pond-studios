@@ -25,6 +25,9 @@
   section{scroll-margin-top:100px;position:relative}
   a{color:inherit}
   .view{display:block}
+  #rp-eventbanner-mount:empty{display:none}
+  #rp-eventbanner-mount:not(:empty){position:relative;z-index:3;max-width:1180px;margin:0 auto;padding:calc(var(--header-h) + 12px) clamp(18px,5vw,60px) 0}
+  #rp-eventbanner-mount:not(:empty) + .hero{padding-top:16px}
   @keyframes spin{to{transform:rotate(360deg)}}
   @property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
   @keyframes hue{to{--ang:360deg}}
@@ -422,6 +425,7 @@
   <div id="view-home" class="view">
     <section id="home-projects">
       <div class="surface-rays"></div>
+      <div id="rp-eventbanner-mount"></div>
       <div class="hero">
         <h1>Countless Worlds. <em>One Pond.</em></h1>
         <p>We create escapist films that transport you somewhere new. See where you can go...</p>
@@ -764,5 +768,6 @@ __main().catch(e=>console.error("init error",e));</script>
 <script src="/rentals/assets/form-config.js" defer></script>
 <script src="/assets/date-picker.js" defer></script>
 <script src="/assets/crew-form.js" defer></script>
+<script src="/assets/looks.js"></script>
 </body>
 </html>

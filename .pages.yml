@@ -91,6 +91,36 @@ content:
           - { name: portalId, label: Portal ID, type: string }
           - { name: region, label: Region, type: string }
           - { name: formId, label: Form ID, type: string }
+      - name: eventBanner
+        label: Event banner (front page — studio + rentals)
+        type: object
+        fields:
+          - { name: enabled, label: Show the event banner, type: boolean }
+          - { name: title, label: Banner title text, type: string }
+          - { name: buttonText, label: Button text, type: string }
+          - { name: buttonLink, label: "Button link (URL or /path)", type: string }
+          - { name: colorLook, label: Color scheme (from Color Looks), type: select, options: { values: [signature, spectrum, geri, rev, invalid, cat-camera, cat-lighting, cat-grip, cat-electric, cat-sound] } }
+
+  - name: colorlooks
+    label: Color Looks
+    type: file
+    path: data/colorlooks.json
+    fields:
+      - name: looks
+        label: Color looks (single source of truth for site gradients)
+        type: object
+        list: true
+        fields:
+          - { name: key, label: ID (used by code — do not change), type: string }
+          - { name: name, label: Name, type: string }
+          - { name: kind, label: Kind, type: select, options: { values: [signature, spectrum, project, category] } }
+          - { name: project, label: Linked project key (optional), type: string }
+          - { name: category, label: Linked rentals category (optional), type: string }
+          - { name: c1, label: Color 1 (hex), type: string }
+          - { name: c2, label: Color 2 (hex), type: string }
+          - { name: c3, label: Color 3 (hex), type: string }
+          - { name: accent, label: Accent (hex), type: string }
+          - { name: note, label: Note, type: text }
 
   - name: projects
     label: Projects (bubbles + pages)
