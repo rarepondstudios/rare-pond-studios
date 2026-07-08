@@ -62,7 +62,7 @@
       "note": "The comedy's electric blue and terracotta with a hot-red pop from the key art."
     },
     {
-      "key": "cat-camera",
+      "key": "category-camera",
       "name": "Camera — Red",
       "kind": "category",
       "project": "",
@@ -74,7 +74,7 @@
       "note": "Matches the Camera category tab/glow."
     },
     {
-      "key": "cat-lighting",
+      "key": "category-lighting",
       "name": "Lighting — Amber",
       "kind": "category",
       "project": "",
@@ -86,7 +86,7 @@
       "note": "Matches the Lighting category tab/glow."
     },
     {
-      "key": "cat-grip",
+      "key": "category-grip",
       "name": "Grip — Violet",
       "kind": "category",
       "project": "",
@@ -98,7 +98,7 @@
       "note": "Matches the Grip category tab/glow."
     },
     {
-      "key": "cat-electric",
+      "key": "category-electric",
       "name": "Electric — Yellow",
       "kind": "category",
       "project": "",
@@ -110,7 +110,7 @@
       "note": "Matches the Electric category tab/glow."
     },
     {
-      "key": "cat-sound",
+      "key": "category-sound",
       "name": "Sound Packages — Green",
       "kind": "category",
       "project": "",
