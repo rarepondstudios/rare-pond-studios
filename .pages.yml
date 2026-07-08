@@ -99,7 +99,7 @@ content:
           - { name: title, label: Banner title text, type: string }
           - { name: buttonText, label: Button text, type: string }
           - { name: buttonLink, label: "Button link (URL or /path)", type: string }
-          - { name: colorLook, label: Color scheme (from Color Looks), type: select, options: { values: [signature, spectrum, geri, rev, invalid, cat-camera, cat-lighting, cat-grip, cat-electric, cat-sound] } }
+          - { name: colorLook, label: Color scheme (from Color Looks), type: select, options: { values: [signature, spectrum, geri, rev, invalid, category-camera, category-lighting, category-grip, category-electric, category-sound] } }
           - { name: gradientStyle, label: "Gradient style — Stream (wide horizontal sweep, best for this banner) or Pinwheel (rotating conic, best for round bubbles)", type: select, options: { values: [stream, pinwheel] } }
 
   - name: colorlooks
