@@ -141,7 +141,7 @@ function openDP(id){const p=RENTALS[id];if(!p)return;dpOpen=id;rpEnsureStyles();
   meta='<div class="dpmeta">'+priceBlk(p,true)+(p.val?'<div class="rv">Replacement value '+esc(p.val)+'</div>':'')+'<span class="stat">Available'+(p.qty>1?' · '+p.qty+' units':'')+'</span></div>';
   var acc=rpAccessories(p);var inc=rpIncludedIn(p);
   extra=rpKitHtml(p)
-   +(acc.length?'<div class="rp-sec" style="--dpc:'+dpc+'">Recommended accessories</div><div class="rp-mgrid">'+acc.map(function(m){return rpMiniCard(m);}).join('')+'</div>':'')
+   +(acc.length?'<div class="rp-sec" style="--dpc:'+dpc+'">Recommended accessories</div><div class="rp-mgrid">'+acc.map(function(m){return rpMiniCard(m,null,true);}).join('')+'</div>':'')
    +(inc.length?'<div class="rp-sec" style="--dpc:'+dpc+'">Included in packages</div><div class="rp-mgrid">'+inc.map(function(m){return rpMiniCard(m,'Package');}).join('')+'</div>':'');
  }
  $('dp').innerHTML='<div class="dpc"><button class="dpx" id="dpx">&times;</button>'+back+'<div class="dphero">'+hero+'</div><div class="dpbody">'
@@ -153,7 +153,11 @@ function openDP(id){const p=RENTALS[id];if(!p)return;dpOpen=id;rpEnsureStyles();
  const da=$('dp').querySelector('[data-da]');if(da)da.onclick=()=>addCart(id);
  const dp=$('dp').querySelector('[data-dp]');if(dp)dp.onclick=()=>inc(id);
  const dm=$('dp').querySelector('[data-dm]');if(dm)dm.onclick=()=>dec(id);
- $('dp').querySelectorAll('[data-nav]').forEach(function(el){el.onclick=function(){dpNavigate(+el.dataset.nav);};});}
+ $('dp').querySelectorAll('[data-nav]').forEach(function(el){el.onclick=function(){dpNavigate(+el.dataset.nav);};});
+ /* Quick-add on recommended-accessory previews: add / step qty / remove without opening the item. */
+ $('dp').querySelectorAll('[data-qa]').forEach(function(b){b.onclick=function(e){e.stopPropagation();addCart(+b.dataset.qa);};});
+ $('dp').querySelectorAll('[data-qp]').forEach(function(b){b.onclick=function(e){e.stopPropagation();inc(+b.dataset.qp);};});
+ $('dp').querySelectorAll('[data-qm]').forEach(function(b){b.onclick=function(e){e.stopPropagation();dec(+b.dataset.qm);};});}
 function closeDP(){dpOpen=null;dpStack=[];$('dp').classList.remove('show');document.body.style.overflow='';}
 /* ===== packages + accessories (rp) ===== */
 var RP_DBIDX={},dpStack=[],catView={};
@@ -169,8 +173,16 @@ var RP_PKG_CSS=
 ".rp-incount{font:600 12px/1.2 Heebo,sans-serif;color:#6b7a99;margin:1px 0 7px}"+
 ".rp-sec{font:800 13px/1 Heebo,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:var(--dpc,#2f57a6);margin:22px 0 11px}"+
 ".rp-mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}"+
-".rp-mcard{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid rgba(0,0,0,.1);border-radius:12px;background:#fff;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;text-align:left;width:100%}"+
-".rp-mcard:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(0,0,0,.13);border-color:var(--dpc,#2f57a6)}"+
+".rp-mcard{display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid rgba(0,0,0,.1);border-radius:12px;background:#fff;transition:box-shadow .15s,border-color .15s}"+
+".rp-mcard:hover{box-shadow:0 7px 18px rgba(0,0,0,.13);border-color:var(--dpc,#2f57a6)}"+
+".rp-mnav{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;background:none;border:0;text-align:left;padding:0;font:inherit}"+
+".rp-mnav:hover .rp-mn{color:var(--dpc,#2f57a6)}"+
+".rp-qa{width:34px;height:34px;flex:none;border-radius:9px;border:1.5px solid #1c2b46;background:#fff;color:#1c2b46;font:800 20px/1 Heebo,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .16s,color .16s,border-color .16s,box-shadow .16s}"+
+".rp-qa:hover{background:var(--qac,#2f57a6);border-color:var(--qac,#2f57a6);color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.6),0 0 16px -2px var(--qac,#2f57a6)}"+
+".rp-qstep{flex:none;display:flex;align-items:center;gap:2px;background:#eef2fb;border:1px solid rgba(0,0,0,.08);border-radius:10px;padding:2px}"+
+".rp-qstep button{width:27px;height:28px;border:0;background:#fff;border-radius:8px;color:#1c2b46;font:800 16px/1 Heebo,sans-serif;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.12)}"+
+".rp-qstep button:disabled{opacity:.4;cursor:default;box-shadow:none}"+
+".rp-qstep span{min-width:22px;text-align:center;font:800 13px/1 Heebo,sans-serif;color:#1c2b46}"+
 ".rp-mcard img{width:46px;height:46px;object-fit:cover;border-radius:8px;flex:none}"+
 ".rp-mcard .rp-mi{width:46px;height:46px;flex:none;border-radius:8px;background:#eef2fb;display:flex;align-items:center;justify-content:center}"+
 ".rp-mcard .rp-mi svg{width:24px;height:24px;color:#8aa0c8}"+
@@ -196,9 +208,16 @@ function rpPkgCard(p,col){rpEnsureStyles();var mem=rpMembers(p);var price=rpPkgP
   +'<div class="rp-incount">'+mem.length+' item'+(mem.length!==1?'s':'')+' included</div>'
   +'<div class="row2">'+(dd?('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day × '+dd+'d</span></div><div class="tot">'+fmt(price*dd)+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div></div>'):('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div></div>'))+'</div>'
   +'<div class="row2"><span class="stat">Bundle price</span></div>'+ctl+'</div></div>';}
-function rpMiniCard(m,tag){var thumb=m.img?'<img src="'+m.img+'" loading="lazy" decoding="async">':'<span class="rp-mi">'+catIcon(m.cat,'ic')+'</span>';
+function rpMiniCard(m,tag,qa){var thumb=m.img?'<img src="'+m.img+'" loading="lazy" decoding="async">':'<span class="rp-mi">'+catIcon(m.cat,'ic')+'</span>';
  var price=(m.kind==='package')?rpPkgPrice(m):(Number(m.fn)||0);var pl=price>0?(fmt(price)+'/day'):'Included in kit';
- return '<button class="rp-mcard" data-nav="'+m._id+'">'+thumb+'<div><div class="rp-mn">'+esc(m.name)+'</div><div class="rp-mp">'+esc(pl)+'</div>'+(tag?'<span class="rp-mtag">'+esc(tag)+'</span>':'')+'</div></button>';}
+ var nav='<div class="rp-mnav" data-nav="'+m._id+'">'+thumb+'<div><div class="rp-mn">'+esc(m.name)+'</div><div class="rp-mp">'+esc(pl)+'</div>'+(tag?'<span class="rp-mtag">'+esc(tag)+'</span>':'')+'</div></div>';
+ /* qa = quick-add control (recommended accessories): white "+" that glows this item's own
+    category colour on hover; once in cart it becomes a −/count/+ stepper (dec to 0 removes). */
+ var ctrl='';
+ if(qa){var inC=cart[m._id]||0;var qac=COL[m.cat]||'#2f57a6';
+  ctrl=inC?('<div class="rp-qstep"><button data-qm="'+m._id+'" aria-label="Remove one">−</button><span>'+inC+'</span><button data-qp="'+m._id+'" '+(inC>=m.qty?'disabled':'')+' aria-label="Add one">+</button></div>')
+          :('<button class="rp-qa" data-qa="'+m._id+'" style="--qac:'+qac+'" aria-label="Add '+esc(m.name)+' to cart">+</button>');}
+ return '<div class="rp-mcard">'+nav+ctrl+'</div>';}
 function rpKitHtml(p){if(!p.contents.length)return '';var grps=[];p.contents.forEach(function(c){if(grps.indexOf(c.g)<0)grps.push(c.g);});var multiG=grps.length>1;
  var kh='<div class="kh">Kit contents · '+p.contents.length+' items</div>';
  grps.forEach(function(g){if(multiG)kh+='<div class="ggrp">'+esc(g)+'</div>';kh+='<div class="kgrid">'+p.contents.filter(function(c){return c.g===g;}).map(function(c){return '<div class="kc">'+(c.img?'<img src="'+c.img+'" loading="lazy" decoding="async">':catIcon(p.cat,'ic'))+'<div><div class="kl">'+esc(c.l)+'</div>'+(c.v?'<div class="kv">Replacement value '+esc(c.v)+'</div>':'')+'</div></div>';}).join('')+'</div>';});
@@ -267,7 +286,10 @@ function uc(){const ids=cartOrder.filter(id=>id in cart);const dd=days();
  $('pit').querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>dec(+b.dataset.cm));}
 function openCart(o){$('cartp').classList.toggle('show',o);$('ovl').classList.toggle('show',o);}
 $('fab').onclick=()=>openCart(true);$('closeCart').onclick=()=>openCart(false);$('ovl').onclick=()=>openCart(false);
-$('quote').onclick=function(){var ids=cartOrder.filter(function(id){return id in cart;}),hasG=ids.length>0,hasD=!!(D.s&&D.e);if(!hasG){var pe=$('pit').querySelector('.empty')||$('pit');flashRed($('pit'));flashArrow(pe);if(!hasD)flashDateBtn();return;}if(!hasD){flashDateBtn();return;}openReq();};
+/* rpAlertBusy: while a warn animation (red flash + pointing arrows) is playing, ignore repeat
+   clicks so the arrows can't stack on top of each other. Clears after the ~1.7s animation. */
+var rpAlertBusy=false;
+$('quote').onclick=function(){var ids=cartOrder.filter(function(id){return id in cart;}),hasG=ids.length>0,hasD=!!(D.s&&D.e);if(hasG&&hasD){openReq();return;}if(rpAlertBusy)return;rpAlertBusy=true;setTimeout(function(){rpAlertBusy=false;},1750);if(!hasG){var pe=$('pit').querySelector('.empty')||$('pit');flashRed($('pit'));flashArrow(pe);if(!hasD)flashDateBtn();return;}flashDateBtn();};
 /* Crew-your-shoot popup is now the shared module — see /assets/crew-form.js
    (loaded root-relative by this page). The #crewbtn trigger calls RPCrew.open(). */
 function setFill(b,fr){if(!b)return;fr=Math.max(0,Math.min(1,fr||0));b.style.setProperty('--fill',(4+fr*96).toFixed(1)+'%');b.classList.toggle('ready',fr>=0.999);}
@@ -343,7 +365,7 @@ function renderReq(){
  } else if(reqStep===1){
   $('qback').onclick=()=>{reqStep=0;renderReq();};
   var qd=$('qdates');if(qd)qd.onclick=openDates;
-  $('qsend').onclick=reqSend;
+  $('qsend').onclick=reqSend;setFill($('qsend'),1);
  } else { $('qclose2').onclick=closeReq; }
 }
 function reqSubmitData(){
