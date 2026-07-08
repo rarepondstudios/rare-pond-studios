@@ -4,7 +4,7 @@ html{overflow-x:hidden}
 body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#eaf3ff;background:linear-gradient(180deg,#2f72b8 0%,#256199 16%,#1d5089 40%,#183f72 72%,#123056 100%);background-attachment:fixed;min-height:100vh;overflow-x:hidden}
 .wrap{max-width:1180px;margin:0 auto;padding:calc(var(--header-h) + 40px) 22px 0}
 .site-header{position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:300;display:flex;align-items:center;gap:18px;padding:0 clamp(16px,4vw,46px)}
-.hdr-bg{position:absolute;left:0;right:0;top:0;height:170px;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.92) 34%,rgba(255,255,255,.6) 64%,rgba(255,255,255,0) 100%);-webkit-mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%);mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%)}
+.hdr-bg{position:absolute;left:0;right:0;top:0;height:170px;z-index:-1;pointer-events:none;background:linear-gradient(180deg,#fff 0%,#fff 52%,rgba(255,255,255,0) 100%);-webkit-mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%);mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%)}
 .hdr-logo{display:flex;align-items:center;gap:12px;cursor:pointer;text-decoration:none}
 .hdr-logo img{height:60px;width:auto;filter:drop-shadow(0 3px 8px rgba(10,30,70,.2))}
 .brandname{display:flex;flex-direction:column;justify-content:center;line-height:.9}
