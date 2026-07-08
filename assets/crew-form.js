@@ -205,6 +205,7 @@
     g('rpc-x').onclick=close;
     g('rpc-back').onclick=function(){ S.step=0; render(); };
     g('rpc-send').onclick=send;
+    setFill(g('rpc-send'),1); /* review step needs no more input -> show the progress bar full, not at stage 1 */
   }
 
   function renderDone(){
