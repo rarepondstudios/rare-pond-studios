@@ -26,8 +26,7 @@
   a{color:inherit}
   .view{display:block}
   #rp-eventbanner-mount:empty{display:none}
-  #rp-eventbanner-mount:not(:empty){position:relative;z-index:3;max-width:1180px;margin:0 auto;padding:calc(var(--header-h) + 12px) clamp(18px,5vw,60px) 0}
-  #rp-eventbanner-mount:not(:empty) + .hero{padding-top:16px}
+  /* event banner positions itself (fixed, full-width) + reserves its own space via looks.js (--evbanner-h). No page-specific offsets needed. */
   @keyframes spin{to{transform:rotate(360deg)}}
   @property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
   @keyframes hue{to{--ang:360deg}}
