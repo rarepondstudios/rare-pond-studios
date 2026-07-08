@@ -79,7 +79,11 @@
       // dissolves into the colour (white->colour), and the colour dissolves into the page (colour->page);
       // BOTH edges inherit the header's radial curve because the colour sheet reuses the header's exact
       // mask. Slides down from behind the header on load. Nothing sits between the two layers -> no gap/line.
-      ".rp-evbanner{position:fixed;top:0;left:0;right:0;z-index:120;height:170px;overflow:visible;background:transparent;transform:translateY(-101%);transition:transform .72s cubic-bezier(.2,.8,.24,1);will-change:transform}",
+      // z-index must sit BELOW the studio's project/team overlay (.universe, z-index:100) so that overlay
+      // (which is opaque) fully covers the banner and its "Back to the pond" button stays clickable — while
+      // still sitting ABOVE all normal page content (studio content maxes ~z-11, rentals cards ~z-5) and
+      // BELOW the header (z-300) and every modal (2000+). 90 satisfies all of these on both sites.
+      ".rp-evbanner{position:fixed;top:0;left:0;right:0;z-index:90;height:170px;overflow:visible;background:transparent;transform:translateY(-101%);transition:transform .72s cubic-bezier(.2,.8,.24,1);will-change:transform}",
       ".rp-evbanner.rp-ev-in{transform:translateY(0)}",
       // the colour sheet: SAME radial mask as .hdr-bg (identical curve, thickest at centre), shifted down
       // 38px so its opaque body + curved falloff extend below the fully-opaque white header.
