@@ -70,7 +70,13 @@
   function bannerCssOnce() {
     if (document.getElementById("rp-ev-css")) return;
     var css = [
-      ".rp-evbanner{position:relative;overflow:hidden;border-radius:14px;margin:14px auto 6px;max-width:1180px;width:calc(100% - 12px);border:1px solid rgba(255,255,255,.18);background:rgba(9,16,38,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 10px 34px -12px rgba(0,0,0,.55)}",
+      // The banner itself is position:fixed (visually pinned under the header). The mount stays in normal flow as a
+      // spacer exactly as tall as the banner (--evbanner-h, set from JS), so it pushes the page's content down by the
+      // right amount on ANY page — regardless of how that page positions its content. 0 tall when no banner. Future-proof.
+      "#rp-eventbanner-mount{position:static!important;height:var(--evbanner-h,0px)!important;max-width:none!important;width:auto!important;margin:0!important;padding:0!important}",
+      // BANNER = full-width extension of the header, pinned directly beneath it (identical on every page). Slides down from behind the header on load; bottom falls off into the page.
+      ".rp-evbanner{position:fixed;top:var(--header-h,86px);left:0;right:0;z-index:200;overflow:hidden;background:rgba(9,16,38,.42);-webkit-backdrop-filter:blur(9px) saturate(1.2);backdrop-filter:blur(9px) saturate(1.2);padding-bottom:18px;transform:translateY(-101%);transition:transform .72s cubic-bezier(.2,.8,.24,1);will-change:transform;-webkit-mask:linear-gradient(180deg,#000 0,#000 58%,transparent 100%);mask:linear-gradient(180deg,#000 0,#000 58%,transparent 100%)}",
+      ".rp-evbanner.rp-ev-in{transform:translateY(0)}",
       // angle custom-prop so we can rotate the CONIC (not an oversized element) -> pinwheel fills its box, cheap on the GPU
       "@property --rpev-a{syntax:'<angle>';inherits:false;initial-value:0deg}",
       ".rp-evbanner .rp-evglow{position:absolute;inset:-15%;z-index:0;overflow:hidden}",
@@ -85,11 +91,11 @@
       // top accent bar uses the same seamless conveyor
       ".rp-evbanner .rp-evbar{position:absolute;left:0;right:0;top:0;height:3px;z-index:1;overflow:hidden}",
       ".rp-evbanner .rp-evbar::before{content:'';position:absolute;top:0;bottom:0;left:0;width:200%;background:linear-gradient(90deg,var(--e1),var(--e2),var(--e3),var(--e2),var(--e1),var(--e2),var(--e3),var(--e2),var(--e1));animation:rpevstream 16s linear infinite}",
-      ".rp-evbanner .rp-evinner{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:14px 22px;flex-wrap:wrap;padding:13px 22px;text-align:center}",
+      ".rp-evbanner .rp-evinner{position:relative;z-index:2;max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:12px 22px;flex-wrap:wrap;padding:12px clamp(18px,5vw,60px) 4px;text-align:center}",
       ".rp-evbanner .rp-evtitle{font:800 clamp(15px,1.9vw,19px)/1.3 Heebo,system-ui,sans-serif;color:#fff;text-shadow:0 2px 12px rgba(0,6,22,.72);letter-spacing:.2px}",
       ".rp-evbanner .rp-evbtn{flex:none;padding:9px 20px;border-radius:10px;font:800 14px/1 Heebo,system-ui,sans-serif;text-decoration:none;color:#0c1836;background:#fff;box-shadow:0 6px 18px -5px rgba(0,0,0,.5);transition:transform .16s cubic-bezier(.3,.7,.2,1.4),box-shadow .2s}",
       ".rp-evbanner .rp-evbtn:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 12px 26px -6px rgba(0,0,0,.6)}",
-      "@media(prefers-reduced-motion:reduce){.rp-evbanner .rp-evglow::before,.rp-evbanner .rp-evbar::before{animation:none}}"
+      "@media(prefers-reduced-motion:reduce){.rp-evbanner{transition:none}.rp-evbanner .rp-evglow::before,.rp-evbanner .rp-evbar::before{animation:none}}"
     ].join("");
     var s = document.createElement("style"); s.id = "rp-ev-css"; s.textContent = css;
     document.head.appendChild(s);
@@ -100,7 +106,10 @@
     if (!mount) return;
     mount.innerHTML = "";
     var eb = (site && site.eventBanner) || {};
-    if (!eb.enabled) return;              // OFF by default -> nothing renders
+    if (!eb.enabled) {                    // OFF by default -> nothing renders, reclaim the reserved space
+      document.documentElement.style.setProperty("--evbanner-h", "0px");
+      return;
+    }
     bannerCssOnce();
     var L = byKey[eb.colorLook] || byKey.signature || { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" };
     var btn = eb.buttonText ? ('<a class="rp-evbtn" href="' + esc(safeLink(eb.buttonLink)) + '">' + esc(eb.buttonText) + "</a>") : "";
@@ -113,6 +122,13 @@
     el.innerHTML = '<div class="rp-evglow"></div><div class="rp-evbar"></div>' +
       '<div class="rp-evinner"><span class="rp-evtitle">' + esc(eb.title || "") + "</span>" + btn + "</div>";
     mount.appendChild(el);
+    // reserve room below the header for the banner (auto-sizes to its content), then reveal it sliding out from behind the header
+    var setH = function () { document.documentElement.style.setProperty("--evbanner-h", (el.offsetHeight || 0) + "px"); };
+    setH();
+    try { window.removeEventListener("resize", window.__rpEvResize); } catch (e) {}
+    window.__rpEvResize = setH;
+    window.addEventListener("resize", setH);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add("rp-ev-in"); }); });
   }
 
   function init() {
