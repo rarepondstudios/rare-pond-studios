@@ -13,7 +13,8 @@ content:
         label: Logos
         type: object
         fields:
-          - { name: color, label: Full-color logo (About + footer), type: image }
+          - { name: color, label: Full-color logo (About section), type: image }
+          - { name: footer, label: Footer logo (filled duck + palette), type: image }
           - { name: duckMark, label: Duck mark (header icon), type: image }
       - { name: water, label: Water / caustics background, type: image }
       - name: hero

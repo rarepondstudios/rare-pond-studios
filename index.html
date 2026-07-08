@@ -582,6 +582,9 @@ document.querySelectorAll('[data-scene="light"] [data-footer]').forEach(f=>f.cla
 (function(){var ob=document.getElementById('crewOpenBtn');if(ob)ob.addEventListener('click',function(e){e.preventDefault();if(window.RPCrew)window.RPCrew.open();});})();
 document.querySelectorAll('[data-socials]').forEach(s=>s.innerHTML=socialHTML());
 document.querySelectorAll('.rpColor').forEach(i=>i.src=SITE.logos.color);
+/* Footer logo can be a distinct image (Site Settings → logos.footer, e.g. the filled duck+palette mark);
+   About-section logo keeps logos.color. Falls back to the color logo if no footer logo is set. */
+(function(){var fl=(SITE.logos&&SITE.logos.footer)?SITE.logos.footer:SITE.logos.color;if(fl)document.querySelectorAll('.footer-logo img.rpColor').forEach(i=>i.src=fl);})();
 
 const isWebKit=/AppleWebKit/.test(navigator.userAgent)&&!/Chrome|Chromium|Edg|OPR/.test(navigator.userAgent);
 if(isWebKit)document.body.classList.add('webkit');
