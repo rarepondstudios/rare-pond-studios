@@ -64,7 +64,7 @@ function renderTabs(){
 function render(){renderTabs();active==='Home'?renderHome():renderCat();}
 function renderHome(){
  var homeLogo=copyStr('logos','homeLogo',LOGOC);
- var heroMark=((!homeLogo)||/rare-pond-color|g_ff961e8ddce4f40b/i.test(homeLogo))?'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:20px"><img src="/media/logos/duck-mark.png" alt="Rare Pond Rentals" style="width:128px;height:auto;display:block;margin-bottom:2px"><span class="bn-rare" style="font-size:66px;line-height:.9;color:#dbe8ff">Rare Pond</span><span class="bn-sub" style="font-size:24px;letter-spacing:11px;padding-left:11px;margin-top:2px;color:#a9c4ec">Rentals</span></div>':('<img src="'+esc(homeLogo)+'" alt="Rare Pond Rentals">');
+ var heroMark=((!homeLogo)||/rare-pond-color|g_ff961e8ddce4f40b/i.test(homeLogo))?'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:0"><img src="/media/logos/duck-mark.png" alt="Rare Pond Rentals" style="width:128px;height:auto;display:block;margin-bottom:2px"><span class="bn-rare" style="font-size:66px;line-height:.9;color:#274a86">Rare Pond</span><span class="bn-sub" style="font-size:24px;letter-spacing:11px;padding-left:11px;margin-top:2px;color:#5f82b4">Rentals</span></div>':('<img src="'+esc(homeLogo)+'" alt="Rare Pond Rentals">');
  var heroTitle=copyStr('home','heroTitle','Reserve your gear.');
  var heroSub=copyStr('home','heroSubtitle','Pick your rental dates, then browse our kit by category. Prices update automatically to how long you need each item.');
  var datePrompt=copyStr('home','datePrompt','Select your rental dates');
