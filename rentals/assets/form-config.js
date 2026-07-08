@@ -31,10 +31,12 @@ window.FORMS = {
       insurance: "q11_doYou",
       // hidden fields the SITE fills automatically from cart + calendar:
       gear:      "q12_gear",
-      // #7 Option A — machine-readable cart "<supabaseItemId>:<qty>,..." for auto-creating bookings.
-      // SETUP: add a hidden Short-Text field in Jotform, map it to HubSpot deal property "rp_requested_items",
-      // then replace the value below with that field's REAL input name (Publish -> Source Code -> name="qNN_...").
-      requestedItems: "q21_requestedItems",
+      // #7 Option A — single machine-readable order payload for auto-creating bookings.
+      // The site fills this with "s:<startISO>|e:<endISO>|i:<supabaseItemId>:<qty>,..." on submit.
+      // SETUP (one-time): add a hidden Short-Text field in Jotform, map it to a HubSpot deal property
+      // named "rp_order_data", then replace the value below with that field's REAL input name
+      // (Jotform -> Publish -> Source Code -> name="qNN_..."). Supabase RPC hubspot_sync_order parses it.
+      orderData: "q21_orderData",
       dates:     "q13_rentalDates",
       days:      "q14_rentalDays",
       total:     "q15_estimatedTotal",

@@ -374,9 +374,15 @@ function reqSubmitData(){
  const F=RCFG.fields,out={};
  RCFG.render.forEach(f=>{if(F[f.key])out[F[f.key]]=reqData[f.key]||'';});
  if(F.gear)out[F.gear]=gear;
- // #7 Option A: machine-readable cart for the booking pipeline -> "<supabaseItemId>:<qty>,..."
- // Fills the hidden Jotform field mapped to HubSpot deal prop rp_requested_items (see form-config.js).
- if(F.requestedItems)out[F.requestedItems]=ids.map(function(id){return RENTALS[id].dbid+':'+cart[id];}).filter(function(s){return s.indexOf('null')<0&&s.indexOf('undefined')<0;}).join(',');
+ // #7 Option A: single machine-readable payload for the booking pipeline.
+ // Format: "s:<startISO>|e:<endISO>|i:<supabaseItemId>:<qty>,<id>:<qty>,..."
+ // Fills the hidden Jotform field mapped to HubSpot deal prop rp_order_data (see form-config.js);
+ // Supabase RPC hubspot_sync_order parses it into orders.starts_on/ends_on/requested_items, which
+ // triggers auto-reservation (bookings) once the deal reaches a committed stage.
+ if(F.orderData){
+   var _items=ids.map(function(id){return RENTALS[id].dbid+':'+cart[id];}).filter(function(s){return s.indexOf('null')<0&&s.indexOf('undefined')<0;}).join(',');
+   out[F.orderData]='s:'+(D.s||'')+'|e:'+(D.e||'')+'|i:'+_items;
+ }
  if(F.dates)out[F.dates]=(D.s&&D.e)?fmtRange():'';
  if(F.days)out[F.days]=dd||'';
  if(F.total)out[F.total]=(Math.round(reqTotal()*100)/100).toFixed(2); // plain number for HubSpot deal amount
