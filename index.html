@@ -19,7 +19,9 @@
     --header-h:86px;
   }
   *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
+  /* background backstop (no white flash on cross-page nav) + reserve the event-banner's space up front
+     so the page doesn't jump down when the banner reveals after load (banner is on; looks.js fine-tunes). */
+  html{scroll-behavior:smooth;background:#06122b;--evbanner-h:88px}
   body{margin:0;font-family:var(--font);color:#eaf2ff;background:#06122b;overflow-x:hidden}
   body.locked{overflow:hidden}
   section{scroll-margin-top:100px;position:relative}
@@ -416,7 +418,7 @@
 <body>
   <header class="site-header">
     <div class="hdr-bg"></div>
-    <a class="hdr-logo" data-go="home"><img class="hdr-duck" id="hdrDuck" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
+    <a class="hdr-logo" data-go="home"><img class="hdr-duck" id="hdrDuck" src="/media/logos/duck-mark.png" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
     <nav class="nav"><a data-go="team">Our&nbsp;Team</a><a data-go="projects" id="navProjects">Projects</a><a data-go="contact">Contact</a></nav>
     <div class="hright2"><a class="xsite" href="/rentals" title="Go to the Rare Pond Rentals site">Rentals&nbsp;<span class="xarrow">&rarr;</span></a><div class="socials" id="socialsHost"></div></div>
   </header>
