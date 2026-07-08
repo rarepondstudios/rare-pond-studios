@@ -96,7 +96,7 @@
     "formId": "2f174b0e-b67d-4ca2-b12c-bd877ac8cab3"
   },
   "eventBanner": {
-    "enabled": false,
+    "enabled": true,
     "title": "We want to read your screenplay!",
     "buttonText": "Submit here",
     "buttonLink": "/#team",
