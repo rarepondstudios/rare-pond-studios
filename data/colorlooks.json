@@ -12,7 +12,7 @@
     },
     {
       "key": "spectrum",
-      "name": "Spectrum — More to Come",
+      "name": "Spectrum / More to Come",
       "kind": "spectrum",
       "project": "more",
       "c1": "#ff5a6e",
@@ -22,7 +22,7 @@
     },
     {
       "key": "geri",
-      "name": "Geri-Action — Red / Blue / Purple",
+      "name": "Geri-Action",
       "kind": "project",
       "project": "geri",
       "c1": "#e0455f",
@@ -32,7 +32,7 @@
     },
     {
       "key": "rev",
-      "name": "Revelations — Steel / Gold / Ember",
+      "name": "Revelations",
       "kind": "project",
       "project": "rev",
       "c1": "#ffffff",
@@ -42,7 +42,7 @@
     },
     {
       "key": "invalid",
-      "name": "Invalid Opinion — Blue / Ember / Red",
+      "name": "Invalid Opinion ",
       "kind": "project",
       "project": "invalid",
       "c1": "#3f9bea",
@@ -54,7 +54,7 @@
       "key": "category-camera",
       "name": "Camera — Red",
       "kind": "category",
-      "category": "Camera",
+      "category": "Camera (Red)",
       "c1": "#ea4335",
       "c2": "#ff7a6e",
       "c3": "#b3160b",
@@ -62,7 +62,7 @@
     },
     {
       "key": "category-lighting",
-      "name": "Lighting — Amber",
+      "name": "Lighting (Amber)",
       "kind": "category",
       "category": "Lighting",
       "c1": "#ff9900",
@@ -72,7 +72,7 @@
     },
     {
       "key": "category-grip",
-      "name": "Grip — Violet",
+      "name": "Grip (Violet)",
       "kind": "category",
       "category": "Grip",
       "c1": "#8b5cf6",
@@ -82,7 +82,7 @@
     },
     {
       "key": "category-electric",
-      "name": "Electric — Yellow",
+      "name": "Electric (Yellow)",
       "kind": "category",
       "category": "Electric",
       "c1": "#fbbc04",
@@ -92,7 +92,7 @@
     },
     {
       "key": "category-sound",
-      "name": "Sound Packages — Green",
+      "name": "Sound (Green)",
       "kind": "category",
       "category": "Sound Packages",
       "c1": "#34a853",
