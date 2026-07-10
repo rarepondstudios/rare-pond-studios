@@ -126,7 +126,6 @@ content:
           - { name: c1, label: Color 1 (hex), type: string }
           - { name: c2, label: Color 2 (hex), type: string }
           - { name: c3, label: Color 3 (hex), type: string }
-          - { name: accent, label: Accent (hex), type: string }
           - { name: note, label: Note, type: text }
 
   - name: projects

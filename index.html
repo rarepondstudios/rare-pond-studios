@@ -84,6 +84,9 @@
   .carousel{position:relative;z-index:1;padding:clamp(8px,2vh,30px) 0 clamp(14px,2.5vh,38px)}
   .stage{position:relative;height:calc(clamp(300px,38.2vw,559px) + 70px);margin:0 auto;perspective:1500px}
   .citem{position:absolute;top:50%;left:50%;cursor:pointer;transform:translate(-50%,-50%) translateX(var(--off,0)) rotateX(var(--tiltx,0deg)) rotateY(var(--tilty,0deg));transition:transform .5s cubic-bezier(.3,.7,.2,1),width .6s cubic-bezier(.5,0,.2,1),height .6s cubic-bezier(.5,0,.2,1),opacity .5s;will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;contain:layout}
+  /* Until the carousel's first layout() has run (stage gets .ready next frame), suppress citem/logo
+     transitions so the slides + project logos snap straight to place instead of flashing/animating in on load. */
+  .stage:not(.ready) .citem,.stage:not(.ready) .citem .clogo{transition:none!important}
   .citem.placeholder{cursor:default}
   .citem.feat{--off:0;width:clamp(360px,69vw,1010px);height:clamp(300px,38.2vw,559px);z-index:5;opacity:1}
   .citem.sideL{--off:calc(-1 * min(45.5vw,632px));width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
@@ -643,7 +646,7 @@ const ABOUT_ORB_POS=[[-172,-96,86],[-202,72,76],[-130,166,80],[10,196,72],[126,1
 /* carousel (home) - films only */
 const stage=document.getElementById('stage'),cinfo=document.getElementById('cinfo'),cdots=document.getElementById('cdots');
 let activeIdx=0,dragFlag=false;const N=CAROUSEL.length;
-const ACCENT={geri:'#ffd21f',rev:'#ff5230',invalid:'#74b3ff',more:'#74b3ff'};
+const ACCENT={geri:'#ffd21f',rev:'#ff5230',invalid:'#74b3ff',more:'#9b5cff'};
 function focusHTML(p){
   const bg=p.focusVideo?`<div class="focus-bg"><video src="${p.focusVideo}" autoplay muted loop playsinline></video></div>`:`<div class="focus-bg" style="background-image:url('${p.focusBg||SITE.water}')"></div>`;
   return `<div class="focus-view">${bg}<div class="focus-scrim"></div><div class="focus-content"><div class="focus-eyebrow">${p.sub}</div><p class="focus-logline">${p.logline||p.blurb}</p></div></div>`;
@@ -681,6 +684,8 @@ stage.addEventListener('pointerdown',e=>{sdown=true;dragFlag=false;sx=e.clientX;
 addEventListener('pointermove',e=>{if(sdown&&Math.abs(e.clientX-sx)>10)dragFlag=true;});
 addEventListener('pointerup',e=>{if(sdown){sdown=false;const dx=e.clientX-sx;if(dx<-45)setActive(activeIdx+1);else if(dx>45)setActive(activeIdx-1);setTimeout(()=>dragFlag=false,30);}});
 layout();
+/* first layout is done -> enable transitions on the next frame so future swipes animate but the initial paint doesn't flash */
+requestAnimationFrame(function(){requestAnimationFrame(function(){stage.classList.add('ready');});});
 
 /* universes */
 const PH='<span style="color:var(--accent);font-weight:700">✎ placeholder copy — easy to swap</span>';
