@@ -10,7 +10,6 @@
       "c1": "#3f6bff",
       "c2": "#9b5cff",
       "c3": "#56c8ff",
-      "accent": "#56c8ff",
       "note": "The house blue / purple / teal. Drives the bubble glows and general Rare Pond gradients across both sites. Change these three and every signature glow updates."
     },
     {
@@ -22,7 +21,6 @@
       "c1": "#ff5a6e",
       "c2": "#ffcf4b",
       "c3": "#57c8ff",
-      "accent": "#9b5cff",
       "note": "The rainbow 'More to come' feel. Available for banners and future placeholders."
     },
     {
@@ -34,8 +32,7 @@
       "c1": "#e0455f",
       "c2": "#4f77ff",
       "c3": "#9a4bc9",
-      "accent": "#ffd21f",
-      "note": "Pulled from the Geri-Action key art (magenta-reds and purples) plus the film's gold accent."
+      "note": "Pulled from the Geri-Action key art — magenta-reds, blues and purples."
     },
     {
       "key": "rev",
@@ -46,8 +43,7 @@
       "c1": "#5f92c4",
       "c2": "#e0a24b",
       "c3": "#ff5a3c",
-      "accent": "#ff5230",
-      "note": "Heaven's cool steel-blue against Earth's warm gold, with the project's ember-red accent."
+      "note": "Heaven's cool steel-blue against Earth's warm gold, with the project's ember-red."
     },
     {
       "key": "invalid",
@@ -58,7 +54,6 @@
       "c1": "#3f9bea",
       "c2": "#e08a5a",
       "c3": "#f13011",
-      "accent": "#74b3ff",
       "note": "The comedy's electric blue and terracotta with a hot-red pop from the key art."
     },
     {
@@ -70,7 +65,6 @@
       "c1": "#ea4335",
       "c2": "#ff7a6e",
       "c3": "#b3160b",
-      "accent": "#ea4335",
       "note": "Matches the Camera category tab/glow."
     },
     {
@@ -82,7 +76,6 @@
       "c1": "#ff9900",
       "c2": "#ffc061",
       "c3": "#cc7a00",
-      "accent": "#ff9900",
       "note": "Matches the Lighting category tab/glow."
     },
     {
@@ -94,7 +87,6 @@
       "c1": "#8b5cf6",
       "c2": "#b79cff",
       "c3": "#6b3fd6",
-      "accent": "#8b5cf6",
       "note": "Matches the Grip category tab/glow."
     },
     {
@@ -106,7 +98,6 @@
       "c1": "#fbbc04",
       "c2": "#ffe08a",
       "c3": "#c99400",
-      "accent": "#fbbc04",
       "note": "Matches the Electric category tab/glow."
     },
     {
@@ -118,7 +109,6 @@
       "c1": "#34a853",
       "c2": "#6fdc93",
       "c3": "#1f7d3a",
-      "accent": "#34a853",
       "note": "Matches the Sound Packages category tab/glow."
     }
   ]
