@@ -41,18 +41,9 @@
       if (hexOk(sig.c3)) rs.setProperty("--g3", sig.c3);
     }
 
-    // 2) project looks -> each project's focus-page accent (.theme-<key>{--accent})
-    var themeCss = "";
-    Object.keys(byProj).forEach(function (pk) {
-      var L = byProj[pk];
-      if (L && hexOk(L.accent)) themeCss += ".theme-" + pk + "{--accent:" + L.accent + "}.citem[data-pk='" + pk + "']{--accent:" + L.accent + "!important}";
-    });
-    if (themeCss) {
-      var st = document.getElementById("rp-look-theme") || document.createElement("style");
-      st.id = "rp-look-theme";
-      st.textContent = themeCss;
-      if (!st.parentNode) document.head.appendChild(st);
-    }
+    // 2) project focus-page accents are defined statically in index.html
+    //    (.theme-<key>{--accent} + the ACCENT map on the carousel), so color looks
+    //    are now purely 3 gradient colours (c1/c2/c3). Nothing to apply here.
 
     // 3) rentals category colours -> COL (app.js exposes the setter when present)
     try {
