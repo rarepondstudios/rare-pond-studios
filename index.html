@@ -300,7 +300,11 @@
     .hero p{font-size:15px}
     .carousel{padding:16px 0 22px}
     .stage{height:380px}
-    .citem.sideL,.citem.sideR{opacity:0!important;pointer-events:none}
+    /* Hide side cards with display:none (not opacity:0) on mobile: opacity-hidden absolute cards
+       still occupy layout and push ~60px past the viewport, which on iOS Safari lets the page
+       rubber-band horizontally and hijacks vertical touch-scroll. display:none removes them from
+       layout entirely; layout() is index-based so cards still animate correctly when featured. */
+    .citem.sideL,.citem.sideR{display:none!important}
     .focus-content{padding:16px 18px}
     .focus-logline{max-width:90%}
     .citem .clogo{width:clamp(132px,38vw,180px)}
