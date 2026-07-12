@@ -1,5 +1,6 @@
 {
-  "previewUrl": "https://rare-pond-studios.pages.dev/colorlooks.html",
+  "previewUrl": "https://www.rarepond.com/colorlooks.html",
+  "previewAccess": "Username: rarepond  ·  Password: in Cloudflare (COLORLOOKS_PASSWORD) + ClickUp \"Remote Access Cheat Sheet\". Never type it here — this repo is public.",
   "looks": [
     {
       "key": "signature",

@@ -118,6 +118,24 @@ content:
         type: string
         readonly: true
         description: "Open this link to see every look as live swatches with hex codes. Edit the colors below, commit, then reload that page to compare."
+      - name: previewAccess
+        label: "🔒 That page is password-protected — how to get in"
+        type: string
+        readonly: true
+        description: >-
+          USERNAME: rarepond  ·  PASSWORD: not stored here.
+          THIS REPO IS PUBLIC — never type a password, key, or token into Pages CMS.
+          Anything saved here is committed to github.com/rarepondstudios/rare-pond-studios
+          and is readable by anyone, forever, even if you delete it later.
+          WHERE THE PASSWORD LIVES: Cloudflare → Workers & Pages → rare-pond-studios →
+          Settings → Variables and secrets → COLORLOOKS_PASSWORD (encrypted; write-only,
+          you can overwrite it but not read it back). A copy you CAN read is in ClickUp →
+          Work → "Remote Access Cheat Sheet".
+          TO CHANGE IT: overwrite the secret in Cloudflare, redeploy the site, then update
+          the ClickUp doc. Nothing in this CMS needs to change.
+          HOW THE GATE WORKS: it runs on Cloudflare's edge, server-side, before any HTML is
+          sent — a wrong password gets an empty 401, so the password can't be dug out of the
+          page source. Do not replace it with a JavaScript password check; that would leak it.
       - name: looks
         label: Color looks (single source of truth for site gradients)
         type: object
