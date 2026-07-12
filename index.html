@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Rare Pond Studios</title>
+<script>
+/* Reload-jump fix. This page builds itself AFTER fetching data/*.json, so at the moment the
+   browser tries to restore your previous scroll offset the document is still short. It then
+   re-applies that offset once the content grows — landing you at a random spot mid-page.
+   Must run in <head>, before the load event, or the browser has already decided. */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@600;800&family=Heebo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
@@ -983,6 +990,23 @@ function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if
 addEventListener('hashchange',routeHash);
 /* initial route */
 (function initRoute(){const __s=cpSlugFromUrl();if(__s&&PAGE_BY_SLUG[__s]){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
+
+/* Second half of the reload-jump fix (first half is history.scrollRestoration in <head>).
+   Even with restoration off, late layout growth — webfonts swapping in, lazy images landing —
+   can nudge the scroll position after we've rendered. So re-assert the top as things settle.
+   We only do this when the URL isn't ASKING for a position (#contact, ?p=slug), and we bail
+   the instant the user touches the page, so this can never yank someone who is already reading. */
+(function pinTopOnLoad(){
+  if(location.hash || cpSlugFromUrl()) return;      // URL wants a specific spot — respect it
+  let userMoved=false;
+  const mark=()=>{userMoved=true;};
+  ['wheel','touchstart','pointerdown','keydown'].forEach(ev=>
+    addEventListener(ev,mark,{once:true,passive:true}));
+  const top=()=>{ if(!userMoved) window.scrollTo(0,0); };
+  top();
+  requestAnimationFrame(top);
+  addEventListener('load',()=>{ top(); setTimeout(top,150); },{once:true});
+})();
 
 }
 __main().catch(e=>console.error("init error",e));</script>
