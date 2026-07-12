@@ -656,9 +656,18 @@ try{
     }
     const links=f.querySelector('.flinks');
     if(links&&Array.isArray(ft.links)&&ft.links.length){
+      /* A footer link is either an in-site target (go -> SPA router) or a plain
+         href. "Rentals" is a real path, not an SPA view, so it must stay an href.
+         KNOWN_PATHS is a safety net: the External href field is hidden in Pages
+         CMS, and if the CMS ever drops a hidden value on save we would otherwise
+         render a dead <a> with no destination. This keeps the link working from
+         the label alone. */
+      const KNOWN_PATHS={rentals:'/rentals'};
       links.innerHTML=ft.links.map(l=>{
         const label=esc2(l.label||'');
-        if(l.href)return '<a href="'+esc2(l.href)+'">'+label+'</a>';
+        const fallback=KNOWN_PATHS[String(l.label||'').trim().toLowerCase()];
+        const href=l.href||(!l.go&&fallback?fallback:'');
+        if(href)return '<a href="'+esc2(href)+'">'+label+'</a>';
         if(l.go)return '<a data-go="'+esc2(l.go)+'">'+label+'</a>';
         return '<a>'+label+'</a>';
       }).join('');
