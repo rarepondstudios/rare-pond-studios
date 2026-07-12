@@ -277,6 +277,7 @@
   .stills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:14px}
   .still{padding:0;margin:0;border:1px solid rgba(255,255,255,.12);border-radius:14px;overflow:hidden;cursor:pointer;background:#0a1226;aspect-ratio:16/9;box-shadow:0 14px 34px rgba(0,0,0,.4);transition:transform .2s,box-shadow .2s}
   .still:hover{transform:translateY(-3px) scale(1.015);box-shadow:0 20px 46px rgba(0,0,0,.55)}
+  .still picture{display:block;width:100%;height:100%}
   .still img{width:100%;height:100%;object-fit:cover;display:block}
   .lightbox{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;background:rgba(3,6,16,.93);backdrop-filter:blur(8px);padding:4vh 4vw;cursor:zoom-out}
   .lightbox.open{display:flex;animation:lbin .25s ease}
@@ -550,7 +551,8 @@ const __d=await Promise.all([
   fetch('/data/site.json').then(r=>r.json()),
   fetch('/data/projects.json').then(r=>r.json()),
   fetch('/data/team.json').then(r=>r.json()),
-  fetch('/data/pages.json').then(r=>r.json()).catch(()=>({pages:[]}))
+  fetch('/data/pages.json').then(r=>r.json()).catch(()=>({pages:[]})),
+  fetch('/data/stills-hd.json').then(r=>r.json()).catch(()=>({hd:[]}))
 ]);
 const SITE=__d[0];
 const __projects=__d[1].projects;
@@ -558,6 +560,26 @@ const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.
 const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.theme,bg:p.focusBg,logo:p.titleLogo,eyebrow:p.eyebrow,kicker:p.kicker,title:p.pageTitle,tagline:p.tagline,logline:p.pageLogline,chips:p.chips||[],watch:p.watch,stills:p.stills||[],credits:p.credits}]));
 const TEAM=__d[2].team;
 const __pagesData=__d[3]||{pages:[]};
+
+/* ===== HIGH-RES STILLS =====
+   Stills listed in data/stills-hd.json were re-pulled from the ProRes masters and have
+   -800/-1600/-2560.webp derivatives + a -1600.jpg fallback. Anything NOT listed renders
+   exactly as before, so new films can be added one at a time with no risk.
+   To add a film: generate the derivatives, then append its base paths to stills-hd.json. */
+const __hd=new Set((__d[4]&&__d[4].hd)||[]);
+const HD_SIZES='(max-width:560px) 100vw, (max-width:900px) 50vw, 380px';
+const hdBase=src=>src.replace(/\.(jpe?g|png)$/i,'');
+function stillThumb(src){
+  if(!__hd.has(src)) return `<img src="${src}" loading="lazy" alt="">`;
+  const b=hdBase(src);
+  return `<picture>`
+    + `<source type="image/webp" sizes="${HD_SIZES}" srcset="${b}-800.webp 800w, ${b}-1600.webp 1600w, ${b}-2560.webp 2560w">`
+    + `<img src="${b}-1600.jpg" loading="lazy" alt="">`
+    + `</picture>`;
+}
+/* Lightbox goes full-bleed, so hand it the 2560 -- with a JPEG fallback if WebP fails. */
+const stillFull=src=>__hd.has(src)?`${hdBase(src)}-2560.webp`:src;
+const stillFallback=src=>__hd.has(src)?`${hdBase(src)}-1600.jpg`:src;
 const SOCIALS=(SITE.socials||[]).map(s=>[s.url,s.label,s.icon]);
 const ABOUT_ORBS=SITE.orbits||[];
 try{
@@ -750,7 +772,10 @@ const lightbox=document.createElement('div');lightbox.className='lightbox';light
 const lbImg=lightbox.querySelector('img');
 let lbList=[],lbIdx=0;
 function lbShow(i){if(!lbList.length)return;lbIdx=((i%lbList.length)+lbList.length)%lbList.length;lbImg.src=lbList[lbIdx];}
-function openLB(btn){const grid=btn.closest('.stills-grid');lbList=[...(grid?grid.querySelectorAll('.still'):[btn])].map(b=>b.dataset.full);lbIdx=Math.max(0,lbList.indexOf(btn.dataset.full));lightbox.classList.toggle('single',lbList.length<2);lbImg.src=lbList[lbIdx];lightbox.classList.add('open');}
+let lbFallbacks=[];
+/* If a WebP fails to load (very old browser), silently drop back to the JPEG. */
+lbImg.addEventListener('error',()=>{const fb=lbFallbacks[lbIdx];if(fb&&lbImg.src!==location.origin+fb&&!lbImg.src.endsWith(fb)){lbImg.src=fb;}});
+function openLB(btn){const grid=btn.closest('.stills-grid');const btns=[...(grid?grid.querySelectorAll('.still'):[btn])];lbList=btns.map(b=>b.dataset.full);lbFallbacks=btns.map(b=>b.dataset.fallback||b.dataset.full);lbIdx=Math.max(0,lbList.indexOf(btn.dataset.full));lightbox.classList.toggle('single',lbList.length<2);lbImg.src=lbList[lbIdx];lightbox.classList.add('open');}
 function closeLB(){lightbox.classList.remove('open');lbImg.removeAttribute('src');lbList=[];}
 lightbox.addEventListener('click',e=>{const nav=e.target.closest('.lb-nav');if(nav){e.stopPropagation();lbShow(lbIdx+(nav.classList.contains('lb-next')?1:-1));return;}if(e.target===lightbox||e.target.classList.contains('lb-close'))closeLB();});
 document.addEventListener('click',e=>{const b=e.target.closest('.still');if(b)openLB(b);});
@@ -767,7 +792,7 @@ function buildUniverse(key){
   const s=SECTIONS[key];const sec=document.createElement('section');sec.className='universe '+s.theme;sec.id='u-'+key;sec.style.scrollMarginTop='0';
   const titleEl=s.logo?`<img class="u-logo" src="${s.logo}" alt="logo">`:`<h2 class="u-title">${s.title}</h2>`;
   const watchHTML=renderWatch(s.watch);
-  const stillsHTML=(s.stills&&s.stills.length)?`<div class="u-stills"><h3 class="stills-h">Stills</h3><div class="stills-grid">${s.stills.map(src=>`<button class="still" type="button" data-full="${src}"><img src="${src}" loading="lazy" alt=""></button>`).join('')}</div></div>`:'';
+  const stillsHTML=(s.stills&&s.stills.length)?`<div class="u-stills"><h3 class="stills-h">Stills</h3><div class="stills-grid">${s.stills.map(src=>`<button class="still" type="button" data-full="${stillFull(src)}" data-fallback="${stillFallback(src)}">${stillThumb(src)}</button>`).join('')}</div></div>`:'';
   sec.innerHTML=`<div class="u-bg" style="background-image:url('${s.bg||SITE.water}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${s.eyebrow}</span></div><div class="u-hero"><div class="u-kicker">${s.kicker}</div>${titleEl}<div class="u-tagline">${s.tagline}</div><p class="u-logline">${s.logline}</p><div class="u-meta">${s.chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${s.credits}</div></div>${stillsHTML}</div>`;
   sec.querySelector('.back').addEventListener('click',()=>history.back());universes.appendChild(sec);return sec;
 }

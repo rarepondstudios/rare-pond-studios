@@ -1,0 +1,12 @@
+{
+  "_comment": "Stills that have high-res derivatives regenerated from the ProRes master. Each listed base path has -800/-1600/-2560.webp plus a -1600.jpg fallback. Stills NOT listed here render as plain <img> from their original file, so this is always safe to extend one film at a time.",
+  "widths": [800, 1600, 2560],
+  "hd": [
+    "/media/stills/geri-anim-1.jpg",
+    "/media/stills/geri-anim-2.jpg",
+    "/media/stills/geri-anim-3.jpg",
+    "/media/stills/geri-madeline.jpg",
+    "/media/stills/geri-nursing-1.jpg",
+    "/media/stills/geri-nursing-2.jpg"
+  ]
+}
