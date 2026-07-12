@@ -12,17 +12,6 @@
       "customBg": "",
       "blocks": [
         {
-          "type": "header",
-          "text": "Submit a Screenplay",
-          "image": "",
-          "caption": "",
-          "buttonLabel": "",
-          "buttonTarget": "home",
-          "buttonUrl": "",
-          "jotformId": "",
-          "formHeight": 900
-        },
-        {
           "type": "subheader",
           "text": "We're reading narrative shorts — and producing some of them.",
           "image": "",
