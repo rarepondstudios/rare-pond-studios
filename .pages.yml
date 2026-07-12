@@ -245,3 +245,91 @@ content:
           - { name: project, label: Project name, type: select, options: { values: [text, email, number, tel, url] } }
           - { name: budget,  label: Budget (number = digits only), type: select, options: { values: [text, email, number, tel, url] } }
           - { name: notes,   label: Notes, type: select, options: { values: [text, email, number, tel, url] } }
+
+  - name: pages
+    label: Custom Pages
+    type: file
+    path: data/pages.json
+    fields:
+      - name: pages
+        label: Custom pages
+        type: object
+        list: true
+        description: "Each entry is a whole page on the studio site. Click 'Add item' at the bottom to make a new one. The page lives at rarepond.com/?p=SLUG (see 'URL slug' below)."
+        fields:
+          - name: slug
+            label: URL slug (lowercase, no spaces — e.g. summer-open-house)
+            type: string
+            description: "The page's web address. Slug 'summer-open-house' → rarepond.com/?p=summer-open-house. Use letters, numbers and dashes only."
+          - name: title
+            label: Page title (browser tab + nav fallback)
+            type: string
+          - name: navLabel
+            label: Nav banner label (short — e.g. 'Open House')
+            type: string
+            description: "What the top-banner link says. Leave blank to use the Page title."
+          - name: showInStudioNav
+            label: Show in the STUDIO top banner
+            type: boolean
+            description: "OFF by default. Turn on when the page is ready to be public. The page still works at its URL when this is off — this only controls the banner link."
+          - name: showInRentalsNav
+            label: Show in the RENTALS top banner
+            type: boolean
+            description: "Adds a link in the rentals-site banner that jumps across to this page. Independent of the studio toggle."
+          - name: navOrder
+            label: Nav position (lower number = further left)
+            type: number
+            description: "Only matters if a nav toggle is on. Our Team/Projects/Contact sit at the start; custom pages are appended in this order."
+          - name: background
+            label: Page background
+            type: select
+            options: { values: [home, team, custom] }
+            description: "home = the deep-water look from the front page (bubbles optional). team = the light blue 'Meet Rare Pond' look. custom = your own image (set below)."
+          - name: bubbles
+            label: Show floating bubbles (only applies when background = home)
+            type: boolean
+          - name: customBg
+            label: "Custom background image (only when background = custom)"
+            type: image
+            description: "SPECS: 2560 x 1440 px or larger, JPG or WebP, under 600 KB. It is scaled to cover the page and centred, so keep anything important away from the outer 10% edges. A darker image reads best — page text is light on 'home', dark on 'team'/'custom'."
+          - name: blocks
+            label: "Page content blocks — DRAG TO REORDER. The page renders top-to-bottom in this exact order."
+            type: object
+            list: true
+            description: "Add a block, pick its Type, then fill in ONLY the field that Type needs (the others are ignored). Types: image / header / subheader / body / button / form."
+            fields:
+              - name: type
+                label: Block type
+                type: select
+                options: { values: [image, header, subheader, body, button, form] }
+                description: "image → uses 'Image' + 'Image caption'. header/subheader/body → use 'Text'. button → uses the three Button fields. form → uses 'Jotform form ID'."
+              - name: text
+                label: "Text  (for: header / subheader / body)"
+                type: text
+                description: "Body text supports blank lines for paragraphs. Basic HTML links are allowed."
+              - name: image
+                label: "Image  (for: image blocks)"
+                type: image
+                description: "SPECS: up to 2000 px wide, JPG/PNG/WebP, under 500 KB. Displays full width of the content column with rounded corners."
+              - name: caption
+                label: "Image caption (optional, for: image blocks)"
+                type: string
+              - name: buttonLabel
+                label: "Button label  (for: button blocks)"
+                type: string
+              - name: buttonTarget
+                label: "Button goes to  (for: button blocks)"
+                type: select
+                options: { values: [home, team, projects, contact, rentals, page, url] }
+                description: "Pick a place on this site. Choose 'page' to link to another custom page, or 'url' for an external link — then fill in the field below."
+              - name: buttonUrl
+                label: "Button — page slug or external URL"
+                type: string
+                description: "If 'Button goes to' = page → put the other page's slug here (e.g. summer-open-house). If = url → put the full https:// address."
+              - name: jotformId
+                label: "Jotform form ID  (for: form blocks)"
+                type: string
+                description: "Open your form in Jotform. The ID is the long number in the address bar — e.g. jotform.com/build/261817432074052 → paste 261817432074052. Swapping forms later = paste a different ID. Nothing else to do."
+              - name: formHeight
+                label: "Form height in pixels (optional — default 900)"
+                type: number

@@ -1,0 +1,61 @@
+{
+  "pages": [
+    {
+      "slug": "example",
+      "title": "Example Page",
+      "navLabel": "Example",
+      "showInStudioNav": false,
+      "showInRentalsNav": false,
+      "navOrder": 100,
+      "background": "home",
+      "bubbles": true,
+      "customBg": "",
+      "blocks": [
+        {
+          "type": "header",
+          "text": "This is an example page",
+          "image": "",
+          "caption": "",
+          "buttonLabel": "",
+          "buttonTarget": "home",
+          "buttonUrl": "",
+          "jotformId": "",
+          "formHeight": 900
+        },
+        {
+          "type": "subheader",
+          "text": "Everything below was built from blocks. Drag them to reorder.",
+          "image": "",
+          "caption": "",
+          "buttonLabel": "",
+          "buttonTarget": "home",
+          "buttonUrl": "",
+          "jotformId": "",
+          "formHeight": 900
+        },
+        {
+          "type": "body",
+          "text": "Add as many blocks as you like: an image, a header, a sub-header, body text, a button, or a Jotform form. Reorder them by dragging in Pages CMS \u2014 the page renders in exactly the order you see them listed.\n\nYou can safely delete this whole example page: open Pages CMS \u2192 Custom Pages \u2192 click the bin on this entry.",
+          "image": "",
+          "caption": "",
+          "buttonLabel": "",
+          "buttonTarget": "home",
+          "buttonUrl": "",
+          "jotformId": "",
+          "formHeight": 900
+        },
+        {
+          "type": "button",
+          "text": "",
+          "image": "",
+          "caption": "",
+          "buttonLabel": "Meet the team",
+          "buttonTarget": "team",
+          "buttonUrl": "",
+          "jotformId": "",
+          "formHeight": 900
+        }
+      ]
+    }
+  ]
+}

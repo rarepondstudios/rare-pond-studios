@@ -420,6 +420,39 @@
   body.swiping .cedge,body.swiping .cglow{opacity:0 !important;transition:opacity .15s !important}
   body.swiping .cbub{box-shadow:none !important}
   body.swiping .clogo img{filter:none !important}
+
+  /* ===== custom pages (Pages CMS → Custom Pages) ===== */
+  #custom-page{position:relative;padding:calc(var(--header-h) + 38px) clamp(18px,5vw,60px) 0;min-height:100vh;background-size:cover;background-position:center;background-repeat:no-repeat}
+  #custom-page.cp-bg-home{background:linear-gradient(180deg,#dcefff 0%,#79b3e6 26%,#2f6cb0 60%,#0c2c57 100%)}
+  #custom-page.cp-bg-team{background:linear-gradient(180deg,#e0f1ff 0%,#c1ddf6 42%,#a9cfee 100%)}
+  #custom-page.cp-bg-custom{background-color:#06122b}
+  #custom-page.cp-bg-custom::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,14,36,.34),rgba(4,14,36,.62));pointer-events:none;z-index:0}
+  .cp-wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding-bottom:70px}
+  .cp-h1{font-size:clamp(30px,4.4vw,52px);margin:.18em 0 .4em;font-weight:800;letter-spacing:-.01em;line-height:1.06}
+  .cp-h2{font-size:clamp(19px,2.3vw,27px);margin:1.5em 0 .35em;font-weight:700;line-height:1.25}
+  .cp-p{font-size:clamp(15px,1.6vw,17px);line-height:1.62;margin:0 0 1.05em}
+  .cp-img{width:100%;height:auto;display:block;border-radius:18px;box-shadow:0 24px 54px -18px rgba(0,8,30,.6);margin:26px 0 8px}
+  .cp-cap{font-size:13px;opacity:.78;margin:0 0 26px;text-align:center}
+  .cp-btnrow{margin:26px 0 30px}
+  .cp-btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:50px;font-weight:800;font-size:15px;text-decoration:none;cursor:pointer;border:0;
+    background:linear-gradient(120deg,var(--g1,#3f6bff),var(--g2,#9b5cff),var(--g3,#56c8ff));background-size:200% 100%;color:#fff;
+    box-shadow:0 10px 26px -8px rgba(20,60,160,.6);transition:transform .18s,box-shadow .18s,background-position .5s}
+  .cp-btn:hover{transform:translateY(-2px);box-shadow:0 16px 34px -8px rgba(20,60,160,.75);background-position:100% 0}
+  .cp-form{width:100%;border:0;border-radius:18px;background:#fff;box-shadow:0 24px 54px -18px rgba(0,8,30,.5);display:block;margin:24px 0 10px}
+  /* text colour adapts to the background so it is always readable */
+  #custom-page.cp-bg-home .cp-wrap{color:#0b2c55}
+  #custom-page.cp-bg-home .cp-h1,#custom-page.cp-bg-home .cp-h2{color:#0b2c55}
+  #custom-page.cp-bg-home .cp-p{color:#1f4e86}
+  #custom-page.cp-bg-team .cp-wrap{color:#0b2c55}
+  #custom-page.cp-bg-team .cp-h1,#custom-page.cp-bg-team .cp-h2{color:#0b2c55}
+  #custom-page.cp-bg-team .cp-p{color:#1f4e86}
+  #custom-page.cp-bg-custom .cp-wrap{color:#eaf2ff}
+  #custom-page.cp-bg-custom .cp-h1,#custom-page.cp-bg-custom .cp-h2{color:#fff;text-shadow:0 2px 18px rgba(0,10,40,.5)}
+  #custom-page.cp-bg-custom .cp-p{color:#dbe8fb}
+  /* optional floating bubbles (background = home) */
+  .cp-bub{position:absolute;border-radius:50%;pointer-events:none;z-index:0;
+    background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.55),rgba(255,255,255,.12) 42%,rgba(120,180,255,.09) 70%,transparent 74%);
+    border:1px solid rgba(255,255,255,.22);animation:bob 9s ease-in-out infinite alternate}
 </style>
 </head>
 <body>
@@ -494,6 +527,13 @@
     </section>
   </div>
 
+  <div id="view-page" class="view" style="display:none">
+    <section id="custom-page">
+      <div class="cp-wrap"><h1 class="cp-h1" id="cp-title"></h1><div id="cp-body"></div></div>
+      <footer class="site-footer" data-footer></footer>
+    </section>
+  </div>
+
   <template id="footerTpl">
     <div class="footer-logo"><img class="rpColor" alt="Rare Pond Studios"></div>
     <div class="tag">Let's Make Something Amazing...</div>
@@ -509,13 +549,15 @@
 const __d=await Promise.all([
   fetch('/data/site.json').then(r=>r.json()),
   fetch('/data/projects.json').then(r=>r.json()),
-  fetch('/data/team.json').then(r=>r.json())
+  fetch('/data/team.json').then(r=>r.json()),
+  fetch('/data/pages.json').then(r=>r.json()).catch(()=>({pages:[]}))
 ]);
 const SITE=__d[0];
 const __projects=__d[1].projects;
 const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.bubbleImage,logo:p.titleLogo,theme:p.theme,blurb:p.blurb,focusBg:p.focusBg,characters:[],logline:p.cardLogline,logoText:p.logoText,placeholder:!!p.placeholder}));
 const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.theme,bg:p.focusBg,logo:p.titleLogo,eyebrow:p.eyebrow,kicker:p.kicker,title:p.pageTitle,tagline:p.tagline,logline:p.pageLogline,chips:p.chips||[],watch:p.watch,stills:p.stills||[],credits:p.credits}]));
 const TEAM=__d[2].team;
+const __pagesData=__d[3]||{pages:[]};
 const SOCIALS=(SITE.socials||[]).map(s=>[s.url,s.label,s.icon]);
 const ABOUT_ORBS=SITE.orbits||[];
 try{
@@ -749,11 +791,109 @@ function closeUniverse(sec){
 }
 addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){if(e.key==='Escape')closeLB();else if(e.key==='ArrowRight')lbShow(lbIdx+1);else if(e.key==='ArrowLeft')lbShow(lbIdx-1);return;}if(e.key==='Escape'&&currentOpen)history.back();});
 
+/* ===== CUSTOM PAGES =====================================================
+   Data: /data/pages.json   (edited in Pages CMS → "Custom Pages")
+   URL:  /?p=<slug>
+   A page is an ordered list of blocks. To add a NEW BLOCK TYPE later:
+     1. add its name to the `type` select in .pages.yml (blocks → type)
+     2. add one `case` to cpBlock() below
+   Nothing else needs to change — the renderer, nav and router are generic.
+   ====================================================================== */
+const PAGES = Array.isArray(__pagesData && __pagesData.pages) ? __pagesData.pages : [];
+const PAGE_BY_SLUG = {};
+PAGES.forEach(p => { if (p && p.slug) PAGE_BY_SLUG[String(p.slug).trim()] = p; });
+
+const cpEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cpAttr = s => cpEsc(s).replace(/"/g, '&quot;');
+/* Body text. Blank line = new paragraph, single newline = <br>.
+   Everything is escaped first, then a strict WHITELIST of tags is restored:
+   <b> <i> <em> <strong> <br>, and <a href="..."> (http/https, site-relative, or mailto only).
+   Any other tag or attribute stays inert text - so CMS content can never inject markup. */
+function cpRich(t){
+  let s = cpEsc(t);
+  s = s.replace(/&lt;(\/?)(b|i|em|strong)&gt;/gi, '<$1$2>');
+  s = s.replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+  s = s.replace(/&lt;a\s+href=(?:&quot;|&#39;)([^&<>\s]+)(?:&quot;|&#39;)[^&]*?&gt;/gi,
+    (m, url) => /^(https?:\/\/|\/|mailto:)/i.test(url)
+      ? '<a href="' + url.replace(/"/g,'') + '"' + (/^https?:/i.test(url) ? ' target="_blank" rel="noopener"' : '') + '>'
+      : '');
+  s = s.replace(/&lt;\/a&gt;/gi, '</a>');
+  return s.split(/\n{2,}/).map(par => '<p class="cp-p">' + par.replace(/\n/g,'<br>') + '</p>').join('');
+}
+function cpButtonHref(b){
+  const t = b.buttonTarget || 'home';
+  if (t === 'url')     return { href: (b.buttonUrl||'#'), ext: true };
+  if (t === 'rentals') return { href: '/rentals', ext: false };
+  if (t === 'page')    return { page: String(b.buttonUrl||'').trim() };
+  return { go: t };                                  // home | team | projects | contact
+}
+function cpBlock(b){
+  if (!b || !b.type) return '';
+  switch (b.type) {
+    case 'image':
+      if (!b.image) return '';
+      return '<img class="cp-img" loading="lazy" src="' + cpAttr(b.image) + '" alt="' + cpAttr(b.caption||'') + '">'
+           + (b.caption ? '<p class="cp-cap">' + cpEsc(b.caption) + '</p>' : '');
+    case 'header':    return b.text ? '<h2 class="cp-h2" style="font-size:clamp(24px,3vw,36px)">' + cpEsc(b.text) + '</h2>' : '';
+    case 'subheader': return b.text ? '<h3 class="cp-h2">' + cpEsc(b.text) + '</h3>' : '';
+    case 'body':      return b.text ? cpRich(b.text) : '';
+    case 'button': {
+      if (!b.buttonLabel) return '';
+      const d = cpButtonHref(b), L = cpEsc(b.buttonLabel);
+      if (d.ext)  return '<div class="cp-btnrow"><a class="cp-btn" target="_blank" rel="noopener" href="' + cpAttr(d.href) + '">' + L + ' &rarr;</a></div>';
+      if (d.page) return '<div class="cp-btnrow"><a class="cp-btn" data-page="' + cpAttr(d.page) + '">' + L + ' &rarr;</a></div>';
+      if (d.go)   return '<div class="cp-btnrow"><a class="cp-btn" data-go="' + cpAttr(d.go) + '">' + L + ' &rarr;</a></div>';
+      return '<div class="cp-btnrow"><a class="cp-btn" href="' + cpAttr(d.href) + '">' + L + ' &rarr;</a></div>';
+    }
+    case 'form': {
+      const id = String(b.jotformId||'').replace(/[^0-9]/g,'');
+      if (!id) return '';
+      const h = Math.max(300, Number(b.formHeight) || 900);
+      return '<iframe class="cp-form" title="Form" loading="lazy" scrolling="no" allowtransparency="true"'
+           + ' src="https://form.jotform.com/' + id + '" style="height:' + h + 'px"></iframe>';
+    }
+    default: return '';
+  }
+}
+function renderCustomPage(pg){
+  const sec = document.getElementById('custom-page');
+  const bg  = ['home','team','custom'].includes(pg.background) ? pg.background : 'home';
+  sec.className = 'cp-bg-' + bg;
+  sec.style.backgroundImage = (bg === 'custom' && pg.customBg) ? 'url("' + String(pg.customBg).replace(/"/g,'') + '")' : '';
+  sec.querySelectorAll('.cp-bub').forEach(n => n.remove());
+  if (bg === 'home' && pg.bubbles !== false) {
+    [[70,'6%','12%',0],[46,'82%','24%',1.4],[110,'12%','58%',2.6],[34,'74%','70%',3.8],[58,'40%','86%',1.9]]
+      .forEach(([s,l,t,d]) => {
+        const b = document.createElement('div');
+        b.className = 'cp-bub';
+        b.style.cssText = 'width:' + s + 'px;height:' + s + 'px;left:' + l + ';top:' + t + ';animation-delay:' + d + 's';
+        sec.appendChild(b);
+      });
+  }
+  document.getElementById('cp-title').textContent = pg.title || '';
+  document.getElementById('cp-body').innerHTML = (Array.isArray(pg.blocks) ? pg.blocks : []).map(cpBlock).join('');
+  document.title = (pg.title ? pg.title + ' · ' : '') + 'Rare Pond Studios';
+}
+/* nav banner: append links for pages with showInStudioNav (order by navOrder) */
+(function cpBuildNav(){
+  const nav = document.querySelector('header .nav');
+  if (!nav) return;
+  PAGES.filter(p => p && p.slug && p.showInStudioNav)
+       .sort((a,b) => (Number(a.navOrder)||999) - (Number(b.navOrder)||999))
+       .forEach(p => {
+         const a = document.createElement('a');
+         a.setAttribute('data-page', p.slug);
+         a.textContent = p.navLabel || p.title || p.slug;
+         nav.appendChild(a);
+       });
+})();
+
 /* router */
 let activeView='home';
 const viewHome=document.getElementById('view-home'),viewProjects=document.getElementById('view-projects'),viewTeam=document.getElementById('view-team');
+const viewPage=document.getElementById('view-page');
 function showView(name,scrollTo){
-  activeView=name;viewHome.style.display=name==='home'?'block':'none';viewProjects.style.display=name==='projects'?'block':'none';viewTeam.style.display=name==='team'?'block':'none';
+  activeView=name;viewHome.style.display=name==='home'?'block':'none';viewProjects.style.display=name==='projects'?'block':'none';viewTeam.style.display=name==='team'?'block':'none';viewPage.style.display=name==='page'?'block':'none';
   document.getElementById('navProjects').classList.toggle('active',name==='projects');
   if(scrollTo){const t=document.querySelector(scrollTo);if(t){window.scrollTo(0,0);requestAnimationFrame(()=>t.scrollIntoView({behavior:'smooth'}));}}else window.scrollTo(0,0);
 }
@@ -765,17 +905,51 @@ function pathForDest(d){return d==='team'?'/team':d==='projects'?'/projects':'/'
 /* render app state for a path (no history writes) */
 function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]){openUniverse(SLUG2KEY[seg]);return;}if(currentOpen)closeUniverse(currentOpen);if(seg==='team')showView('team');else if(seg==='projects')showView('projects');else showView('home');}
 /* push a URL then render (in-page nav clicks) */
-function nav(path){if(location.pathname!==path)history.pushState({},'',path);renderPath(path);}
+/* --- custom-page routing (?p=slug) --- */
+const cpSlugFromUrl = () => (new URLSearchParams(location.search).get('p') || '').trim();
+function cpMarkNav(slug){
+  document.querySelectorAll('header .nav a[data-page]').forEach(a =>
+    a.classList.toggle('active', !!slug && a.getAttribute('data-page') === slug));
+}
+function openCustomPage(slug){
+  const pg = PAGE_BY_SLUG[slug];
+  if (!pg) { showView('home'); cpMarkNav(''); return false; }
+  if (currentOpen) closeUniverse(currentOpen);
+  renderCustomPage(pg);
+  showView('page');
+  cpMarkNav(slug);
+  return true;
+}
+/* single entry point: reads the CURRENT url (path + ?p=) and renders it */
+function renderRoute(){
+  const slug = cpSlugFromUrl();
+  if (slug && PAGE_BY_SLUG[slug]) { openCustomPage(slug); return; }
+  cpMarkNav('');
+  document.title = 'Rare Pond Studios';
+  renderPath(location.pathname);
+}
+function navPage(slug){
+  const url = '/?p=' + encodeURIComponent(slug);
+  if (location.pathname + location.search !== url) history.pushState({}, '', url);
+  renderRoute();
+}
+document.body.addEventListener('click', e => {
+  const a = e.target.closest('[data-page]');
+  if (!a) return;
+  e.preventDefault();
+  navPage(a.getAttribute('data-page'));
+});
+function nav(path){if(location.pathname+location.search!==path)history.pushState({},'',path);renderRoute();}
 /* open a project from a bubble/card click — keeps the zoom-from-bubble animation */
 function openProject(key,ox,oy){const sl='/'+KEY2SLUG[key];if(location.pathname!==sl)history.pushState({},'',sl);openUniverse(key,ox,oy);}
 document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();const d=a.getAttribute('data-go');if(d==='contact'||d==='about'){nav('/');showView('home','#'+d);}else nav(pathForDest(d));});
 /* browser back / forward drives the view (this is how the universe closes on Back) */
-addEventListener('popstate',()=>renderPath(location.pathname));
+addEventListener('popstate',()=>renderRoute());
 /* hash links from other pages (rentals): /#team /#projects /#contact /#about */
 function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if(currentOpen)closeUniverse(currentOpen);if(h==='team')showView('team');else if(h==='projects')showView('projects');else if(h==='contact')showView('home','#contact');else if(h==='about')showView('home','#about');}
 addEventListener('hashchange',routeHash);
 /* initial route */
-(function initRoute(){const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
+(function initRoute(){const __s=cpSlugFromUrl();if(__s&&PAGE_BY_SLUG[__s]){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
 
 }
 __main().catch(e=>console.error("init error",e));</script>
