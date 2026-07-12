@@ -1,6 +1,6 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rare Pond Rentals</title><meta name="description" content="Gear rentals from Rare Pond Studios — camera, lighting, grip, electric and sound packages."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/styles.css"><link rel="stylesheet" href="/assets/date-picker.css"><link rel="stylesheet" href="/assets/crew-form.css"></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rare Pond Rentals</title><meta name="description" content="Gear rentals from Rare Pond Studios: camera, lighting, grip, electric and sound packages."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/styles.css"><link rel="stylesheet" href="/assets/date-picker.css"><link rel="stylesheet" href="/assets/crew-form.css"></head><body>
 <header class="site-header"><div class="hdr-bg"></div>
- <a class="hdr-logo" id="rpHome" href="/rentals" title="Rare Pond Rentals — home"><img id="hdrMark" src="/media/logos/duck-mark.png" alt="Rare Pond Rentals"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-sub">Rentals</span></span></a>
+ <a class="hdr-logo" id="rpHome" href="/rentals" title="Rare Pond Rentals home"><img id="hdrMark" src="/media/logos/duck-mark.png" alt="Rare Pond Rentals"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-sub">Rentals</span></span></a>
  <nav class="hnav"><a href="/#team">Our&nbsp;Team</a><a href="/#projects">Projects</a><a href="/#contact">Contact</a></nav>
  <div class="hright"><a class="xsite" href="/" title="Go to the Rare Pond Studios site"><span class="xarrow">&larr;</span> Studio&nbsp;Site</a><div class="hsoc" id="hsoc"></div></div>
 </header>
@@ -14,7 +14,7 @@
 <button class="fab" id="fab"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M6 6h15l-1.5 9h-12z M6 6L5 3H2 M9 20a1 1 0 100-2 1 1 0 000 2z M18 20a1 1 0 100-2 1 1 0 000 2z"/></svg> Cart <span class="badge" id="badge">0</span></button>
 <div class="ovl" id="ovl"></div>
 <aside class="cartp" id="cartp"><div class="ph"><h2>Your rental cart</h2><button class="x" id="closeCart">&times;</button></div><div class="pdate" id="cartdate"></div><div class="pit" id="pit"></div>
-<div class="pf"><div class="tot"><span id="totlbl">Daily total</span><span id="tot">$0</span></div><div class="note">Estimate only — final quote confirmed by the team.</div><div class="reqmsg" id="reqmsg"></div><button id="quote" class="pbtn">Request rental quote</button></div></aside>
+<div class="pf"><div class="tot"><span id="totlbl">Daily total</span><span id="tot">$0</span></div><div class="note">Estimate only. Final quote confirmed by the team.</div><div class="reqmsg" id="reqmsg"></div><button id="quote" class="pbtn">Request rental quote</button></div></aside>
 <div class="crewpop" id="crewpop"></div>
 <div class="reqpop" id="reqpop"></div>
 <div class="dp" id="dp"></div>
@@ -55,7 +55,7 @@
     if(typeof window.RPRerender==='function') window.RPRerender();
   }catch(e){ console.warn('rentals copy',e); }
 })();
-/* Header + footer social icons — single shared source (data/site.json → socials),
+/* Header + footer social icons - single shared source (data/site.json → socials),
    the SAME array the studio site reads, so editing it in Pages CMS updates BOTH sites.
    Icons + per-network gradient hover match the studio. Defensive: silent on failure. */
 (async function(){
@@ -75,7 +75,7 @@
     const hs=document.getElementById('hsoc'), fs=document.getElementById('fsoc');
     if(hs) hs.innerHTML=html;
     if(fs) fs.innerHTML=html;
-    /* Shared footer from Site Settings (site.json → footer) — same source as the
+    /* Shared footer from Site Settings (site.json → footer) - same source as the
        studio footer, so editing it updates BOTH sites. Fallback = static markup. */
     const ft=site.footer||{};
     if(ft.tagline){ const t=document.querySelector('.rfoot .tag'); if(t) t.textContent=ft.tagline; }

@@ -10,18 +10,18 @@ content:
     path: data/site.json
     fields:
       - name: imageSpecs
-        label: "📐 READ ME — image specs for every upload on this site"
+        label: "📐 READ ME - image specs for every upload on this site"
         type: text
         readonly: true
-        description: "COLOR (applies to EVERY image): export sRGB, 8-bit. Do NOT export Display P3 or Adobe RGB — browsers will render them wrong (usually oversaturated). If you are exporting a frame from a video: video is Rec.709 and usually LIMITED range (16-235); it must be converted to sRGB FULL range (0-255), or blacks look milky and washed out. || SIZES: Film stills 2560x1440 (16:9). Page/feature backgrounds 2560x1440. Project bubbles 1200x1200 square. Team photos 800x800 square. Logos: transparent PNG, 1400 px+. Header duck mark 512x512 PNG. || FORMAT: photos = JPG or WebP (WebP preferred, ~30% smaller). Anything needing transparency = PNG. Keep every file under 600 KB. || NEVER UPSCALE a small image to hit these numbers — it just adds blur and weight. Better a sharp 1600 px file than a soft fake 2560. || Full detail + the stills pipeline: see STILLS.md and README.md in the repo."
+        description: "COLOR (applies to EVERY image): export sRGB, 8-bit. Do NOT export Display P3 or Adobe RGB - browsers will render them wrong (usually oversaturated). If you are exporting a frame from a video: video is Rec.709 and usually LIMITED range (16-235); it must be converted to sRGB FULL range (0-255), or blacks look milky and washed out. || SIZES: Film stills 2560x1440 (16:9). Page/feature backgrounds 2560x1440. Project bubbles 1200x1200 square. Team photos 800x800 square. Logos: transparent PNG, 1400 px+. Header duck mark 512x512 PNG. || FORMAT: photos = JPG or WebP (WebP preferred, ~30% smaller). Anything needing transparency = PNG. Keep every file under 600 KB. || NEVER UPSCALE a small image to hit these numbers - it just adds blur and weight. Better a sharp 1600 px file than a soft fake 2560. || Full detail + the stills pipeline: see STILLS.md and README.md in the repo."
       - name: logos
         label: Logos
         type: object
         fields:
           - { name: color, label: Full-color logo (About section), type: image, description: "SPECS: transparent PNG, 1400 px wide or more, under 400 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: footer, label: Footer logo (filled duck + palette), type: image, description: "SPECS: transparent PNG, 1400 px wide or more, under 400 KB. Sits on a dark footer, so it must read light. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
-          - { name: duckMark, label: Duck mark (header icon), type: image, description: "SPECS: transparent PNG, square, 512x512 px, under 150 KB. Shown tiny (about 44 px) — keep it bold and simple. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
-      - { name: water, label: Water / caustics background, type: image, description: "SPECS: JPG or WebP, 2560x1440 px, under 500 KB. Tiles behind the footer/hero — mid-to-dark works best. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: duckMark, label: Duck mark (header icon), type: image, description: "SPECS: transparent PNG, square, 512x512 px, under 150 KB. Shown tiny (about 44 px) - keep it bold and simple. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+      - { name: water, label: Water / caustics background, type: image, description: "SPECS: JPG or WebP, 2560x1440 px, under 500 KB. Tiles behind the footer/hero - mid-to-dark works best. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
       - name: hero
         label: Hero
         type: object
@@ -44,38 +44,38 @@ content:
         fields:
           - { name: label, label: Label, type: string }
           - { name: url, label: URL, type: string }
-          - { name: icon, label: Icon, type: select, description: "Which logo to draw. yt = YouTube, ig = Instagram, li = LinkedIn, fb = Facebook. Adding a NEW network needs a code change (an SVG + a hover colour) — ask your developer/AI.", options: { values: [yt, ig, li, fb] } }
+          - { name: icon, label: Icon, type: select, description: "Which logo to draw. yt = YouTube, ig = Instagram, li = LinkedIn, fb = Facebook. Adding a NEW network needs a code change (an SVG + a hover colour) - ask your developer/AI.", options: { values: [yt, ig, li, fb] } }
       - { name: orbits, label: About-logo floating images, type: image, list: true, description: "The little film-still bubbles that orbit the logo. SPECS: square, 600x600 px, JPG, under 200 KB each. They are masked into circles, so keep the subject centred. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
       - name: header
-        label: Header (shared — studio + rentals)
+        label: Header (shared - studio + rentals)
         type: object
         fields:
-          - { name: brandLine1, label: Brand — line 1, type: string }
-          - { name: brandLine2, label: Brand — line 2 (studio), type: string }
-          - { name: navTeam, label: Nav — Team label, type: string }
-          - { name: navProjects, label: Nav — Projects label, type: string }
-          - { name: navContact, label: Nav — Contact label, type: string }
+          - { name: brandLine1, label: Brand - line 1, type: string }
+          - { name: brandLine2, label: Brand - line 2 (studio), type: string }
+          - { name: navTeam, label: Nav - Team label, type: string }
+          - { name: navProjects, label: Nav - Projects label, type: string }
+          - { name: navContact, label: Nav - Contact label, type: string }
       - name: sectionHeadings
         label: Section headings (studio)
         type: object
         fields:
-          - { name: projectsEyebrow, label: Projects — eyebrow, type: string }
-          - { name: projectsHeading, label: Projects — heading, type: string }
-          - { name: projectsSub, label: Projects — subtitle, type: text }
-          - { name: teamEyebrow, label: Team — eyebrow, type: string }
-          - { name: teamHeading, label: Team — heading, type: string }
-          - { name: teamSub, label: Team — subtitle, type: text }
-          - { name: contactEyebrow, label: Contact — eyebrow, type: string }
-          - { name: contactHeading, label: Contact — heading, type: string }
-          - { name: contactSub, label: Contact — subtitle, type: text }
+          - { name: projectsEyebrow, label: Projects - eyebrow, type: string }
+          - { name: projectsHeading, label: Projects - heading, type: string }
+          - { name: projectsSub, label: Projects - subtitle, type: text }
+          - { name: teamEyebrow, label: Team - eyebrow, type: string }
+          - { name: teamHeading, label: Team - heading, type: string }
+          - { name: teamSub, label: Team - subtitle, type: text }
+          - { name: contactEyebrow, label: Contact - eyebrow, type: string }
+          - { name: contactHeading, label: Contact - heading, type: string }
+          - { name: contactSub, label: Contact - subtitle, type: text }
       - name: teamCrew
-        label: Team page — crew blurb (studio)
+        label: Team page - crew blurb (studio)
         type: object
         fields:
           - { name: blurb, label: Crew blurb, type: text }
           - { name: button, label: Button label, type: string }
       - name: footer
-        label: Footer (shared — studio + rentals)
+        label: Footer (shared - studio + rentals)
         type: object
         fields:
           - { name: tagline, label: Tagline, type: string }
@@ -88,7 +88,7 @@ content:
             list: true
             fields:
               - { name: label, label: Label, type: string }
-              - { name: go, label: In-site target (home/team/projects/contact — blank if external), type: string }
+              - { name: go, label: In-site target (home/team/projects/contact - blank if external), type: string }
               - { name: href, label: External href (optional), type: string }
       - name: hubspot
         label: Contact form (HubSpot)
@@ -98,7 +98,7 @@ content:
           - { name: region, label: Region, type: string }
           - { name: formId, label: Form ID, type: string }
       - name: eventBanner
-        label: Event banner (front page — studio + rentals)
+        label: Event banner (front page - studio + rentals)
         type: object
         fields:
           - { name: enabled, label: Show the event banner, type: boolean }
@@ -106,7 +106,7 @@ content:
           - { name: buttonText, label: Button text, type: string }
           - { name: buttonLink, label: "Button link (URL or /path)", type: string }
           - { name: colorLook, label: Color scheme (from Color Looks), type: select, options: { values: [signature, spectrum, geri, rev, invalid, category-camera, category-lighting, category-grip, category-electric, category-sound] } }
-          - { name: gradientStyle, label: "Gradient style — Stream (wide horizontal sweep, best for this banner) or Pinwheel (rotating conic, best for round bubbles)", type: select, options: { values: [stream, pinwheel] } }
+          - { name: gradientStyle, label: "Gradient style - Stream (wide horizontal sweep, best for this banner) or Pinwheel (rotating conic, best for round bubbles)", type: select, options: { values: [stream, pinwheel] } }
 
   - name: colorlooks
     label: Color Looks
@@ -124,7 +124,7 @@ content:
         readonly: true
         description: "The page asks for a login. This is the username."
       - name: previewPasswordLocation
-        label: "🔑 Password — where to find it"
+        label: "🔑 Password - where to find it"
         type: string
         readonly: true
         description: "On Mac/iPhone/iPad, Safari will autofill the login box for you. Not written down here on purpose: this repo is PUBLIC, so anything typed into Pages CMS is visible to the world. Never put a password, key or token in this CMS."
@@ -133,7 +133,7 @@ content:
         type: object
         list: true
         fields:
-          - { name: key, label: ID (used by code — do not change), type: string }
+          - { name: key, label: ID (used by code - do not change), type: string }
           - { name: name, label: Name, type: string }
           - { name: kind, label: Kind, type: select, options: { values: [signature, spectrum, project, category] } }
           - { name: project, label: Linked project key (optional), type: string }
@@ -158,9 +158,9 @@ content:
           - { name: subtitle, label: Card subtitle / genre line, type: string }
           - { name: theme, label: Theme, type: select, options: { values: [geri, rev, invalid] } }
           - { name: placeholder, label: Coming-soon placeholder bubble, type: boolean }
-          - { name: bubbleImage, label: Bubble image, type: image, description: "SPECS: square, 1200x1200 px, JPG, under 350 KB. Masked into a circle — keep the subject centred and away from the corners. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: bubbleImage, label: Bubble image, type: image, description: "SPECS: square, 1200x1200 px, JPG, under 350 KB. Masked into a circle - keep the subject centred and away from the corners. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: titleLogo, label: Title logo (transparent PNG), type: image, description: "SPECS: transparent PNG, about 1600 px wide, under 500 KB. Must read against a dark background. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
-          - { name: focusBg, label: Feature / page background, type: image, description: "SPECS: JPG or WebP, 2560x1440 px (16:9), under 600 KB. Scaled to cover and darkened behind text — pick something without important detail at the edges. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: focusBg, label: Feature / page background, type: image, description: "SPECS: JPG or WebP, 2560x1440 px (16:9), under 600 KB. Scaled to cover and darkened behind text - pick something without important detail at the edges. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: cardLogline, label: Carousel logline, type: text }
           - { name: logoText, label: Placeholder text, type: string }
           - { name: eyebrow, label: Eyebrow, type: string }
@@ -182,7 +182,7 @@ content:
             label: Stills gallery
             type: image
             list: true
-            description: "SPECS: 16:9, 2560x1440 px, JPG or WebP, under 600 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers). EXPORT FROM THE FILM MASTER, not from a compressed delivery file — and if the master is Rec.709 LIMITED range (16-235), expand it to FULL (0-255) or the blacks come out milky. IMPORTANT: stills you upload here are served exactly as uploaded. The high-resolution responsive versions (the -800/-1600/-2560 files) are generated by the stills pipeline from the ProRes master and listed in data/stills-hd.json — ask your developer/AI to run it for any still you add. See STILLS.md."
+            description: "SPECS: 16:9, 2560x1440 px, JPG or WebP, under 600 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers). EXPORT FROM THE FILM MASTER, not from a compressed delivery file - and if the master is Rec.709 LIMITED range (16-235), expand it to FULL (0-255) or the blacks come out milky. IMPORTANT: stills you upload here are served exactly as uploaded. The high-resolution responsive versions (the -800/-1600/-2560 files) are generated by the stills pipeline from the ProRes master and listed in data/stills-hd.json - ask your developer/AI to run it for any still you add. See STILLS.md."
           - { name: credits, label: Credits (HTML allowed), type: text }
           - { name: blurb, label: Short blurb, type: text }
 
@@ -198,7 +198,7 @@ content:
         fields:
           - { name: name, label: Name, type: string }
           - { name: role, label: Role, type: string }
-          - { name: photo, label: Photo, type: image, description: "SPECS: square, 800x800 px, JPG, under 250 KB. Cropped to a circle — centre the face. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: photo, label: Photo, type: image, description: "SPECS: square, 800x800 px, JPG, under 250 KB. Cropped to a circle - centre the face. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: desc, label: Bio, type: text }
 
   - name: rentals
@@ -207,15 +207,15 @@ content:
     path: data/rentals.json
     fields:
       - { name: seoDescription, label: SEO description (search-result blurb), type: text }
-      - { name: brandLine1, label: Header brand — line 1, type: string }
-      - { name: brandLine2, label: Header brand — line 2 (rentals), type: string }
+      - { name: brandLine1, label: Header brand - line 1, type: string }
+      - { name: brandLine2, label: Header brand - line 2 (rentals), type: string }
       - { name: cartEstimateNote, label: Cart estimate note, type: text }
       - name: logos
         label: Rentals logos
         type: object
         fields:
           - { name: headerMark, label: Header duck mark, type: image, description: "SPECS: transparent PNG, square, 512x512 px, under 150 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
-          - { name: footerColor, label: Footer full-color logo, type: image, description: "SPECS: transparent PNG, 1400 px wide or more, under 400 KB. Sits on dark — must read light. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: footerColor, label: Footer full-color logo, type: image, description: "SPECS: transparent PNG, 1400 px wide or more, under 400 KB. Sits on dark - must read light. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: footerWater, label: Footer water / caustics background, type: image, description: "SPECS: JPG or WebP, 2560x1440 px, under 500 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: homeLogo, label: Home hero logo, type: image, description: "SPECS: transparent PNG, about 1600 px wide, under 500 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
       - name: home
@@ -247,7 +247,7 @@ content:
     path: data/form-fields.json
     fields:
       - name: rental
-        label: Rental request form — input type per field
+        label: Rental request form - input type per field
         type: object
         fields:
           - { name: firstName, label: First name, type: select, options: { values: [text, email, number, tel, url] } }
@@ -255,7 +255,7 @@ content:
           - { name: email,     label: Contact email, type: select, options: { values: [text, email, number, tel, url] } }
           - { name: film,      label: Film / project name, type: select, options: { values: [text, email, number, tel, url] } }
       - name: crew
-        label: Crew-your-shoot form — input type per field
+        label: Crew-your-shoot form - input type per field
         type: object
         fields:
           - { name: first,   label: First name, type: select, options: { values: [text, email, number, tel, url] } }
@@ -277,20 +277,20 @@ content:
         description: "Each entry is a whole page on the studio site. Click 'Add item' at the bottom to make a new one. The page lives at rarepond.com/?p=SLUG (see 'URL slug' below)."
         fields:
           - name: slug
-            label: URL slug (lowercase, no spaces — e.g. summer-open-house)
+            label: URL slug (lowercase, no spaces - e.g. summer-open-house)
             type: string
             description: "The page's web address. Slug 'summer-open-house' → rarepond.com/?p=summer-open-house. Use letters, numbers and dashes only."
           - name: title
             label: Page title (browser tab + nav fallback)
             type: string
           - name: navLabel
-            label: Nav banner label (short — e.g. 'Open House')
+            label: Nav banner label (short - e.g. 'Open House')
             type: string
             description: "What the top-banner link says. Leave blank to use the Page title."
           - name: showInStudioNav
             label: Show in the STUDIO top banner
             type: boolean
-            description: "OFF by default. Turn on when the page is ready to be public. The page still works at its URL when this is off — this only controls the banner link."
+            description: "OFF by default. Turn on when the page is ready to be public. The page still works at its URL when this is off - this only controls the banner link."
           - name: showInRentalsNav
             label: Show in the RENTALS top banner
             type: boolean
@@ -310,9 +310,9 @@ content:
           - name: customBg
             label: "Custom background image (only when background = custom)"
             type: image
-            description: "SPECS: 2560 x 1440 px or larger, JPG or WebP, under 600 KB. It is scaled to cover the page and centred, so keep anything important away from the outer 10% edges. A darker image reads best — page text is light on 'home', dark on 'team'/'custom'."
+            description: "SPECS: 2560 x 1440 px or larger, JPG or WebP, under 600 KB. It is scaled to cover the page and centred, so keep anything important away from the outer 10% edges. A darker image reads best - page text is light on 'home', dark on 'team'/'custom'."
           - name: blocks
-            label: "Page content blocks — DRAG TO REORDER. The page renders top-to-bottom in this exact order."
+            label: "Page content blocks - DRAG TO REORDER. The page renders top-to-bottom in this exact order."
             type: object
             list: true
             description: "Add a block, pick its Type, then fill in ONLY the field that Type needs (the others are ignored). Types: image / header / subheader / body / button / form."
@@ -340,15 +340,15 @@ content:
                 label: "Button goes to  (for: button blocks)"
                 type: select
                 options: { values: [home, team, projects, contact, rentals, page, url] }
-                description: "Pick a place on this site. Choose 'page' to link to another custom page, or 'url' for an external link — then fill in the field below."
+                description: "Pick a place on this site. Choose 'page' to link to another custom page, or 'url' for an external link - then fill in the field below."
               - name: buttonUrl
-                label: "Button — page slug or external URL"
+                label: "Button - page slug or external URL"
                 type: string
                 description: "If 'Button goes to' = page → put the other page's slug here (e.g. summer-open-house). If = url → put the full https:// address."
               - name: jotformId
                 label: "Jotform form ID  (for: form blocks)"
                 type: string
-                description: "Open your form in Jotform. The ID is the long number in the address bar — e.g. jotform.com/build/261817432074052 → paste 261817432074052. Swapping forms later = paste a different ID. Nothing else to do."
+                description: "Open your form in Jotform. The ID is the long number in the address bar - e.g. jotform.com/build/261817432074052 → paste 261817432074052. Swapping forms later = paste a different ID. Nothing else to do."
               - name: formHeight
-                label: "Form height in pixels (optional — default 900)"
+                label: "Form height in pixels (optional - default 900)"
                 type: number

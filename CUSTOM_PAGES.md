@@ -1,8 +1,8 @@
-# Custom Pages — how the mini page-builder works
+# Custom Pages - how the mini page-builder works
 
 This is the "special occasion pages" system. It is deliberately small. Read this
 before changing it. If you are an AI assistant working on this repo, this file is
-the spec — follow it rather than inventing a new pattern.
+the spec - follow it rather than inventing a new pattern.
 
 ---
 
@@ -15,10 +15,10 @@ Fill in the slug (e.g. `summer-open-house`), a title, then add **blocks**.
 
 **Put it in the top banner:** flip **"Show in the STUDIO top banner"** on.
 There's a separate toggle for the rentals banner. Both are OFF by default, so a
-half-finished page is never visible in the nav — but the URL always works, which
+half-finished page is never visible in the nav - but the URL always works, which
 means you can preview and share it before announcing it.
 
-**Blocks** are the page's content, top to bottom. **Drag them to reorder** — the page
+**Blocks** are the page's content, top to bottom. **Drag them to reorder** - the page
 renders in exactly the order you see. Pick a Type for each block and fill in only
 the field that Type uses:
 
@@ -32,7 +32,7 @@ the field that Type uses:
 | `form` | Jotform form ID | Your Jotform, embedded and styled |
 
 **To put a Jotform on a page:** add a `form` block, and paste the form's ID. Get the
-ID from the Jotform address bar — `jotform.com/build/261817432074052` → the ID is
+ID from the Jotform address bar - `jotform.com/build/261817432074052` → the ID is
 `261817432074052`. **To swap the form later, just paste a different ID.** Nothing else.
 
 **Buttons** can go to: home, team, projects, contact, rentals, **another custom page**
@@ -43,7 +43,7 @@ ID from the Jotform address bar — `jotform.com/build/261817432074052` → the 
 `team` (the light blue Meet-Rare-Pond look), or `custom` (your own image).
 Custom background specs: **2560×1440 or larger, JPG/WebP, under 600 KB.** It is scaled
 to cover and centred, so keep important detail out of the outer 10%. A dark image reads
-best — the page automatically switches to light text on a custom background.
+best - the page automatically switches to light text on a custom background.
 
 ---
 
@@ -56,7 +56,7 @@ best — the page automatically switches to light text on a custom background.
 
 ### Routing
 Pages are a **query on the root**: `/?p=<slug>`. No new files, no build step, no
-`_redirects` rule — `/` already serves `index.html`. `renderRoute()` is the single
+`_redirects` rule - `/` already serves `index.html`. `renderRoute()` is the single
 entry point: it reads `location.search`, and falls back to the existing path router
 (`renderPath`) when there is no `?p=`. `popstate` and the initial load both go through it.
 
@@ -68,7 +68,7 @@ Two edits, nothing else:
    field list; each type simply ignores the fields it doesn't use).
 2. **`index.html`** → `cpBlock(b)` → add one `case`.
 
-The renderer, nav, router, backgrounds and CMS wiring are generic — they do not need
+The renderer, nav, router, backgrounds and CMS wiring are generic - they do not need
 to know about block types. **Do not** create a new data file or a new view for a new
 block type.
 
@@ -81,7 +81,7 @@ block type.
   `.catch(()=>({pages:[]}))`, and the rentals nav script swallows errors).
 - **Nav is data-driven.** Never hardcode a page into the header markup.
 - Pages live on the **studio site only**. The rentals toggle just adds a link that
-  jumps across. Do not duplicate the renderer into `rentals/` — one renderer.
+  jumps across. Do not duplicate the renderer into `rentals/` - one renderer.
 
 ### Known-good example
 `data/pages.json` currently holds one real page, slug **`submit-a-screenplay`**, live at

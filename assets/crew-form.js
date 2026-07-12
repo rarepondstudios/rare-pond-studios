@@ -1,5 +1,5 @@
 /* ============================================================================
-   RARE POND — SHARED CREW-INQUIRY FORM  (crew-form.js)
+   RARE POND - SHARED CREW-INQUIRY FORM  (crew-form.js)
    ----------------------------------------------------------------------------
    Single source of truth for the "crew your shoot" popup. Loaded root-relative
    (/assets/crew-form.js) by BOTH the studio (/) and rentals (/rentals/) pages.
@@ -7,16 +7,16 @@
 
    Self-contained: owns its overlay markup, its own helpers, and its styling lives
    in the sibling /assets/crew-form.css. Shoot start/end dates now come from the
-   site-wide SHARED date state (window.RPDates, /assets/date-picker.js) — the crew
+   site-wide SHARED date state (window.RPDates, /assets/date-picker.js) - the crew
    form shows the currently-chosen dates + a "Change dates" button that opens the
    SAME shared calendar. Dates entered here or in the rental cart are one value.
 
-   Public API:  window.RPCrew.open()   — opens the overlay on the current page.
-                window.RPCrew.close()  — closes it.
+   Public API:  window.RPCrew.open() - opens the overlay on the current page.
+                window.RPCrew.close() - closes it.
 
    Jotform: posts to form 261816743694064 with the validated field keys. Keys are
    read from window.FORMS.crewInquiry (form-config.js) when present, otherwise the
-   correct defaults baked in below are used — so this works with or without
+   correct defaults baked in below are used - so this works with or without
    form-config.js on the page.
    ============================================================================ */
 (function(){
@@ -44,7 +44,7 @@
     karina:{name:"Karina Salerno", roles:"Production Design · Costume",           link:"https://www.instagram.com/karinayourfriend", img:KARINAIMG}
   };
 
-  /* ---- Per-field input types — CMS-editable (data/form-fields.json → "crew" map).
+  /* ---- Per-field input types - CMS-editable (data/form-fields.json → "crew" map).
      Defensive: if the fetch fails, CTYPES stays {} and every field behaves as before. ---- */
   var CTYPES = {};
   try{ fetch('/data/form-fields.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){ if(j&&j.crew) CTYPES=j.crew; }).catch(function(){}); }catch(e){}
@@ -116,7 +116,7 @@
      calendar overlay (window.RPDates). Replaces the old native date inputs. ---- */
   function dateBlockHTML(){
     var have=!!(S.dstart&&S.dend), tooSoon=S.dstart&&S.dstart<MINISO;
-    var label = have ? esc(datesText()) : (S.dstart ? esc(fmtD(S.dstart))+' — <i>pick an end date</i>' : 'No dates selected yet');
+    var label = have ? esc(datesText()) : (S.dstart ? esc(fmtD(S.dstart))+' to <i>pick an end date</i>' : 'No dates selected yet');
     return '<div class="rpc-dateblock'+(have?' rpc-hasdates':'')+'" id="rpc-dateblock">'+
       '<div class="rpc-datebadge"><svg viewBox="0 0 24 24" fill="none" stroke="#bfe3ff" stroke-width="1.6"><path d="M4 5h16v16H4z M4 9h16" stroke-linecap="round"/></svg>'+
       '<span class="rpc-datetxt">'+label+'</span></div>'+
@@ -145,7 +145,7 @@
     h+='<div class="rpc-lab">Which role(s) do you need? <span class="rpc-hint">select all that apply</span></div><div class="rpc-roles">'+CREWROLES.map(function(r){return '<button class="rpc-role'+(S.roles.includes(r)?" rpc-on":"")+'" data-role="'+esc(r)+'">'+esc(r)+'</button>';}).join("")+'</div>';
     if(who.length)h+='<div class="rpc-cards">'+who.map(personCard).join("")+'</div>';
     h+='<div class="rpc-lab">Shoot dates</div>'+dateBlockHTML();
-    h+='<span class="rpc-note">Shoots need at least 3 business days’ lead time, so the earliest start date is '+fmtD(MINISO)+'. These are the same dates used across the site — set them once, change them anywhere.</span>';
+    h+='<span class="rpc-note">Shoots need at least 3 business days’ lead time, so the earliest start date is '+fmtD(MINISO)+'. These are the same dates used across the site. Set them once, change them anywhere.</span>';
     h+='<div class="rpc-lab">Do you have production insurance?</div><div class="rpc-seg" id="rpc-seg">'+["Yes","No"].map(function(o){return '<button class="rpc-segb'+(S.ins===o?" rpc-on":"")+'" data-ins="'+o+'">'+o+'</button>';}).join("")+'</div>';
     h+='<div class="rpc-lab">Your budget</div><input class="rpc-in" id="rpc-bd" placeholder="'+(cType('budget')==='number'?'e.g. 2000':'e.g. around $2,000 for the shoot')+'" value="'+esc(S.budget)+'">';
     h+='<div class="rpc-lab">Tell us about your set</div><textarea class="rpc-ta" id="rpc-nt" placeholder="Project, location, what you are shooting, and what you need...">'+esc(S.notes)+'</textarea>';
@@ -248,7 +248,7 @@
     // payload and DO NOT hit Jotform (used to verify without creating test data).
     if(window.RPCrew && window.RPCrew._captureOnly){
       window.RPCrew._lastPayload = data;
-      console.log('[RPCrew] captureOnly — payload NOT sent:', JSON.stringify(data));
+      console.log('[RPCrew] captureOnly - payload NOT sent:', JSON.stringify(data));
       S.step=2; render(); return;
     }
     var sent=false;

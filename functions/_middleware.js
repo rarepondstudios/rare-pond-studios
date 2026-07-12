@@ -1,11 +1,11 @@
-/* Cloudflare Pages Function — password gate for the Color Looks tool.
+/* Cloudflare Pages Function - password gate for the Color Looks tool.
  *
  * WHY THIS EXISTS
  *   /colorlooks.html is an internal tool. It is READ-ONLY (it cannot change the
- *   site — only Pages CMS can do that), but we don't want it publicly browsable.
+ *   site - only Pages CMS can do that), but we don't want it publicly browsable.
  *
  * HOW IT WORKS  (the important part)
- *   This runs on Cloudflare's EDGE — server-side, before any bytes reach the
+ *   This runs on Cloudflare's EDGE - server-side, before any bytes reach the
  *   browser. If the password is wrong, the browser receives a bare 401 and NO
  *   HTML AT ALL. There is nothing to "view source" on, because nothing was sent.
  *   The password lives in an encrypted Cloudflare environment variable and is
@@ -21,12 +21,12 @@
  *     COLORLOOKS_PASSWORD = <the password>
  *   Optional:
  *     COLORLOOKS_USER     = <username>   (defaults to "rarepond")
- *   Secrets are never read from this repo — this repo is PUBLIC.
+ *   Secrets are never read from this repo - this repo is PUBLIC.
  *
  * NOTE
  *   /data/colorlooks.json is deliberately NOT gated: assets/looks.js on the live
  *   site fetches it to paint the gradients. Gating it would break the site. The
- *   hex values aren't secret (they're on screen anyway) — we're hiding the tool.
+ *   hex values aren't secret (they're on screen anyway) - we're hiding the tool.
  */
 
 const PROTECTED = new Set(['/colorlooks', '/colorlooks.html']);
@@ -105,7 +105,7 @@ export async function onRequest(context) {
     const pass = decoded.slice(sep + 1);
     const expectedUser = env.COLORLOOKS_USER || 'rarepond';
 
-    // Evaluate both, then AND — avoids short-circuit timing hints.
+    // Evaluate both, then AND - avoids short-circuit timing hints.
     const userOk = safeEqual(user, expectedUser);
     const passOk = safeEqual(pass, expected);
     if (!(userOk && passOk)) return challenge();

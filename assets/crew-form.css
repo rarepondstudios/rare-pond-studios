@@ -1,10 +1,10 @@
 /* ============================================================================
-   RARE POND — SHARED CREW-INQUIRY FORM  (crew-form.css)
+   RARE POND - SHARED CREW-INQUIRY FORM  (crew-form.css)
    ----------------------------------------------------------------------------
    Self-contained styles for the crew-your-shoot overlay. Loaded root-relative
    (/assets/crew-form.css) by BOTH the studio (/) and rentals (/rentals/) pages.
    Every class is prefixed .rpc- so it never collides with either page's own
-   CSS. This is the single source of truth — editing it updates BOTH pages.
+   CSS. This is the single source of truth - editing it updates BOTH pages.
    ============================================================================ */
 
 .rpc-pop{position:fixed;inset:0;z-index:2000;display:none;place-items:center;overflow:auto;padding:40px 16px;background:rgba(4,12,30,.66);box-sizing:border-box;font-family:'Heebo','Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
@@ -41,7 +41,7 @@
 .rpc-in[type=date]{color-scheme:dark;cursor:pointer;min-height:44px}
 .rpc-in[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.85;cursor:pointer}
 
-/* shared-date block (chosen dates + "Change dates" button) — replaces the old
+/* shared-date block (chosen dates + "Change dates" button) - replaces the old
    native date inputs; opens the site-wide shared calendar (window.RPDates). */
 .rpc-dateblock{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:11px 13px;border-radius:11px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.14)}
 .rpc-datebadge{display:flex;align-items:center;gap:9px;min-width:0;flex:1}
@@ -82,7 +82,7 @@
 .rpc-send{margin-top:20px;width:100%;padding:13px;border-radius:12px;border:0;font-weight:800;font-size:15px;cursor:pointer;background:linear-gradient(90deg,#5aa0ff,#8f7bff);color:#fff;font-family:inherit}
 
 /* progress-fill submit button (blue->teal->purple, fills left->right; sliver
-   when empty; glow when ready) — faithful port of the rentals .pbtn/.ready. */
+   when empty; glow when ready) - faithful port of the rentals .pbtn/.ready. */
 @property --rpc-fill{syntax:'<percentage>';inherits:false;initial-value:4%}
 .rpc-pbtn{position:relative;--rpc-fill:4%;color:#fff;background:linear-gradient(90deg,rgba(19,38,70,0) var(--rpc-fill),#26426f var(--rpc-fill)),linear-gradient(90deg,#5aa0ff,#4ec6c9,#8f7bff)!important;transition:--rpc-fill .55s cubic-bezier(.4,.85,.3,1),box-shadow .35s}
 .rpc-pbtn.rpc-ready{box-shadow:0 0 0 1px rgba(150,180,255,.55),0 0 22px -2px rgba(120,150,255,.7),0 0 42px -8px rgba(80,200,200,.55)}

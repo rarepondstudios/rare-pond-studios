@@ -1,4 +1,4 @@
-# Rentals is its own static section — serve its files directly.
+# Rentals is its own static section - serve its files directly.
 /rentals/*    /rentals/index.html    200
 # Studio SPA: any other unknown path renders the app (which reads the path and routes).
 /*    /index.html    200

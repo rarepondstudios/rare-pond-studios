@@ -290,7 +290,7 @@ $('fab').onclick=()=>openCart(true);$('closeCart').onclick=()=>openCart(false);$
    clicks so the arrows can't stack on top of each other. Clears after the ~1.7s animation. */
 var rpAlertBusy=false;
 $('quote').onclick=function(){var ids=cartOrder.filter(function(id){return id in cart;}),hasG=ids.length>0,hasD=!!(D.s&&D.e);if(hasG&&hasD){openReq();return;}if(rpAlertBusy)return;rpAlertBusy=true;setTimeout(function(){rpAlertBusy=false;},1750);if(!hasG){var pe=$('pit').querySelector('.empty')||$('pit');flashRed($('pit'));flashArrow(pe);if(!hasD)flashDateBtn();return;}flashDateBtn();};
-/* Crew-your-shoot popup is now the shared module — see /assets/crew-form.js
+/* Crew-your-shoot popup is now the shared module - see /assets/crew-form.js
    (loaded root-relative by this page). The #crewbtn trigger calls RPCrew.open(). */
 function setFill(b,fr){if(!b)return;fr=Math.max(0,Math.min(1,fr||0));b.style.setProperty('--fill',(4+fr*96).toFixed(1)+'%');b.classList.toggle('ready',fr>=0.999);}
 function flashRed(el){if(!el)return;el.classList.remove('flashred');void el.offsetWidth;el.classList.add('flashred');var done=function(){el.classList.remove('flashred');el.removeEventListener('animationend',done);};el.addEventListener('animationend',done);setTimeout(done,1700);}
@@ -300,10 +300,10 @@ function flashRed(el){if(!el)return;el.classList.remove('flashred');void el.offs
    vertical position tracks the individual target so it still points at it. */
 function flashArrow(el){if(!el)return;var a=document.createElement('div');a.className='datearrow';a.textContent='➜';var r=el.getBoundingClientRect();var sb=$('cartp'),sr=sb?sb.getBoundingClientRect():null;var leftX=(sr?sr.left:r.left)-34;a.style.left=leftX+'px';a.style.top=(r.top+r.height/2-16)+'px';document.body.appendChild(a);setTimeout(function(){a.remove();},1700);}
 function flashDateBtn(){var b=$('cartdate');if(!b)return;flashRed(b);flashArrow(b);}
-/* crew popup state/render/send removed — now handled by shared /assets/crew-form.js */
+/* crew popup state/render/send removed - now handled by shared /assets/crew-form.js */
 /* ---- Rental request: config-driven fields, posts to Jotform (see form-config.js) ---- */
 const RCFG=(window.FORMS&&window.FORMS.rentalRequest)||{formId:"",fields:{},render:[]};
-/* Per-field input types — CMS-editable (data/form-fields.json → "rental" map).
+/* Per-field input types - CMS-editable (data/form-fields.json → "rental" map).
    Defensive: if the fetch fails, INPUT_TYPES stays {} and everything falls back
    to the render config's own type (text/email/url), so nothing breaks. */
 var INPUT_TYPES={};

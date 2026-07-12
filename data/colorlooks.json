@@ -1,11 +1,11 @@
 {
   "previewUrl": "https://www.rarepond.com/colorlooks.html",
   "previewUser": "rarepond",
-  "previewPasswordLocation": "Apple Passwords → shared group \"Rare Pond\" → entry \"Rare Pond — Color Looks\". (Master copy: Cloudflare → Pages → rare-pond-studios → Settings → Variables and secrets → COLORLOOKS_PASSWORD)",
+  "previewPasswordLocation": "Apple Passwords, shared group \"Rare Pond\", entry \"Rare Pond Color Looks\". (Master copy: Cloudflare > Pages > rare-pond-studios > Settings > Variables and secrets > COLORLOOKS_PASSWORD)",
   "looks": [
     {
       "key": "signature",
-      "name": "Rare Pond — Signature",
+      "name": "Rare Pond Signature",
       "kind": "signature",
       "c1": "#3f6bff",
       "c2": "#9b5cff",
@@ -30,7 +30,7 @@
       "c1": "#e0455f",
       "c2": "#4f77ff",
       "c3": "#9a4bc9",
-      "note": "Pulled from the Geri-Action key art — magenta-reds, blues and purples."
+      "note": "Pulled from the Geri-Action key art: magenta-reds, blues and purples."
     },
     {
       "key": "rev",
@@ -54,7 +54,7 @@
     },
     {
       "key": "category-camera",
-      "name": "Camera — Red",
+      "name": "Camera: Red",
       "kind": "category",
       "category": "Camera (Red)",
       "c1": "#ea4335",

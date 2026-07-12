@@ -21,7 +21,7 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .hsoc{display:flex;gap:9px}
 .hsoc a{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#16386b;box-shadow:0 3px 10px rgba(10,30,70,.18);transition:.18s}
 .hsoc a:hover{transform:translateY(-2px);color:#fff;background:#1f6fd0}.hsoc svg{width:18px;height:18px;fill:currentColor}
-/* Per-network gradient hover (header + footer) — same schemes the studio project pages use */
+/* Per-network gradient hover (header + footer) - same schemes the studio project pages use */
 .hsoc a[data-net="yt"]:hover,.rfoot .fsoc a[data-net="yt"]:hover{background:linear-gradient(135deg,#ff3b30,#d4271d);color:#fff}
 .hsoc a[data-net="ig"]:hover,.rfoot .fsoc a[data-net="ig"]:hover{background:linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7);color:#fff}
 .hsoc a[data-net="li"]:hover,.rfoot .fsoc a[data-net="li"]:hover{background:linear-gradient(135deg,#0a66c2,#004182);color:#fff}

@@ -1,4 +1,4 @@
-/* Throwaway test harness for _middleware.js — NOT part of the site.
+/* Throwaway test harness for _middleware.js - NOT part of the site.
    Run: node functions/test-gate.mjs   */
 import { onRequest } from '../functions/_middleware.js';
 

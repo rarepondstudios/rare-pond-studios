@@ -1,4 +1,4 @@
-/* Rare Pond — Color Looks + Event Banner (shared, both sites).
+/* Rare Pond - Color Looks + Event Banner (shared, both sites).
    SINGLE SOURCE OF TRUTH: reads /data/colorlooks.json and applies each look to the
    site's gradient CSS variables, so tweaking a look in Pages CMS propagates everywhere:
      - "signature"  -> :root --g1/--g2/--g3 (the studio bubble glows + shared gradients)
@@ -71,7 +71,7 @@
       // BOTH edges inherit the header's radial curve because the colour sheet reuses the header's exact
       // mask. Slides down from behind the header on load. Nothing sits between the two layers -> no gap/line.
       // z-index must sit BELOW the studio's project/team overlay (.universe, z-index:100) so that overlay
-      // (which is opaque) fully covers the banner and its "Back to the pond" button stays clickable — while
+      // (which is opaque) fully covers the banner and its "Back to the pond" button stays clickable - while
       // still sitting ABOVE all normal page content (studio content maxes ~z-11, rentals cards ~z-5) and
       // BELOW the header (z-300) and every modal (2000+). 90 satisfies all of these on both sites.
       ".rp-evbanner{position:fixed;top:0;left:0;right:0;z-index:90;height:170px;overflow:visible;background:transparent;transform:translateY(-101%);transition:transform .72s cubic-bezier(.2,.8,.24,1);will-change:transform}",
@@ -87,13 +87,12 @@
       // PINWHEEL: conic fills the whole box; rotating the angle 0->360 loops with NO seam (starts/ends on --e1)
       ".rp-evbanner.rp-ev-pinwheel .rp-evglow::before{background:conic-gradient(from var(--rpev-a),var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));opacity:.5;animation:rpevspin 9s linear infinite}",
       "@keyframes rpevspin{to{--rpev-a:360deg}}",
-      // STREAM: seamless CONVEYOR — a 200%-wide strip carrying TWO identical colour periods, slid left by exactly one period.
+      // STREAM: seamless CONVEYOR - a 200%-wide strip carrying TWO identical colour periods, slid left by exactly one period.
       // Because the two halves are identical, translateX(-50%) lands on a pixel-identical frame => no reset/seam ever.
       ".rp-evbanner.rp-ev-stream .rp-evglow::before{right:auto;width:200%;background:linear-gradient(90deg,var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));opacity:.42;animation:rpevstream 16s linear infinite}",
       "@keyframes rpevstream{from{transform:translateX(0)}to{transform:translateX(-50%)}}",
       // content is vertically CENTRED in a fixed band (top+bottom both anchored) via flex align-items:center.
-      // This scoots the single-line copy UP a little and trims the reserved headroom, while on narrow screens —
-      // where the title + button wrap to two lines — the taller block overflows the band symmetrically (grows
+      // This scoots the single-line copy UP a little and trims the reserved headroom, while on narrow screens - // where the title + button wrap to two lines - the taller block overflows the band symmetrically (grows
       // upward toward the header AND down), so it stays inside the coloured area instead of hanging below it.
       ".rp-evbanner .rp-evinner{position:absolute;left:0;right:0;top:104px;bottom:30px;z-index:3;max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:10px 22px;flex-wrap:wrap;padding:0 clamp(18px,5vw,60px);text-align:center}",
       ".rp-evbanner .rp-evtitle{font:800 clamp(15px,1.9vw,19px)/1.3 Heebo,system-ui,sans-serif;color:#fff;text-shadow:0 2px 12px rgba(0,6,22,.72);letter-spacing:.2px}",

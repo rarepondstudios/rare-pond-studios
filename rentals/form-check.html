@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Form Health Check — Rare Pond Rentals</title>
+<title>Form Health Check - Rare Pond Rentals</title>
 <style>
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#0f2947;color:#eaf3ff;padding:26px;line-height:1.5}
 h1{font-size:20px;margin:0 0 4px}p.sub{color:#bcd9f7;font-size:13px;margin:0 0 18px;max-width:680px}
@@ -26,7 +26,7 @@ code{background:rgba(255,255,255,.1);padding:1px 6px;border-radius:5px;font-size
 const out=document.getElementById('out');
 function line(cls,html){return '<div class="ln '+cls+'"><span>'+({ok:'✅',warn:'⚠️',err:'⛔',mut:'•'}[cls]||'')+'</span><span>'+html+'</span></div>';}
 async function checkForm(name,cfg,key){
-  let html='<div class="card"><h2>'+name+' — <code>formId: '+(cfg.formId||'(none)')+'</code></h2>';
+  let html='<div class="card"><h2>'+name+' - <code>formId: '+(cfg.formId||'(none)')+'</code></h2>';
   if(!cfg.formId||/PASTE|XXXX/i.test(cfg.formId)){html+=line('warn','No form ID set yet. Paste the Jotform form ID into <code>assets/form-config.js</code>.')+'</div>';return html;}
   let live;
   try{

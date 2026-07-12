@@ -1,5 +1,5 @@
 /* ============================================================================
-   RARE POND — SHARED DATE PICKER  (date-picker.js)
+   RARE POND - SHARED DATE PICKER  (date-picker.js)
    ----------------------------------------------------------------------------
    ONE date system for the whole site: "enter your shoot / rental dates ONCE,
    change them anywhere." Loaded root-relative (/assets/date-picker.js) by BOTH
@@ -11,7 +11,7 @@
    a small overlay calendar (its own #rpd-* DOM + prefixed CSS in date-picker.css)
    so any consumer can open the same picker.
 
-   Public API — window.RPDates:
+   Public API - window.RPDates:
      .get()               -> {start, end}  (ISO 'YYYY-MM-DD' strings or '')
      .set(start, end)     -> persist + notify listeners (either may be '')
      .clear()             -> clear both
@@ -68,7 +68,7 @@
   function clear(){ if(!S.start&&!S.end)return; S.start=''; S.end=''; notify(); }
 
   /* ============================================================================
-     OVERLAY CALENDAR — self-contained DOM (#rpd-*), styled in date-picker.css.
+     OVERLAY CALENDAR - self-contained DOM (#rpd-*), styled in date-picker.css.
      Faithful port of the rentals in-page calendar (same gradient band, same
      3-business-day rule, same Start/End toggle) so it looks/behaves identically.
      ============================================================================ */

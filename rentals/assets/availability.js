@@ -1,4 +1,4 @@
-/* Rare Pond Rentals — date-aware availability overlay.
+/* Rare Pond Rentals - date-aware availability overlay.
    ADDITIVE + SAFE: reads Supabase availability for the customer's chosen dates
    and annotates the catalog. Touches nothing in app.js; remove the <script>
    include in rentals/index.html to fully disable. Loaded right AFTER app.js so

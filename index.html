@@ -7,7 +7,7 @@
 <script>
 /* Reload-jump fix. This page builds itself AFTER fetching data/*.json, so at the moment the
    browser tries to restore your previous scroll offset the document is still short. It then
-   re-applies that offset once the content grows — landing you at a random spot mid-page.
+   re-applies that offset once the content grows - landing you at a random spot mid-page.
    Must run in <head>, before the load event, or the browser has already decided. */
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 </script>
@@ -57,7 +57,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .socials{margin-left:auto;display:flex;gap:9px}
   .socials a{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#16386b;box-shadow:0 3px 10px rgba(10,30,70,.18);transition:.18s}
   .socials a:hover{transform:translateY(-2px);color:#fff;background:#1f6fd0}
-  /* Per-network gradient hover — mirrors the gradients the project pages use per network */
+  /* Per-network gradient hover - mirrors the gradients the project pages use per network */
   .socials a[data-net="yt"]:hover,.fsoc a[data-net="yt"]:hover{background:linear-gradient(135deg,#ff3b30,#d4271d);color:#fff}
   .socials a[data-net="ig"]:hover,.fsoc a[data-net="ig"]:hover{background:linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7);color:#fff}
   .socials a[data-net="li"]:hover,.fsoc a[data-net="li"]:hover{background:linear-gradient(135deg,#0a66c2,#004182);color:#fff}
@@ -494,7 +494,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
         <div class="about-logo"><div class="about-bubble"><img class="rpColor" alt="Rare Pond Studios"></div></div>
         <div class="about-copy">
           <div class="ey">What we do</div><h2>Worlds worth escaping into.</h2>
-          <p>Rare Pond Studios is an independent film studio crafting escapist stories that feel like peering into an alternate world. We work across live-action and 2D / 3D animation, blending mediums to build immersive little universes — from a retired superspy breaking out of her nursing home to a surreal vision of Heaven and Earth.</p>
+          <p>Rare Pond Studios is an independent film studio crafting escapist stories that feel like peering into an alternate world. We work across live-action and 2D / 3D animation, blending mediums to build immersive little universes, from a retired superspy breaking out of her nursing home to a surreal vision of Heaven and Earth.</p>
           <p>Founded by writer-director Jack Carlsen, the studio is built on a simple idea: every project is a window into somewhere else. We develop, shoot, animate, and finish our films in-house, and we love collaborating with other creatives to bring ambitious worlds to life.</p>
           <a class="learn-btn" data-go="team">Learn who we are &rarr;</a>
         </div>
@@ -529,7 +529,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       <div class="team-head"><div class="ey">Who we are</div><h1>Meet Rare Pond</h1><p>The people building these little universes.</p></div>
       <div class="team-list" id="teamList"></div>
       <div class="team-crew">
-        <p class="crewq">Hiring us to crew your shoot? We can fold a basic gear package into our day rate &mdash; the exact kit depends on which department you bring us in for.</p>
+        <p class="crewq">Hiring us to crew your shoot? We can fold a basic gear package into our day rate. The exact kit depends on which department you bring us in for.</p>
         <button class="learn-btn" id="crewOpenBtn" type="button">Ask about crewing your shoot &rarr;</button>
       </div>
       <footer class="site-footer" data-footer></footer>
@@ -666,7 +666,7 @@ try{
   });
 }catch(e){console.warn('footer copy',e);}
 document.querySelectorAll('[data-scene="light"] [data-footer]').forEach(f=>f.classList.add('footer-light'));
-/* ===== Crew inquiry — now handled by the shared crew-form module. Wire the trigger. ===== */
+/* ===== Crew inquiry - now handled by the shared crew-form module. Wire the trigger. ===== */
 (function(){var ob=document.getElementById('crewOpenBtn');if(ob)ob.addEventListener('click',function(e){e.preventDefault();if(window.RPCrew)window.RPCrew.open();});})();
 document.querySelectorAll('[data-socials]').forEach(s=>s.innerHTML=socialHTML());
 document.querySelectorAll('.rpColor').forEach(i=>i.src=SITE.logos.color);
@@ -772,7 +772,7 @@ layout();
 requestAnimationFrame(function(){requestAnimationFrame(function(){stage.classList.add('ready');});});
 
 /* universes */
-const PH='<span style="color:var(--accent);font-weight:700">✎ placeholder copy — easy to swap</span>';
+const PH='<span style="color:var(--accent);font-weight:700">✎ placeholder copy, easy to swap</span>';
 
 
 const teamList=document.getElementById('teamList');
@@ -800,7 +800,7 @@ function renderWatch(w){
   let inner;
   if(w.type==='youtube'){inner=`<a class="watch-btn" href="${w.url}" target="_blank" rel="noopener">▶ Watch on YouTube</a><div class="u-embed"><button class="yt-facade" type="button" data-id="${w.id}" aria-label="Play video on YouTube" style="background-image:url('https://i.ytimg.com/vi/${w.id}/hqdefault.jpg')"><span class="yt-play"></span></button></div>`;}
   else{inner=`<div class="watch-status">${w.text}</div>`;}
-  const ig=w.ig?`<a class="ig-follow" href="https://www.instagram.com/${w.ig}/" target="_blank" rel="noopener">${SOCIAL_SVG.ig}<span>Follow the journey \u2014 @${w.ig}</span></a>`:'';
+  const ig=w.ig?`<a class="ig-follow" href="https://www.instagram.com/${w.ig}/" target="_blank" rel="noopener">${SOCIAL_SVG.ig}<span>Follow the journey: @${w.ig}</span></a>`:'';
   return `<div class="u-watch"><span class="u-watch-label">Where to Watch</span>${inner}${ig}</div>`;
 }
 function buildUniverse(key){
@@ -837,7 +837,7 @@ addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){if(e.key=
    A page is an ordered list of blocks. To add a NEW BLOCK TYPE later:
      1. add its name to the `type` select in .pages.yml (blocks → type)
      2. add one `case` to cpBlock() below
-   Nothing else needs to change — the renderer, nav and router are generic.
+   Nothing else needs to change - the renderer, nav and router are generic.
    ====================================================================== */
 const PAGES = Array.isArray(__pagesData && __pagesData.pages) ? __pagesData.pages : [];
 const PAGE_BY_SLUG = {};
@@ -980,7 +980,7 @@ document.body.addEventListener('click', e => {
   navPage(a.getAttribute('data-page'));
 });
 function nav(path){if(location.pathname+location.search!==path)history.pushState({},'',path);renderRoute();}
-/* open a project from a bubble/card click — keeps the zoom-from-bubble animation */
+/* open a project from a bubble/card click - keeps the zoom-from-bubble animation */
 function openProject(key,ox,oy){const sl='/'+KEY2SLUG[key];if(location.pathname!==sl)history.pushState({},'',sl);openUniverse(key,ox,oy);}
 document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();const d=a.getAttribute('data-go');if(d==='contact'||d==='about'){nav('/');showView('home','#'+d);}else nav(pathForDest(d));});
 /* browser back / forward drives the view (this is how the universe closes on Back) */
@@ -992,12 +992,11 @@ addEventListener('hashchange',routeHash);
 (function initRoute(){const __s=cpSlugFromUrl();if(__s&&PAGE_BY_SLUG[__s]){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
 
 /* Second half of the reload-jump fix (first half is history.scrollRestoration in <head>).
-   Even with restoration off, late layout growth — webfonts swapping in, lazy images landing —
-   can nudge the scroll position after we've rendered. So re-assert the top as things settle.
+   Even with restoration off, late layout growth - webfonts swapping in, lazy images landing - can nudge the scroll position after we've rendered. So re-assert the top as things settle.
    We only do this when the URL isn't ASKING for a position (#contact, ?p=slug), and we bail
    the instant the user touches the page, so this can never yank someone who is already reading. */
 (function pinTopOnLoad(){
-  if(location.hash || cpSlugFromUrl()) return;      // URL wants a specific spot — respect it
+  if(location.hash || cpSlugFromUrl()) return;      // URL wants a specific spot - respect it
   let userMoved=false;
   const mark=()=>{userMoved=true;};
   ['wheel','touchstart','pointerdown','keydown'].forEach(ev=>

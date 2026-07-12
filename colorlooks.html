@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Looks — Rare Pond Studios</title>
+<title>Color Looks - Rare Pond Studios</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -90,14 +90,14 @@
   <div class="head">
     <div class="bn-rare">Rare Pond</div>
     <h1>Color Looks</h1>
-    <p class="lead">Live preview of every color look in <b>colorlooks.json</b> — the single source of truth for the site's gradients.
-       Each look can render two ways: <b>Pinwheel</b> (rotating conic — the round-bubble look) or <b>Stream</b> (a wide horizontal sweep — best for long headers like the event banner). Both are shown per look below.
-       <b>Try colors live:</b> click a swatch to pick, or edit its hex, and the gradients above update instantly — no external color tool needed. Click the <b>&#10697;</b> to copy a hex, then paste it into the matching color in <b>Pages CMS &rarr; Color Looks</b> to make it permanent. Hit <b>Reload</b> to reset to what's saved.</p>
+    <p class="lead">Live preview of every color look in <b>colorlooks.json</b> - the single source of truth for the site's gradients.
+       Each look can render two ways: <b>Pinwheel</b> (rotating conic - the round-bubble look) or <b>Stream</b> (a wide horizontal sweep - best for long headers like the event banner). Both are shown per look below.
+       <b>Try colors live:</b> click a swatch to pick, or edit its hex, and the gradients above update instantly - no external color tool needed. Click the <b>&#10697;</b> to copy a hex, then paste it into the matching color in <b>Pages CMS &rarr; Color Looks</b> to make it permanent. Hit <b>Reload</b> to reset to what's saved.</p>
     <button class="reload" onclick="load()">&#8635; Reload</button>
   </div>
   <div class="picker">
     <h2>Color Picker</h2>
-    <p class="sub">Pick a color, fine-tune the hex, and click <b>Copy hex</b> — then paste it straight into a color (c1/c2/c3) in <b>Pages CMS &rarr; Color Looks</b>. The row of tints/shades gives you lighter and darker variants; click any one to copy it.</p>
+    <p class="sub">Pick a color, fine-tune the hex, and click <b>Copy hex</b> - then paste it straight into a color (c1/c2/c3) in <b>Pages CMS &rarr; Color Looks</b>. The row of tints/shades gives you lighter and darker variants; click any one to copy it.</p>
     <div class="pk-row">
       <div class="pk-swatch" id="pkSwatch"></div>
       <input type="color" class="pk-native" id="pkNative" value="#3f6bff" aria-label="Pick a color">
@@ -168,7 +168,7 @@
       rgb.textContent='rgb('+c[0]+', '+c[1]+', '+c[2]+')';
       var steps=[-0.4,-0.2,0,0.2,0.4];
       shades.innerHTML=steps.map(function(t){var s=t===0?h:mix(h,t);
-        return '<div class="pk-shade" title="'+s+' — click to copy" data-h="'+s+'" style="background:'+s+'"></div>';}).join('');}
+        return '<div class="pk-shade" title="'+s+' - click to copy" data-h="'+s+'" style="background:'+s+'"></div>';}).join('');}
     function set(h){h=clampHex(h);if(h)render(h);}
     function flash(el,txt){var o=el.textContent;el.textContent=txt;setTimeout(function(){el.textContent=o;},900);}
     native.addEventListener('input',function(){set(native.value);});

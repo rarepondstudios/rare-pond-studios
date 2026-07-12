@@ -1,14 +1,14 @@
-# Rare Pond Studios — Cloudflare Pages site
+# Rare Pond Studios - Cloudflare Pages site
 
 Two static sites (studio + rentals), no build step. All content lives in editable JSON,
 so projects, photos, logos and whole new pages can be changed from a no-code admin.
 
 **Start here:**
-- **[`OPERATIONS.md`](OPERATIONS.md)** — how everything runs: hosting, the rental pipeline,
+- **[`OPERATIONS.md`](OPERATIONS.md)** - how everything runs: hosting, the rental pipeline,
   n8n automations, Supabase, alerting, and the mistakes already made. Read this first.
-- **[`STILLS.md`](STILLS.md)** — how film stills are pulled from the ProRes masters. Read
+- **[`STILLS.md`](STILLS.md)** - how film stills are pulled from the ProRes masters. Read
   before touching any still.
-- **[`CUSTOM_PAGES.md`](CUSTOM_PAGES.md)** — the CMS-driven page builder.
+- **[`CUSTOM_PAGES.md`](CUSTOM_PAGES.md)** - the CMS-driven page builder.
 
 > This repo is **public**. Never commit keys, tokens or passwords.
 
@@ -27,7 +27,7 @@ data/
   stills-hd.json      Which stills have high-res versions, and at which widths (see STILLS.md)
   form-fields.json    Input type per form field (text/email/number/tel/url)
 media/                All images (logos, projects, stills, team)
-.pages.yml            Pages CMS config — defines the edit forms AND the image specs
+.pages.yml            Pages CMS config - defines the edit forms AND the image specs
 _headers              Cache rules (no-cache on /data/* so CMS edits show up immediately)
 _redirects            SPA rewrite so deep links like /geriaction work
 ```
@@ -38,19 +38,19 @@ not need to be touched.
 ## Editing (Pages CMS)
 
 Sign in at **https://app.pagescms.org** with the same GitHub account and open this repo.
-Saving commits to GitHub, which auto-redeploys Cloudflare Pages — live in about a minute.
+Saving commits to GitHub, which auto-redeploys Cloudflare Pages - live in about a minute.
 
 Sections: **Site Settings · Color Looks · Projects · Team · Rentals page · Form input types ·
 Custom Pages.**
 
-### Image specs — they're built into the CMS
+### Image specs - they're built into the CMS
 Every image upload field in the CMS shows its own **SPECS** line (size, format, file-size cap,
-colour space) right under the field. There is also a pinned **"📐 READ ME — image specs"** note
+colour space) right under the field. There is also a pinned **"📐 READ ME - image specs"** note
 at the top of **Site Settings**.
 
-The universal rules: **sRGB 8-bit** (not Display P3 / Adobe RGB — browsers render those wrong);
+The universal rules: **sRGB 8-bit** (not Display P3 / Adobe RGB - browsers render those wrong);
 video frames are **Rec.709 limited range (16–235)** and must be expanded to **full (0–255)** or
-blacks look milky; keep files **under 600 KB**; and **never upscale** — a sharp 1600 px file
+blacks look milky; keep files **under 600 KB**; and **never upscale** - a sharp 1600 px file
 beats a soft fake 2560.
 
 ## Social links (one list, both sites, header + footer)
@@ -62,7 +62,7 @@ In the CMS: **Site Settings → Social links**. Each entry has a **Label**, a **
 **Icon**: `yt` YouTube · `ig` Instagram · `li` LinkedIn · `fb` Facebook. Add, remove and
 reorder freely. On hover each icon fills with that network's brand gradient.
 
-**Adding a network that isn't in the list above needs a code change** — an SVG path plus a
+**Adding a network that isn't in the list above needs a code change** - an SVG path plus a
 hover gradient, in three places: `index.html` (`SOCIAL_SVG` + the `.socials a[data-net=…]:hover`
 rule), `rentals/index.html` (`SOCIAL_SVG`), and `rentals/assets/styles.css` (the hover rule).
 Then add the new key to the `icon` options in `.pages.yml`.
@@ -73,7 +73,7 @@ Projects → **＋ Add** → unique `key`, title, theme, images, loglines, where
 credits → Save. A bubble appears on the home carousel and the Projects grid, with its own page.
 
 Note: stills uploaded here are served **exactly as uploaded**. The high-resolution responsive
-versions are generated from the film master by the stills pipeline — see
+versions are generated from the film master by the stills pipeline - see
 **[`STILLS.md`](STILLS.md)**.
 
 ## Changing a form field's input type
