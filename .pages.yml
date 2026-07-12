@@ -127,7 +127,7 @@ content:
         label: "🔑 Password — where to find it"
         type: string
         readonly: true
-        description: "Not stored here on purpose: this repo is PUBLIC, so anything typed into Pages CMS is visible to the world. Never put a password, key or token in this CMS."
+        description: "On Mac/iPhone/iPad, Safari will autofill the login box for you. Not written down here on purpose: this repo is PUBLIC, so anything typed into Pages CMS is visible to the world. Never put a password, key or token in this CMS."
       - name: looks
         label: Color looks (single source of truth for site gradients)
         type: object
