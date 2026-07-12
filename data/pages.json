@@ -2,10 +2,10 @@
   "pages": [
     {
       "slug": "submit-a-screenplay",
-      "title": "Submit a Screenplay",
-      "navLabel": "Submit a Screenplay",
-      "showInStudioNav": false,
-      "showInRentalsNav": false,
+      "title": "Submit Your Screenplay",
+      "navLabel": "Submit Your Screenplay",
+      "showInStudioNav": true,
+      "showInRentalsNav": true,
       "navOrder": 10,
       "background": "home",
       "bubbles": true,
