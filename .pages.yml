@@ -89,7 +89,7 @@ content:
             fields:
               - { name: label, label: Label, type: string }
               - { name: go, label: In-site target (home/team/projects/contact - blank if external), type: string }
-              - { name: href, label: External href (optional), type: string }
+              - { name: href, label: External href (optional), type: string, hidden: true }
       - name: hubspot
         label: Contact form (HubSpot)
         type: object
@@ -158,14 +158,13 @@ content:
           - { name: subtitle, label: Card subtitle / genre line, type: string }
           - { name: theme, label: Theme, type: select, options: { values: [geri, rev, invalid] } }
           - { name: placeholder, label: Coming-soon placeholder bubble, type: boolean }
+          - { name: logoText, label: "↳ Text inside the coming-soon bubble", type: string, description: "Only used when the toggle above is ON. Real films show their Title logo here instead, so this is ignored for them." }
           - { name: bubbleImage, label: Bubble image, type: image, description: "SPECS: square, 1200x1200 px, JPG, under 350 KB. Masked into a circle - keep the subject centred and away from the corners. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: titleLogo, label: Title logo (transparent PNG), type: image, description: "SPECS: transparent PNG, about 1600 px wide, under 500 KB. Must read against a dark background. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: focusBg, label: Feature / page background, type: image, description: "SPECS: JPG or WebP, 2560x1440 px (16:9), under 600 KB. Scaled to cover and darkened behind text - pick something without important detail at the edges. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: cardLogline, label: Carousel logline, type: text }
-          - { name: logoText, label: Placeholder text, type: string }
           - { name: eyebrow, label: Eyebrow, type: string }
           - { name: kicker, label: Kicker, type: string }
-          - { name: pageTitle, label: Project-page title (optional), type: string }
           - { name: tagline, label: Tagline, type: string }
           - { name: pageLogline, label: Project-page logline (HTML allowed), type: text }
           - { name: chips, label: Genre chips, type: string, list: true }
