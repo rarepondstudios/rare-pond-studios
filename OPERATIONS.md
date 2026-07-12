@@ -141,6 +141,30 @@ Adding a new block type is two edits; the doc says exactly which two.
 
 ---
 
+## Database permissions — the rule
+
+The browser holds a **public** Supabase key. It must be able to call **exactly one** function:
+`catalog_availability` (a read, used to show what gear is free). Nothing else.
+
+**July 2026:** an audit found 15 `SECURITY DEFINER` functions were callable by the public key.
+`SECURITY DEFINER` bypasses row-level security, so a visitor could have invoked order, HubSpot
+and repair functions straight against production — right around the RLS that was otherwise
+correct. Fixed: revoked public/anon EXECUTE on all of them, re-granted only
+`catalog_availability`, and set `ALTER DEFAULT PRIVILEGES ... REVOKE EXECUTE ON FUNCTIONS FROM
+PUBLIC` so new functions don't auto-open.
+
+**If you add a Postgres function, it is NOT automatically safe.** Postgres grants EXECUTE to
+PUBLIC by default. Check after every migration:
+
+```sql
+SELECT p.proname, has_function_privilege('anon', p.oid, 'EXECUTE')
+FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid=p.oid AND d.deptype='e');
+```
+Only `catalog_availability` may be `true`. n8n uses the `service_role` key and bypasses all of
+this, so tightening these grants never affects the automations.
+
 ## Things that have bitten us (don't re-learn these)
 
 - **Jotform's API returns deleted submissions** with `status: DELETED`. Deleting a bad
