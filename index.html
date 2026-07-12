@@ -566,20 +566,26 @@ const __pagesData=__d[3]||{pages:[]};
    -800/-1600/-2560.webp derivatives + a -1600.jpg fallback. Anything NOT listed renders
    exactly as before, so new films can be added one at a time with no risk.
    To add a film: generate the derivatives, then append its base paths to stills-hd.json. */
-const __hd=new Set((__d[4]&&__d[4].hd)||[]);
+/* Widths are PER STILL: a 4K master offers up to 2560, a 2K master only up to 2048.
+   We never upscale. On-screen layout size is identical either way -- `sizes` fixes the
+   layout box; the widths only decide how much density the browser can pull into it. */
+const __hd=(__d[4]&&__d[4].hd)||{};
 const HD_SIZES='(max-width:560px) 100vw, (max-width:900px) 50vw, 380px';
 const hdBase=src=>src.replace(/\.(jpe?g|png)$/i,'');
+const hdWidths=src=>__hd[src]||null;
 function stillThumb(src){
-  if(!__hd.has(src)) return `<img src="${src}" loading="lazy" alt="">`;
+  const ws=hdWidths(src);
+  if(!ws) return `<img src="${src}" loading="lazy" alt="">`;
   const b=hdBase(src);
+  const srcset=ws.map(w=>`${b}-${w}.webp ${w}w`).join(', ');
   return `<picture>`
-    + `<source type="image/webp" sizes="${HD_SIZES}" srcset="${b}-800.webp 800w, ${b}-1600.webp 1600w, ${b}-2560.webp 2560w">`
+    + `<source type="image/webp" sizes="${HD_SIZES}" srcset="${srcset}">`
     + `<img src="${b}-1600.jpg" loading="lazy" alt="">`
     + `</picture>`;
 }
-/* Lightbox goes full-bleed, so hand it the 2560 -- with a JPEG fallback if WebP fails. */
-const stillFull=src=>__hd.has(src)?`${hdBase(src)}-2560.webp`:src;
-const stillFallback=src=>__hd.has(src)?`${hdBase(src)}-1600.jpg`:src;
+/* Lightbox goes full-bleed: hand it the largest width this still actually has. */
+const stillFull=src=>{const ws=hdWidths(src);return ws?`${hdBase(src)}-${ws[ws.length-1]}.webp`:src;};
+const stillFallback=src=>hdWidths(src)?`${hdBase(src)}-1600.jpg`:src;
 const SOCIALS=(SITE.socials||[]).map(s=>[s.url,s.label,s.icon]);
 const ABOUT_ORBS=SITE.orbits||[];
 try{
