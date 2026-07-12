@@ -25,6 +25,7 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .hsoc a[data-net="yt"]:hover,.rfoot .fsoc a[data-net="yt"]:hover{background:linear-gradient(135deg,#ff3b30,#d4271d);color:#fff}
 .hsoc a[data-net="ig"]:hover,.rfoot .fsoc a[data-net="ig"]:hover{background:linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7);color:#fff}
 .hsoc a[data-net="li"]:hover,.rfoot .fsoc a[data-net="li"]:hover{background:linear-gradient(135deg,#0a66c2,#004182);color:#fff}
+.hsoc a[data-net="fb"]:hover,.rfoot .fsoc a[data-net="fb"]:hover{background:linear-gradient(135deg,#1877f2,#0b5fce);color:#fff}
 @media(max-width:900px){.hnav a{padding:8px 10px;font-size:13px}.brandname{display:none}.hsoc a{width:33px;height:33px}.xsite{padding:7px 11px;font-size:13px}}@media(max-width:760px){.hnav{display:none}}@media(max-width:600px){.hdr-logo img{height:50px}.fab{right:14px;bottom:14px;padding:11px 15px;font-size:14px}.fab .badge{min-width:20px;height:20px;font-size:12px}.panel{padding-bottom:84px}.home{padding-bottom:90px}.home::before{height:300px}}
 .tabs{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px;position:relative;z-index:3}
 .tab{padding:9px 16px;border-radius:12px 12px 0 0;font-size:14.5px;font-weight:700;cursor:pointer;color:#dbe9fb;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.14);border-bottom:none;display:flex;gap:7px;align-items:center;transition:box-shadow .2s,background .2s,color .2s}

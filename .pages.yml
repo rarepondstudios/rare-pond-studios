@@ -9,14 +9,19 @@ content:
     type: file
     path: data/site.json
     fields:
+      - name: imageSpecs
+        label: "📐 READ ME — image specs for every upload on this site"
+        type: text
+        readonly: true
+        description: "COLOR (applies to EVERY image): export sRGB, 8-bit. Do NOT export Display P3 or Adobe RGB — browsers will render them wrong (usually oversaturated). If you are exporting a frame from a video: video is Rec.709 and usually LIMITED range (16-235); it must be converted to sRGB FULL range (0-255), or blacks look milky and washed out. || SIZES: Film stills 2560x1440 (16:9). Page/feature backgrounds 2560x1440. Project bubbles 1200x1200 square. Team photos 800x800 square. Logos: transparent PNG, 1400 px+. Header duck mark 512x512 PNG. || FORMAT: photos = JPG or WebP (WebP preferred, ~30% smaller). Anything needing transparency = PNG. Keep every file under 600 KB. || NEVER UPSCALE a small image to hit these numbers — it just adds blur and weight. Better a sharp 1600 px file than a soft fake 2560. || Full detail + the stills pipeline: see STILLS.md and README.md in the repo."
       - name: logos
         label: Logos
         type: object
         fields:
-          - { name: color, label: Full-color logo (About section), type: image }
-          - { name: footer, label: Footer logo (filled duck + palette), type: image }
-          - { name: duckMark, label: Duck mark (header icon), type: image }
-      - { name: water, label: Water / caustics background, type: image }
+          - { name: color, label: Full-color logo (About section), type: image, description: "SPECS: transparent PNG, 1400 px wide or more, under 400 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: footer, label: Footer logo (filled duck + palette), type: image, description: "SPECS: transparent PNG, 1400 px wide or more, under 400 KB. Sits on a dark footer, so it must read light. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: duckMark, label: Duck mark (header icon), type: image, description: "SPECS: transparent PNG, square, 512x512 px, under 150 KB. Shown tiny (about 44 px) — keep it bold and simple. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+      - { name: water, label: Water / caustics background, type: image, description: "SPECS: JPG or WebP, 2560x1440 px, under 500 KB. Tiles behind the footer/hero — mid-to-dark works best. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
       - name: hero
         label: Hero
         type: object
@@ -39,8 +44,8 @@ content:
         fields:
           - { name: label, label: Label, type: string }
           - { name: url, label: URL, type: string }
-          - { name: icon, label: Icon, type: select, options: { values: [yt, ig, li] } }
-      - { name: orbits, label: About-logo floating images, type: image, list: true }
+          - { name: icon, label: Icon, type: select, description: "Which logo to draw. yt = YouTube, ig = Instagram, li = LinkedIn, fb = Facebook. Adding a NEW network needs a code change (an SVG + a hover colour) — ask your developer/AI.", options: { values: [yt, ig, li, fb] } }
+      - { name: orbits, label: About-logo floating images, type: image, list: true, description: "The little film-still bubbles that orbit the logo. SPECS: square, 600x600 px, JPG, under 200 KB each. They are masked into circles, so keep the subject centred. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
       - name: header
         label: Header (shared — studio + rentals)
         type: object
@@ -143,9 +148,9 @@ content:
           - { name: subtitle, label: Card subtitle / genre line, type: string }
           - { name: theme, label: Theme, type: select, options: { values: [geri, rev, invalid] } }
           - { name: placeholder, label: Coming-soon placeholder bubble, type: boolean }
-          - { name: bubbleImage, label: Bubble image, type: image }
-          - { name: titleLogo, label: Title logo (transparent PNG), type: image }
-          - { name: focusBg, label: Feature / page background, type: image }
+          - { name: bubbleImage, label: Bubble image, type: image, description: "SPECS: square, 1200x1200 px, JPG, under 350 KB. Masked into a circle — keep the subject centred and away from the corners. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: titleLogo, label: Title logo (transparent PNG), type: image, description: "SPECS: transparent PNG, about 1600 px wide, under 500 KB. Must read against a dark background. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: focusBg, label: Feature / page background, type: image, description: "SPECS: JPG or WebP, 2560x1440 px (16:9), under 600 KB. Scaled to cover and darkened behind text — pick something without important detail at the edges. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: cardLogline, label: Carousel logline, type: text }
           - { name: logoText, label: Placeholder text, type: string }
           - { name: eyebrow, label: Eyebrow, type: string }
@@ -163,7 +168,11 @@ content:
               - { name: id, label: YouTube video ID, type: string }
               - { name: url, label: YouTube URL, type: string }
               - { name: ig, label: Instagram handle, type: string }
-          - { name: stills, label: Stills gallery, type: image, list: true }
+          - name: stills
+            label: Stills gallery
+            type: image
+            list: true
+            description: "SPECS: 16:9, 2560x1440 px, JPG or WebP, under 600 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers). EXPORT FROM THE FILM MASTER, not from a compressed delivery file — and if the master is Rec.709 LIMITED range (16-235), expand it to FULL (0-255) or the blacks come out milky. IMPORTANT: stills you upload here are served exactly as uploaded. The high-resolution responsive versions (the -800/-1600/-2560 files) are generated by the stills pipeline from the ProRes master and listed in data/stills-hd.json — ask your developer/AI to run it for any still you add. See STILLS.md."
           - { name: credits, label: Credits (HTML allowed), type: text }
           - { name: blurb, label: Short blurb, type: text }
 
@@ -179,7 +188,7 @@ content:
         fields:
           - { name: name, label: Name, type: string }
           - { name: role, label: Role, type: string }
-          - { name: photo, label: Photo, type: image }
+          - { name: photo, label: Photo, type: image, description: "SPECS: square, 800x800 px, JPG, under 250 KB. Cropped to a circle — centre the face. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: desc, label: Bio, type: text }
 
   - name: rentals
@@ -195,10 +204,10 @@ content:
         label: Rentals logos
         type: object
         fields:
-          - { name: headerMark, label: Header duck mark, type: image }
-          - { name: footerColor, label: Footer full-color logo, type: image }
-          - { name: footerWater, label: Footer water / caustics background, type: image }
-          - { name: homeLogo, label: Home hero logo, type: image }
+          - { name: headerMark, label: Header duck mark, type: image, description: "SPECS: transparent PNG, square, 512x512 px, under 150 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: footerColor, label: Footer full-color logo, type: image, description: "SPECS: transparent PNG, 1400 px wide or more, under 400 KB. Sits on dark — must read light. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: footerWater, label: Footer water / caustics background, type: image, description: "SPECS: JPG or WebP, 2560x1440 px, under 500 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: homeLogo, label: Home hero logo, type: image, description: "SPECS: transparent PNG, about 1600 px wide, under 500 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
       - name: home
         label: Home hero copy
         type: object

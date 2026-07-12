@@ -84,5 +84,7 @@ block type.
   jumps across. Do not duplicate the renderer into `rentals/` — one renderer.
 
 ### Known-good example
-`data/pages.json` ships with one page, slug `example`, nav toggles off. It exists as a
-working reference. It is safe to delete (Pages CMS → Custom Pages → bin icon).
+`data/pages.json` currently holds one real page, slug **`submit-a-screenplay`**, live at
+`rarepond.com/?p=submit-a-screenplay` and shown in the studio top banner. It is a working
+reference for every block type in use (subheader / body / button). Copy its shape when
+building a new page.
