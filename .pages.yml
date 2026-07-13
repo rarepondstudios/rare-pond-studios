@@ -173,12 +173,12 @@ content:
                   description: "The big colored wash over the film's page background." }
               - { name: mainAlpha, label: Main wash strength (0-1), type: number }
               - { name: tint, label: "Tint color (hex) - the secondary wash", type: string,
-                  description: "A softer second wash. Leave blank for none." }
+                  description: "A softer second wash. Leave blank for none (no second wash)." }
               - { name: tintAlpha, label: Tint wash strength (0-1), type: number }
               - { name: kickerColor, label: Kicker color (hex, optional), type: string,
-                  description: "Leave blank to use the Accent color." }
+                  description: "Leave blank and it renders WHITE. There are no hidden defaults - white means unassigned." }
               - { name: kickerTracking, label: "Kicker letter-spacing (e.g. .3em, optional)", type: string,
-                  description: "Leave blank for the site default (.24em)." }
+                  description: "Leave blank for the site default (.24em). This one is spacing, not a color." }
               - { name: taglineColor, label: Tagline color (hex, optional), type: string }
               - { name: taglineItalic, label: Tagline in italics, type: boolean }
               - { name: titleStyle, label: Title style, type: select, options: { values: [solid, gradient] },

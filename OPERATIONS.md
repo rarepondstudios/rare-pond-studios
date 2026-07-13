@@ -200,3 +200,32 @@ The site fetches JSON at runtime, so `file://` will not work:
 python3 -m http.server 8080
 # http://localhost:8080
 ```
+
+
+## Colour: unassigned renders WHITE (no hidden fallbacks)
+
+Every colour on the site comes from Pages CMS -> Color Looks. There are deliberately
+NO hardcoded fallback colours in the code. If a colour is missing - a blank field, or
+a "Linked color look" that does not match a real look - the thing renders **white**.
+
+That is on purpose. A hardcoded fallback would paper over a broken link and make the
+system look like it worked when it did not. It would also be a lie for any future
+film, which has no "original" to fall back to. White = unassigned. Go fix the link.
+
+Where colour now comes from:
+- Films: Projects -> Linked color look -> a `film` look (accent / main / tint).
+- Rentals categories: Rentals -> Categories -> Linked color look -> a `basics` look.
+- Event banner: Site Settings -> Event Banner -> Linked color look.
+The Color Looks page shows what uses each look and flags broken links in red.
+
+### For the record: what the site rendered BEFORE this system existed
+Kept as history only. These are NOT fallbacks and are NOT in the code any more.
+
+| Film | accent | wash 1 | wash 2 | kicker | tagline |
+|---|---|---|---|---|---|
+| Geri-Action | `#ffd21f` | `rgba(255,90,106,.30)` | - | = accent | `#ffd9a0` |
+| Revelations | `#ff5230` | `rgba(255,82,48,.34)` | `rgba(255,210,122,.18)` | `#ffd27a` | `#ffd9c0`, italic |
+| Invalid Opinion | `#74b3ff` | `rgba(80,150,255,.30)` | - | = accent | inherited |
+
+Rentals categories were `Camera #EA4335`, `Lighting #FF9900`, `Grip #8b5cf6`,
+`Electric #FBBC04`, `Sound Packages #34A853`.

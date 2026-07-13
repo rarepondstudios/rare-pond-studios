@@ -116,7 +116,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .focus-char{position:absolute;bottom:0;right:1%;height:100%;width:auto;object-fit:contain;object-position:bottom;filter:drop-shadow(0 12px 26px rgba(0,0,0,.55));transform:translateX(26px);opacity:0;transition:transform .6s .12s cubic-bezier(.2,.8,.2,1),opacity .5s .12s;z-index:2}
   .citem.feat .focus-char{transform:none;opacity:1}
   .focus-content{position:absolute;inset:0;z-index:3;padding:clamp(20px,4.4%,46px);display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start}
-  .focus-eyebrow{font-size:clamp(10px,1.5vw,12.5px);letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--accent,#ffd21f);margin-bottom:10px;text-shadow:0 2px 8px rgba(0,8,24,.7);opacity:0;transition:opacity .35s}
+  .focus-eyebrow{font-size:clamp(10px,1.5vw,12.5px);letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--accent,#ffffff);margin-bottom:10px;text-shadow:0 2px 8px rgba(0,8,24,.7);opacity:0;transition:opacity .35s}
   .focus-logo{height:clamp(50px,15.5%,98px);width:auto;max-width:64%;object-fit:contain;object-position:left;filter:drop-shadow(0 6px 18px rgba(0,0,0,.5))}
   .focus-logotext{font-weight:800;font-size:clamp(26px,5vw,52px);color:#fff;line-height:.95;text-shadow:0 3px 14px rgba(0,8,24,.7)}
   .focus-logline{margin-top:14px;max-width:min(64%,480px);font-size:clamp(12.5px,1.55vw,17px);line-height:1.5;color:#eef4ff;font-weight:500;text-shadow:0 2px 10px rgba(0,8,24,.9);opacity:0;transition:opacity .35s}
@@ -244,7 +244,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .universe{position:fixed;inset:0;z-index:100;visibility:hidden;overflow-y:auto;clip-path:circle(0px at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(0px at var(--ox,50%) var(--oy,50%));transition:clip-path .6s cubic-bezier(.6,0,.2,1),-webkit-clip-path .6s cubic-bezier(.6,0,.2,1);background:#05101f}
   .universe.open{clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%))}
   .u-bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center}
-  .u-scrim{position:fixed;inset:0;z-index:1;background:radial-gradient(90% 70% at 50% 0%,var(--scrim-1,rgba(80,150,255,.25)),transparent 60%),linear-gradient(180deg,rgba(6,8,20,.6),rgba(4,6,16,.92))}
+  .u-scrim{position:fixed;inset:0;z-index:1;background:radial-gradient(90% 70% at 50% 0%,var(--scrim-1,#ffffff),transparent 60%),linear-gradient(180deg,rgba(6,8,20,.6),rgba(4,6,16,.92))}
   .u-flash{position:fixed;inset:0;z-index:6;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--ox,50%) var(--oy,50%),rgba(155,92,255,0) 0%,rgba(123,108,255,.5) 26%,rgba(86,200,255,.6) 46%,rgba(63,107,255,.55) 60%,transparent 74%)}
   .universe.flash .u-flash{animation:enterflash .9s ease-out}.universe.flash-out .u-flash{animation:enterflash .6s ease-in}
   @keyframes enterflash{0%{opacity:0}28%{opacity:1}100%{opacity:0}}
@@ -256,9 +256,9 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .u-top .u-eyebrow{margin-left:auto;font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.8}
   .u-hero{padding:clamp(10px,3vh,34px) clamp(18px,5vw,54px) 26px;max-width:1100px}
   .u-logo{height:clamp(88px,15vh,164px);width:auto;max-width:min(86vw,540px);object-fit:contain;margin:0 0 10px;filter:drop-shadow(0 10px 30px rgba(0,0,0,.5))}
-  .u-kicker{font-size:13px;letter-spacing:.24em;text-transform:uppercase;font-weight:700;margin-bottom:12px}
+  .u-kicker{font-size:13px;text-transform:uppercase;font-weight:700;margin-bottom:12px;color:var(--kicker-color,var(--accent));letter-spacing:var(--kicker-tracking,.24em)}
   .u-title{line-height:.92;margin:0 0 14px;font-weight:800}
-  .u-tagline{font-size:clamp(17px,2.4vw,26px);font-weight:600;margin:0 0 22px;opacity:.95}
+  .u-tagline{font-size:clamp(17px,2.4vw,26px);font-weight:600;margin:0 0 22px;opacity:.95;color:var(--tagline-color,#ffffff);font-style:var(--tagline-style,normal)}
   .u-logline{font-size:clamp(15px,1.7vw,19px);line-height:1.6;max-width:680px;color:#e7eefb}
   .u-meta{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 0}
   .chip{font-size:12.5px;padding:8px 14px;border-radius:50px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);font-weight:600}
@@ -266,35 +266,30 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .u-gallery{display:flex;gap:18px;flex-wrap:wrap;padding:8px clamp(18px,5vw,54px) 70px;max-width:1100px}
   .u-shot{flex:1 1 320px;border-radius:16px;overflow:hidden;min-height:200px;background-size:cover;background-position:center;box-shadow:0 20px 50px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12);position:relative}
   .u-shot .lbl{position:absolute;left:14px;bottom:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:13px;text-shadow:0 2px 10px rgba(0,0,0,.7)}
-  .placeholder-note{margin:0 clamp(18px,5vw,54px) 70px;max-width:760px;font-size:13.5px;color:#a9c0e6;border-left:3px solid var(--accent,#ffd21f);padding:6px 0 6px 14px;background:linear-gradient(90deg,rgba(255,255,255,.05),transparent)}
-  /* ---- PROJECT LOOKS ----------------------------------------------------------
-     Every value below is now a CSS variable whose FALLBACK is the original
-     hardcoded value. assets/looks.js reads data/colorlooks.json (kind: project)
-     and sets these variables, so the film pages are edited in Pages CMS -> Color
-     Looks, in one place.
-     If colorlooks.json ever fails to load, nothing is set and these fallbacks
-     render the site exactly as it looked before this system existed.
-     The scrim GEOMETRY (the % positions/sizes of the radial gradients) stays here
-     in CSS on purpose - it is bespoke per film and is not worth a CMS field.
-     Colours, accents and typography are all data-driven.                        */
-  .theme-geri{--accent:#ffd21f}
-  .theme-geri .u-scrim{background:radial-gradient(90% 70% at 80% 10%,var(--scrim-1,rgba(255,90,106,.3)),transparent 60%),linear-gradient(180deg,rgba(8,6,20,.55),rgba(6,8,24,.9))}
-  .theme-geri .u-kicker{color:var(--kicker-color,var(--accent));letter-spacing:var(--kicker-tracking,.24em)}
-  .theme-geri .u-tagline{color:var(--tagline-color,#ffd9a0);font-style:var(--tagline-style,normal)}
-  .theme-rev{--accent:#ff5230}
-  .theme-rev .u-scrim{background:radial-gradient(80% 60% at 20% 15%,var(--scrim-1,rgba(255,82,48,.34)),transparent 55%),radial-gradient(70% 60% at 90% 90%,var(--scrim-2,rgba(255,210,122,.18)),transparent 60%),linear-gradient(180deg,rgba(10,4,4,.6),rgba(8,4,8,.92))}
-  .theme-rev .u-kicker{color:var(--kicker-color,#ffd27a);letter-spacing:var(--kicker-tracking,.3em)}
-  .theme-rev .u-tagline{color:var(--tagline-color,#ffd9c0);font-style:var(--tagline-style,italic)}
-  .theme-invalid{--accent:#74b3ff}
-  .theme-invalid .u-scrim{background:radial-gradient(90% 70% at 50% 0%,var(--scrim-1,rgba(80,150,255,.3)),transparent 60%),linear-gradient(180deg,rgba(4,12,30,.6),rgba(3,9,24,.92))}
-  .theme-invalid .u-kicker{color:var(--kicker-color,var(--accent));letter-spacing:var(--kicker-tracking,.24em)}
-  .theme-invalid .u-tagline{color:var(--tagline-color,inherit);font-style:var(--tagline-style,normal)}
+  .placeholder-note{margin:0 clamp(18px,5vw,54px) 70px;max-width:760px;font-size:13.5px;color:#a9c0e6;border-left:3px solid var(--accent,#ffffff);padding:6px 0 6px 14px;background:linear-gradient(90deg,rgba(255,255,255,.05),transparent)}
+  /* ---- FILM LOOKS -------------------------------------------------------------
+     NO COLOUR VALUES LIVE HERE. Every colour comes from Pages CMS -> Color Looks,
+     applied by assets/looks.js.
+
+     UNASSIGNED = WHITE, ON PURPOSE. There are deliberately no "original" values to
+     fall back on. A film with a missing colour renders WHITE so the gap is obvious
+     at a glance, instead of being papered over by a hardcoded default that hides a
+     broken link. (A future film has no "original" anyway, so a fallback would only
+     ever have been a lie.) If you see white where you expect colour: that field is
+     blank, or its Linked color look does not match a real look.
+
+     The only thing still hardcoded per film is the scrim GEOMETRY - the % positions
+     and sizes of the radial gradients. That is composition, not colour, and it is
+     bespoke per film. Every COLOUR is data.                                       */
+  .universe{--accent:#ffffff}                          /* unassigned accent -> white */
+  .theme-geri .u-scrim{background:radial-gradient(90% 70% at 80% 10%,var(--scrim-1,#ffffff),transparent 60%),linear-gradient(180deg,rgba(8,6,20,.55),rgba(6,8,24,.9))}
+  .theme-rev .u-scrim{background:radial-gradient(80% 60% at 20% 15%,var(--scrim-1,#ffffff),transparent 55%),radial-gradient(70% 60% at 90% 90%,var(--scrim-2,transparent),transparent 60%),linear-gradient(180deg,rgba(10,4,4,.6),rgba(8,4,8,.92))}
+  .theme-invalid .u-scrim{background:radial-gradient(90% 70% at 50% 0%,var(--scrim-1,#ffffff),transparent 60%),linear-gradient(180deg,rgba(4,12,30,.6),rgba(3,9,24,.92))}
   /* Gradient-filled title. Was .theme-invalid .u-title; now any project can opt in
      via its look's "Title style" field, which adds .u-title-gradient. The
      .theme-invalid selector is kept as the no-JS fallback so Invalid Opinion still
      renders its gradient title if colorlooks.json fails to load. */
-  .theme-invalid .u-title,
-  .u-title.u-title-gradient{font-weight:800;font-size:clamp(44px,8vw,104px);background:linear-gradient(180deg,var(--title-from,#fff),var(--title-to,#9cc3ff));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .u-title.u-title-gradient{font-weight:800;font-size:clamp(44px,8vw,104px);background:linear-gradient(180deg,var(--title-from,#ffffff),var(--title-to,#ffffff));-webkit-background-clip:text;background-clip:text;color:transparent}
   @media (prefers-reduced-motion: reduce){.bubble-inner,.glow,.edge,.cglow,.cbub,.cedge{animation:none}.universe{transition:clip-path .3s ease,-webkit-clip-path .3s ease}}
   .u-watch{margin:30px 0 0;display:flex;flex-direction:column;align-items:flex-start;gap:14px}
   .u-watch-label{display:block;font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:var(--accent);opacity:.9;margin-bottom:12px}
@@ -762,18 +757,17 @@ const ABOUT_ORB_POS=[[-172,-96,86],[-202,72,76],[-130,166,80],[10,196,72],[126,1
 /* carousel (home) - films only */
 const stage=document.getElementById('stage'),cinfo=document.getElementById('cinfo'),cdots=document.getElementById('cdots');
 let activeIdx=0,dragFlag=false;const N=CAROUSEL.length;
-/* Fallback accents only. The real values come from Color Looks (kind: project);
-   assets/looks.js re-applies them to .citem elements once colorlooks.json lands,
-   so these just cover the moment before that fetch resolves (and 'more', the
-   placeholder bubble, which has no project look). Do not edit these to restyle
-   a film - edit the film's Color Look. */
-const ACCENT={geri:'#ffd21f',rev:'#ff5230',invalid:'#74b3ff',more:'#9b5cff'};
+/* NO hardcoded film colours. Each project's accent comes from its Linked color
+   look (assets/looks.js re-applies it once colorlooks.json lands). Anything not
+   assigned renders WHITE so the gap is obvious rather than silently papered over. */
+const ACCENT={};
+const accentFor=k=>ACCENT[k]||'#ffffff';
 function focusHTML(p){
   const bg=p.focusVideo?`<div class="focus-bg"><video src="${p.focusVideo}" autoplay muted loop playsinline></video></div>`:`<div class="focus-bg" style="background-image:url('${p.focusBg||SITE.water}')"></div>`;
   return `<div class="focus-view">${bg}<div class="focus-scrim"></div><div class="focus-content"><div class="focus-eyebrow">${p.sub}</div><p class="focus-logline">${p.logline||p.blurb}</p></div></div>`;
 }
 const citems=CAROUSEL.map((p,i)=>{
-  const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',ACCENT[p.key]||'#74b3ff');
+  const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',accentFor(p.key));
   const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" src="${p.img}" alt="${p.title}">`;
   el.innerHTML=`<div class="cglow"></div><div class="cbub">${side}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
   el.addEventListener('pointermove',e=>{if(INTERACTIVE&&el.classList.contains('feat')){const r=el.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){el.style.setProperty('--mx',(px*100).toFixed(1)+'%');el.style.setProperty('--my',(py*100).toFixed(1)+'%');}el.style.setProperty('--tilty',((px-.5)*9).toFixed(2)+'deg');el.style.setProperty('--tiltx',((.5-py)*7).toFixed(2)+'deg');}});

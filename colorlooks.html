@@ -178,6 +178,46 @@
     return '<div class="lk-used">' + u.map(esc).join('<br>') + '</div>';
   }
 
+  /* RAINBOW is the one structural look: not three colors, but the animated 9-stop
+     conic gradient (--rainbow) that the "More to come" bubble uses. Shown here for
+     reference and preview, with no editable swatches, because there is nothing to
+     edit. Pinwheel = rotating conic; Stream = a linear spectrum that slides and
+     loops (they are styled separately - applying the conic to both was the bug
+     that made Stream drag the pinwheel's centre sideways). */
+  function rainbowCard(L,idx){
+    return '<div class="look locked" data-idx="'+idx+'">'
+      +'<div class="glowbar">'
+        +'<div class="gb pin"><div class="lay rainbow"></div><span class="tag">Pinwheel</span></div>'
+        +'<div class="gb str"><div class="lay rainbow"></div><span class="tag">Stream</span></div>'
+      +'</div>'
+      +'<div class="lk-body">'
+        +'<div class="lk-meta">Locked'+usedBadge(L)+'</div>'
+        +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
+        +'<div class="lk-key">'+esc(L.key)+'</div>'
+        +'<div class="lk-note">Not editable, and not three colors. This is the animated rainbow gradient built into the site. It is listed as a look so other places can point at it.</div>'
+        +usedList(L)
+      +'</div></div>';
+  }
+  /* A FILM look carries a movie's whole identity (this replaced "Theme"):
+       accent = the pop (kicker, Where-to-Watch label, carousel glow)
+       main   = the dominant background wash
+       tint   = the secondary wash                                            */
+  function projectCard(L,idx){
+    var c1=L.accent, c2=L.main, c3=L.tint;
+    return '<div class="look" data-idx="'+idx+'" style="--c1:'+esc(c1)+';--c2:'+esc(c2)+';--c3:'+esc(c3||c1)+'">'
+      +'<div class="glowbar">'
+        +'<div class="gb pin"><div class="lay"></div><span class="tag">Pinwheel</span></div>'
+        +'<div class="gb str"><div class="lay"></div><span class="tag">Stream</span></div>'
+      +'</div>'
+      +'<div class="lk-body">'
+        +'<div class="lk-meta">Film'+usedBadge(L)+'</div>'
+        +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
+        +'<div class="lk-key">'+esc(L.key)+'</div>'
+        +'<div class="lk-note">'+(L.taglineItalic?'Italic tagline. ':'')+(L.kickerTracking?'Kicker tracking '+esc(L.kickerTracking)+'. ':'')+'Title: '+esc(L.titleStyle||'solid')+'.</div>'
+        +'<div class="sw">'+chip('Accent',L.accent,idx,'accent')+chip('Main',L.main,idx,'main')+chip('Tint',L.tint,idx,'tint')+'</div>'
+        +usedList(L)
+      +'</div></div>';
+  }
   function card(L,idx){
     if(L.kind==='rainbow') return rainbowCard(L,idx);
     if(L.kind==='film') return projectCard(L,idx);
