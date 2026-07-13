@@ -43,5 +43,20 @@ const nocache = (good.headers.get('Cache-Control') || '').includes('no-store');
 console.log(`${nocache ? 'PASS' : 'FAIL'}  authed response is no-store`);
 if (!nocache) fails++;
 
+// --- the internal page directory must be gated too ---
+await check('/pages.html  no credentials', await call('/pages.html'), 401);
+await check('/pages       no credentials', await call('/pages'), 401);
+await check('/pages.html  wrong password', await call('/pages.html', { Authorization: basic('rarepond','wrong') }), 401);
+const goodPages = await call('/pages.html', { Authorization: basic('rarepond', 's3cret') });
+const gpBody = await goodPages.clone().text();
+const gpOk = goodPages.status === 200 && gpBody.includes('SECRET COLOR TOOL');
+console.log(`${gpOk ? 'PASS' : 'FAIL'}  /pages.html correct password serves the page  -> ${goodPages.status}`);
+if (!gpOk) fails++;
+
+// --- and PUBLIC pages must NOT be gated ---
+await check('/projects stays public', await call('/projects'), 200, false);
+await check('/geriaction stays public', await call('/geriaction'), 200, false);
+await check('/?p=submit-a-screenplay stays public', await call('/?p=submit-a-screenplay'), 200, false);
+
 console.log(fails === 0 ? '\nALL TESTS PASSED' : `\n${fails} TEST(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);

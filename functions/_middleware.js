@@ -29,8 +29,14 @@
  *   hex values aren't secret (they're on screen anyway) - we're hiding the tool.
  */
 
-const PROTECTED = new Set(['/colorlooks', '/colorlooks.html']);
-const REALM = 'Rare Pond - Color Looks';
+/* Every internal-only page. Add a page here and it is instantly behind the password;
+   forget to, and it is public. Both spellings of each path are listed because
+   Cloudflare Pages serves /foo and /foo.html as the same file. */
+const PROTECTED = new Set([
+  '/colorlooks', '/colorlooks.html',   // the colour-look preview + picker
+  '/pages',      '/pages.html',        // the internal page directory
+]);
+const REALM = 'Rare Pond - Internal';
 
 /* Constant-time compare, so nobody can time their way to the password
    one character at a time. */

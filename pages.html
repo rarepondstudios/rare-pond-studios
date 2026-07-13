@@ -1,0 +1,181 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Page Directory - Rare Pond Studios</title>
+<!--
+  INTERNAL PAGE DIRECTORY. Password-protected (same gate as colorlooks.html).
+
+  This page is GENERATED, never hand-maintained. It reads the same data files the
+  live site reads - projects.json, pages.json, rentals.json, site.json - and rebuilds
+  the URL for every page using the SAME rules the router uses. Add a film or a custom
+  page in Pages CMS and it appears here on the next load. There is no list to update,
+  so there is no list to forget.
+
+  The one rule that matters: the slug logic below is copied from index.html
+      const slugify = s => (s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
+      slug = project.slug || slugify(project.title)
+  If that ever changes in index.html, change it here too, or this page will start
+  printing URLs that 404.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#070d18;--card:#0e1728;--line:rgba(255,255,255,.12);--txt:#eaf2ff;--dim:#8ba6c9;--ok:#5ddc9a;--warn:#ff6b6b}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:400 15px/1.6 Heebo,system-ui,sans-serif;padding:34px 22px 80px}
+  .wrap{max-width:1060px;margin:0 auto}
+  .bn-rare{font-family:"Kaushan Script",cursive;font-size:20px;color:#9b5cff;margin-bottom:2px}
+  h1{margin:0 0 8px;font-size:30px;font-weight:800}
+  .lead{color:var(--dim);max-width:760px;margin:0 0 6px}
+  .lead b{color:var(--txt)}
+  .reload{margin-top:14px;background:#1b2942;color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:8px 14px;font:700 13px Heebo,sans-serif;cursor:pointer}
+  .reload:hover{background:#25375a}
+  h2{margin:34px 0 10px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--dim)}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th{text-align:left;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:10px 14px;border-bottom:1px solid var(--line);font-weight:800}
+  td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.03)}
+  .u{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#9fd0ff;text-decoration:none;word-break:break-all}
+  .u:hover{text-decoration:underline}
+  .nm{font-weight:700}
+  .sub{color:var(--dim);font-size:12px}
+  .copy{background:none;border:1px solid var(--line);color:var(--dim);border-radius:6px;padding:2px 7px;font-size:11px;cursor:pointer;margin-left:6px}
+  .copy:hover{color:var(--txt);border-color:#9b5cff}
+  .pill{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin-left:6px}
+  .pill.nav{background:rgba(93,220,154,.14);color:var(--ok);border:1px solid rgba(93,220,154,.35)}
+  .pill.hidden{background:rgba(255,255,255,.07);color:var(--dim);border:1px solid rgba(255,255,255,.16)}
+  .pill.lock{background:rgba(155,92,255,.16);color:#c4a3ff;border:1px solid rgba(155,92,255,.4)}
+  .note{margin-top:8px;font-size:12.5px;color:var(--dim)}
+  .warnbox{margin:18px 0;padding:13px 15px;border-radius:11px;background:rgba(255,107,107,.10);border:1px solid rgba(255,107,107,.42);color:#ffd7d7;font-size:13.5px;line-height:1.65}
+  .warnbox code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:5px;color:#fff;font-size:12.5px}
+  .foot{margin-top:34px;color:var(--dim);font-size:12.5px}
+  .foot a{color:#9fd0ff}
+</style></head><body>
+<div class="wrap">
+  <div class="bn-rare">Rare Pond</div>
+  <h1>Page Directory</h1>
+  <p class="lead">Every page on the site and the exact address to reach it. This list is
+     <b>generated from the live data</b> - the same files the website itself reads - so adding a film or a
+     custom page in Pages CMS makes it appear here automatically. Nothing here is typed by hand.</p>
+  <button class="reload" onclick="build()">&#8635; Reload</button>
+
+  <div class="warnbox">
+    <b>Always use <code>www.rarepond.com</code></b> - every link below already does.
+    The bare <code>rarepond.com</code> only serves the homepage; any deeper address on it returns a
+    <b>404</b>, because the apex domain points at a GoDaddy forwarding service rather than at the site.
+    If you send someone <code>rarepond.com/colorlooks</code> they will get a 404 - not the password screen.
+  </div>
+
+  <div id="out"></div>
+
+  <div class="foot" id="foot">Loading&hellip;</div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var BASE = "https://www.rarepond.com";
+  var esc = function(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
+
+  /* SAME slug rule as index.html. If that changes, change this. */
+  function slugify(s){ return (s||"").toLowerCase().replace(/[^a-z0-9]+/g,""); }
+
+  function get(u){
+    return fetch(u+"?cb="+Date.now(),{cache:"no-store"})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .catch(function(){ return null; });
+  }
+
+  function row(name, sub, path, pills){
+    var url = BASE + path;
+    return '<tr><td><span class="nm">'+esc(name)+'</span>'+(pills||'')
+         + (sub ? '<div class="sub">'+esc(sub)+'</div>' : '')
+         + '</td><td><a class="u" href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(url)+'</a>'
+         + '<button class="copy" data-u="'+esc(url)+'">copy</button></td></tr>';
+  }
+  function table(title, rows){
+    if(!rows) return '';
+    return '<h2>'+esc(title)+'</h2><table><thead><tr><th>Page</th><th>Address</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+
+  window.build = function(){
+    var out = document.getElementById('out');
+    Promise.all([
+      get('/data/projects.json'), get('/data/pages.json'),
+      get('/data/site.json'),     get('/data/rentals.json')
+    ]).then(function(res){
+      var projects = (res[0] && (res[0].projects || res[0])) || [];
+      var pages    = (res[1] && (res[1].pages    || res[1])) || [];
+      var site     = res[2] || {};
+      var html = '';
+
+      /* ---- the studio app's own views ---- */
+      html += table('Studio site',
+          row('Home', 'The main page', '/')
+        + row('Our Team', 'Team view', '/team')
+        + row('Projects', 'The projects carousel', '/projects')
+        + row('Contact', 'Anchor on the home page', '/#contact')
+      );
+
+      /* ---- films: URL is built the same way the router builds it ---- */
+      var realFilms = projects.filter(function(p){ return !p.placeholder; });
+      var films = realFilms.map(function(p){
+        var slug = p.slug || slugify(p.title);
+        return row(p.title || p.key, 'Film page  ·  look: ' + (p.colorLook || 'none'), '/' + slug);
+      }).join('');
+      var placeholders = projects.filter(function(p){ return p.placeholder; }).map(function(p){
+        return '<tr><td><span class="nm">'+esc(p.title||p.key)+'</span>'
+             + '<span class="pill hidden">no page</span>'
+             + '<div class="sub">A "coming soon" bubble only. It has no page of its own.</div></td>'
+             + '<td><span class="sub">-</span></td></tr>';
+      }).join('');
+      html += table('Films', films + placeholders);
+
+      /* ---- custom pages (Pages CMS -> Custom Pages) ---- */
+      var cp = pages.map(function(p){
+        var pills = (p.showInStudioNav  ? '<span class="pill nav">studio nav</span>' : '')
+                  + (p.showInRentalsNav ? '<span class="pill nav">rentals nav</span>' : '')
+                  + (!p.showInStudioNav && !p.showInRentalsNav ? '<span class="pill hidden">not in any nav</span>' : '');
+        var sub = (!p.showInStudioNav && !p.showInRentalsNav)
+          ? 'Reachable only by this direct link - it is not in the menus.'
+          : 'Custom page';
+        return row(p.title || p.slug, sub, '/?p=' + p.slug, pills);
+      }).join('');
+      html += table('Custom pages', cp || '<tr><td colspan="2" class="sub">None yet. Add one in Pages CMS &rarr; Custom Pages.</td></tr>');
+
+      /* ---- rentals ---- */
+      html += table('Rentals', row('Rentals', 'The gear rentals section (its own app)', '/rentals/'));
+
+      /* ---- internal, password-protected ---- */
+      html += table('Internal tools (password-protected)',
+          row('Color Looks', 'Live preview of every colour look', '/colorlooks.html', '<span class="pill lock">locked</span>')
+        + row('Page Directory', 'This page', '/pages.html', '<span class="pill lock">locked</span>')
+      );
+
+      out.innerHTML = html;
+
+      var eb = site.eventBanner || {};
+      document.getElementById('foot').innerHTML =
+        'Generated live from projects.json, pages.json, rentals.json and site.json - never hand-written. &middot; '
+        + realFilms.length + ' film page(s), ' + pages.length + ' custom page(s). &middot; '
+        + 'Event banner: <b>' + (eb.enabled ? 'ON' : 'off') + '</b>'
+        + (eb.enabled ? ' (look: ' + esc(eb.colorLook || '-') + ')' : '')
+        + ' &middot; Edit any of this in <a href="https://app.pagescms.org/rarepondstudios/rare-pond-studios/main" target="_blank" rel="noopener">Pages CMS</a>.';
+    }).catch(function(){
+      out.innerHTML = '<div class="warnbox">Could not load the site data files.</div>';
+    });
+  };
+
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('.copy'); if(!b) return;
+    navigator.clipboard.writeText(b.getAttribute('data-u')).then(function(){
+      var o=b.textContent; b.textContent='copied'; setTimeout(function(){ b.textContent=o; },900);
+    });
+  });
+
+  build();
+})();
+</script>
+</body></html>
