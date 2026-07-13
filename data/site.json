@@ -103,11 +103,11 @@
     "formId": "2f174b0e-b67d-4ca2-b12c-bd877ac8cab3"
   },
   "eventBanner": {
-    "enabled": false,
-    "colorLook": "signature",
-    "title": "We want to read your screenplay!",
-    "buttonText": "Submit here",
+    "enabled": true,
+    "title": "Giving out FREE GAY PASSES",
+    "buttonText": "Claim Yours!",
     "buttonLink": "/#team",
+    "colorLook": "rainbow",
     "gradientStyle": "stream"
   }
 }
