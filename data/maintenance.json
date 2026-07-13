@@ -3,17 +3,17 @@
     {
       "header": "The Pond Is Being Cleaned",
       "subHeader": "The water will be like a mirror when we're done.",
-      "image": "/media/logos/duck-mark.png"
+      "image": "/media/logos/duck-mark-filled.png"
     },
     {
       "header": "The Wildlife Is Asleep!",
       "subHeader": "Shhh! Don't wake them up.",
-      "image": "/media/logos/duck-mark.png"
+      "image": "/media/logos/duck-mark-filled.png"
     },
     {
       "header": "Something Is In The Pond...",
       "subHeader": "It's Dangerous To Stay Here Too Long.",
-      "image": "/media/logos/duck-mark.png"
+      "image": "/media/logos/duck-mark-filled.png"
     }
   ]
 }

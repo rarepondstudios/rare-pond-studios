@@ -120,9 +120,9 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .citem.sideL{--off:calc(-1 * min(45.5vw,632px));width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
   .citem.sideR{--off:min(45.5vw,632px);width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
   .citem.hide{--off:0;width:150px;height:150px;opacity:0;z-index:1;pointer-events:none}
-  .cglow{position:absolute;inset:-16px;border-radius:42%;z-index:0;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));-webkit-mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);filter:blur(6px);opacity:.2;transition:opacity .5s;animation:hue 6s linear infinite;animation-play-state:paused}
+  .cglow{position:absolute;inset:-16px;border-radius:42%;z-index:0;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));-webkit-mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);filter:blur(6px);opacity:.2;transition:opacity .5s;/* two animations: hue (paused until hover) and bob (always, in step with .cbub). animation-play-state takes one entry per animation, which is how they differ. */animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;animation-play-state:paused,running}
   .citem.feat .cglow{opacity:.32;border-radius:18%}
-  .citem:hover .cglow{opacity:.9;animation-play-state:running}
+  .citem:hover .cglow{opacity:.9;animation-play-state:running,running}
 
   /* ===== HOVER GLOW BLEED =========================================================
      At rest the glow is contained by the bubble. On hover we want light to look like it
@@ -147,16 +147,27 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
      It reads the same --g1/--g2/--g3 as every other glow layer, so a project that opts in
      to "Bubble glow uses this look" gets its own colours here too, and a special (Rainbow)
-     gets --rp-glow, with no extra wiring. */
-  .citem::before,.bubble::before{content:"";position:absolute;inset:-42px;z-index:0;pointer-events:none;
+     gets --rp-glow, with no extra wiring.
+
+     NO MASK. The first version masked the halo with a radial-gradient ring, which on the
+     wide featured card only ever showed at the top and bottom: a radial-gradient's "closest
+     side" on a wide box is a WIDE ELLIPSE, so the visible band of the ring fell inside the
+     card's own width and was hidden behind it, while vertically it landed right on the edge
+     and spilled. Hence glow above and below but not at the sides.
+     There is no need for a mask at all: the bubble itself is opaque and sits on top, so it
+     hides the middle of the halo for free. What escapes is an even rim of light all the way
+     around, which is what was wanted. */
+  .citem::before,.bubble::before{content:"";position:absolute;inset:-26px;z-index:0;pointer-events:none;
     border-radius:50%;opacity:0;visibility:hidden;
     transition:opacity .45s ease,visibility 0s linear .45s;
     background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));
-    -webkit-mask:radial-gradient(closest-side,transparent 52%,rgba(0,0,0,.5) 72%,rgba(0,0,0,.22) 86%,transparent 100%);
-            mask:radial-gradient(closest-side,transparent 52%,rgba(0,0,0,.5) 72%,rgba(0,0,0,.22) 86%,transparent 100%);
-    filter:blur(16px)}
-  .citem.feat::before{border-radius:22%}
-  .citem:hover::before,.bubble:hover::before{opacity:.85;visibility:visible;transition:opacity .45s ease,visibility 0s}
+    filter:blur(14px);
+    /* bob in step with the bubble, or the glow visibly detaches and floats while the bubble
+       drifts. Same duration and --i offset as .cbub / .bubble-inner, so they move as one. */
+    animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate}
+  .bubble::before{animation-duration:calc(7s + var(--i,0)*0.9s)}
+  .citem.feat::before{border-radius:16%/24%}
+  .citem:hover::before,.bubble:hover::before{opacity:.42;visibility:visible;transition:opacity .45s ease,visibility 0s}
   /* a special look (Rainbow) hands over its whole gradient - same rule as the other layers */
   .citem.rp-glow-special::before,.bubble.rp-glow-special::before{background:var(--rp-glow)}
   /* the "more to come" bubble already has its own rainbow hover treatment - leave it be */
@@ -256,7 +267,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      because it lives outside the bubble, above everything. 9 puts the text above the
      glass and the glow, matching the logo - and it is deliberately the TOP layer inside
      the bubble, so any layer added later lands under the words, not over them. */
-  .focus-content{position:absolute;inset:0;z-index:9;padding:clamp(20px,4.4%,46px);display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start}
+  .focus-content{position:absolute;inset:0;z-index:9;pointer-events:none;padding:clamp(20px,4.4%,46px);display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start}
   .focus-eyebrow{font-size:clamp(10px,1.5vw,12.5px);letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--accent,#ffffff);margin-bottom:10px;text-shadow:0 2px 8px rgba(0,8,24,.7);opacity:0;transition:opacity .35s}
   .focus-logo{height:clamp(50px,15.5%,98px);width:auto;max-width:64%;object-fit:contain;object-position:left;filter:drop-shadow(0 6px 18px rgba(0,0,0,.5))}
   .focus-logotext{font-weight:800;font-size:clamp(26px,5vw,52px);color:#fff;line-height:.95;text-shadow:0 3px 14px rgba(0,8,24,.7)}
@@ -297,7 +308,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .bubble{position:relative;flex:0 0 auto;width:var(--bubble-size);height:var(--bubble-size);cursor:pointer;
     --mx:73%;--my:26%;--tiltx:0deg;--tilty:0deg;transform:rotateX(var(--tiltx)) rotateY(var(--tilty));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
   .bubble.placeholder{cursor:default}
-  .glow{position:absolute;inset:-16px;border-radius:50%;z-index:0;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);filter:blur(9px);opacity:.32;transition:opacity .45s;animation:hue 6s linear infinite;animation-play-state:paused}
+  .glow{position:absolute;inset:-16px;border-radius:50%;z-index:0;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);filter:blur(9px);opacity:.32;transition:opacity .45s;animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate;animation-play-state:paused,running}
   .bubble.placeholder .glow{opacity:.2}
   .bubble.placeholder:hover .glow{background:var(--rainbow);opacity:.85}
   .bubble-inner{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;-webkit-clip-path:circle(50%);clip-path:circle(50%);/* NO box-shadow here: clip-path clips it away. The shadow is cast by .bubble::after. */animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
@@ -336,7 +347,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .bubble:hover{transform:translateZ(40px) scale(1.06) rotateX(var(--tiltx)) rotateY(var(--tilty))}
   .bubble:hover>.bubble-logo{opacity:0;transform:translateX(-50%) translateY(-12px) scale(.95)}
   .bubble:hover .caption .t{opacity:1;transform:translateY(0)}
-  .bubble:hover .glow{opacity:1;filter:blur(12px);animation-play-state:running}
+  .bubble:hover .glow{opacity:1;filter:blur(12px);animation-play-state:running,running}
   .bubble:hover .edge{opacity:.95;animation-play-state:running}
 
   body.webkit .glass .spec,body.webkit .cspec{opacity:.55}
@@ -612,7 +623,8 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
      The only thing a swipe still does is PAUSE the idle bob/float animations, which is
      invisible - they resume from where they were. */
-  body.swiping .bgb,body.swiping .orbi,body.swiping .cbub{animation-play-state:paused !important}
+  body.swiping .bgb,body.swiping .orbi,body.swiping .cbub,
+  body.swiping .cglow,body.swiping .citem::before{animation-play-state:paused !important}
 
   /* ===== custom pages (Pages CMS → Custom Pages) ===== */
   #custom-page{position:relative;padding:calc(var(--header-h) + 38px) clamp(18px,5vw,60px) 0;min-height:100vh;background-size:cover;background-position:center;background-repeat:no-repeat}
@@ -945,7 +957,12 @@ if(!N){const __car=document.querySelector('.carousel');if(__car)__car.style.disp
 const accentFor=()=>'#ffffff';
 function focusHTML(p){
   const bg=p.focusVideo?`<div class="focus-bg"><video src="${p.focusVideo}" autoplay muted loop playsinline></video></div>`:`<div class="focus-bg" style="background-image:url('${p.focusBg||SITE.water}')"></div>`;
-  return `<div class="focus-view">${bg}<div class="focus-scrim"></div><div class="focus-content"><div class="focus-eyebrow">${p.sub}</div><p class="focus-logline">${p.logline||p.blurb}</p></div></div>`;
+  /* .focus-content is a SIBLING of .focus-view, not a child. .focus-view has z-index:1,
+     which makes it a stacking context - anything inside it is trapped below the glass
+     and the rim glow no matter what z-index it is given. Keeping the text outside is
+     what lets it actually sit in front of the glow. */
+  return `<div class="focus-view">${bg}<div class="focus-scrim"></div></div>`
+       + `<div class="focus-content"><div class="focus-eyebrow">${p.sub}</div><p class="focus-logline">${p.logline||p.blurb}</p></div>`;
 }
 const citems=CAROUSEL.map((p,i)=>{
   const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',accentFor(p.key));
