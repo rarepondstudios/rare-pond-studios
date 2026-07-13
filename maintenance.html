@@ -25,6 +25,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
+<!-- Social icons + footer: the same shared stylesheet the studio and rentals use. -->
+<link rel="stylesheet" href="/assets/chrome.css">
 <style>
   :root{--header-h:86px}
   *{box-sizing:border-box}
@@ -85,47 +87,19 @@
   .mbtn.ghost{background:rgba(255,255,255,.1);color:#eaf3ff;border:1px solid rgba(255,255,255,.3);box-shadow:none}
   .mbtn.ghost:hover{background:rgba(255,255,255,.2)}
 
-  /* ===== social icons in the header - same treatment as the studio and rentals headers ===== */
-  .msocials{display:flex;gap:9px}
-  .msocials a{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#16386b;
-    box-shadow:0 3px 10px rgba(10,30,70,.18);transition:.18s}
-  .msocials a:hover{transform:translateY(-2px);color:#fff;background:#1f6fd0}
-  .msocials svg{width:19px;height:19px;fill:currentColor}
-  .msocials a[data-net="yt"]:hover{background:linear-gradient(135deg,#ff3b30,#d4271d)}
-  .msocials a[data-net="ig"]:hover{background:linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7)}
-  .msocials a[data-net="li"]:hover{background:linear-gradient(135deg,#0a66c2,#004182)}
-  .msocials a[data-net="fb"]:hover{background:linear-gradient(135deg,#1877f2,#0b5fce)}
-  /* on a narrow screen the nav already hides; drop the icons too rather than crowd the header */
-  @media(max-width:900px){.msocials{display:none}}
-
-  /* ===== FOOTER - a straight copy of the studio's own footer =====================
-     Rules lifted verbatim from index.html (footer.site-footer and friends) rather than
-     re-styled by eye, because "looks about right" is how the two drift apart. Same class
-     names, same values. If the real footer changes, change it here too - or better, pull
-     both from one stylesheet.
-
-     .deepwater is the caustic fade from the home page: the water photo, masked so it fades
-     up out of nothing behind the footer. It is what makes the footer sit IN the pond rather
-     than on a flat panel. */
+  /* ===== FOOTER =====================================================================
+     The look of the footer and the social icons lives in /assets/chrome.css, shared with the
+     studio and rentals - one definition, so the three cannot drift apart again.
+     What stays here is only what is specific to THIS page: the footer's own geometry and the
+     caustic water fade behind it (.deepwater, copied from the studio's home page - it is what
+     makes the footer sit in the pond rather than on a flat panel). */
   .deepwater{position:absolute;left:0;right:0;bottom:0;height:82%;z-index:0;pointer-events:none;opacity:.45;background-size:cover;background-position:center bottom;-webkit-mask:linear-gradient(180deg,transparent 0%,#000 62%);mask:linear-gradient(180deg,transparent 0%,#000 62%)}
-
-  footer.site-footer{position:relative;z-index:1;margin-top:clamp(56px,9vh,110px);padding:46px clamp(18px,5vw,60px) 34px;text-align:center}
-  .footer-logo img{width:150px;height:auto;margin:0 auto 6px;filter:drop-shadow(0 0 18px rgba(255,255,255,.3)) drop-shadow(0 8px 20px rgba(0,0,0,.5))}
-  footer .tag{font-size:clamp(18px,2.6vw,26px);font-weight:800;margin:8px 0 18px;color:#eaf2ff}
-  footer .fsoc{display:flex;gap:12px;justify-content:center;margin-bottom:18px}
-  footer .fsoc a{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.1);color:#cfe3ff;border:1px solid rgba(255,255,255,.18);transition:.18s}
-  footer .fsoc a:hover{background:#1f6fd0;color:#fff;transform:translateY(-2px)}
-  footer .fsoc svg{width:20px;height:20px;fill:currentColor}
-  footer .flinks{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;font-size:13.5px}
-  footer .flinks a{color:#a7c4e8;text-decoration:none;font-weight:600;cursor:pointer}
-  footer .flinks a:hover{color:#fff}
-  footer .copy{font-size:12px;color:#7e9cc6}
-  footer .copy a{color:#9bb8e0;text-decoration:none}
-
-  /* the footer needs the deep end of the pond behind it, as on the home page */
   .mfootwrap{position:relative;background:linear-gradient(180deg,rgba(9,32,66,0) 0%,#0c2c57 42%,#08203f 100%)}
+  footer.site-footer{position:relative;z-index:1;margin-top:clamp(56px,9vh,110px);padding:46px clamp(18px,5vw,60px) 34px;text-align:center}
+  /* the cover's header hides its nav below 900px; drop the icons with it rather than crowd it */
+  @media(max-width:900px){.rp-soc{display:none}}
 
-  @media(prefers-reduced-motion:reduce){.mbtn,.msocials a,footer .fsoc a{transition:none}}
+  @media(prefers-reduced-motion:reduce){.mbtn{transition:none}}
 </style>
 </head>
 <body>
@@ -136,7 +110,7 @@
   <nav class="hnav" id="mNav"></nav>
   <div class="hright">
     <a class="xsite" id="mCross" href="/"><span>&larr;</span>&nbsp;Studio&nbsp;Site</a>
-    <div class="msocials" id="mSocials"></div>
+    <div class="rp-soc" id="mSocials"></div>
   </div>
 </header>
 
@@ -155,7 +129,7 @@
      assets/socials.js. .deepwater is the caustic water fade from the home page. -->
 <div class="mfootwrap">
   <div class="deepwater" id="mWater"></div>
-  <footer class="site-footer" id="mFoot">
+  <footer class="site-footer rp-footer" id="mFoot">
     <div class="footer-logo"><img id="mFootLogo" alt="Rare Pond Studios"></div>
     <div class="tag" id="mFootTag">Let\'s Make Something Amazing...</div>
     <div class="fsoc" id="mFootSoc"></div>

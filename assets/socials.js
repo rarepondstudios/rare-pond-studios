@@ -1,16 +1,17 @@
 /* SOCIAL ICONS + FOOTER, built from data/site.json.
  *
- * The icon paths already existed in TWO places - index.html and rentals/assets/app.js. The
- * maintenance cover needed them too, and a third hand-copied set is how these things quietly
- * drift apart (one gets a new network, the others don't). So this file is the shared copy.
+ * THE ONLY PLACE THE ICON ARTWORK LIVES. It used to be hand-copied into index.html and
+ * rentals/assets/app.js as well, which is how these things quietly drift apart - someone
+ * adds a network in one file and the others silently keep the old set. Both pages now read
+ * window.RP_SOCIAL_ICONS from here, so adding a network is a one-line change in one file.
  *
- * The cover uses it today. index.html and rentals/assets/app.js still carry their own
- * copies - migrating them is safe but touches two live pages, so it is left as a deliberate
- * follow-up rather than smuggled into an unrelated change. If you add a network, add it in
- * all three until that is done.
+ * The matching CSS lives in assets/chrome.css (classes .rp-soc and .rp-footer). Between the
+ * two, the header icons and the footer are defined exactly once for the whole site.
  *
  * Everything is read from site.json (Pages CMS -> Site Settings), so the links, the tagline
  * and the copyright line can never disagree with the rest of the site.
+ *
+ * MUST load before any script that renders social icons.
  */
 (function () {
   var ICONS = {
@@ -19,6 +20,10 @@
     li: '<svg viewBox="0 0 24 24"><path d="M20.4 3H3.6A.6.6 0 0 0 3 3.6v16.8a.6.6 0 0 0 .6.6h16.8a.6.6 0 0 0 .6-.6V3.6a.6.6 0 0 0-.6-.6zM8.3 18.3H5.5V9.4h2.8v8.9zM6.9 8.2a1.6 1.6 0 1 1 0-3.3 1.6 1.6 0 0 1 0 3.3zm11.4 10.1h-2.8v-4.3c0-1 0-2.4-1.4-2.4s-1.6 1.1-1.6 2.3v4.4H9.7V9.4h2.7v1.2h.04c.4-.7 1.3-1.4 2.6-1.4 2.8 0 3.3 1.8 3.3 4.2v5z"/></svg>',
     fb: '<svg viewBox="0 0 24 24"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07z"/></svg>'
   };
+
+  /* The single source of the icon artwork. index.html and rentals/assets/app.js read this
+     instead of carrying their own copies. */
+  window.RP_SOCIAL_ICONS = ICONS;
 
   var esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {

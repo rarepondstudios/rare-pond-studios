@@ -1,0 +1,12 @@
+# Local dev tooling only. NONE of this belongs in the repo.
+#
+# package.json in particular is deliberately NOT committed: Cloudflare Pages auto-detects a
+# package.json and would start running a build step for a site that has none. The site is
+# plain static files and must stay that way. tools/chrome-snapshot.mjs needs playwright, so
+# install it locally when you want to run it:
+#
+#     npm i -D playwright && npx playwright install chromium
+#
+node_modules/
+package.json
+package-lock.json

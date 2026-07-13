@@ -1,0 +1,66 @@
+/* SHARED CHROME: the social icons and the footer.
+ * ============================================================================
+ * These were duplicated three times - index.html, rentals/assets/styles.css and
+ * maintenance.html - with the same values written out by hand in each. That is how two
+ * copies of a thing quietly drift apart: someone changes the hover colour in one place and
+ * the others silently keep the old one. (It already bit us: the cover's footer was styled
+ * by eye and ended up with the wrong logo and no caustics.)
+ *
+ * This file is now the ONLY place these values live. Every page that shows the chrome
+ * links it and opts in with two classes:
+ *
+ *     .rp-soc      on the container holding the header's social icons
+ *     .rp-footer   on the <footer> element
+ *
+ * WHAT IS DELIBERATELY *NOT* HERE
+ * The outer geometry of each footer, because it genuinely differs per page and always did:
+ *   - the studio footer sits inside the contact section and has no padding of its own
+ *   - the rentals footer reserves 190px of top padding for its caustics
+ *   - the water fade is .deepwater on the studio and .rfoot .caustics on rentals
+ * Those stay with their page. Pretending they are the same thing would be a lie that
+ * produces a worse result than the duplication did.
+ */
+
+/* ---------- social icons in a HEADER (white pills on a light header) ---------- */
+.rp-soc{display:flex;gap:9px}
+.rp-soc a{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#16386b;
+  box-shadow:0 3px 10px rgba(10,30,70,.18);transition:.18s}
+.rp-soc a:hover{transform:translateY(-2px);color:#fff;background:#1f6fd0}
+.rp-soc svg{width:19px;height:19px;fill:currentColor}
+
+/* ---------- social icons in a FOOTER (ghost pills on the dark water) ---------- */
+.rp-footer .fsoc{display:flex;gap:12px;justify-content:center;margin-bottom:18px}
+.rp-footer .fsoc a{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,255,255,.1);color:#cfe3ff;border:1px solid rgba(255,255,255,.18);transition:.18s}
+.rp-footer .fsoc a:hover{background:#1f6fd0;color:#fff;transform:translateY(-2px)}
+.rp-footer .fsoc svg{width:20px;height:20px;fill:currentColor}
+
+/* ---------- brand colours on hover, shared by both placements ---------- */
+.rp-soc a[data-net="yt"]:hover,.rp-footer .fsoc a[data-net="yt"]:hover{background:linear-gradient(135deg,#ff3b30,#d4271d);color:#fff}
+.rp-soc a[data-net="ig"]:hover,.rp-footer .fsoc a[data-net="ig"]:hover{background:linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7);color:#fff}
+.rp-soc a[data-net="li"]:hover,.rp-footer .fsoc a[data-net="li"]:hover{background:linear-gradient(135deg,#0a66c2,#004182);color:#fff}
+.rp-soc a[data-net="fb"]:hover,.rp-footer .fsoc a[data-net="fb"]:hover{background:linear-gradient(135deg,#1877f2,#0b5fce);color:#fff}
+
+/* ---------- the footer's contents ---------- */
+.rp-footer .footer-logo img{width:150px;height:auto;margin:0 auto 6px;
+  filter:drop-shadow(0 0 18px rgba(255,255,255,.3)) drop-shadow(0 8px 20px rgba(0,0,0,.5))}
+.rp-footer .tag{font-size:clamp(18px,2.6vw,26px);font-weight:800;margin:8px 0 18px;color:#eaf2ff}
+.rp-footer .flinks{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;font-size:13.5px}
+.rp-footer .flinks a{color:#a7c4e8;text-decoration:none;font-weight:600;cursor:pointer}
+.rp-footer .flinks a:hover{color:#fff}
+.rp-footer .copy{font-size:12px;color:#7e9cc6}
+.rp-footer .copy a{color:#9bb8e0;text-decoration:none}
+
+/* ---------- the studio's light scenes (Team / Projects) invert the footer ---------- */
+.rp-footer.footer-light .tag{color:#0c2c57}
+.rp-footer.footer-light .footer-logo img{filter:drop-shadow(0 8px 20px rgba(12,44,87,.28))}
+.rp-footer.footer-light .fsoc a{background:rgba(12,44,87,.07);color:#1f5bc0;border-color:rgba(12,44,87,.2)}
+.rp-footer.footer-light .fsoc a:hover{background:#1f6fd0;color:#fff}
+.rp-footer.footer-light .flinks a{color:#1a4b86}
+.rp-footer.footer-light .flinks a:hover{color:#0c2c57}
+.rp-footer.footer-light .copy{color:#4a6890}
+.rp-footer.footer-light .copy a{color:#1f6fd0}
+
+@media(prefers-reduced-motion:reduce){
+  .rp-soc a,.rp-footer .fsoc a{transition:none}
+}
