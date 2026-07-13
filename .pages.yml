@@ -105,7 +105,8 @@ content:
           - { name: title, label: Banner title text, type: string }
           - { name: buttonText, label: Button text, type: string }
           - { name: buttonLink, label: "Button link (URL or /path)", type: string }
-          - { name: colorLook, label: Color scheme (from Color Looks), type: select, options: { values: [signature, rainbow, geri, rev, invalid, category-camera, category-lighting, category-grip, category-electric, category-sound] } }
+          - { name: colorLook, label: "Linked color look", type: string,
+              description: "The name (ID) of a look in COLOR LOOKS. That look's colors are applied here. Type it exactly as the look's ID (e.g. signature, rainbow, red, geri). If it does not match a real look, nothing is applied and the built-in colors are used - open the Color Looks preview page, it flags any broken link in red." }
           - { name: gradientStyle, label: "Gradient style - Stream (wide horizontal sweep, best for this banner) or Pinwheel (rotating conic, best for round bubbles)", type: select, options: { values: [stream, pinwheel] } }
 
   - name: colorlooks
@@ -129,46 +130,51 @@ content:
         readonly: true
         description: "On Mac/iPhone/iPad, Safari will autofill the login box for you. Not written down here on purpose: this repo is PUBLIC, so anything typed into Pages CMS is visible to the world. Never put a password, key or token in this CMS."
       - name: looks
-        label: Color looks (single source of truth for site colors)
+        label: Color looks (what each look CONTAINS)
         type: block
         list: true
         blockKey: kind
+        description: >-
+          A look defines COLORS. It does not decide where it is used. You point at a look
+          from the place you want it: Projects -> Linked color look, Rentals -> Categories ->
+          Linked color look, Site Settings -> Event Banner -> Linked color look. So to
+          restyle something, go to that thing and pick a look; to change what a look
+          contains, edit it here.
         blocks:
-          # ---- BASICS: always loaded, used across the whole site ----------------
+          # ---- BASICS: a plain named palette. Anything can point at one. ---------
           - name: basics
-            label: "Basics (always loaded site-wide)"
+            label: "Basics (a named palette)"
             fields:
-              - { name: key, label: ID (used by code - do not change), type: string, readonly: true }
+              - { name: key, label: ID (this is the name you type to link to it), type: string, readonly: true }
               - { name: name, label: Name, type: string }
-              - { name: c1, label: Color 1 (hex), type: string }
+              - { name: c1, label: Color 1 (hex), type: string,
+                  description: "For a rentals category, this is the color it uses." }
               - { name: c2, label: Color 2 (hex), type: string }
               - { name: c3, label: Color 3 (hex), type: string }
               - { name: note, label: Note, type: text }
 
-          # ---- RAINBOW: structural, not editable -------------------------------
+          # ---- RAINBOW: structural, not editable ---------------------------------
           - name: rainbow
-            label: "Basics: Rainbow (locked - not editable)"
+            label: "Rainbow (locked - not editable)"
             fields:
               - { name: key, label: ID, type: string, readonly: true }
               - { name: name, label: Name, type: string, readonly: true,
-                  description: "This look is LOCKED on purpose. It is not three colors - it is the animated 9-stop conic rainbow gradient (--rainbow in index.html), the one the 'More to come' bubble uses. There is nothing to edit; it is listed here so other places can point at it. You can preview it on the Color Looks page." }
+                  description: "LOCKED on purpose. This is not three colors: it is the animated 9-stop conic rainbow gradient built into the site (the one the 'More to come' bubble uses). There is nothing to edit. It is listed so other places can point at it, and you can preview it on the Color Looks page." }
 
-          # ---- PROJECT: a film's entire look. This replaced the old 'Theme'. ----
-          - name: project
-            label: "Project (a film's page + bubble)"
+          # ---- FILM: a film's whole identity. This replaced the old 'Theme'. -----
+          - name: film
+            label: "Film (a movie's page + bubble)"
             fields:
-              - { name: key, label: ID (used by code - do not change), type: string, readonly: true }
+              - { name: key, label: ID (this is the name you type to link to it), type: string, readonly: true }
               - { name: name, label: Name, type: string }
-              - { name: project, label: Linked project key, type: string,
-                  description: "Must match the project's ID in Projects (e.g. geri, rev, invalid). This is what ties this look to that film." }
-              - { name: accent, label: Accent color (hex), type: string,
-                  description: "The film's highlight color: kicker text, 'Where to Watch' label, carousel glow." }
-              - { name: scrimTint1, label: Background tint 1 (hex), type: string,
-                  description: "The colored wash over the film's page background." }
-              - { name: scrimTint1Alpha, label: Background tint 1 opacity (0-1), type: number }
-              - { name: scrimTint2, label: Background tint 2 (hex, optional), type: string,
-                  description: "Second wash. Only some films use one. Leave blank for none." }
-              - { name: scrimTint2Alpha, label: Background tint 2 opacity (0-1), type: number }
+              - { name: accent, label: "Accent color (hex) - the pop", type: string,
+                  description: "Kicker text, the 'Where to Watch' label, and the film's glow in the carousel." }
+              - { name: main, label: "Main color (hex) - the dominant background wash", type: string,
+                  description: "The big colored wash over the film's page background." }
+              - { name: mainAlpha, label: Main wash strength (0-1), type: number }
+              - { name: tint, label: "Tint color (hex) - the secondary wash", type: string,
+                  description: "A softer second wash. Leave blank for none." }
+              - { name: tintAlpha, label: Tint wash strength (0-1), type: number }
               - { name: kickerColor, label: Kicker color (hex, optional), type: string,
                   description: "Leave blank to use the Accent color." }
               - { name: kickerTracking, label: "Kicker letter-spacing (e.g. .3em, optional)", type: string,
@@ -179,19 +185,6 @@ content:
                   description: "Only applies to a film with NO title logo (it falls back to text). All current films have logos, so this does nothing for them yet." }
               - { name: titleGradientFrom, label: Title gradient - top color (hex), type: string }
               - { name: titleGradientTo, label: Title gradient - bottom color (hex), type: string }
-              - { name: note, label: Note, type: text }
-
-          # ---- CATEGORY: rentals section colours --------------------------------
-          - name: category
-            label: "Rentals category"
-            fields:
-              - { name: key, label: ID (used by code - do not change), type: string, readonly: true }
-              - { name: name, label: Name, type: string }
-              - { name: category, label: Linked rentals category, type: string,
-                  description: "Must match the category name in the rentals database exactly (e.g. Camera (Red))." }
-              - { name: c1, label: Color 1 (hex), type: string, description: "This is the color the category actually uses." }
-              - { name: c2, label: Color 2 (hex), type: string }
-              - { name: c3, label: Color 3 (hex), type: string }
               - { name: note, label: Note, type: text }
 
   - name: projects
@@ -206,6 +199,8 @@ content:
         fields:
           - { name: key, label: ID (url-safe, e.g. geri), type: string,
               description: "This ID is how the film is linked to its colors. To change this film's look (accent, background tints, kicker, tagline), go to COLOR LOOKS and open the Project entry whose 'Linked project key' matches this ID. There is nothing color-related on this screen." }
+          - { name: colorLook, label: "Linked color look", type: string,
+              description: "The name (ID) of a look in COLOR LOOKS. That look's colors are applied here. Type it exactly as the look's ID (e.g. signature, rainbow, red, geri). If it does not match a real look, nothing is applied and the built-in colors are used - open the Color Looks preview page, it flags any broken link in red. For a film, use a Film look (it carries the accent, background washes and typography)." }
           - { name: title, label: Title, type: string }
           - { name: subtitle, label: Card subtitle / genre line, type: string }
           - { name: placeholder, label: Coming-soon placeholder bubble, type: boolean }
@@ -260,6 +255,21 @@ content:
       - { name: brandLine1, label: Header brand - line 1, type: string }
       - { name: brandLine2, label: Header brand - line 2 (rentals), type: string }
       - { name: cartEstimateNote, label: Cart estimate note, type: text }
+      - name: categories
+        label: Gear categories (names + colors)
+        type: object
+        list: true
+        description: >-
+          The gear categories shown across the rentals site. The ORDER here is the order
+          of the tabs. Rename a category freely - that only changes what visitors see, not
+          the rentals database. To recolor one, point it at a different color look.
+        fields:
+          - { name: id, label: "Category ID (from the rentals database - do NOT change)", type: string,
+              description: "This is the exact category string on the gear in the rentals database. It is what groups the gear, so it must match the database EXACTLY. To actually rename a category in the database you have to change it in the database (NocoDB) as well as here. Changing this field alone will just stop the category working." }
+          - { name: label, label: "Display name (what visitors see)", type: string,
+              description: "Safe to change any time. This does not touch the database." }
+          - { name: colorLook, label: "Linked color look", type: string,
+              description: "The name (ID) of a look in COLOR LOOKS - e.g. red, amber, violet, yellow, green, or signature. That look's Color 1 becomes this category's color. If it does not match a real look, the category keeps its built-in color; the Color Looks preview page flags broken links in red." }
       - name: logos
         label: Rentals logos
         type: object

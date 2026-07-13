@@ -24,5 +24,32 @@
     "dailyTotal": "Daily total",
     "quoteButton": "Request rental quote",
     "emptyMessage": "Your cart is empty.<br>Add gear from any category, it stays here as you browse."
-  }
+  },
+  "categories": [
+    {
+      "id": "Camera",
+      "label": "Camera",
+      "colorLook": "red"
+    },
+    {
+      "id": "Lighting",
+      "label": "Lighting",
+      "colorLook": "amber"
+    },
+    {
+      "id": "Grip",
+      "label": "Grip",
+      "colorLook": "violet"
+    },
+    {
+      "id": "Electric",
+      "label": "Electric",
+      "colorLook": "yellow"
+    },
+    {
+      "id": "Sound",
+      "label": "Sound",
+      "colorLook": "green"
+    }
+  ]
 }

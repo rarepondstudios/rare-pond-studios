@@ -104,10 +104,10 @@
   },
   "eventBanner": {
     "enabled": false,
+    "colorLook": "signature",
     "title": "We want to read your screenplay!",
     "buttonText": "Submit here",
     "buttonLink": "/#team",
-    "colorLook": "signature",
     "gradientStyle": "stream"
   }
 }

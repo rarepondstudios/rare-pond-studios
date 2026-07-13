@@ -9,7 +9,8 @@
       "name": "Rare Pond Signature",
       "c1": "#3f6bff",
       "c2": "#9b5cff",
-      "c3": "#56c8ff"
+      "c3": "#56c8ff",
+      "note": "The site-wide gradient: bubble glows and shared gradients."
     },
     {
       "kind": "rainbow",
@@ -17,103 +18,103 @@
       "name": "Rainbow (locked)"
     },
     {
-      "kind": "project",
+      "kind": "film",
       "key": "geri",
       "name": "Geri-Action",
-      "project": "geri",
-      "accent": "#ffd21f",
-      "scrimTint1": "#ff5a6a",
-      "scrimTint1Alpha": 0.3,
-      "scrimTint2": "",
-      "scrimTint2Alpha": 0,
+      "accent": "#e0455f",
+      "main": "#4f77ff",
+      "mainAlpha": 0.3,
+      "tint": "#9a4bc9",
+      "tintAlpha": 0.18,
       "kickerColor": "",
       "kickerTracking": "",
       "taglineColor": "#ffd9a0",
       "taglineItalic": false,
       "titleStyle": "solid",
       "titleGradientFrom": "",
-      "titleGradientTo": ""
+      "titleGradientTo": "",
+      "note": "Pulled from the Geri-Action key art: magenta-reds, blues and purples."
     },
     {
-      "kind": "project",
+      "kind": "film",
       "key": "rev",
       "name": "Revelations",
-      "project": "rev",
-      "accent": "#ff5230",
-      "scrimTint1": "#ff5230",
-      "scrimTint1Alpha": 0.34,
-      "scrimTint2": "#ffd27a",
-      "scrimTint2Alpha": 0.18,
-      "kickerColor": "#ffd27a",
+      "accent": "#ffffff",
+      "main": "#bd9661",
+      "mainAlpha": 0.34,
+      "tint": "#b86e19",
+      "tintAlpha": 0.18,
+      "kickerColor": "",
       "kickerTracking": ".3em",
       "taglineColor": "#ffd9c0",
       "taglineItalic": true,
       "titleStyle": "solid",
       "titleGradientFrom": "",
-      "titleGradientTo": ""
+      "titleGradientTo": "",
+      "note": "Heaven's cool steel against Earth's warm gold, with the project's ember tones."
     },
     {
-      "kind": "project",
+      "kind": "film",
       "key": "invalid",
       "name": "Invalid Opinion",
-      "project": "invalid",
-      "accent": "#74b3ff",
-      "scrimTint1": "#5096ff",
-      "scrimTint1Alpha": 0.3,
-      "scrimTint2": "",
-      "scrimTint2Alpha": 0,
+      "accent": "#3f9bea",
+      "main": "#6360e1",
+      "mainAlpha": 0.3,
+      "tint": "#ff5900",
+      "tintAlpha": 0.18,
       "kickerColor": "",
       "kickerTracking": "",
       "taglineColor": "",
       "taglineItalic": false,
       "titleStyle": "gradient",
       "titleGradientFrom": "#ffffff",
-      "titleGradientTo": "#9cc3ff"
+      "titleGradientTo": "#9cc3ff",
+      "note": "The comedy's electric blue and indigo with a hot-red pop from the key art."
     },
     {
-      "kind": "category",
-      "key": "category-camera",
-      "name": "Camera (Red)",
-      "category": "Camera",
+      "kind": "basics",
+      "key": "red",
+      "name": "Red",
       "c1": "#ea4335",
-      "c2": "#ff7a6e",
-      "c3": "#b3160b"
+      "c2": "#ea4335",
+      "c3": "#ea4335",
+      "note": "A named colour. Assign it to a rentals category on the Rentals page."
     },
     {
-      "kind": "category",
-      "key": "category-lighting",
-      "name": "Lighting (Amber)",
-      "category": "Lighting",
+      "kind": "basics",
+      "key": "amber",
+      "name": "Amber",
       "c1": "#ff9900",
-      "c2": "#ffc061",
-      "c3": "#cc7a00"
+      "c2": "#ff9900",
+      "c3": "#ff9900",
+      "note": "A named colour. Assign it to a rentals category on the Rentals page."
     },
     {
-      "kind": "category",
-      "key": "category-grip",
-      "name": "Grip (Violet)",
-      "category": "Grip",
+      "kind": "basics",
+      "key": "violet",
+      "name": "Violet",
       "c1": "#8b5cf6",
-      "c2": "#b79cff",
-      "c3": "#6b3fd6"
+      "c2": "#8b5cf6",
+      "c3": "#8b5cf6",
+      "note": "A named colour. Assign it to a rentals category on the Rentals page."
     },
     {
-      "kind": "category",
-      "key": "category-electric",
-      "name": "Electric (Yellow)",
-      "category": "Electric",
+      "kind": "basics",
+      "key": "yellow",
+      "name": "Yellow",
       "c1": "#fbbc04",
-      "c2": "#ffe08a",
-      "c3": "#c99400"
+      "c2": "#fbbc04",
+      "c3": "#fbbc04",
+      "note": "A named colour. Assign it to a rentals category on the Rentals page."
     },
     {
-      "kind": "category",
-      "key": "category-sound",
-      "name": "Sound (Green)",
-      "category": "Sound Packages",
+      "kind": "basics",
+      "key": "green",
+      "name": "Green",
       "c1": "#34a853",
-      "c2": "#6fdc93",
-      "c3": "#1f7d3a"
+      "c2": "#34a853",
+      "c3": "#34a853",
+      "note": "A named colour. Assign it to a rentals category on the Rentals page."
     }
   ]
 }

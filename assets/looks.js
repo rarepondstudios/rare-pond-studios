@@ -36,14 +36,26 @@
            parseInt(h.slice(4, 6), 16) + "," + a + ")";
   }
 
-  /* Build the CSS for one project look. Every declaration mirrors a var() whose
-     FALLBACK in index.html is the value the site shipped with, so an empty field
-     here means "leave it as it was" rather than "blank it out". */
-  function projectCss(L) {
-    var sel = ".theme-" + String(L.project || L.key), d = [];
+  /* Build the CSS for one FILM look, applied to a given project.
+     DIRECTION OF THE LINK: a look does not know who uses it. The consumer points
+     at the look. projects.json says colorLook:"geri"; we look that up here. That
+     way every screen in Pages CMS (Projects, Rentals, Event Banner) asks the same
+     question - "which colour look?" - instead of Color Looks having to list every
+     place it might be used.
+
+     A film look has three semantic colours:
+       accent -> the pop: kicker text, "Where to Watch" label, carousel glow
+       main   -> the dominant background wash over the film's page
+       tint   -> the softer secondary wash
+
+     Every declaration mirrors a var() whose FALLBACK in index.html is the value
+     the site originally shipped with, so CLEARING a field in the CMS restores the
+     original look rather than blanking it out. That is the revert path. */
+  function filmCss(projectKey, L) {
+    var sel = ".theme-" + String(projectKey), d = [];
     if (hexOk(L.accent))        d.push("--accent:" + L.accent);
-    var s1 = rgba(L.scrimTint1, L.scrimTint1Alpha); if (s1) d.push("--scrim-1:" + s1);
-    var s2 = rgba(L.scrimTint2, L.scrimTint2Alpha); if (s2) d.push("--scrim-2:" + s2);
+    var s1 = rgba(L.main, L.mainAlpha); if (s1) d.push("--scrim-1:" + s1);
+    var s2 = rgba(L.tint, L.tintAlpha); if (s2) d.push("--scrim-2:" + s2);
     if (hexOk(L.kickerColor))   d.push("--kicker-color:" + L.kickerColor);
     if (L.kickerTracking)       d.push("--kicker-tracking:" + String(L.kickerTracking).replace(/[^0-9a-z.%-]/gi, ""));
     if (hexOk(L.taglineColor))  d.push("--tagline-color:" + L.taglineColor);
@@ -53,13 +65,18 @@
     return d.length ? (sel + "{" + d.join(";") + "}") : "";
   }
 
-  function applyLooks(looks) {
-    var byKey = {}, byCat = {}, byProj = {};
-    looks.forEach(function (L) {
-      if (!L || !L.key) return;
-      byKey[L.key] = L;
-      if (L.category) byCat[L.category] = L;
-      if (L.kind === "project" && L.project) byProj[L.project] = L;
+  /* looks: from colorlooks.json.  projects / rentals: the consumers that point at
+     them. Both are optional - anything missing just falls back to the static CSS. */
+  function applyLooks(looks, projects, rentals) {
+    var byKey = {};
+    looks.forEach(function (L) { if (L && L.key) byKey[L.key] = L; });
+
+    // Resolve each PROJECT's chosen look. projects.json -> colorLook -> a film look.
+    var byProj = {};
+    (projects || []).forEach(function (p) {
+      if (!p || !p.key) return;
+      var L = byKey[p.colorLook];
+      if (L && L.kind === "film") byProj[p.key] = L;
     });
 
     // 1) signature -> :root gradient stops (bubble glows + shared conic gradients)
@@ -77,7 +94,7 @@
     //    index.html's .theme-* rules read them with the original values as
     //    fallbacks, so if this never runs the site looks exactly as it always did.
     try {
-      var css = Object.keys(byProj).map(function (k) { return projectCss(byProj[k]); })
+      var css = Object.keys(byProj).map(function (k) { return filmCss(k, byProj[k]); })
                       .filter(Boolean).join("\n");
       if (css) {
         var tag = document.getElementById("rp-looks-css") || document.createElement("style");
@@ -104,12 +121,29 @@
       });
     } catch (e) { /* leave the static theme CSS in charge */ }
 
-    // 3) rentals category colours -> COL (app.js exposes the setter when present)
+    // 3) RENTALS CATEGORIES. Same direction as projects: rentals.json lists the
+    //    categories and each one names the look it wants. The look itself knows
+    //    nothing about rentals - it is just a named colour.
+    //
+    //      id       - the category string in the rentals DATABASE. Not editable
+    //                 here; it is what groups the gear. Must match exactly.
+    //      label    - what visitors see. Free to change without touching the DB.
+    //      colorLook- which look supplies the colour.
     try {
-      if (typeof window.RP_setCategoryColors === "function") {
-        var map = {};
-        Object.keys(byCat).forEach(function (c) { if (hexOk(byCat[c].c1)) map[c] = byCat[c].c1; });
-        window.RP_setCategoryColors(map);
+      var cats = (rentals && rentals.categories) || [];
+      var colors = {}, labels = {}, order = [];
+      cats.forEach(function (c) {
+        if (!c || !c.id) return;
+        order.push(c.id);
+        if (c.label) labels[c.id] = c.label;
+        var L = byKey[c.colorLook];
+        if (L && hexOk(L.c1)) colors[c.id] = L.c1;
+      });
+      window.RP_CATEGORY_MAP = { colors: colors, labels: labels, order: order };
+      if (typeof window.RP_setCategories === "function") {
+        window.RP_setCategories(window.RP_CATEGORY_MAP);
+      } else if (typeof window.RP_setCategoryColors === "function") {
+        window.RP_setCategoryColors(colors);   // older rentals build
       }
     } catch (e) { /* leave categories as-is */ }
 
@@ -150,9 +184,15 @@
       // Because the two halves are identical, translateX(-50%) lands on a pixel-identical frame => no reset/seam ever.
       ".rp-evbanner.rp-ev-stream .rp-evglow::before{right:auto;width:200%;background:linear-gradient(90deg,var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));opacity:.42;animation:rpevstream 16s linear infinite}",
       // RAINBOW look selected -> paint the banner with the site's animated rainbow
-      // instead of an e1/e2/e3 ramp. Same gradient the "More to come" bubble uses.
-      ".rp-evbanner.rp-ev-rainbow .rp-evsheet{background:linear-gradient(90deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0)}",
-      ".rp-evbanner.rp-ev-rainbow .rp-evglow::before{background:conic-gradient(from var(--rpev-a),#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;opacity:.5}",
+      // instead of an e1/e2/e3 ramp. Same colours the "More to come" bubble uses.
+      // PINWHEEL keeps the rotating conic. STREAM must be a LINEAR ramp that slides
+      // sideways and loops - reusing the conic here was wrong: it just dragged the
+      // centre of the pinwheel across instead of cycling through the colours.
+      ".rp-evbanner.rp-ev-rainbow .rp-evsheet{background:linear-gradient(90deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)}",
+      ".rp-evbanner.rp-ev-rainbow.rp-ev-pinwheel .rp-evglow::before{background:conic-gradient(from var(--rpev-a),#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;opacity:.5}",
+      // The stream repeats the full spectrum twice and ends where it began, so the
+      // 0% -> -50% slide is seamless and loops forever.
+      ".rp-evbanner.rp-ev-rainbow.rp-ev-stream .rp-evglow::before{right:auto;width:200%;background:linear-gradient(90deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;opacity:.42;animation:rpevstream 16s linear infinite}",
       "@keyframes rpevstream{from{transform:translateX(0)}to{transform:translateX(-50%)}}",
       // content is vertically CENTRED in a fixed band (top+bottom both anchored) via flex align-items:center.
       // This scoots the single-line copy UP a little and trims the reserved headroom, while on narrow screens - // where the title + button wrap to two lines - the taller block overflows the band symmetrically (grows
@@ -190,9 +230,14 @@
     if (L.kind === "rainbow" || eb.colorLook === "rainbow") {
       el.classList.add("rp-ev-rainbow");
     }
-    el.style.setProperty("--e1", hexOk(L.c1) ? L.c1 : "#3f6bff");
-    el.style.setProperty("--e2", hexOk(L.c2) ? L.c2 : "#9b5cff");
-    el.style.setProperty("--e3", hexOk(L.c3) ? L.c3 : "#56c8ff");
+    /* The banner can point at ANY look now, and a film look stores its colours as
+       accent/main/tint rather than c1/c2/c3. Normalise so either kind works. */
+    var e1 = hexOk(L.c1) ? L.c1 : (hexOk(L.accent) ? L.accent : "#3f6bff");
+    var e2 = hexOk(L.c2) ? L.c2 : (hexOk(L.main)   ? L.main   : e1);
+    var e3 = hexOk(L.c3) ? L.c3 : (hexOk(L.tint)   ? L.tint   : e2);
+    el.style.setProperty("--e1", e1);
+    el.style.setProperty("--e2", e2);
+    el.style.setProperty("--e3", e3);
     el.innerHTML = '<div class="rp-evsheet"></div><div class="rp-evglow"></div>' +
       '<div class="rp-evinner"><span class="rp-evtitle">' + esc(eb.title || "") + "</span>" + btn + "</div>";
     mount.appendChild(el);
@@ -213,13 +258,27 @@
   }
 
   function init() {
+    var get = function (u) {
+      return fetch(u, { cache: "no-store" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; });
+    };
+    /* The consumers are fetched alongside the looks, because the link now lives on
+       the consumer: projects.json says which look each film wants, rentals.json
+       says which look each category wants, site.json says which look the banner
+       wants. Any of them failing just means that consumer keeps its static look. */
     Promise.all([
-      fetch("/data/colorlooks.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
-      fetch("/data/site.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+      get("/data/colorlooks.json"),
+      get("/data/site.json"),
+      get("/data/projects.json"),
+      get("/data/rentals.json")
     ]).then(function (res) {
-      var looks = (res[0] && res[0].looks) || [];
-      var byKey = applyLooks(looks);
-      renderBanner(res[1] || {}, byKey);
+      var looks    = (res[0] && res[0].looks) || [];
+      var site     = res[1] || {};
+      var projects = (res[2] && (res[2].projects || res[2])) || [];
+      var rentals  = res[3] || {};
+      var byKey = applyLooks(looks, projects, rentals);
+      renderBanner(site, byKey);
     }).catch(function () { /* silent: site keeps its static look */ });
   }
 
