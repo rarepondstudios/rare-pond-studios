@@ -4,103 +4,116 @@
   "previewPasswordLocation": "Apple Passwords, shared group \"Rare Pond\", entry \"Rare Pond Color Looks\". (Master copy: Cloudflare > Pages > rare-pond-studios > Settings > Variables and secrets > COLORLOOKS_PASSWORD)",
   "looks": [
     {
+      "kind": "basics",
       "key": "signature",
       "name": "Rare Pond Signature",
-      "kind": "signature",
       "c1": "#3f6bff",
       "c2": "#9b5cff",
-      "c3": "#56c8ff",
-      "note": "The house blue / purple / teal. Drives the bubble glows and general Rare Pond gradients across both sites. Change these three and every signature glow updates."
+      "c3": "#56c8ff"
     },
     {
-      "key": "spectrum",
-      "name": "Spectrum / More to Come",
-      "kind": "spectrum",
-      "project": "more",
-      "c1": "#ff5a6e",
-      "c2": "#ffcf4b",
-      "c3": "#57c8ff",
-      "note": "The rainbow 'More to come' feel. Available for banners and future placeholders."
+      "kind": "rainbow",
+      "key": "rainbow",
+      "name": "Rainbow (locked)"
     },
     {
+      "kind": "project",
       "key": "geri",
       "name": "Geri-Action",
-      "kind": "project",
       "project": "geri",
-      "c1": "#e0455f",
-      "c2": "#4f77ff",
-      "c3": "#9a4bc9",
-      "note": "Pulled from the Geri-Action key art: magenta-reds, blues and purples."
+      "accent": "#ffd21f",
+      "scrimTint1": "#ff5a6a",
+      "scrimTint1Alpha": 0.3,
+      "scrimTint2": "",
+      "scrimTint2Alpha": 0,
+      "kickerColor": "",
+      "kickerTracking": "",
+      "taglineColor": "#ffd9a0",
+      "taglineItalic": false,
+      "titleStyle": "solid",
+      "titleGradientFrom": "",
+      "titleGradientTo": ""
     },
     {
+      "kind": "project",
       "key": "rev",
       "name": "Revelations",
-      "kind": "project",
       "project": "rev",
-      "c1": "#ffffff",
-      "c2": "#bd9661",
-      "c3": "#b86e19",
-      "note": "Heaven's cool steel-blue against Earth's warm gold, with the project's ember-red."
+      "accent": "#ff5230",
+      "scrimTint1": "#ff5230",
+      "scrimTint1Alpha": 0.34,
+      "scrimTint2": "#ffd27a",
+      "scrimTint2Alpha": 0.18,
+      "kickerColor": "#ffd27a",
+      "kickerTracking": ".3em",
+      "taglineColor": "#ffd9c0",
+      "taglineItalic": true,
+      "titleStyle": "solid",
+      "titleGradientFrom": "",
+      "titleGradientTo": ""
     },
     {
-      "key": "invalid",
-      "name": "Invalid Opinion ",
       "kind": "project",
+      "key": "invalid",
+      "name": "Invalid Opinion",
       "project": "invalid",
-      "c1": "#3f9bea",
-      "c2": "#6360e1",
-      "c3": "#ff5900",
-      "note": "The comedy's electric blue and terracotta with a hot-red pop from the key art."
+      "accent": "#74b3ff",
+      "scrimTint1": "#5096ff",
+      "scrimTint1Alpha": 0.3,
+      "scrimTint2": "",
+      "scrimTint2Alpha": 0,
+      "kickerColor": "",
+      "kickerTracking": "",
+      "taglineColor": "",
+      "taglineItalic": false,
+      "titleStyle": "gradient",
+      "titleGradientFrom": "#ffffff",
+      "titleGradientTo": "#9cc3ff"
     },
     {
+      "kind": "category",
       "key": "category-camera",
       "name": "Camera: Red",
-      "kind": "category",
       "category": "Camera (Red)",
       "c1": "#ea4335",
       "c2": "#ff7a6e",
-      "c3": "#b3160b",
-      "note": "Matches the Camera category tab/glow."
+      "c3": "#b3160b"
     },
     {
+      "kind": "category",
       "key": "category-lighting",
       "name": "Lighting (Amber)",
-      "kind": "category",
       "category": "Lighting",
       "c1": "#ff9900",
       "c2": "#ffc061",
-      "c3": "#cc7a00",
-      "note": "Matches the Lighting category tab/glow."
+      "c3": "#cc7a00"
     },
     {
+      "kind": "category",
       "key": "category-grip",
       "name": "Grip (Violet)",
-      "kind": "category",
       "category": "Grip",
       "c1": "#8b5cf6",
       "c2": "#b79cff",
-      "c3": "#6b3fd6",
-      "note": "Matches the Grip category tab/glow."
+      "c3": "#6b3fd6"
     },
     {
+      "kind": "category",
       "key": "category-electric",
       "name": "Electric (Yellow)",
-      "kind": "category",
       "category": "Electric",
       "c1": "#fbbc04",
       "c2": "#ffe08a",
-      "c3": "#c99400",
-      "note": "Matches the Electric category tab/glow."
+      "c3": "#c99400"
     },
     {
+      "kind": "category",
       "key": "category-sound",
       "name": "Sound (Green)",
-      "kind": "category",
       "category": "Sound Packages",
       "c1": "#34a853",
       "c2": "#6fdc93",
-      "c3": "#1f7d3a",
-      "note": "Matches the Sound Packages category tab/glow."
+      "c3": "#1f7d3a"
     }
   ]
 }

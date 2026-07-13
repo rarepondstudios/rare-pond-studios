@@ -84,6 +84,11 @@
   .pk-shades{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
   .pk-shade{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.16);cursor:copy}
   .pk-shade:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.4)}
+/* Locked (rainbow) look: previewable, not editable. */
+.look.locked .lk-note{border-left:3px solid #9b5cff;padding-left:10px}
+.lay.rainbow{background:conic-gradient(from var(--ang,0deg),#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;animation:hue 6s linear infinite}
+@property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes hue{to{--ang:360deg}}
 </style>
 </head>
 <body>
@@ -123,10 +128,44 @@
       +'<button class="cpy" title="Copy hex" data-idx="'+idx+'" data-slot="'+slot+'">&#10697;</button></div>'
       +'</div></div>';
   }
+  /* RAINBOW is the one structural look: not three colors, but the animated 9-stop
+     conic gradient (--rainbow) that the "More to come" bubble uses. It is shown
+     here for reference and preview, with no editable swatches, because there is
+     nothing to edit. */
+  function rainbowCard(L,idx){
+    return '<div class="look locked" data-idx="'+idx+'">'
+      +'<div class="glowbar">'
+        +'<div class="gb pin"><div class="lay rainbow"></div><span class="tag">Pinwheel</span></div>'
+        +'<div class="gb str"><div class="lay rainbow"></div><span class="tag">Stream</span></div>'
+      +'</div>'
+      +'<div class="lk-body">'
+        +'<div class="lk-meta">Basics &middot; locked</div>'
+        +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
+        +'<div class="lk-key">'+esc(L.key)+'</div>'
+        +'<div class="lk-note">Not editable, and not three colors. This is the animated rainbow gradient built into the site (used by the "More to come" bubble). It is listed as a look so other places can point at it.</div>'
+      +'</div></div>';
+  }
+  /* A project look carries the film's whole identity now (this replaced "Theme"):
+     accent + the two background tints are what you see and tune. */
+  function projectCard(L,idx){
+    var c1=L.accent, c2=L.scrimTint1, c3=L.scrimTint2;
+    return '<div class="look" data-idx="'+idx+'" style="--c1:'+esc(c1)+';--c2:'+esc(c2)+';--c3:'+esc(c3||c1)+'">'
+      +'<div class="glowbar">'
+        +'<div class="gb pin"><div class="lay"></div><span class="tag">Pinwheel</span></div>'
+        +'<div class="gb str"><div class="lay"></div><span class="tag">Stream</span></div>'
+      +'</div>'
+      +'<div class="lk-body">'
+        +'<div class="lk-meta">Project &middot; '+esc(L.project||'')+'</div>'
+        +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
+        +'<div class="lk-key">'+esc(L.key)+'</div>'
+        +'<div class="lk-note">'+(L.taglineItalic?'Italic tagline. ':'')+(L.kickerTracking?'Kicker tracking '+esc(L.kickerTracking)+'. ':'')+'Title: '+esc(L.titleStyle||'solid')+'.</div>'
+        +'<div class="sw">'+chip('Accent',L.accent,idx,'accent')+chip('BG tint 1',L.scrimTint1,idx,'scrimTint1')+chip('BG tint 2',L.scrimTint2,idx,'scrimTint2')+'</div>'
+      +'</div></div>';
+  }
   function card(L,idx){
-    var mapline = L.kind==='project' ? ('Project · '+esc(L.project||'')) :
-                  L.kind==='category' ? ('Rentals category · '+esc(L.category||'')) :
-                  L.kind==='spectrum' ? 'Spectrum' : 'Signature';
+    if(L.kind==='rainbow') return rainbowCard(L,idx);
+    if(L.kind==='project') return projectCard(L,idx);
+    var mapline = L.kind==='category' ? ('Rentals category · '+esc(L.category||'')) : 'Basics';
     return '<div class="look" data-idx="'+idx+'" style="--c1:'+esc(L.c1)+';--c2:'+esc(L.c2)+';--c3:'+esc(L.c3)+'">'
       +'<div class="glowbar">'
         +'<div class="gb pin"><div class="lay"></div><span class="tag">Pinwheel</span></div>'

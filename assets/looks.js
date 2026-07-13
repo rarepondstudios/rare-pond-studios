@@ -23,13 +23,43 @@
     return "/" + u.replace(/^\/+/, "");
   }
 
+  /* #rrggbb + 0..1 alpha -> "rgba(r,g,b,a)". Returns "" if the hex is bad, so the
+     caller can simply not set the variable and let the CSS fallback stand. */
+  function rgba(hex, alpha) {
+    if (!hexOk(hex)) return "";
+    var h = hex.trim().replace("#", "");
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    var a = Number(alpha);
+    if (!isFinite(a)) a = 1;
+    a = Math.max(0, Math.min(1, a));
+    return "rgba(" + parseInt(h.slice(0, 2), 16) + "," + parseInt(h.slice(2, 4), 16) + "," +
+           parseInt(h.slice(4, 6), 16) + "," + a + ")";
+  }
+
+  /* Build the CSS for one project look. Every declaration mirrors a var() whose
+     FALLBACK in index.html is the value the site shipped with, so an empty field
+     here means "leave it as it was" rather than "blank it out". */
+  function projectCss(L) {
+    var sel = ".theme-" + String(L.project || L.key), d = [];
+    if (hexOk(L.accent))        d.push("--accent:" + L.accent);
+    var s1 = rgba(L.scrimTint1, L.scrimTint1Alpha); if (s1) d.push("--scrim-1:" + s1);
+    var s2 = rgba(L.scrimTint2, L.scrimTint2Alpha); if (s2) d.push("--scrim-2:" + s2);
+    if (hexOk(L.kickerColor))   d.push("--kicker-color:" + L.kickerColor);
+    if (L.kickerTracking)       d.push("--kicker-tracking:" + String(L.kickerTracking).replace(/[^0-9a-z.%-]/gi, ""));
+    if (hexOk(L.taglineColor))  d.push("--tagline-color:" + L.taglineColor);
+    d.push("--tagline-style:" + (L.taglineItalic ? "italic" : "normal"));
+    if (hexOk(L.titleGradientFrom)) d.push("--title-from:" + L.titleGradientFrom);
+    if (hexOk(L.titleGradientTo))   d.push("--title-to:" + L.titleGradientTo);
+    return d.length ? (sel + "{" + d.join(";") + "}") : "";
+  }
+
   function applyLooks(looks) {
     var byKey = {}, byCat = {}, byProj = {};
     looks.forEach(function (L) {
       if (!L || !L.key) return;
       byKey[L.key] = L;
       if (L.category) byCat[L.category] = L;
-      if (L.project) byProj[L.project] = L;
+      if (L.kind === "project" && L.project) byProj[L.project] = L;
     });
 
     // 1) signature -> :root gradient stops (bubble glows + shared conic gradients)
@@ -41,9 +71,38 @@
       if (hexOk(sig.c3)) rs.setProperty("--g3", sig.c3);
     }
 
-    // 2) project focus-page accents are defined statically in index.html
-    //    (.theme-<key>{--accent} + the ACCENT map on the carousel), so color looks
-    //    are now purely 3 gradient colours (c1/c2/c3). Nothing to apply here.
+    // 2) PROJECT LOOKS -> the film pages. This replaces the old "Theme" system:
+    //    accent, scrim tints, kicker/tagline colour + style and title style all
+    //    come from Color Looks now. We inject ONE stylesheet of custom properties;
+    //    index.html's .theme-* rules read them with the original values as
+    //    fallbacks, so if this never runs the site looks exactly as it always did.
+    try {
+      var css = Object.keys(byProj).map(function (k) { return projectCss(byProj[k]); })
+                      .filter(Boolean).join("\n");
+      if (css) {
+        var tag = document.getElementById("rp-looks-css") || document.createElement("style");
+        tag.id = "rp-looks-css";
+        tag.textContent = css;
+        document.head.appendChild(tag);
+      }
+      // The carousel sets --accent inline per item, and may have been built before
+      // this fetch resolved, so re-apply to anything already on the page.
+      var accents = {};
+      Object.keys(byProj).forEach(function (k) {
+        if (hexOk(byProj[k].accent)) accents[k] = byProj[k].accent;
+      });
+      window.RP_ACCENTS = accents;
+      document.querySelectorAll(".citem[data-pk]").forEach(function (el) {
+        var a = accents[el.getAttribute("data-pk")];
+        if (a) el.style.setProperty("--accent", a);
+      });
+      // Title style: gradient-filled titles are opt-in per project.
+      Object.keys(byProj).forEach(function (k) {
+        document.querySelectorAll(".theme-" + k + " .u-title").forEach(function (t) {
+          t.classList.toggle("u-title-gradient", byProj[k].titleStyle === "gradient");
+        });
+      });
+    } catch (e) { /* leave the static theme CSS in charge */ }
 
     // 3) rentals category colours -> COL (app.js exposes the setter when present)
     try {
@@ -90,6 +149,10 @@
       // STREAM: seamless CONVEYOR - a 200%-wide strip carrying TWO identical colour periods, slid left by exactly one period.
       // Because the two halves are identical, translateX(-50%) lands on a pixel-identical frame => no reset/seam ever.
       ".rp-evbanner.rp-ev-stream .rp-evglow::before{right:auto;width:200%;background:linear-gradient(90deg,var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));opacity:.42;animation:rpevstream 16s linear infinite}",
+      // RAINBOW look selected -> paint the banner with the site's animated rainbow
+      // instead of an e1/e2/e3 ramp. Same gradient the "More to come" bubble uses.
+      ".rp-evbanner.rp-ev-rainbow .rp-evsheet{background:linear-gradient(90deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0)}",
+      ".rp-evbanner.rp-ev-rainbow .rp-evglow::before{background:conic-gradient(from var(--rpev-a),#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;opacity:.5}",
       "@keyframes rpevstream{from{transform:translateX(0)}to{transform:translateX(-50%)}}",
       // content is vertically CENTRED in a fixed band (top+bottom both anchored) via flex align-items:center.
       // This scoots the single-line copy UP a little and trims the reserved headroom, while on narrow screens - // where the title + button wrap to two lines - the taller block overflows the band symmetrically (grows
@@ -120,6 +183,13 @@
     var el = document.createElement("div");
     var style = (eb.gradientStyle === "pinwheel") ? "pinwheel" : "stream";  // per-place gradient control; default Stream for this wide header
     el.className = "rp-evbanner rp-ev-" + style;
+    /* RAINBOW is the one look that is not three colours: it is the animated 9-stop
+       conic gradient defined once as --rainbow in index.html (the same one the
+       "More to come" bubble uses). Selecting it here paints the banner with that
+       gradient instead of an e1/e2/e3 ramp. It is deliberately not editable. */
+    if (L.kind === "rainbow" || eb.colorLook === "rainbow") {
+      el.classList.add("rp-ev-rainbow");
+    }
     el.style.setProperty("--e1", hexOk(L.c1) ? L.c1 : "#3f6bff");
     el.style.setProperty("--e2", hexOk(L.c2) ? L.c2 : "#9b5cff");
     el.style.setProperty("--e3", hexOk(L.c3) ? L.c3 : "#56c8ff");
