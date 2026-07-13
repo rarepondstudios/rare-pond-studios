@@ -1,7 +1,7 @@
 {
   "projects": [
     {
-      "key": "geri",
+      "key": "ger",
       "title": "Geri-Action",
       "subtitle": "Hybrid Short Film",
       "placeholder": false,
@@ -68,11 +68,11 @@
       "title": "Invalid Opinion",
       "subtitle": "Comedy Short",
       "placeholder": false,
+      "logoText": "Invalid Opinion",
       "bubbleImage": "/media/projects/invalid-bubble.jpg",
       "titleLogo": "/media/projects/invalid-logo.png",
       "focusBg": "/media/projects/invalid-focus.jpg",
       "cardLogline": "Everybody's a critic... A fast, funny short about a guy who's always right, even when he's gloriously, and completely wrong.",
-      "logoText": "Invalid Opinion",
       "eyebrow": "Rare Pond Studios · Released",
       "kicker": "Comedy Short",
       "tagline": "Everybody's a critic.",
@@ -100,9 +100,9 @@
       "title": "More to come...",
       "subtitle": "Stay tuned",
       "placeholder": true,
+      "logoText": "More to come...",
       "focusBg": "/media/site/water.jpg",
       "cardLogline": "New worlds are in the works.",
-      "logoText": "More to come...",
       "blurb": "New worlds are in the works."
     }
   ]
