@@ -150,7 +150,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .citem.sideL{--off:calc(-1 * min(45.5vw,632px));width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
   .citem.sideR{--off:min(45.5vw,632px);width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
   .citem.hide{--off:0;width:150px;height:150px;opacity:0;z-index:1;pointer-events:none}
-  .cglow{position:absolute;inset:-16px;border-radius:42%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);filter:blur(6px);opacity:.2;transition:opacity .5s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;/* two animations: hue (paused until hover) and bob (always, in step with .cbub). animation-play-state takes one entry per animation, which is how they differ. */animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;animation-play-state:paused,running}
+  .cglow{position:absolute;inset:-16px;border-radius:42%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);filter:blur(6px);opacity:.2;transition:opacity .45s ease,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;/* two animations: hue (paused until hover) and bob (always, in step with .cbub). animation-play-state takes one entry per animation, which is how they differ. */animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;animation-play-state:paused,running}
   .citem.feat .cglow{opacity:.32;border-radius:18%}
   .citem:hover .cglow{opacity:.9;animation-play-state:running,running}
 
@@ -192,12 +192,26 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     transition:opacity .45s ease,visibility 0s linear .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;
     background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));
     filter:blur(14px);
-    /* bob in step with the bubble, or the glow visibly detaches and floats while the bubble
-       drifts. Same duration and --i offset as .cbub / .bubble-inner, so they move as one. */
-    animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate}
-  .bubble::before{animation-duration:calc(7s + var(--i,0)*0.9s)}
+    /* TWO animations, and both of them exist to keep this halo welded to the glow inside the
+       bubble rather than looking like a second, unrelated light source:
+
+       hue - the pinwheel spin. This layer used to have NO hue animation at all, so its colours
+         sat perfectly still at 0deg while .glow / .cglow and the rim spun on hover. Outside
+         frozen, inside turning: that is the disconnect. Same 6s, same linear timing, and the
+         same paused-until-hover play-state as the inner layers, so all of them accumulate
+         exactly the same running time and therefore hold exactly the same angle, forever.
+       bob - the drift. Same duration and --i offset as .cbub / .bubble-inner, or the glow
+         detaches and floats while the bubble moves.
+
+       animation-play-state takes one entry per animation, which is what lets hue be
+       hover-only while bob runs continuously. */
+    animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;
+    animation-play-state:paused,running}
+  /* two animations now, so the duration override has to be a LIST - a bare calc() here would
+     have been applied to hue as well and left the halo spinning at a different speed. */
+  .bubble::before{animation-duration:6s,calc(7s + var(--i,0)*0.9s)}
   .citem.feat::before{border-radius:16%/24%}
-  .citem:hover::before,.bubble:hover::before{opacity:.42;visibility:visible;transition:opacity .45s ease,visibility 0s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
+  .citem:hover::before,.bubble:hover::before{opacity:.42;visibility:visible;animation-play-state:running,running;transition:opacity .45s ease,visibility 0s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
   /* A special look (Rainbow) hands over its whole gradient. The halo only exists on hover in
      the first place, so this needs no :hover qualifier - it can never show at rest. */
   .citem.rp-glow-special::before,.bubble.rp-glow-special::before{background:var(--rp-glow)}
