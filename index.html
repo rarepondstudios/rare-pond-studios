@@ -38,15 +38,21 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      --evbanner-h is the space the event banner pushes the page down by. It starts at 0
      and is set BEFORE FIRST PAINT by the inline script in <head> from the last known
      height (see there for why), then confirmed by looks.js once site.json lands. */
-  /* scrollbar-gutter keeps the scrollbar's space reserved even when body.locked turns
-     overflow off to open a film. Without it, on any platform with classic (space-taking)
-     scrollbars the page jumps sideways by the scrollbar's width the instant a film opens
-     and jumps back when it closes - which also drags the radial wipe's origin off the
-     bubble it is supposed to be growing out of. Mac's overlay scrollbars take no space,
-     so this is a no-op here and a fix everywhere else. */
-  html{scroll-behavior:smooth;background:#06122b;--evbanner-h:0px;scrollbar-gutter:stable}
+  html{scroll-behavior:smooth;background:#06122b;--evbanner-h:0px}
   body{margin:0;font-family:var(--font);color:#eaf2ff;background:#06122b;overflow-x:hidden}
-  body.locked{overflow:hidden}
+  /* Opening a film turns page scrolling off. On any platform with classic (space-taking)
+     scrollbars that hands the scrollbar's width back to the page, which jumps sideways -
+     and drags the radial wipe's origin off the bubble it is supposed to be growing out of.
+     We hold the width open with padding instead: --sbw is measured (in openUniverse) the
+     instant before locking, so the page does not move a pixel.
+
+     This replaces `scrollbar-gutter:stable` on <html>, which reserved the strip permanently
+     and looked right until you opened a film: a position:fixed element does NOT span a
+     reserved gutter, so .universe stopped ~15px short of the right edge and the page's own
+     dark background showed through as a black bar down the side of every project page.
+     Padding on a LOCKED body has no such side-effect - it only exists while a film is open,
+     and fixed layers still cover the whole viewport. */
+  body.locked{overflow:hidden;padding-right:var(--sbw,0px)}
   section{scroll-margin-top:100px;position:relative}
   a{color:inherit}
   /* THE VIEWS. showView() decides which one is up, but showView only runs once __main()
@@ -1224,6 +1230,10 @@ function openUniverse(key){
   void sec.offsetWidth;
   sec.style.transition='';
 
+  /* Measure the scrollbar NOW, while the page still has one, and hold its width open with
+     padding for as long as the film is up (see body.locked). Overlay scrollbars (Mac) give
+     0 and nothing happens. */
+  document.documentElement.style.setProperty('--sbw',(innerWidth-document.documentElement.clientWidth)+'px');
   document.body.classList.add('locked');
   sec.classList.add('flash');
   requestAnimationFrame(()=>sec.classList.add('open'));currentOpen=sec;
