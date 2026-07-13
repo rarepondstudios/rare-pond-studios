@@ -45,32 +45,45 @@
     var head = document.getElementById('mSocials');
     if (head) head.innerHTML = socialsHTML(s.socials);
 
-    var foot = document.getElementById('mFoot');
-    if (!foot) return;
+    if (!document.getElementById('mFoot')) return;
     var f = s.footer || {};
-    var logo = (s.logos && (s.logos.footer || s.logos.color)) || '/media/logos/rare-pond-color.png';
 
-    /* The footer's links are CMS-driven. On the real site some of them are in-page jumps
-       ("go": "team"); the cover is a standalone page, so those become real hash links to the
-       home page - which is what a visitor stranded here actually needs. */
-    var links = (f.links || []).map(function (l) {
-      var href = l.href ? l.href : ('/#' + (l.go || ''));
-      return '<a href="' + esc(href) + '">' + esc(l.label || '') + '</a>';
-    }).join('');
+    /* The caustic water fade behind the footer, exactly as the home page does it
+       (.deepwater + SITE.water). Without it the footer reads as a flat panel. */
+    var water = document.getElementById('mWater');
+    if (water && s.water) water.style.backgroundImage = 'url("' + s.water + '")';
 
-    foot.innerHTML =
-      '<div class="mfoot-in">'
-      + '<div class="mfoot-logo"><img src="' + esc(logo) + '" alt="Rare Pond Studios"></div>'
-      + (f.tagline ? '<div class="mfoot-tag">' + esc(f.tagline) + '</div>' : '')
-      + '<div class="mfoot-soc">' + socialsHTML(s.socials) + '</div>'
-      + (links ? '<div class="mfoot-links">' + links + '</div>' : '')
-      + '<div class="mfoot-copy">'
-      +   (f.copyrightUrl
-            ? '<a href="' + esc(safeUrl(f.copyrightUrl)) + '" target="_blank" rel="noopener">'
-              + esc(f.copyrightUrlText || 'rarepond.com') + '</a> · '
-            : '')
-      +   esc(f.copyright || '')
-      + '</div>'
-      + '</div>';
+    /* The footer logo. The studio footer uses logos.footer when set, else logos.color -
+       same precedence, so the cover cannot show a different mark from the real footer. */
+    var logo = document.getElementById('mFootLogo');
+    var src = (s.logos && (s.logos.footer || s.logos.color)) || '/media/logos/rare-pond-color.png';
+    if (logo) logo.src = src;
+
+    var tag = document.getElementById('mFootTag');
+    if (tag && f.tagline) tag.textContent = f.tagline;
+
+    var soc = document.getElementById('mFootSoc');
+    if (soc) soc.innerHTML = socialsHTML(s.socials);
+
+    /* Footer links are CMS-driven. On the real site some are in-page jumps ("go": "team")
+       handled by the SPA router; the cover is a standalone page with no router, so those
+       become real /#team links - which is what someone stranded here actually needs. */
+    var links = document.getElementById('mFootLinks');
+    if (links) {
+      links.innerHTML = (f.links || []).map(function (l) {
+        var href = l.href ? l.href : ('/#' + (l.go || ''));
+        return '<a href="' + esc(href) + '">' + esc(l.label || '') + '</a>';
+      }).join('');
+    }
+
+    var copy = document.getElementById('mFootCopy');
+    if (copy) {
+      var link = f.copyrightUrlText
+        ? '<a href="' + esc(safeUrl(f.copyrightUrl || 'https://rarepond.com')) + '" target="_blank" rel="noopener">'
+          + esc(f.copyrightUrlText) + '</a>'
+        : '';
+      var cp = esc(f.copyright || '');
+      copy.innerHTML = (link && cp) ? (link + ' · ' + cp) : (link || cp);
+    }
   };
 })();
