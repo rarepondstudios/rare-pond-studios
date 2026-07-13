@@ -323,7 +323,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .cshade{position:absolute;inset:0;z-index:4;border-radius:inherit;pointer-events:none;background:radial-gradient(120% 90% at 50% 120%,rgba(0,8,28,.24),transparent 55%),linear-gradient(180deg,rgba(255,255,255,.1),transparent 28%)}
   .crim{position:absolute;inset:0;z-index:5;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 18px rgba(255,255,255,.3),inset 0 0 6px rgba(255,255,255,.55),inset 6px 8px 22px rgba(0,10,40,.5)}
   .cspec{position:absolute;inset:0;z-index:6;border-radius:inherit;pointer-events:none;background:radial-gradient(30% 24% at var(--mx,80%) var(--my,16%),rgba(255,255,255,.55),transparent 60%);opacity:.5;transition:background .2s}
-  .cedge{position:absolute;inset:0;z-index:7;border-radius:inherit;pointer-events:none;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);opacity:.4;transition:opacity .45s;animation:hue 6s linear infinite;animation-play-state:paused}
+  .cedge{position:absolute;inset:0;z-index:7;border-radius:inherit;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);opacity:.4;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;animation:hue 6s linear infinite;animation-play-state:paused}
   .citem:hover .cedge{opacity:.9;animation-play-state:running}
   .divehint{position:absolute;left:0;right:0;bottom:0;z-index:8;padding:30px 0 12px;text-align:center;pointer-events:none;font-weight:800;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#fff;opacity:0;transition:opacity .3s;background:linear-gradient(180deg,transparent,rgba(2,10,28,.55));text-shadow:0 2px 8px rgba(0,10,40,.8)}
   .citem.feat:hover .divehint{opacity:1}
@@ -367,8 +367,8 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .glass .rim{position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 18px rgba(255,255,255,.3),inset 0 0 6px rgba(255,255,255,.55),inset 6px 8px 22px rgba(0,10,40,.5)}
   .glass .spec{position:absolute;inset:0;border-radius:50%;background:radial-gradient(34% 26% at var(--mx) var(--my),rgba(255,255,255,.82),rgba(255,255,255,.2) 36%,transparent 60%);opacity:.6;transition:background .25s}
   .glass .spec.small{background:radial-gradient(8% 7% at calc(var(--mx) - 5%) calc(var(--my) - 5%),rgba(255,255,255,1),transparent 60%);opacity:.9}
-  .edge{position:absolute;inset:0;border-radius:50%;z-index:4;pointer-events:none;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));
-    -webkit-mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);opacity:.45;transition:opacity .45s;animation:hue 6s linear infinite;animation-play-state:paused}
+  .edge{position:absolute;inset:0;border-radius:50%;z-index:4;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));
+    -webkit-mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);opacity:.45;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;animation:hue 6s linear infinite;animation-play-state:paused}
   .bubble.placeholder .edge{opacity:.5}
   .bubble.placeholder:hover .edge{background:var(--rainbow);opacity:1}
   .bubble>.bubble-logo{position:absolute;left:50%;top:-17%;transform:translateX(-50%);z-index:7;pointer-events:none;display:grid;place-items:center;transition:opacity .4s,transform .5s}
@@ -397,16 +397,23 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      films that opted in. The layers inherit --gg* from the bubble, so a change on the bubble
      is a computed-value change on the layer, and the layer's own transition animates it.
 
-     The rim (.edge/.cedge) is untouched: it reads --g1/--g2/--g3 in every state. It is the
-     bubble's silhouette, not its glow.
+     EVERY COLOURED LAYER IS ON --gg*, NOT JUST THE ONES OUTSIDE THE BUBBLE. There are three:
+     the halo behind it (::before), the glow around it (.glow / .cglow), and THE RIM THAT SITS
+     ON TOP OF THE IMAGE (.edge / .cedge). The rim was deliberately left on the signature at
+     first, on the theory that it is the bubble's silhouette rather than its glow. On screen
+     that reads as a bug, not a decision: hovering an opted-in bubble lit the outside up in the
+     film's colours while the ring over the artwork stayed blue, so the two halves of the same
+     glow disagreed. All three now change together, and all three still sit on the signature at
+     rest, because --gg* forwards --g1/--g2/--g3 until :hover says otherwise.
 
      ON + a "special" look (Rainbow): three hex stops cannot express an eight-stop animated
      ramp, so looks.js hands the whole gradient over in --rp-glow. A gradient cannot be
-     interpolated, so that one lands on hover as a straight swap - still hover-only. */
+     interpolated, so those land on hover as a straight swap - still hover-only, and still on
+     all three layers. */
   .citem,.bubble{--gg1:var(--g1);--gg2:var(--g2);--gg3:var(--g3)}
   .citem.rp-hover-look:hover,.bubble.rp-hover-look:hover{--gg1:var(--h1,var(--g1));--gg2:var(--h2,var(--g2));--gg3:var(--h3,var(--g3))}
-  .bubble.rp-glow-special:hover .glow,
-  .citem.rp-glow-special:hover .cglow{background:var(--rp-glow)}
+  .bubble.rp-glow-special:hover .glow,.bubble.rp-glow-special:hover .edge,
+  .citem.rp-glow-special:hover .cglow,.citem.rp-glow-special:hover .cedge{background:var(--rp-glow)}
   .caption{position:absolute;left:50%;top:calc(100% + 20px);transform:translateX(-50%);text-align:center;white-space:nowrap;pointer-events:none}
   .caption .t{font-weight:800;font-size:18px;margin-bottom:3px;opacity:0;transform:translateY(8px);transition:.35s;color:#eef5ff;text-shadow:0 2px 10px rgba(0,10,40,.5)}
   .caption .s{font-size:12px;color:#c4dcf6;letter-spacing:.16em;text-transform:uppercase;font-weight:700;text-shadow:0 2px 8px rgba(0,10,40,.5)}
