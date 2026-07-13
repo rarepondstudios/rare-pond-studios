@@ -4,7 +4,7 @@
     {
       "key": "geri",
       "colorLook": "geri",
-      "bubbleGlow": false,
+      "bubbleGlow": true,
       "inCarousel": true,
       "title": "Geri-Action",
       "subtitle": "Hybrid Short Film",
@@ -40,7 +40,7 @@
     {
       "key": "rev",
       "colorLook": "rev",
-      "bubbleGlow": false,
+      "bubbleGlow": true,
       "inCarousel": true,
       "title": "Revelations",
       "subtitle": "Short Film",
@@ -74,7 +74,7 @@
     {
       "key": "invalid",
       "colorLook": "invalid",
-      "bubbleGlow": false,
+      "bubbleGlow": true,
       "inCarousel": true,
       "title": "Invalid Opinion",
       "subtitle": "Comedy Short",
