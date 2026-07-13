@@ -40,19 +40,24 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      height (see there for why), then confirmed by looks.js once site.json lands. */
   html{scroll-behavior:smooth;background:#06122b;--evbanner-h:0px}
   body{margin:0;font-family:var(--font);color:#eaf2ff;background:#06122b;overflow-x:hidden}
-  /* Opening a film turns page scrolling off. On any platform with classic (space-taking)
-     scrollbars that hands the scrollbar's width back to the page, which jumps sideways -
-     and drags the radial wipe's origin off the bubble it is supposed to be growing out of.
-     We hold the width open with padding instead: --sbw is measured (in openUniverse) the
-     instant before locking, so the page does not move a pixel.
+  /* Opening a film turns page scrolling off, which on any platform with classic
+     (space-taking) scrollbars gives the scrollbar's 15px back to the page. THE PAGE IS
+     ALLOWED TO REFLOW INTO IT. Two cleverer schemes both produced a black bar down the
+     right-hand side, because both left that 15px strip belonging to nothing:
 
-     This replaces `scrollbar-gutter:stable` on <html>, which reserved the strip permanently
-     and looked right until you opened a film: a position:fixed element does NOT span a
-     reserved gutter, so .universe stopped ~15px short of the right edge and the page's own
-     dark background showed through as a black bar down the side of every project page.
-     Padding on a LOCKED body has no such side-effect - it only exists while a film is open,
-     and fixed layers still cover the whole viewport. */
-  body.locked{overflow:hidden;padding-right:var(--sbw,0px)}
+       scrollbar-gutter:stable on <html> - reserves the strip permanently, but a
+         position:fixed element does not span a reserved gutter, so the film itself stopped
+         15px short and the dark page background showed beside it.
+       padding-right on body.locked - holds the width open, but the page's background is
+         painted by elements INSIDE body, so they stopped at the padding and the last 15px
+         was bare body: a black bar, visible for exactly as long as the wipe took to cover
+         it. (This is the one Jack filmed.)
+
+     Letting the page reflow leaves nothing exposed: the background fills the full width and
+     the film covers everything. The cost is that the page behind shifts by half a scrollbar
+     as it re-centres - which is why the wipe's origin is measured AFTER the lock, so it is
+     measured against the layout the viewer actually sees. */
+  body.locked{overflow:hidden}
   section{scroll-margin-top:100px;position:relative}
   a{color:inherit}
   /* THE VIEWS. showView() decides which one is up, but showView only runs once __main()
@@ -1218,6 +1223,13 @@ function openUniverse(key){
   sec.dataset.key=key;
   sec.querySelector('.back').textContent=(activeView==='projects')?'‹ Back to projects':'‹ Back to the pond';
 
+  /* LOCK FIRST, THEN MEASURE. Locking removes the page's scrollbar, and on a machine with
+     classic scrollbars the page immediately re-centres into the 15px it gets back - so the
+     bubble is NOT where it was when the click landed. Measuring after the lock measures the
+     layout the viewer is actually looking at while the wipe plays, which is the only one
+     that matters. (closeUniverse does the mirror image: unlock first, then measure.) */
+  document.body.classList.add('locked');
+
   /* Reopening a film while its own close is still animating used to make the wipe leap: the
      clip-path was mid-flight at the OLD origin, and moving the origin under a half-drawn
      circle drags the whole circle sideways. So we cut the transition, plant the closed
@@ -1230,11 +1242,6 @@ function openUniverse(key){
   void sec.offsetWidth;
   sec.style.transition='';
 
-  /* Measure the scrollbar NOW, while the page still has one, and hold its width open with
-     padding for as long as the film is up (see body.locked). Overlay scrollbars (Mac) give
-     0 and nothing happens. */
-  document.documentElement.style.setProperty('--sbw',(innerWidth-document.documentElement.clientWidth)+'px');
-  document.body.classList.add('locked');
   sec.classList.add('flash');
   requestAnimationFrame(()=>sec.classList.add('open'));currentOpen=sec;
   syncFocusVideo();     // the carousel is behind a full-screen film now - stop decoding it
