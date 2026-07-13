@@ -104,10 +104,10 @@
   },
   "eventBanner": {
     "enabled": true,
-    "title": "Get your Earth Eviction Pass Here",
-    "buttonText": "Claim Yours!",
-    "buttonLink": "/#team",
-    "colorLook": "rev",
+    "title": "Rent Our Shit",
+    "buttonText": "Do It",
+    "buttonLink": "/#rentals",
+    "colorLook": "rainbow",
     "gradientStyle": "stream"
   }
 }
