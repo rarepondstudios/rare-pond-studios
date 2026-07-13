@@ -10,12 +10,79 @@
       "c1": "#3f6bff",
       "c2": "#9b5cff",
       "c3": "#56c8ff",
-      "note": "The site-wide gradient: bubble glows and shared gradients."
+      "note": "The site-wide gradient: bubble glows and shared gradients. Color 1/2/3 are the three gradient stops."
     },
     {
       "kind": "rainbow",
       "key": "rainbow",
-      "name": "Rainbow (locked)"
+      "name": "Rainbow (locked)",
+      "c1": "",
+      "c2": "",
+      "c3": "",
+      "note": "Not three colors. The animated rainbow gradient built into the site. Nothing here is editable; it is listed so other places can point at it."
+    },
+    {
+      "kind": "film",
+      "key": "geri",
+      "name": "Geri-Action",
+      "c1": "#e0455f",
+      "c2": "#4f77ff",
+      "c3": "#9a4bc9",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
+      "taglineItalic": false,
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1",
+      "note": "Pulled from the Geri-Action key art: magenta-reds, blues and purples."
+    },
+    {
+      "kind": "film",
+      "key": "rev",
+      "name": "Revelations",
+      "c1": "#ffffff",
+      "c2": "#bd9661",
+      "c3": "#b86e19",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.34,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color2",
+      "kickerTracking": ".3em",
+      "taglineColor": "white",
+      "taglineItalic": true,
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color2",
+      "note": "Heaven's cool steel against Earth's warm gold, with the project's ember tones."
+    },
+    {
+      "kind": "film",
+      "key": "invalid",
+      "name": "Invalid Opinion",
+      "c1": "#3f9bea",
+      "c2": "#6360e1",
+      "c3": "#ff5900",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "lightBlue",
+      "taglineItalic": false,
+      "titleStyle": "gradient",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "lightBlue",
+      "note": "The comedy's electric blue and indigo with a hot-red pop from the key art."
     },
     {
       "kind": "basics",
@@ -24,7 +91,7 @@
       "c1": "#ea4335",
       "c2": "#ea4335",
       "c3": "#ea4335",
-      "note": "A named colour. Assign it to a rentals category on the Rentals page."
+      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
     },
     {
       "kind": "basics",
@@ -33,7 +100,7 @@
       "c1": "#ff9900",
       "c2": "#ff9900",
       "c3": "#ff9900",
-      "note": "A named colour. Assign it to a rentals category on the Rentals page."
+      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
     },
     {
       "kind": "basics",
@@ -42,7 +109,7 @@
       "c1": "#8b5cf6",
       "c2": "#8b5cf6",
       "c3": "#8b5cf6",
-      "note": "A named colour. Assign it to a rentals category on the Rentals page."
+      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
     },
     {
       "kind": "basics",
@@ -51,7 +118,7 @@
       "c1": "#fbbc04",
       "c2": "#fbbc04",
       "c3": "#fbbc04",
-      "note": "A named colour. Assign it to a rentals category on the Rentals page."
+      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
     },
     {
       "kind": "basics",
@@ -60,61 +127,7 @@
       "c1": "#34a853",
       "c2": "#34a853",
       "c3": "#34a853",
-      "note": "A named colour. Assign it to a rentals category on the Rentals page."
-    },
-    {
-      "kind": "film",
-      "key": "geri",
-      "name": "Geri-Action",
-      "accent": "#e0455f",
-      "main": "#4f77ff",
-      "mainAlpha": 0.3,
-      "tint": "#9a4bc9",
-      "tintAlpha": 0.18,
-      "kickerColor": "#e0455f",
-      "kickerTracking": ".24em",
-      "taglineColor": "#ffd9a0",
-      "taglineItalic": false,
-      "titleStyle": "solid",
-      "titleGradientFrom": "#ffffff",
-      "titleGradientTo": "#e0455f",
-      "note": "Pulled from the Geri-Action key art: magenta-reds, blues and purples."
-    },
-    {
-      "kind": "film",
-      "key": "rev",
-      "name": "Revelations",
-      "accent": "#ffffff",
-      "main": "#bd9661",
-      "mainAlpha": 0.34,
-      "tint": "#b86e19",
-      "tintAlpha": 0.18,
-      "kickerColor": "#bd9661",
-      "kickerTracking": ".3em",
-      "taglineColor": "#ffd9c0",
-      "taglineItalic": true,
-      "titleStyle": "solid",
-      "titleGradientFrom": "#ffffff",
-      "titleGradientTo": "#bd9661",
-      "note": "Heaven's cool steel against Earth's warm gold, with the project's ember tones."
-    },
-    {
-      "kind": "film",
-      "key": "invalid",
-      "name": "Invalid Opinion",
-      "accent": "#3f9bea",
-      "main": "#6360e1",
-      "mainAlpha": 0.3,
-      "tint": "#ff5900",
-      "tintAlpha": 0.18,
-      "kickerColor": "#3f9bea",
-      "kickerTracking": ".24em",
-      "taglineColor": "#eaf2ff",
-      "taglineItalic": false,
-      "titleStyle": "gradient",
-      "titleGradientFrom": "#ffffff",
-      "titleGradientTo": "#9cc3ff",
-      "note": "The comedy's electric blue and indigo with a hot-red pop from the key art."
+      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
     }
   ]
 }

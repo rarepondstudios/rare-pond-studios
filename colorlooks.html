@@ -31,9 +31,28 @@
   .gb+.gb{border-top:1px solid rgba(255,255,255,.14)}
   .gb .lay{position:absolute;inset:-15%;filter:blur(15px)}
   .gb.pin .lay{background:conic-gradient(from var(--a),var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));opacity:.85;animation:spin 9s linear infinite}
-  .gb.str .lay{right:auto;width:200%;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3),var(--c2),var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));opacity:.9;animation:slide 14s linear infinite;will-change:transform}
+  /* STREAM. Seamless by construction, for ANY colours.
+     The old version slid the element with translateX(-50%). That could never loop:
+     .lay is inset:-15% (so the blur can bleed), which made the element span -15% to
+     185%, and translating it by -100% of the box left the right-hand 15% EMPTY - the
+     blank strip that appeared just before it snapped back.
+
+     Instead: one gradient TILE that starts and ends on the same colour, tiled across
+     the element (background-size 50%, i.e. exactly two tiles), then scrolled by
+     exactly one tile width. Because the tile's first and last stop are identical, the
+     seam is invisible, and because the background repeats forever there is no edge to
+     run out of. Change the colours to anything and it still loops perfectly. */
+  .gb.str .lay{
+    background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));
+    background-size:50% 100%;
+    background-repeat:repeat;
+    opacity:.9;
+    animation:slide 14s linear infinite;
+    will-change:background-position;
+  }
   @keyframes spin{to{--a:360deg}}
-  @keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  /* 0% -> 100% of a 50%-wide tile == exactly one tile width. Perfect loop. */
+  @keyframes slide{from{background-position:0% 0}to{background-position:100% 0}}
   .gb .tag{position:absolute;left:8px;top:6px;z-index:2;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;
     text-shadow:0 1px 6px rgba(0,0,0,.6);background:rgba(0,0,0,.3);padding:2px 7px;border-radius:6px}
   @media(prefers-reduced-motion:reduce){.gb .lay{animation:none}}
@@ -99,7 +118,7 @@
 .gb.pin .lay.rainbow{background:conic-gradient(from var(--ang,0deg),#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;animation:hue 6s linear infinite}
 /* The spectrum is listed TWICE and ends on the colour it began with, so the
    0 -> -50% slide is seamless and loops forever. */
-.gb.str .lay.rainbow{right:auto;width:200%;background:linear-gradient(90deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;opacity:.9;animation:slide 14s linear infinite;will-change:transform}
+.gb.str .lay.rainbow{background:linear-gradient(90deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;background-size:50% 100%!important;background-repeat:repeat!important;opacity:.9;animation:slide 14s linear infinite;will-change:background-position}
 @property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
 @keyframes hue{to{--ang:360deg}}
 /* Link validator: badges + the loud banner. */
@@ -110,6 +129,15 @@
 .badge.bad{background:rgba(255,107,107,.15);color:#ff6b6b;border:1px solid rgba(255,107,107,.45)}
 #linkwarn{display:none;margin:0 0 22px;padding:14px 16px;border-radius:12px;background:rgba(255,107,107,.10);border:1px solid rgba(255,107,107,.45);color:#ffd7d7;font-size:13.5px;line-height:1.6}
 #linkwarn code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:5px;color:#fff}
+/* "Used for" table: which of the look's colours drives which part of the page. */
+.uses{margin-top:12px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px}
+.uses-h{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#8ba6c9;margin-bottom:7px}
+.use{display:flex;align-items:center;gap:8px;font-size:11.5px;line-height:1.9;color:#c8d8ef}
+.use-dot{width:11px;height:11px;border-radius:3px;flex:none;border:1px solid rgba(255,255,255,.28)}
+.use-role{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.use-val{font-weight:700;color:#eaf2ff;flex:none}
+.use-hex{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#8ba6c9;flex:none}
+.uses-x{margin-top:7px;font-size:11px;color:#8ba6c9;font-style:italic}
 </style>
 </head>
 <body>
@@ -190,57 +218,80 @@
      edit. Pinwheel = rotating conic; Stream = a linear spectrum that slides and
      loops (they are styled separately - applying the conic to both was the bug
      that made Stream drag the pinwheel's centre sideways). */
-  function rainbowCard(L,idx){
-    return '<div class="look locked" data-idx="'+idx+'">'
-      +'<div class="glowbar">'
-        +'<div class="gb pin"><div class="lay rainbow"></div><span class="tag">Pinwheel</span></div>'
-        +'<div class="gb str"><div class="lay rainbow"></div><span class="tag">Stream</span></div>'
-      +'</div>'
-      +'<div class="lk-body">'
-        +'<div class="lk-meta">Locked'+usedBadge(L)+'</div>'
-        +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
-        +'<div class="lk-key">'+esc(L.key)+'</div>'
-        +'<div class="lk-note">Not editable, and not three colors. This is the animated rainbow gradient built into the site. It is listed as a look so other places can point at it.</div>'
-        +usedList(L)
-      +'</div></div>';
+  /* ---- THE PALETTE -----------------------------------------------------------
+     Every look holds Color 1 / 2 / 3. Each USE-CASE (accent, washes, kicker,
+     tagline, title) stores a TOKEN naming which colour to use - not a hex. So
+     changing Color 2 updates everything pointing at Color 2. Four fixed site
+     colours are also available. This mirrors assets/looks.js exactly.           */
+  var FIXED = { white:'#ffffff', black:'#000000', lightBlue:'#eaf2ff', darkBlue:'#0b2c55' };
+  var ROLE_LABEL = {
+    accent:'Accent (kicker, Where-to-Watch, carousel glow)',
+    main:'Main background wash',
+    tint:'Secondary wash',
+    kickerColor:'Kicker text',
+    taglineColor:'Tagline',
+    titleGradientFrom:'Title gradient - top',
+    titleGradientTo:'Title gradient - bottom'
+  };
+  function pick(L, token){
+    if(!token) return '';
+    var t=String(token).trim();
+    if(t==='color1') return L.c1||'';
+    if(t==='color2') return L.c2||'';
+    if(t==='color3') return L.c3||'';
+    if(FIXED[t]) return FIXED[t];
+    if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(t)) return t;
+    return '';
   }
-  /* A FILM look carries a movie's whole identity (this replaced "Theme"):
-       accent = the pop (kicker, Where-to-Watch label, carousel glow)
-       main   = the dominant background wash
-       tint   = the secondary wash                                            */
-  function projectCard(L,idx){
-    var c1=L.accent, c2=L.main, c3=L.tint;
-    return '<div class="look" data-idx="'+idx+'" style="--c1:'+esc(c1)+';--c2:'+esc(c2)+';--c3:'+esc(c3||c1)+'">'
-      +'<div class="glowbar">'
-        +'<div class="gb pin"><div class="lay"></div><span class="tag">Pinwheel</span></div>'
-        +'<div class="gb str"><div class="lay"></div><span class="tag">Stream</span></div>'
-      +'</div>'
-      +'<div class="lk-body">'
-        +'<div class="lk-meta">Film'+usedBadge(L)+'</div>'
-        +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
-        +'<div class="lk-key">'+esc(L.key)+'</div>'
-        +'<div class="lk-note">'+(L.taglineItalic?'Italic tagline. ':'')+(L.kickerTracking?'Kicker tracking '+esc(L.kickerTracking)+'. ':'')+'Title: '+esc(L.titleStyle||'solid')+'.</div>'
-        +'<div class="sw">'+chip('Accent',L.accent,idx,'accent')+chip('Main',L.main,idx,'main')+chip('Tint',L.tint,idx,'tint')+'</div>'
-        +usedList(L)
-      +'</div></div>';
+  function tokenName(t){
+    if(t==='color1') return 'Color 1'; if(t==='color2') return 'Color 2'; if(t==='color3') return 'Color 3';
+    if(t==='white') return 'White'; if(t==='black') return 'Black';
+    if(t==='lightBlue') return 'Light Blue'; if(t==='darkBlue') return 'Dark Blue';
+    return t||'(not set)';
   }
+  /* Which colour is used where. Read-only here - change it in Pages CMS. */
+  function usesTable(L){
+    var rows = Object.keys(ROLE_LABEL).filter(function(r){ return L[r]; }).map(function(r){
+      var hex = pick(L, L[r]);
+      return '<div class="use"><span class="use-dot" style="background:'+esc(hex||'#ffffff')+'"></span>'
+           + '<span class="use-role">'+esc(ROLE_LABEL[r])+'</span>'
+           + '<span class="use-val">'+esc(tokenName(L[r]))+'</span>'
+           + '<span class="use-hex">'+esc(hex||'unset -> white')+'</span></div>';
+    }).join('');
+    if(!rows) return '';
+    var extra=[];
+    if(L.taglineItalic) extra.push('italic tagline');
+    if(L.kickerTracking) extra.push('kicker tracking '+esc(L.kickerTracking));
+    if(L.titleStyle) extra.push('title: '+esc(L.titleStyle));
+    return '<div class="uses"><div class="uses-h">Used for</div>'+rows
+      +(extra.length?'<div class="uses-x">'+extra.join(' &middot; ')+'</div>':'')+'</div>';
+  }
+
   function card(L,idx){
-    if(L.kind==='rainbow') return rainbowCard(L,idx);
-    if(L.kind==='film') return projectCard(L,idx);
-    var mapline = 'Basics'+usedBadge(L);
-    return '<div class="look" data-idx="'+idx+'" style="--c1:'+esc(L.c1)+';--c2:'+esc(L.c2)+';--c3:'+esc(L.c3)+'">'
-      +'<div class="glowbar">'
-        +'<div class="gb pin"><div class="lay"></div><span class="tag">Pinwheel</span></div>'
-        +'<div class="gb str"><div class="lay"></div><span class="tag">Stream</span></div>'
-      +'</div>'
+    var locked = L.kind==='rainbow';
+    var c1=L.c1||'', c2=L.c2||'', c3=L.c3||'';
+    var kindTag = L.kind==='film' ? 'Film' : (locked ? 'Rainbow (locked)' : 'Basics');
+    var bars = locked
+      ? '<div class="gb pin"><div class="lay rainbow"></div><span class="tag">Pinwheel</span></div>'
+        +'<div class="gb str"><div class="lay rainbow"></div><span class="tag">Stream</span></div>'
+      : '<div class="gb pin"><div class="lay"></div><span class="tag">Pinwheel</span></div>'
+        +'<div class="gb str"><div class="lay"></div><span class="tag">Stream</span></div>';
+    var swatches = locked
+      ? '<div class="lk-note">Not editable, and not three colors. This is the animated rainbow gradient built into the site. It is listed as a look so other places can point at it.</div>'
+      : '<div class="sw">'+chip('Color 1',c1,idx,'c1')+chip('Color 2',c2,idx,'c2')+chip('Color 3',c3,idx,'c3')+'</div>';
+    return '<div class="look'+(locked?' locked':'')+'" data-idx="'+idx+'" style="--c1:'+esc(c1)+';--c2:'+esc(c2||c1)+';--c3:'+esc(c3||c2||c1)+'">'
+      +'<div class="glowbar">'+bars+'</div>'
       +'<div class="lk-body">'
-        +'<div class="lk-meta">'+mapline+'</div>'
-        +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
         +'<div class="lk-key">'+esc(L.key)+'</div>'
-        +(L.note?'<div class="lk-note">'+esc(L.note)+'</div>':'<div style="height:8px"></div>')
-        +'<div class="sw">'+chip('Color 1',L.c1,idx,'c1')+chip('Color 2',L.c2,idx,'c2')+chip('Color 3',L.c3,idx,'c3')+'</div>'
+        +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
+        +'<div class="lk-meta">'+kindTag+usedBadge(L)+'</div>'
+        +(L.note?'<div class="lk-note">'+esc(L.note)+'</div>':'')
+        +swatches
+        +usesTable(L)
+        +usedList(L)
       +'</div></div>';
   }
+
   function load(){
     var g=document.getElementById('grid');
     var get=function(u){return fetch(u+'?cb='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});};

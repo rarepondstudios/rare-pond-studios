@@ -1,12 +1,19 @@
 /* Rare Pond - Color Looks + Event Banner (shared, both sites).
-   SINGLE SOURCE OF TRUTH: reads /data/colorlooks.json and applies each look to the
-   site's gradient CSS variables, so tweaking a look in Pages CMS propagates everywhere:
-     - "signature"  -> :root --g1/--g2/--g3 (the studio bubble glows + shared gradients)
-     - project looks -> .theme-<key> { --accent } (each project's focus page accent)
-     - category looks -> rentals COL (via window.RP_setCategoryColors, if present)
-   Then renders the CMS-toggleable event banner (site.json -> eventBanner) into
-   #rp-eventbanner-mount, coloured by the chosen look. Fully defensive: any fetch or
-   data failure leaves the site exactly as its static markup/CSS already is. */
+   SINGLE SOURCE OF TRUTH for colour. Reads /data/colorlooks.json and applies it.
+
+   HOW IT WORKS
+     A look holds THREE colours (c1/c2/c3) plus, for a film, a set of TOKENS saying
+     which of them to use where ("accent": "color2"). Nothing stores a hex twice.
+
+     The link lives on the CONSUMER, not the look:
+       projects.json  -> colorLook  -> a "film" look   -> .theme-<key> CSS variables
+       rentals.json   -> categories -> a "basics" look -> the rentals category colours
+       site.json      -> eventBanner-> any look        -> the event banner gradient
+
+   NO FALLBACK COLOURS. Anything unassigned is left unset, and index.html renders
+   unset as WHITE, on purpose, so a broken link is obvious instead of being papered
+   over by a stale default. A fetch failure means no colour is applied at all - the
+   page still works, it just goes white where a look should have been. */
 (function () {
   "use strict";
 
@@ -36,32 +43,57 @@
            parseInt(h.slice(4, 6), 16) + "," + a + ")";
   }
 
+  /* ---- THE PALETTE ------------------------------------------------------------
+     A look holds THREE colours: Color 1, Color 2, Color 3.
+     Every use-case (accent, background wash, kicker, tagline, title...) does NOT
+     store a hex. It stores a TOKEN naming which colour to use. That is why the CMS
+     shows a dropdown instead of a hex box: you pick "Color 2", not "#bd9661".
+
+     Change Color 2 once and everything pointing at it follows. That is the whole
+     point of the system.
+
+     Besides the look's own three colours, four fixed site colours are available:
+       white / black, and the two blues the site's text actually uses.            */
+  var FIXED = {
+    white:     "#ffffff",
+    black:     "#000000",
+    lightBlue: "#eaf2ff",   // the light-on-dark text colour used across the site
+    darkBlue:  "#0b2c55",   // --ink, the site's dark text colour
+  };
+
+  /* token -> hex. Returns "" for anything unrecognised, and "" means UNASSIGNED,
+     which the CSS renders as WHITE on purpose so the gap is obvious. */
+  function pick(L, token) {
+    if (!token) return "";
+    var t = String(token).trim();
+    if (t === "color1") return hexOk(L.c1) ? L.c1 : "";
+    if (t === "color2") return hexOk(L.c2) ? L.c2 : "";
+    if (t === "color3") return hexOk(L.c3) ? L.c3 : "";
+    if (FIXED[t]) return FIXED[t];
+    if (hexOk(t)) return t;      // tolerate a raw hex, in case someone typed one
+    return "";
+  }
+
   /* Build the CSS for one FILM look, applied to a given project.
      DIRECTION OF THE LINK: a look does not know who uses it. The consumer points
-     at the look. projects.json says colorLook:"geri"; we look that up here. That
-     way every screen in Pages CMS (Projects, Rentals, Event Banner) asks the same
-     question - "which colour look?" - instead of Color Looks having to list every
-     place it might be used.
+     at the look. projects.json says colorLook:"geri"; we look that up here. Every
+     screen in Pages CMS (Projects, Rentals, Event Banner) asks the same question:
+     "which colour look?"
 
-     A film look has three semantic colours:
-       accent -> the pop: kicker text, "Where to Watch" label, carousel glow
-       main   -> the dominant background wash over the film's page
-       tint   -> the softer secondary wash
-
-     Every declaration mirrors a var() whose FALLBACK in index.html is the value
-     the site originally shipped with, so CLEARING a field in the CMS restores the
-     original look rather than blanking it out. That is the revert path. */
+     NO FALLBACK COLOURS. An unassigned or unrecognised value is left unset, and
+     index.html renders unset as WHITE, so a mistake is visible instead of hidden. */
   function filmCss(projectKey, L) {
     var sel = ".theme-" + String(projectKey), d = [];
-    if (hexOk(L.accent))        d.push("--accent:" + L.accent);
-    var s1 = rgba(L.main, L.mainAlpha); if (s1) d.push("--scrim-1:" + s1);
-    var s2 = rgba(L.tint, L.tintAlpha); if (s2) d.push("--scrim-2:" + s2);
-    if (hexOk(L.kickerColor))   d.push("--kicker-color:" + L.kickerColor);
-    if (L.kickerTracking)       d.push("--kicker-tracking:" + String(L.kickerTracking).replace(/[^0-9a-z.%-]/gi, ""));
-    if (hexOk(L.taglineColor))  d.push("--tagline-color:" + L.taglineColor);
+    var accent = pick(L, L.accent);
+    if (accent) d.push("--accent:" + accent);
+    var s1 = rgba(pick(L, L.main), L.mainAlpha); if (s1) d.push("--scrim-1:" + s1);
+    var s2 = rgba(pick(L, L.tint), L.tintAlpha); if (s2) d.push("--scrim-2:" + s2);
+    var kick = pick(L, L.kickerColor);   if (kick) d.push("--kicker-color:" + kick);
+    if (L.kickerTracking) d.push("--kicker-tracking:" + String(L.kickerTracking).replace(/[^0-9a-z.%-]/gi, ""));
+    var tag = pick(L, L.taglineColor);   if (tag)  d.push("--tagline-color:" + tag);
     d.push("--tagline-style:" + (L.taglineItalic ? "italic" : "normal"));
-    if (hexOk(L.titleGradientFrom)) d.push("--title-from:" + L.titleGradientFrom);
-    if (hexOk(L.titleGradientTo))   d.push("--title-to:" + L.titleGradientTo);
+    var tf = pick(L, L.titleGradientFrom); if (tf) d.push("--title-from:" + tf);
+    var tt = pick(L, L.titleGradientTo);   if (tt) d.push("--title-to:" + tt);
     return d.length ? (sel + "{" + d.join(";") + "}") : "";
   }
 
@@ -106,7 +138,8 @@
       // this fetch resolved, so re-apply to anything already on the page.
       var accents = {};
       Object.keys(byProj).forEach(function (k) {
-        if (hexOk(byProj[k].accent)) accents[k] = byProj[k].accent;
+        var a = pick(byProj[k], byProj[k].accent);
+        if (a) accents[k] = a;
       });
       window.RP_ACCENTS = accents;
       document.querySelectorAll(".citem[data-pk]").forEach(function (el) {
@@ -137,13 +170,11 @@
         order.push(c.id);
         if (c.label) labels[c.id] = c.label;
         var L = byKey[c.colorLook];
-        if (L && hexOk(L.c1)) colors[c.id] = L.c1;
+        if (L && hexOk(L.c1)) colors[c.id] = L.c1;   // a basics look's Color 1 IS the category colour
       });
       window.RP_CATEGORY_MAP = { colors: colors, labels: labels, order: order };
       if (typeof window.RP_setCategories === "function") {
         window.RP_setCategories(window.RP_CATEGORY_MAP);
-      } else if (typeof window.RP_setCategoryColors === "function") {
-        window.RP_setCategoryColors(colors);   // older rentals build
       }
     } catch (e) { /* leave categories as-is */ }
 
@@ -182,7 +213,7 @@
       "@keyframes rpevspin{to{--rpev-a:360deg}}",
       // STREAM: seamless CONVEYOR - a 200%-wide strip carrying TWO identical colour periods, slid left by exactly one period.
       // Because the two halves are identical, translateX(-50%) lands on a pixel-identical frame => no reset/seam ever.
-      ".rp-evbanner.rp-ev-stream .rp-evglow::before{right:auto;width:200%;background:linear-gradient(90deg,var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));opacity:.42;animation:rpevstream 16s linear infinite}",
+      ".rp-evbanner.rp-ev-stream .rp-evglow::before{background:linear-gradient(90deg,var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));background-size:50% 100%;background-repeat:repeat;opacity:.42;animation:rpevstream 16s linear infinite;will-change:background-position}",
       // RAINBOW look selected -> paint the banner with the site's animated rainbow
       // instead of an e1/e2/e3 ramp. Same colours the "More to come" bubble uses.
       // PINWHEEL keeps the rotating conic. STREAM must be a LINEAR ramp that slides
@@ -192,8 +223,8 @@
       ".rp-evbanner.rp-ev-rainbow.rp-ev-pinwheel .rp-evglow::before{background:conic-gradient(from var(--rpev-a),#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;opacity:.5}",
       // The stream repeats the full spectrum twice and ends where it began, so the
       // 0% -> -50% slide is seamless and loops forever.
-      ".rp-evbanner.rp-ev-rainbow.rp-ev-stream .rp-evglow::before{right:auto;width:200%;background:linear-gradient(90deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;opacity:.42;animation:rpevstream 16s linear infinite}",
-      "@keyframes rpevstream{from{transform:translateX(0)}to{transform:translateX(-50%)}}",
+      ".rp-evbanner.rp-ev-rainbow.rp-ev-stream .rp-evglow::before{background:linear-gradient(90deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;background-size:50% 100%!important;background-repeat:repeat!important;opacity:.42;animation:rpevstream 16s linear infinite}",
+      "@keyframes rpevstream{from{background-position:0% 0}to{background-position:100% 0}}",
       // content is vertically CENTRED in a fixed band (top+bottom both anchored) via flex align-items:center.
       // This scoots the single-line copy UP a little and trims the reserved headroom, while on narrow screens - // where the title + button wrap to two lines - the taller block overflows the band symmetrically (grows
       // upward toward the header AND down), so it stays inside the coloured area instead of hanging below it.
@@ -230,11 +261,11 @@
     if (L.kind === "rainbow" || eb.colorLook === "rainbow") {
       el.classList.add("rp-ev-rainbow");
     }
-    /* The banner can point at ANY look now, and a film look stores its colours as
-       accent/main/tint rather than c1/c2/c3. Normalise so either kind works. */
-    var e1 = hexOk(L.c1) ? L.c1 : (hexOk(L.accent) ? L.accent : "#3f6bff");
-    var e2 = hexOk(L.c2) ? L.c2 : (hexOk(L.main)   ? L.main   : e1);
-    var e3 = hexOk(L.c3) ? L.c3 : (hexOk(L.tint)   ? L.tint   : e2);
+    /* Every look now carries Color 1/2/3, whatever its kind, so the banner just
+       uses them directly. No special-casing. */
+    var e1 = hexOk(L.c1) ? L.c1 : "#3f6bff";
+    var e2 = hexOk(L.c2) ? L.c2 : e1;
+    var e3 = hexOk(L.c3) ? L.c3 : e2;
     el.style.setProperty("--e1", e1);
     el.style.setProperty("--e2", e2);
     el.style.setProperty("--e3", e3);

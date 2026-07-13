@@ -130,62 +130,52 @@ content:
         readonly: true
         description: "On Mac/iPhone/iPad, Safari will autofill the login box for you. Not written down here on purpose: this repo is PUBLIC, so anything typed into Pages CMS is visible to the world. Never put a password, key or token in this CMS."
       - name: looks
-        label: Color looks (what each look CONTAINS)
-        type: block
+        label: Color looks
+        type: object
         list: true
-        blockKey: kind
         description: >-
-          A look defines COLORS. It does not decide where it is used. You point at a look
-          from the place you want it: Projects -> Linked color look, Rentals -> Categories ->
-          Linked color look, Site Settings -> Event Banner -> Linked color look. So to
-          restyle something, go to that thing and pick a look; to change what a look
-          contains, edit it here.
-        blocks:
-          # ---- BASICS: a plain named palette. Anything can point at one. ---------
-          - name: basics
-            label: "Basics (a named palette)"
-            fields:
-              - { name: key, label: ID (this is the name you type to link to it), type: string, readonly: true }
-              - { name: name, label: Name, type: string }
-              - { name: c1, label: Color 1 (hex), type: string,
-                  description: "For a rentals category, this is the color it uses." }
-              - { name: c2, label: Color 2 (hex), type: string }
-              - { name: c3, label: Color 3 (hex), type: string }
-              - { name: note, label: Note, type: text }
+          Each look holds THREE colors (Color 1, Color 2, Color 3) and then says which of
+          them to use where. A look does not decide where it is used - you point at a look
+          from the place you want it (Projects -> Linked color look, Rentals -> Categories,
+          Site Settings -> Event Banner). Change Color 2 once and everything pointing at
+          Color 2 follows.
+        fields:
+          # ---- WHAT IT IS ------------------------------------------------------
+          - { name: key, label: "ID (type this to link to it - do not change)", type: string,
+              description: "The name other screens use to point at this look. Changing it breaks anything already linked to it." }
+          - { name: name, label: Name, type: string }
+          - { name: kind, label: Kind, type: select, options: { values: [basics, film, rainbow] },
+              description: "basics = a plain palette (the site gradient, or a rentals category color - Color 1 is the one used). film = a movie's page and bubble; the use-case dropdowns below apply. rainbow = the locked animated rainbow; its colors are ignored." }
 
-          # ---- RAINBOW: structural, not editable ---------------------------------
-          - name: rainbow
-            label: "Rainbow (locked - not editable)"
-            fields:
-              - { name: key, label: ID, type: string, readonly: true }
-              - { name: name, label: Name, type: string, readonly: true,
-                  description: "LOCKED on purpose. This is not three colors: it is the animated 9-stop conic rainbow gradient built into the site (the one the 'More to come' bubble uses). There is nothing to edit. It is listed so other places can point at it, and you can preview it on the Color Looks page." }
+          # ---- THE THREE COLORS ------------------------------------------------
+          - { name: c1, label: "Color 1 (hex)", type: string, description: "e.g. #e0455f. For a rentals category, Color 1 is the color it uses." }
+          - { name: c2, label: "Color 2 (hex)", type: string }
+          - { name: c3, label: "Color 3 (hex)", type: string }
 
-          # ---- FILM: a film's whole identity. This replaced the old 'Theme'. -----
-          - name: film
-            label: "Film (a movie's page + bubble)"
-            fields:
-              - { name: key, label: ID (this is the name you type to link to it), type: string, readonly: true }
-              - { name: name, label: Name, type: string }
-              - { name: accent, label: "Accent color (hex) - the pop", type: string,
-                  description: "Kicker text, the 'Where to Watch' label, and the film's glow in the carousel." }
-              - { name: main, label: "Main color (hex) - the dominant background wash", type: string,
-                  description: "The big colored wash over the film's page background." }
-              - { name: mainAlpha, label: Main wash strength (0-1), type: number }
-              - { name: tint, label: "Tint color (hex) - the secondary wash", type: string,
-                  description: "A softer second wash. Leave blank for none (no second wash)." }
-              - { name: tintAlpha, label: Tint wash strength (0-1), type: number }
-              - { name: kickerColor, label: Kicker color (hex, optional), type: string,
-                  description: "Leave blank and it renders WHITE. There are no hidden defaults - white means unassigned." }
-              - { name: kickerTracking, label: "Kicker letter-spacing (e.g. .3em, optional)", type: string,
-                  description: "Leave blank for the site default (.24em). This one is spacing, not a color." }
-              - { name: taglineColor, label: Tagline color (hex, optional), type: string }
-              - { name: taglineItalic, label: Tagline in italics, type: boolean }
-              - { name: titleStyle, label: Title style, type: select, options: { values: [solid, gradient] },
-                  description: "Only applies to a film with NO title logo (it falls back to text). All current films have logos, so this does nothing for them yet." }
-              - { name: titleGradientFrom, label: Title gradient - top color (hex), type: string }
-              - { name: titleGradientTo, label: Title gradient - bottom color (hex), type: string }
-              - { name: note, label: Note, type: text }
+          # ---- WHERE EACH COLOR IS USED (film only) ----------------------------
+          - { name: accent, label: "Accent - kicker text, Where-to-Watch label, carousel glow", type: select,
+              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] }, description: "Pick which color to use here. Color 1/2/3 are this look's own colors (above) - change one of those and everything pointing at it updates. white / black / lightBlue / darkBlue are fixed site colors (lightBlue #eaf2ff and darkBlue #0b2c55 are the blues the site's text uses)." }
+          - { name: main, label: "Main background wash", type: select,
+              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] }, description: "The big colored wash over the film's page." }
+          - { name: mainAlpha, label: "Main wash strength (0 to 1)", type: number }
+          - { name: tint, label: "Secondary background wash", type: select,
+              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] }, description: "A softer second wash. Leave blank for none." }
+          - { name: tintAlpha, label: "Secondary wash strength (0 to 1)", type: number }
+          - { name: kickerColor, label: "Kicker text color", type: select,
+              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] } }
+          - { name: kickerTracking, label: "Kicker letter-spacing (e.g. .3em)", type: string,
+              description: "Spacing between letters, not a color. Blank uses the site default (.24em)." }
+          - { name: taglineColor, label: "Tagline color", type: select,
+              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] } }
+          - { name: taglineItalic, label: "Tagline in italics", type: boolean }
+          - { name: titleStyle, label: "Title style", type: select, options: { values: [solid, gradient] },
+              description: "Only applies to a film with NO title logo (it falls back to text). Every current film has a logo, so this does nothing for them yet." }
+          - { name: titleGradientFrom, label: "Title gradient - top color", type: select,
+              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] } }
+          - { name: titleGradientTo, label: "Title gradient - bottom color", type: select,
+              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] } }
+
+          - { name: note, label: Note, type: text }
 
   - name: projects
     label: Projects (bubbles + pages)
@@ -197,7 +187,7 @@ content:
         type: object
         list: true
         fields:
-          - { name: key, label: ID (url-safe, e.g. geri), type: string,
+          - { name: key, label: "ID (url-safe, e.g. geri)", type: string,
               description: "This ID is how the film is linked to its colors. To change this film's look (accent, background tints, kicker, tagline), go to COLOR LOOKS and open the Project entry whose 'Linked project key' matches this ID. There is nothing color-related on this screen." }
           - { name: colorLook, label: "Linked color look", type: string,
               description: "The name (ID) of a look in COLOR LOOKS. That look's colors are applied here. Type it exactly as the look's ID (e.g. signature, rainbow, red, geri). If it does not match a real look, nothing is applied and the built-in colors are used - open the Color Looks preview page, it flags any broken link in red. For a film, use a Film look (it carries the accent, background washes and typography)." }

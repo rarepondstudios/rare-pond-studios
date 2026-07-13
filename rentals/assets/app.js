@@ -476,5 +476,4 @@ window.RP_setCategories=function(map){
     if(typeof render==="function")render();
   }catch(e){}
 };
-/* kept so an older cached looks.js cannot break the page */
-window.RP_setCategoryColors=function(colors){window.RP_setCategories({colors:colors});};
+
