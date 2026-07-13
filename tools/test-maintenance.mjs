@@ -15,7 +15,7 @@ const next = async () => new Response(REAL_PAGE, { status: 200, headers: { 'Cont
 
 /* A fake Pages ASSETS binding. `flag` is what /data/rentals.json will contain;
    pass null to simulate the file being missing. */
-function makeEnv(flag, { coverMissing = false } = {}) {
+function makeEnv(flag, { coverMissing = false, dotHtmlRedirects = false } = {}) {
   return {
     COLORLOOKS_PASSWORD: 's3cret',
     ASSETS: {
@@ -26,10 +26,17 @@ function makeEnv(flag, { coverMissing = false } = {}) {
           if (flag === 'broken') return new Response('{ this is not json', { status: 200 });
           return new Response(JSON.stringify(flag), { status: 200 });
         }
-        if (p === '/maintenance.html') {
-          return coverMissing
-            ? new Response('gone', { status: 404 })
-            : new Response(COVER, { status: 200 });
+        /* PRODUCTION BEHAVIOUR: Cloudflare Pages answers /maintenance.html with a 308
+           redirect to the clean /maintenance. A 308 is not `ok`, so asking for the .html
+           spelling alone would fall through and the cover would silently never appear -
+           while a naive test that served .html with a 200 kept passing. This models the
+           real thing. */
+        if (p === '/maintenance' || p === '/maintenance.html') {
+          if (coverMissing) return new Response('gone', { status: 404 });
+          if (dotHtmlRedirects && p === '/maintenance.html') {
+            return new Response('', { status: 308, headers: { Location: '/maintenance' } });
+          }
+          return new Response(COVER, { status: 200 });
         }
         return new Response('nope', { status: 404 });
       },
@@ -60,6 +67,11 @@ await expectPage('switch ON  -> /rentals serves the real page', await call('/ren
 await expectPage('switch OFF -> /rentals serves the cover',     await call('/rentals', makeEnv(CLOSED)), 'cover');
 await expectPage('switch OFF -> /rentals/ (trailing slash) too', await call('/rentals/', makeEnv(CLOSED)), 'cover');
 await expectPage('switch OFF -> a deep rentals URL too',         await call('/rentals/index.html', makeEnv(CLOSED)), 'cover');
+
+// The real Cloudflare behaviour: .html 308-redirects to the clean URL. The cover must
+// still be found. (Asking only for /maintenance.html would silently fail open here.)
+await expectPage('cover still found when .html 308-redirects (real CF behaviour)',
+  await call('/rentals', makeEnv(CLOSED, { dotHtmlRedirects: true })), 'cover');
 
 // --- FAIL OPEN. None of these may take the rentals page down. ---
 await expectPage('switch file MISSING     -> real page (fail open)', await call('/rentals', makeEnv(null)), 'real page');

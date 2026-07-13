@@ -135,13 +135,23 @@ async function maintenanceFor(context, pathname) {
   }
   if (open) return null;
 
+  /* Ask for the EXTENSIONLESS path. Cloudflare Pages answers /maintenance.html with a 308
+     redirect to /maintenance, and a 308 is not `ok` - so requesting the .html form would
+     fail the check below, fall through, and the cover would silently never appear while
+     every test still passed. Try both, so neither spelling can break it. */
   let html;
   try {
-    const res = env && env.ASSETS && env.ASSETS.fetch
-      ? await env.ASSETS.fetch(new Request(new URL('/maintenance.html', request.url).toString()))
-      : await fetch(new URL('/maintenance.html', request.url).toString());
-    if (!res || !res.ok) return null;  // cover page missing -> rather show the real page
+    const grab = async (p) => {
+      const u = new URL(p, request.url).toString();
+      return (env && env.ASSETS && env.ASSETS.fetch)
+        ? env.ASSETS.fetch(new Request(u))
+        : fetch(u);
+    };
+    let res = await grab('/maintenance');
+    if (!res || !res.ok) res = await grab('/maintenance.html');
+    if (!res || !res.ok) return null;   // cover page missing -> rather show the real page
     html = await res.text();
+    if (!html || html.indexOf('<html') === -1) return null;   // not a page -> fail open
   } catch (e) {
     return null;
   }
