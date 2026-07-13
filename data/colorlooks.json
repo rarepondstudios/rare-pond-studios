@@ -73,8 +73,8 @@
     {
       "kind": "category",
       "key": "category-camera",
-      "name": "Camera: Red",
-      "category": "Camera (Red)",
+      "name": "Camera (Red)",
+      "category": "Camera",
       "c1": "#ea4335",
       "c2": "#ff7a6e",
       "c3": "#b3160b"
