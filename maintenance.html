@@ -57,16 +57,16 @@
   .mcard{width:100%;max-width:940px;text-align:center}
   .mlogo{height:clamp(58px,7.5vw,88px);width:auto;margin:0 auto 20px;display:block;filter:drop-shadow(0 8px 22px rgba(0,10,40,.45))}
 
-  /* The picture is the focus, but the MESSAGE is the point - so the figure is capped by
-     viewport height, not just width. Otherwise on a laptop the image alone filled the
-     screen and pushed the header, sub-header and the "come back later" line below the
-     fold, which is exactly the text the visitor came here to read. */
-  .mfigure{position:relative;margin:0 auto 26px;width:min(100%,620px);max-height:38vh;aspect-ratio:16/9;border-radius:22px;overflow:hidden;
-    box-shadow:0 30px 60px -18px rgba(0,8,30,.66),0 6px 18px rgba(0,10,40,.4)}
-  .mfigure img{width:100%;height:100%;object-fit:cover;display:block}
-  .mfigure::after{content:"";position:absolute;inset:0;pointer-events:none;
-    background:radial-gradient(120% 90% at 50% 110%,rgba(2,10,30,.45),transparent 60%);
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+  /* The artwork for the message. Today that is the Rare Pond duck, but the field is a normal
+     CMS image, so it can be swapped for real art later without touching this file.
+     Deliberately NOT a cropped photo card: `contain` means whatever is dropped in is shown
+     whole rather than sliced, and the height is capped against the VIEWPORT so the picture
+     can never grow so tall that it pushes the message - which is the actual point of the
+     page - below the fold. */
+  .mfigure{margin:0 auto 26px;display:block;width:auto}
+  .mfigure img{display:block;margin:0 auto;max-width:min(100%,460px);max-height:34vh;
+    width:auto;height:auto;object-fit:contain;
+    filter:drop-shadow(0 14px 30px rgba(0,10,40,.45))}
   /* No image set for this variation? Then don't render an empty grey box - the figure is
      simply omitted (see JS) and the message stands on its own. */
 
@@ -99,7 +99,6 @@
 
 <main class="mwrap">
   <div class="mcard">
-    <img class="mlogo" src="/media/logos/duck-mark.png" alt="Rare Pond">
     <div id="mFigure"></div>
     <h1 class="mhead" id="mHead">Back soon</h1>
     <p class="msub" id="mSub"></p>
@@ -115,27 +114,29 @@
      the header, the nav, the "come back to X" line - is derived from it, which is what
      lets this same page cover a different section later with no new code. */
   var covers = (document.documentElement.getAttribute('data-covers') || '').toLowerCase();
+  /* The middleware tells us the covered page's real name (including a custom page's title,
+     which only the CMS knows). Everything user-facing reads from this. */
+  var pageName = document.documentElement.getAttribute('data-page-name') || 'this page';
 
   var PAGES = {
     rentals: {
-      name:    'Rentals',
       home:    '/rentals',
       brand:   'Rentals',
       nav:     [['/#team','Our Team'], ['/#projects','Projects'], ['/#contact','Contact']],
       cross:   ['/', '← Studio Site'],
-      actions: [['/', 'Back to the studio site', 'primary']]
+      actions: [['/', 'Back to the studio site']]
     },
-    /* Default: something on the studio site. Add an entry here when you cover a new page. */
+    /* Anything on the studio site: Our Team, Projects, or any custom page. */
     studio: {
-      name:    'this page',
       home:    '/',
       brand:   'Studios',
       nav:     [['/#team','Our Team'], ['/#projects','Projects'], ['/#contact','Contact']],
       cross:   ['/rentals', 'Rentals →'],
-      actions: [['/', 'Back to the home page', 'primary']]
+      actions: [['/', 'Back to the home page']]
     }
   };
   var P = PAGES[covers] || PAGES.studio;
+  P.name = pageName;
 
   /* header chrome for the covered page */
   document.getElementById('mBrandSub').textContent = P.brand;
@@ -146,8 +147,7 @@
   cross.setAttribute('href', P.cross[0]);
   cross.textContent = P.cross[1];
   document.getElementById('mActs').innerHTML =
-    P.actions.map(function (a) { return '<a class="mbtn" href="' + a[0] + '">' + a[1] + '</a>'; }).join('') +
-    '<a class="mbtn ghost" href="javascript:location.reload()">Show me another</a>';
+    P.actions.map(function (a) { return '<a class="mbtn" href="' + a[0] + '">' + a[1] + '</a>'; }).join('');
 
   var esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -171,6 +171,24 @@
     }
   }
 
+  /* PICK ONE - AND NEVER THE SAME ONE TWICE IN A ROW.
+     Plain random repeats about a third of the time with three messages, which reads like the
+     page is broken rather than playful. So we remember the last one shown and choose from the
+     others. With one message it simply shows that one; the guard never leaves you with
+     nothing to display. Stored per browser tab, so it resets naturally and never follows
+     someone around. */
+  var LAST_KEY = 'rp_cover_last';
+  function choose(list) {
+    if (list.length === 1) return list[0];
+    var last = null;
+    try { last = sessionStorage.getItem(LAST_KEY); } catch (e) {}
+    var pool = list.filter(function (v) { return v.header !== last; });
+    if (!pool.length) pool = list;                 // only one distinct message - show it
+    var pick = pool[Math.floor(Math.random() * pool.length)];
+    try { sessionStorage.setItem(LAST_KEY, pick.header); } catch (e) {}
+    return pick;
+  }
+
   fetch('/data/maintenance.json', { cache: 'no-store' })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (m) {
@@ -179,7 +197,7 @@
          should never show a visitor a blank page. */
       list = list.filter(function (v) { return v && v.header; });
       if (!list.length) return;                     // keep the built-in "Back soon"
-      paint(list[Math.floor(Math.random() * list.length)]);
+      paint(choose(list));
     })
     .catch(function () { /* keep the built-in message; never show an error to a visitor */ });
 })();

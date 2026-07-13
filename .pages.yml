@@ -182,6 +182,11 @@ content:
     type: file
     path: data/projects.json
     fields:
+      - name: publicAccess
+        label: "🚧 Projects page is OPEN to the public"
+        type: boolean
+        default: true
+        description: "ON (normal): visitors see the page as usual. OFF: the page is closed - anyone who goes to rarepond.com/projects gets the 'back soon' cover instead, with a random message from MAINTENANCE COVER. The address stays the same, so links you have already shared are not broken and everything comes straight back the moment you switch this on again. The header and menus still work on the cover, so nobody is stranded. Takes effect within about a minute of committing."
       - name: projects
         label: Projects
         type: object
@@ -230,6 +235,11 @@ content:
     type: file
     path: data/team.json
     fields:
+      - name: publicAccess
+        label: "🚧 Our Team page is OPEN to the public"
+        type: boolean
+        default: true
+        description: "ON (normal): visitors see the page as usual. OFF: the page is closed - anyone who goes to rarepond.com/team gets the 'back soon' cover instead, with a random message from MAINTENANCE COVER. The address stays the same, so links you have already shared are not broken and everything comes straight back the moment you switch this on again. The header and menus still work on the cover, so nobody is stranded. Takes effect within about a minute of committing."
       - name: team
         label: Team members
         type: object
@@ -347,7 +357,7 @@ content:
               description: "Required. An entry with no header is never shown." }
           - { name: subHeader, label: Sub-header (the smaller line underneath), type: string }
           - { name: image, label: Picture, type: image,
-              description: "SPECS: 16:9, about 1600x900 px, JPG or WebP, under 400 KB. Shown as the focus of the page, above the message. PLACEHOLDER: the three pictures here now were borrowed from existing site artwork just so the page looks finished - swap them for something you actually want. If you leave this empty the entry still works; it just shows the message with no picture. COLOR: export sRGB, 8-bit." }
+              description: "The artwork shown above the message. All three are set to the Rare Pond duck for now. Drop in whatever you like later - it is shown WHOLE (never cropped) and capped so it can never push the message off the screen, so almost any shape works. SPECS: PNG or WebP, up to about 1200 px on the long edge, under 400 KB, transparent background looks best. If you leave it empty the entry still works; it just shows the message with no picture. COLOR: export sRGB, 8-bit." }
 
   - name: pages
     label: Custom Pages
@@ -380,6 +390,11 @@ content:
             type: string
             pattern: '^(?!(?:admin|assets|data|functions|geriaction|invalidopinion|media|projects|rentals|revelations|team|tools)$)[a-z0-9]+(?:-[a-z0-9]+)*$'
             description: "The page's web address. Slug 'summer-open-house' → rarepond.com/summer-open-house. Use lowercase letters, numbers and single dashes only. Certain words are refused because a film or a built-in page already answers to them (team, projects, rentals, admin, geriaction, revelations, invalidopinion) - if a page used one of those it could never open, so it is blocked here rather than failing silently later. This list is generated from the live films by tools/check-slugs.mjs; after adding or renaming a film, run `node tools/check-slugs.mjs --write` (the tests fail if you forget)."
+          - name: publicAccess
+            label: "🚧 This page is OPEN to the public"
+            type: boolean
+            default: true
+            description: "ON (normal): visitors see the page. OFF: this one page is closed and shows the 'back soon' cover instead, with a random message from MAINTENANCE COVER. The address stays the same, so any link you have shared still works and the page comes straight back when you switch this on again. Each custom page has its own switch, so closing one does not touch the others."
           - name: title
             label: Page title (browser tab + nav fallback)
             type: string

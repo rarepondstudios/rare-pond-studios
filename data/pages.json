@@ -5,6 +5,7 @@
   "pages": [
     {
       "slug": "submit-a-screenplay",
+      "publicAccess": true,
       "title": "Submit Your Screenplay",
       "navLabel": "Submit Your Screenplay",
       "showInStudioNav": false,

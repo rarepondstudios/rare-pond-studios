@@ -196,12 +196,39 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
         (see syncDrops). Setting width/height here would make it re-rasterise every frame.
 
      3. The layer must be BIGGER than the bubble or you will not see it at all - the first
-        version scaled it to exactly the bubble's size, so it hid behind it. See syncDrops. */
+        version scaled it to exactly the bubble's size, so it hid behind it. See syncDrops.
+
+     4. THE SHAPE. A radial-gradient can only ever draw an ELLIPSE. That is fine under a
+        round bubble, but the featured slide is a wide rounded RECTANGLE, and an ellipse
+        under it reads as a stray half-circle - which is exactly what it looked like.
+        So the softness now comes from a MASK instead: two linear fades (one across, one
+        down) INTERSECTED, which gives a soft-edged rectangle, clipped by the layer's own
+        border-radius. Because border-radius is a real animatable property, the shadow
+        morphs from circle (50%) to rounded rectangle in step with the bubble itself.
+        Still no filter and no box-shadow, so it stays free. */
   .cdrop{position:absolute;left:50%;top:50%;width:400px;height:400px;margin:-200px 0 0 -200px;border-radius:50%;z-index:0;pointer-events:none;
-    background:radial-gradient(closest-side,rgba(0,8,30,.95),rgba(0,8,30,.72) 42%,rgba(0,8,30,.38) 62%,rgba(0,8,30,.14) 78%,transparent 90%);
+    background:rgba(0,8,30,.82);
+    -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 20%,#000 80%,transparent 100%),
+                       linear-gradient(to bottom,transparent 0%,#000 22%,#000 74%,transparent 100%);
+    -webkit-mask-composite:source-in;
+            mask-image:linear-gradient(to right,transparent 0%,#000 20%,#000 80%,transparent 100%),
+                       linear-gradient(to bottom,transparent 0%,#000 22%,#000 74%,transparent 100%);
+            mask-composite:intersect;
     will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;
-    transition:transform .6s cubic-bezier(.5,0,.2,1),opacity .45s}
+    transition:transform .6s cubic-bezier(.5,0,.2,1),border-radius .6s cubic-bezier(.5,0,.2,1),opacity .45s}
+  .citem.feat .cdrop{border-radius:15%/23%}
   .citem.hide .cdrop{opacity:0}
+
+  /* ===== THE SAME SHADOW, FOR THE PROJECTS-PAGE BUBBLES ============================
+     These had NO shadow at all, and it was not an oversight in the styling - .bubble-inner
+     carries `clip-path: circle(50%)`, and a clip-path clips the element's box-shadow away
+     with it. The shadow was declared and then silently thrown out, so the grid bubbles have
+     been sitting flat on the page this whole time.
+     Fixed by casting the shadow from a layer that is NOT clipped. These bubbles never
+     resize (only a small hover scale), so there is no per-frame cost to worry about and a
+     plain box-shadow is fine here - the carousel's constraints do not apply. */
+  .bubble::after{content:"";position:absolute;inset:0;border-radius:50%;z-index:0;pointer-events:none;
+    box-shadow:0 34px 66px -18px rgba(0,8,30,.7),0 6px 18px rgba(0,10,40,.45)}
   .citem.feat .cbub{border-radius:13%/20%}
   .side-view{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;display:block;transition:opacity .45s;z-index:1}
   .side-view.cposter{display:grid;place-items:center;background:radial-gradient(circle at 38% 30%,#2f6bd6,#16306b 70%)}
@@ -264,7 +291,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .glow{position:absolute;inset:-16px;border-radius:50%;z-index:0;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);filter:blur(9px);opacity:.32;transition:opacity .45s;animation:hue 6s linear infinite;animation-play-state:paused}
   .bubble.placeholder .glow{opacity:.2}
   .bubble.placeholder:hover .glow{background:var(--rainbow);opacity:.85}
-  .bubble-inner{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;-webkit-clip-path:circle(50%);clip-path:circle(50%);box-shadow:0 34px 66px -18px rgba(0,8,30,.7),0 6px 18px rgba(0,10,40,.45);animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
+  .bubble-inner{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;-webkit-clip-path:circle(50%);clip-path:circle(50%);/* NO box-shadow here: clip-path clips it away. The shadow is cast by .bubble::after. */animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
   .bubble.placeholder .bubble-inner{opacity:.7}
   .bubble__media{position:absolute;inset:-3%;width:106%;height:106%;object-fit:cover;display:block}
   .poster{display:grid;place-items:center;background:radial-gradient(circle at 38% 30%,#2f6bd6,#16306b 70%)}

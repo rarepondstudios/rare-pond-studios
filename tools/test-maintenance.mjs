@@ -15,12 +15,18 @@ const next = async () => new Response(REAL_PAGE, { status: 200, headers: { 'Cont
 
 /* A fake Pages ASSETS binding. `flag` is what /data/rentals.json will contain;
    pass null to simulate the file being missing. */
-function makeEnv(flag, { coverMissing = false, dotHtmlRedirects = false } = {}) {
+function makeEnv(flag, { coverMissing = false, dotHtmlRedirects = false,
+                        team = { publicAccess: true },
+                        projects = { publicAccess: true },
+                        pages = { pages: [{ slug: 'summer-open-house', title: 'Summer Open House', publicAccess: true }] } } = {}) {
   return {
     COLORLOOKS_PASSWORD: 's3cret',
     ASSETS: {
       fetch: async (req) => {
         const p = new URL(req.url).pathname;
+        if (p === '/data/team.json')     return new Response(JSON.stringify(team), { status: 200 });
+        if (p === '/data/projects.json') return new Response(JSON.stringify(projects), { status: 200 });
+        if (p === '/data/pages.json')    return new Response(JSON.stringify(pages), { status: 200 });
         if (p === '/data/rentals.json') {
           if (flag === null) return new Response('not found', { status: 404 });
           if (flag === 'broken') return new Response('{ this is not json', { status: 200 });
@@ -79,6 +85,46 @@ await expectPage('switch file BROKEN json -> real page (fail open)', await call(
 await expectPage('key absent entirely     -> real page (fail open)', await call('/rentals', makeEnv({})), 'real page');
 await expectPage('key is null             -> real page (fail open)', await call('/rentals', makeEnv({ publicAccess: null })), 'real page');
 await expectPage('cover page itself missing -> real page, not a blank', await call('/rentals', makeEnv(CLOSED, { coverMissing: true })), 'real page');
+
+// --- the other three switches: Our Team, Projects, and each custom page ---
+const OFF = { publicAccess: false };
+await expectPage('Team switch ON  -> real page',  await call('/team', makeEnv(OPEN)), 'real page');
+await expectPage('Team switch OFF -> cover',      await call('/team', makeEnv(OPEN, { team: OFF })), 'cover');
+await expectPage('Projects ON  -> real page',     await call('/projects', makeEnv(OPEN)), 'real page');
+await expectPage('Projects OFF -> cover',         await call('/projects', makeEnv(OPEN, { projects: OFF })), 'cover');
+
+const PAGES_OFF = { pages: [
+  { slug: 'summer-open-house', title: 'Summer Open House', publicAccess: false },
+  { slug: 'other-page',        title: 'Other Page',        publicAccess: true  },
+]};
+await expectPage('custom page ON  -> real page',
+  await call('/summer-open-house', makeEnv(OPEN)), 'real page');
+await expectPage('custom page OFF -> cover',
+  await call('/summer-open-house', makeEnv(OPEN, { pages: PAGES_OFF })), 'cover');
+await expectPage('closing ONE custom page does not close the others',
+  await call('/other-page', makeEnv(OPEN, { pages: PAGES_OFF })), 'real page');
+
+// each switch is independent - closing Team must not close Projects or Rentals
+await expectPage('Team OFF does not close Projects', await call('/projects', makeEnv(OPEN, { team: OFF })), 'real page');
+await expectPage('Team OFF does not close Rentals',  await call('/rentals',  makeEnv(OPEN, { team: OFF })), 'real page');
+
+// the cover must know the real NAME of what it covers, incl. a custom page's CMS title
+const teamCover = await call('/team', makeEnv(OPEN, { team: OFF }));
+const teamNamed = (await teamCover.clone().text()).includes('data-page-name="Our Team"');
+console.log(`${teamNamed ? 'PASS' : 'FAIL'}  cover is told it is covering "Our Team"`);
+if (!teamNamed) fails++;
+const cpCover = await call('/summer-open-house', makeEnv(OPEN, { pages: PAGES_OFF }));
+const cpNamed = (await cpCover.clone().text()).includes('data-page-name="Summer Open House"');
+console.log(`${cpNamed ? 'PASS' : 'FAIL'}  cover is told the custom page's CMS title`);
+if (!cpNamed) fails++;
+
+// a CMS title with a quote in it must not break out of the HTML attribute
+const XSS = { pages: [{ slug: 'x', title: 'Bob\'s "Big" <Day>', publicAccess: false }] };
+const xssCover = await call('/x', makeEnv(OPEN, { pages: XSS }));
+const xssBody = await xssCover.clone().text();
+const escaped = xssBody.includes('&quot;') && !xssBody.includes('data-page-name="Bob\'s "Big"');
+console.log(`${escaped ? 'PASS' : 'FAIL'}  a page title with quotes/angle brackets is escaped`);
+if (!escaped) fails++;
 
 // --- the cover must not leak onto anything else ---
 await expectPage('/ (studio) is never covered',        await call('/', makeEnv(CLOSED)), 'real page');
