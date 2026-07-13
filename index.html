@@ -865,7 +865,8 @@ addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){if(e.key=
 
 /* ===== CUSTOM PAGES =====================================================
    Data: /data/pages.json   (edited in Pages CMS → "Custom Pages")
-   URL:  /?p=<slug>
+   URL:  /<slug>          (e.g. /submit-a-screenplay)
+           Old /?p=<slug> links still work - they rewrite themselves to the clean form.
    A page is an ordered list of blocks. To add a NEW BLOCK TYPE later:
      1. add its name to the `type` select in .pages.yml (blocks → type)
      2. add one `case` to cpBlock() below
@@ -975,10 +976,36 @@ const SLUG2KEY={},KEY2SLUG={};
 __projects.filter(p=>!p.placeholder).forEach(p=>{const sl=p.slug||slugify(p.title);SLUG2KEY[sl]=p.key;KEY2SLUG[p.key]=sl;});
 function pathForDest(d){return d==='team'?'/team':d==='projects'?'/projects':'/';}
 /* render app state for a path (no history writes) */
-function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]){openUniverse(SLUG2KEY[seg]);return;}if(currentOpen)closeUniverse(currentOpen);if(seg==='team')showView('team');else if(seg==='projects')showView('projects');else showView('home');}
+function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]){/* A film opens OVER the projects view. Custom pages can show bubbles, so a film can now be opened from one - make sure we swap the backdrop to projects first, exactly as a fresh load of /geriaction does, instead of leaving the custom page sitting underneath. */if(activeView==='page'){cpMarkNav('');showView('projects');}openUniverse(SLUG2KEY[seg]);return;}if(currentOpen)closeUniverse(currentOpen);if(seg==='team')showView('team');else if(seg==='projects')showView('projects');else showView('home');}
 /* push a URL then render (in-page nav clicks) */
-/* --- custom-page routing (?p=slug) --- */
-const cpSlugFromUrl = () => (new URLSearchParams(location.search).get('p') || '').trim();
+/* --- custom-page routing -------------------------------------------------
+   Custom pages live at  /<slug>   (e.g. /submit-a-screenplay).
+   They used to live at  /?p=<slug>.  Old links still work: we detect the old
+   form and quietly rewrite the address bar to the clean one (see renderRoute).
+
+   Custom pages now share the root namespace with project slugs and the built-in
+   views, so a slug can collide. Precedence, highest first:
+       1. RESERVED       - built-in views and real folders (/team, /rentals, /admin ...)
+       2. project slugs  - /geriaction
+       3. custom pages   - /<slug>
+   A custom page whose slug collides is simply never reached. That is a content
+   mistake, not a code failure, so it is surfaced loudly in the page directory
+   (/admin/pagesindex) rather than silently swallowed here. */
+const RESERVED = new Set([
+  '', 'team', 'projects', 'rentals', 'admin',      // built-in views + real folders
+  'data', 'assets', 'media', 'functions', 'tools', // real folders in the repo
+]);
+const cpLegacySlug = () => (new URLSearchParams(location.search).get('p') || '').trim();
+const cpPathSlug   = () => (location.pathname || '/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');
+/* Is this slug actually reachable as a custom page? */
+const cpIsPage = s => !!s && !RESERVED.has(s) && !SLUG2KEY[s] && !!PAGE_BY_SLUG[s];
+/* the slug of the custom page the CURRENT url is asking for, or '' */
+const cpSlugFromUrl = () => {
+  const legacy = cpLegacySlug();
+  if (legacy && PAGE_BY_SLUG[legacy]) return legacy;
+  const seg = cpPathSlug();
+  return cpIsPage(seg) ? seg : '';
+};
 function cpMarkNav(slug){
   document.querySelectorAll('header .nav a[data-page]').forEach(a =>
     a.classList.toggle('active', !!slug && a.getAttribute('data-page') === slug));
@@ -992,16 +1019,22 @@ function openCustomPage(slug){
   cpMarkNav(slug);
   return true;
 }
-/* single entry point: reads the CURRENT url (path + ?p=) and renders it */
+/* single entry point: reads the CURRENT url and renders it */
 function renderRoute(){
+  /* Old /?p=slug link: upgrade the address bar in place, without a redirect or a
+     reload, so shared links keep working but nobody sees ?p= again. */
+  const legacy = cpLegacySlug();
+  if (legacy && PAGE_BY_SLUG[legacy]) history.replaceState({}, '', cpUrl(legacy));
+
   const slug = cpSlugFromUrl();
-  if (slug && PAGE_BY_SLUG[slug]) { openCustomPage(slug); return; }
+  if (slug) { openCustomPage(slug); return; }
   cpMarkNav('');
   document.title = 'Rare Pond Studios';
   renderPath(location.pathname);
 }
+const cpUrl = slug => '/' + encodeURIComponent(slug);
 function navPage(slug){
-  const url = '/?p=' + encodeURIComponent(slug);
+  const url = cpUrl(slug);
   if (location.pathname + location.search !== url) history.pushState({}, '', url);
   renderRoute();
 }
@@ -1021,11 +1054,11 @@ addEventListener('popstate',()=>renderRoute());
 function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if(currentOpen)closeUniverse(currentOpen);if(h==='team')showView('team');else if(h==='projects')showView('projects');else if(h==='contact')showView('home','#contact');else if(h==='about')showView('home','#about');}
 addEventListener('hashchange',routeHash);
 /* initial route */
-(function initRoute(){const __s=cpSlugFromUrl();if(__s&&PAGE_BY_SLUG[__s]){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
+(function initRoute(){const __l=cpLegacySlug();if(__l&&PAGE_BY_SLUG[__l])history.replaceState({},'',cpUrl(__l));const __s=cpSlugFromUrl();if(__s){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
 
 /* Second half of the reload-jump fix (first half is history.scrollRestoration in <head>).
    Even with restoration off, late layout growth - webfonts swapping in, lazy images landing - can nudge the scroll position after we've rendered. So re-assert the top as things settle.
-   We only do this when the URL isn't ASKING for a position (#contact, ?p=slug), and we bail
+   We only do this when the URL isn't ASKING for a position (#contact, a custom page), and we bail
    the instant the user touches the page, so this can never yank someone who is already reading. */
 (function pinTopOnLoad(){
   if(location.hash || cpSlugFromUrl()) return;      // URL wants a specific spot - respect it

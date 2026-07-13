@@ -1,8 +1,9 @@
-/* Cloudflare Pages Function - password gate for the Color Looks tool.
+/* Cloudflare Pages Function - password gate for every internal page (/admin/*).
  *
  * WHY THIS EXISTS
- *   /colorlooks.html is an internal tool. It is READ-ONLY (it cannot change the
- *   site - only Pages CMS can do that), but we don't want it publicly browsable.
+ *   The pages under /admin/ are internal tools. They are READ-ONLY (they cannot
+ *   change the site - only Pages CMS can do that), but we don't want them publicly
+ *   browsable.
  *
  * HOW IT WORKS  (the important part)
  *   This runs on Cloudflare's EDGE - server-side, before any bytes reach the
@@ -29,18 +30,26 @@
  *   hex values aren't secret (they're on screen anyway) - we're hiding the tool.
  */
 
-/* EVERY INTERNAL-ONLY PAGE. Add one here and it is instantly behind the password;
-   forget to, and it is public. This list is the only thing standing between an admin
-   page and the open internet, so when you add an admin page, add it here FIRST.
-
-   BOTH SPELLINGS of each path must be listed. Cloudflare Pages serves /foo and
-   /foo.html as the same file, so gating only one leaves the other wide open. The
-   published address is the clean one (/colorlooks); the .html form is listed purely
-   so it cannot be used as a back door. */
-const PROTECTED = new Set([
-  '/colorlooks', '/colorlooks.html',   // colour-look preview + picker
-  '/pagesindex', '/pagesindex.html',   // the internal page directory
-]);
+/* EVERY INTERNAL-ONLY PAGE LIVES UNDER /admin/ AND IS GATED BY THAT FACT ALONE.
+ *
+ *   /admin/colorlooks    colour-look preview + picker
+ *   /admin/pagesindex    the internal page directory
+ *
+ * This is a PREFIX rule, not a list of filenames, and that is deliberate. The old
+ * version was a hand-maintained list, which meant a new admin page was public until
+ * someone remembered to add it - the failure was silent and the default was "exposed".
+ * Now the default is "locked": drop any file into /admin/ and it is behind the
+ * password from its first deploy. To make something public, you must move it OUT of
+ * /admin/, which is a deliberate act rather than an omission.
+ *
+ * The check below covers both spellings (/admin/colorlooks and /admin/colorlooks.html)
+ * because Cloudflare Pages serves them as the same file; matching the folder rather
+ * than the filename closes that back door automatically.
+ */
+function isProtected(pathname) {
+  const p = (pathname || '').toLowerCase().replace(/\/+$/, '');   // ignore a trailing slash
+  return p === '/admin' || p.startsWith('/admin/');
+}
 const REALM = 'Rare Pond - Internal';
 
 /* Constant-time compare, so nobody can time their way to the password
@@ -84,8 +93,8 @@ export async function onRequest(context) {
     return next();
   }
 
-  // Everything that isn't the Color Looks tool is served exactly as before.
-  if (!PROTECTED.has(pathname)) return next();
+  // Everything outside /admin/ is served exactly as before.
+  if (!isProtected(pathname)) return next();
 
   // --- from here we FAIL CLOSED: never fall through to next() on an error ---
   try {
@@ -94,7 +103,7 @@ export async function onRequest(context) {
     // No secret configured => lock it, rather than silently exposing the page.
     if (!expected) {
       return locked(
-        'Color Looks is locked: COLORLOOKS_PASSWORD is not set in the ' +
+        'This internal page is locked: COLORLOOKS_PASSWORD is not set in the ' +
         'Cloudflare Pages project settings.'
       );
     }
@@ -128,6 +137,6 @@ export async function onRequest(context) {
     out.headers.set('X-Robots-Tag', 'noindex, nofollow');
     return out;
   } catch (e) {
-    return locked('Color Looks is temporarily unavailable.');
+    return locked('This internal page is temporarily unavailable.');
   }
 }

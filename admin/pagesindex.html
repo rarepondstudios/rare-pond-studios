@@ -3,7 +3,8 @@
 <meta name="robots" content="noindex,nofollow">
 <title>Page Index - Rare Pond Studios</title>
 <!--
-  INTERNAL PAGE DIRECTORY. Password-protected (same gate as /colorlooks).
+  INTERNAL PAGE DIRECTORY. Lives at /admin/pagesindex. Everything under /admin/ is
+  password-protected automatically by functions/_middleware.js.
 
   This page is GENERATED, never hand-maintained. It reads the same data files the
   live site reads - projects.json, pages.json, rentals.json, site.json - and rebuilds
@@ -47,6 +48,7 @@
   .pill.nav{background:rgba(93,220,154,.14);color:var(--ok);border:1px solid rgba(93,220,154,.35)}
   .pill.hidden{background:rgba(255,255,255,.07);color:var(--dim);border:1px solid rgba(255,255,255,.16)}
   .pill.lock{background:rgba(155,92,255,.16);color:#c4a3ff;border:1px solid rgba(155,92,255,.4)}
+  .pill.clash{background:rgba(255,77,79,.16);color:#ff8b8d;border:1px solid rgba(255,77,79,.45)}
   .note{margin-top:8px;font-size:12.5px;color:var(--dim)}
   .warnbox{margin:18px 0;padding:13px 15px;border-radius:11px;background:rgba(255,107,107,.10);border:1px solid rgba(255,107,107,.42);color:#ffd7d7;font-size:13.5px;line-height:1.65}
   .warnbox code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:5px;color:#fff;font-size:12.5px}
@@ -65,7 +67,7 @@
     <b>Always use <code>www.rarepond.com</code></b> - every link below already does.
     The bare <code>rarepond.com</code> only serves the homepage; any deeper address on it returns a
     <b>404</b>, because the apex domain points at a GoDaddy forwarding service rather than at the site.
-    If you send someone <code>rarepond.com/colorlooks</code> they will get a 404 - not the password screen. Use <code>www.rarepond.com/colorlooks</code>.
+    If you send someone <code>rarepond.com/admin/colorlooks</code> they will get a 404 - not the password screen. Use <code>www.rarepond.com/admin/colorlooks</code>.
   </div>
 
   <div id="out"></div>
@@ -133,15 +135,31 @@
       }).join('');
       html += table('Films', films + placeholders);
 
-      /* ---- custom pages (Pages CMS -> Custom Pages) ---- */
+      /* ---- custom pages (Pages CMS -> Custom Pages) ----
+         Custom pages live at /<slug>, sharing the root namespace with film slugs and
+         the built-in views. So a slug CAN be shadowed. index.html resolves in this
+         order: reserved word -> film -> custom page. A shadowed page is unreachable,
+         which is a content mistake and easy to miss, so it is called out here in red
+         rather than just quietly failing to open. Keep RESERVED in step with index.html. */
+      var RESERVED = ['','team','projects','rentals','admin','data','assets','media','functions','tools'];
+      var filmSlugs = {};
+      realFilms.forEach(function(p){ filmSlugs[p.slug || slugify(p.title)] = p.title || p.key; });
+
       var cp = pages.map(function(p){
+        var slug  = String(p.slug||'').trim();
+        var clash = RESERVED.indexOf(slug) >= 0 ? 'a built-in page'
+                  : (filmSlugs[slug] ? 'the film "' + filmSlugs[slug] + '"' : '');
         var pills = (p.showInStudioNav  ? '<span class="pill nav">studio nav</span>' : '')
                   + (p.showInRentalsNav ? '<span class="pill nav">rentals nav</span>' : '')
-                  + (!p.showInStudioNav && !p.showInRentalsNav ? '<span class="pill hidden">not in any nav</span>' : '');
-        var sub = (!p.showInStudioNav && !p.showInRentalsNav)
-          ? 'Reachable only by this direct link - it is not in the menus.'
-          : 'Custom page';
-        return row(p.title || p.slug, sub, '/?p=' + p.slug, pills);
+                  + (!p.showInStudioNav && !p.showInRentalsNav ? '<span class="pill hidden">not in any nav</span>' : '')
+                  + (clash ? '<span class="pill clash">unreachable</span>' : '');
+        var sub = clash
+          ? 'BROKEN: the slug "' + slug + '" is already taken by ' + clash + ', which wins. '
+            + 'This page cannot be opened. Rename the slug in Pages CMS.'
+          : (!p.showInStudioNav && !p.showInRentalsNav)
+              ? 'Reachable only by this direct link - it is not in the menus.'
+              : 'Custom page';
+        return row(p.title || slug, sub, '/' + slug, pills);
       }).join('');
       html += table('Custom pages', cp || '<tr><td colspan="2" class="sub">None yet. Add one in Pages CMS &rarr; Custom Pages.</td></tr>');
 
@@ -149,11 +167,13 @@
       html += table('Rentals', row('Rentals', 'The gear rentals section (its own app)', '/rentals/'));
 
       /* ---- internal, password-protected ---- */
-      /* The admin pages. Every one of these is listed in functions/_middleware.js
-         PROTECTED - if it is not in that list, it is public. */
+      /* Anything under /admin/ is behind the password automatically (the gate in
+         functions/_middleware.js matches the FOLDER, not a list of filenames), so a
+         new admin page is locked from its first deploy rather than public until
+         someone remembers to list it. */
       html += table('Admin pages (password-protected)',
-          row('Color Looks', 'Live preview of every colour look, plus the colour picker', '/colorlooks', '<span class="pill lock">locked</span>')
-        + row('Page Directory', 'This page - every address on the site', '/pagesindex', '<span class="pill lock">locked</span>')
+          row('Color Looks', 'Live preview of every colour look, plus the colour picker', '/admin/colorlooks', '<span class="pill lock">locked</span>')
+        + row('Page Directory', 'This page - every address on the site', '/admin/pagesindex', '<span class="pill lock">locked</span>')
       );
 
       out.innerHTML = html;

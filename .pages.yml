@@ -320,16 +320,31 @@ content:
     type: file
     path: data/pages.json
     fields:
+      - name: directoryUrl
+        label: "▶ Page directory - every address on the site (open this URL in a new browser tab)"
+        type: string
+        readonly: true
+        description: "The full list of every page on the site and the exact link to reach it - films, custom pages, rentals and the internal pages. It is generated from the live data, so a page you add below appears there by itself. Open it when you need a link to send someone, or to check that a new page is actually reachable."
+      - name: directoryUser
+        label: "🔒 Username for that page"
+        type: string
+        readonly: true
+        description: "The page asks for a login. This is the username. Same login as the Color Looks page."
+      - name: directoryPasswordLocation
+        label: "🔑 Password - where to find it"
+        type: string
+        readonly: true
+        description: "On Mac/iPhone/iPad, Safari will autofill the login box for you. Not written down here on purpose: this repo is PUBLIC, so anything typed into Pages CMS is visible to the world. Never put a password, key or token in this CMS."
       - name: pages
         label: Custom pages
         type: object
         list: true
-        description: "Each entry is a whole page on the studio site. Click 'Add item' at the bottom to make a new one. The page lives at rarepond.com/?p=SLUG (see 'URL slug' below)."
+        description: "Each entry is a whole page on the studio site. Click 'Add item' at the bottom to make a new one. The page lives at rarepond.com/SLUG (see 'URL slug' below)."
         fields:
           - name: slug
             label: URL slug (lowercase, no spaces - e.g. summer-open-house)
             type: string
-            description: "The page's web address. Slug 'summer-open-house' → rarepond.com/?p=summer-open-house. Use letters, numbers and dashes only."
+            description: "The page's web address. Slug 'summer-open-house' → rarepond.com/summer-open-house. Use letters, numbers and dashes only. It must not clash with a film's address or a built-in one (team, projects, rentals, admin) - those win, and a page with a clashing slug can never open. The page directory linked above flags any clash in red."
           - name: title
             label: Page title (browser tab + nav fallback)
             type: string

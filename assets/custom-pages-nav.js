@@ -13,7 +13,7 @@
            .sort(function (a, b) { return (Number(a.navOrder) || 999) - (Number(b.navOrder) || 999); })
            .forEach(function (p) {
              var a = document.createElement('a');
-             a.href = '/?p=' + encodeURIComponent(String(p.slug).trim());
+             a.href = '/' + encodeURIComponent(String(p.slug).trim());
              a.textContent = p.navLabel || p.title || p.slug;
              nav.appendChild(a);
            });
