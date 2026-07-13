@@ -86,12 +86,21 @@
   .pk-shade:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.4)}
 /* Locked (rainbow) look: previewable, not editable. */
 .look.locked .lk-note{border-left:3px solid #9b5cff;padding-left:10px}
-.lay.rainbow{background:conic-gradient(from var(--ang,0deg),#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;animation:hue 6s linear infinite}
+/* RAINBOW previews. These MUST be scoped per style: an earlier version applied the
+   conic gradient to both, which made the Stream preview just drag the centre of the
+   pinwheel sideways instead of cycling through the spectrum.
+   Pinwheel = rotating conic. Stream = a linear ramp that slides and loops. */
+.gb.pin .lay.rainbow{background:conic-gradient(from var(--ang,0deg),#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;animation:hue 6s linear infinite}
+/* The spectrum is listed TWICE and ends on the colour it began with, so the
+   0 -> -50% slide is seamless and loops forever. */
+.gb.str .lay.rainbow{right:auto;width:200%;background:linear-gradient(90deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;opacity:.9;animation:slide 14s linear infinite;will-change:transform}
 @property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
 @keyframes hue{to{--ang:360deg}}
 /* Link validator: badges + the loud banner. */
 .badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle;text-transform:uppercase}
 .badge.ok{background:rgba(93,220,154,.15);color:#5ddc9a;border:1px solid rgba(93,220,154,.35)}
+.badge.idle{background:rgba(255,255,255,.08);color:#9fb2cc;border:1px solid rgba(255,255,255,.18)}
+.lk-used{margin-top:6px;font-size:11.5px;color:#9fb2cc;line-height:1.5}
 .badge.bad{background:rgba(255,107,107,.15);color:#ff6b6b;border:1px solid rgba(255,107,107,.45)}
 #linkwarn{display:none;margin:0 0 22px;padding:14px 16px;border-radius:12px;background:rgba(255,107,107,.10);border:1px solid rgba(255,107,107,.45);color:#ffd7d7;font-size:13.5px;line-height:1.6}
 #linkwarn code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:5px;color:#fff}
@@ -135,83 +144,44 @@
       +'<button class="cpy" title="Copy hex" data-idx="'+idx+'" data-slot="'+slot+'">&#10697;</button></div>'
       +'</div></div>';
   }
-  /* ---- LINK VALIDATOR -------------------------------------------------------
-     A project look is tied to a film by typing its ID into "Linked project key",
-     and a category look by typing the rentals category name. Both are plain text
-     and matched EXACTLY, so a typo silently does nothing: the page just falls
-     back to the built-in CSS and you are left wondering why your edit had no
-     effect. (This really happened: the Camera look said "Camera (Red)" while the
-     rentals code says "Camera", so that look never applied at all.)
+  /* ---- WHO USES WHAT --------------------------------------------------------
+     The link now lives on the CONSUMER: a project/category/banner names the look
+     it wants. So this page can do something it could not before - show, for each
+     look, exactly what is using it, and flag any consumer pointing at a look that
+     does not exist (which silently does nothing on the live site).            */
+  var USED = {};        // lookKey -> ["Project: Geri-Action", "Rentals: Camera", ...]
+  var BROKEN = [];      // consumers pointing at a look that does not exist
+  var LOOKKEYS = [];
 
-     Pages CMS cannot offer a dropdown here - its `reference` field only works
-     against a collection (one file per entry), and Projects is a single JSON
-     file. So instead of preventing the typo, we make it LOUD: this page checks
-     every link against the real data and flags any that match nothing.
-     Adding a new film needs no code change - it just has to match. */
-  var VALID = { project: null, category: null };   // null until loaded
-
-  function linkBadge(kind, value){
-    var known = VALID[kind];
-    if (!known) return '';                                   // not loaded yet
-    var v = String(value == null ? '' : value).trim();
-    if (!v) return ' <span class="badge bad">no link set</span>';
-    if (known.indexOf(v) >= 0) return ' <span class="badge ok">linked</span>';
-    return ' <span class="badge bad" title="Nothing matches this. This look is doing nothing. Known: '
-      + esc(known.join(', ')) + '">&#9888; no match &ndash; this look is inactive</span>';
+  function collectUsage(looks, projects, rentals, site){
+    LOOKKEYS = looks.map(function(L){return L.key;});
+    function use(lookKey, where){
+      var k = String(lookKey||'').trim();
+      if(!k){ BROKEN.push({where:where, typed:'(blank)'}); return; }
+      if(LOOKKEYS.indexOf(k) < 0){ BROKEN.push({where:where, typed:k}); return; }
+      (USED[k] = USED[k] || []).push(where);
+    }
+    (projects||[]).forEach(function(p){ use(p.colorLook, 'Project: ' + (p.title||p.key)); });
+    ((rentals&&rentals.categories)||[]).forEach(function(c){ use(c.colorLook, 'Rentals: ' + (c.label||c.id)); });
+    var eb = (site&&site.eventBanner) || {};
+    if(eb.colorLook) use(eb.colorLook, 'Event banner' + (eb.enabled ? '' : ' (off)'));
   }
 
-  function loadLinkTargets(){
-    var p1 = fetch('/data/projects.json?cb='+Date.now(),{cache:'no-store'})
-      .then(function(r){return r.json();})
-      .then(function(j){
-        var list = (j && j.projects) ? j.projects : (Array.isArray(j)?j:[]);
-        VALID.project = list.map(function(p){return p.key;}).filter(Boolean);
-      }).catch(function(){ VALID.project = null; });
-    // The rentals categories live in the rentals app, not in a data file, so we
-    // list the keys the rentals code actually uses. If a category is renamed
-    // there, add it here too.
-    VALID.category = ['Camera','Lighting','Grip','Electric','Sound Packages'];
-    return p1;
+  function usedBadge(L){
+    var u = USED[L.key];
+    if(!u || !u.length) return ' <span class="badge idle" title="Nothing points at this look yet. Not a problem - it is just unused.">unused</span>';
+    return ' <span class="badge ok" title="' + esc(u.join(' | ')) + '">used by ' + u.length + '</span>';
+  }
+  function usedList(L){
+    var u = USED[L.key];
+    if(!u || !u.length) return '';
+    return '<div class="lk-used">' + u.map(esc).join('<br>') + '</div>';
   }
 
-  /* RAINBOW is the one structural look: not three colors, but the animated 9-stop
-     conic gradient (--rainbow) that the "More to come" bubble uses. It is shown
-     here for reference and preview, with no editable swatches, because there is
-     nothing to edit. */
-  function rainbowCard(L,idx){
-    return '<div class="look locked" data-idx="'+idx+'">'
-      +'<div class="glowbar">'
-        +'<div class="gb pin"><div class="lay rainbow"></div><span class="tag">Pinwheel</span></div>'
-        +'<div class="gb str"><div class="lay rainbow"></div><span class="tag">Stream</span></div>'
-      +'</div>'
-      +'<div class="lk-body">'
-        +'<div class="lk-meta">Basics &middot; locked</div>'
-        +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
-        +'<div class="lk-key">'+esc(L.key)+'</div>'
-        +'<div class="lk-note">Not editable, and not three colors. This is the animated rainbow gradient built into the site (used by the "More to come" bubble). It is listed as a look so other places can point at it.</div>'
-      +'</div></div>';
-  }
-  /* A project look carries the film's whole identity now (this replaced "Theme"):
-     accent + the two background tints are what you see and tune. */
-  function projectCard(L,idx){
-    var c1=L.accent, c2=L.scrimTint1, c3=L.scrimTint2;
-    return '<div class="look" data-idx="'+idx+'" style="--c1:'+esc(c1)+';--c2:'+esc(c2)+';--c3:'+esc(c3||c1)+'">'
-      +'<div class="glowbar">'
-        +'<div class="gb pin"><div class="lay"></div><span class="tag">Pinwheel</span></div>'
-        +'<div class="gb str"><div class="lay"></div><span class="tag">Stream</span></div>'
-      +'</div>'
-      +'<div class="lk-body">'
-        +'<div class="lk-meta">Project &middot; '+esc(L.project||'')+linkBadge('project',L.project)+'</div>'
-        +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
-        +'<div class="lk-key">'+esc(L.key)+'</div>'
-        +'<div class="lk-note">'+(L.taglineItalic?'Italic tagline. ':'')+(L.kickerTracking?'Kicker tracking '+esc(L.kickerTracking)+'. ':'')+'Title: '+esc(L.titleStyle||'solid')+'.</div>'
-        +'<div class="sw">'+chip('Accent',L.accent,idx,'accent')+chip('BG tint 1',L.scrimTint1,idx,'scrimTint1')+chip('BG tint 2',L.scrimTint2,idx,'scrimTint2')+'</div>'
-      +'</div></div>';
-  }
   function card(L,idx){
     if(L.kind==='rainbow') return rainbowCard(L,idx);
-    if(L.kind==='project') return projectCard(L,idx);
-    var mapline = L.kind==='category' ? ('Rentals category · '+esc(L.category||'')+linkBadge('category',L.category)) : 'Basics';
+    if(L.kind==='film') return projectCard(L,idx);
+    var mapline = 'Basics'+usedBadge(L);
     return '<div class="look" data-idx="'+idx+'" style="--c1:'+esc(L.c1)+';--c2:'+esc(L.c2)+';--c3:'+esc(L.c3)+'">'
       +'<div class="glowbar">'
         +'<div class="gb pin"><div class="lay"></div><span class="tag">Pinwheel</span></div>'
@@ -227,33 +197,33 @@
   }
   function load(){
     var g=document.getElementById('grid');
-    // Load the real project IDs first, so every look can be checked against them.
-    loadLinkTargets().then(function(){
-    return fetch('/data/colorlooks.json?cb='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+    var get=function(u){return fetch(u+'?cb='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});};
+    Promise.all([get('/data/colorlooks.json'),get('/data/projects.json'),get('/data/rentals.json'),get('/data/site.json')])
+    .then(function(res){
+      var j=res[0];
       var looks=(j&&j.looks)||[];
       if(!looks.length){g.innerHTML='<div class="empty">No color looks found in colorlooks.json.</div>';return;}
+      var projects=(res[1]&&(res[1].projects||res[1]))||[];
+      var rentals=res[2]||{};
+      var site=res[3]||{};
+
+      collectUsage(looks,projects,rentals,site);
       g.innerHTML=looks.map(card).join('');
 
-      // Surface broken links loudly at the top, not just as a small badge.
-      var broken=looks.filter(function(L){
-        if(L.kind==='project')  return !VALID.project  || VALID.project.indexOf(String(L.project||'').trim())<0;
-        if(L.kind==='category') return !VALID.category || VALID.category.indexOf(String(L.category||'').trim())<0;
-        return false;
-      });
       var warn=document.getElementById('linkwarn');
-      if(broken.length&&warn){
+      if(BROKEN.length&&warn){
         warn.style.display='block';
-        warn.innerHTML='<b>&#9888; '+broken.length+' look'+(broken.length>1?'s are':' is')+' linked to nothing and therefore doing nothing:</b><br>'
-          + broken.map(function(L){
-              var typed=L.kind==='project'?L.project:L.category;
-              var known=(L.kind==='project'?VALID.project:VALID.category)||[];
-              return '&nbsp;&nbsp;<b>'+esc(L.name||L.key)+'</b> is looking for <code>'+esc(typed||'(blank)')+'</code>, but the only valid options are: <code>'+esc(known.join('</code>, <code>'))+'</code>';
+        warn.innerHTML='<b>&#9888; '+BROKEN.length+' thing'+(BROKEN.length>1?'s are':' is')+' pointing at a color look that does not exist, so '+(BROKEN.length>1?'they are':'it is')+' using built-in colors instead:</b><br>'
+          + BROKEN.map(function(b){
+              return '&nbsp;&nbsp;<b>'+esc(b.where)+'</b> is asking for <code>'+esc(b.typed)+'</code>';
             }).join('<br>')
-          + '<br><br>Fix the <i>Linked project key</i> / <i>Linked rentals category</i> field in Pages CMS so it matches exactly.';
+          + '<br><br>The looks that actually exist are: <code>'+esc(LOOKKEYS.join('</code>, <code>'))+'</code>'
+          + '<br>Fix the <i>Linked color look</i> field on that Project / Rentals category / Event banner in Pages CMS.';
       } else if (warn) { warn.style.display='none'; }
 
-      document.getElementById('foot').innerHTML=looks.length+' looks · '+(broken.length?('<b style="color:#ff6b6b">'+broken.length+' broken link'+(broken.length>1?'s':'')+'</b>'):'<span style="color:#5ddc9a">all links valid</span>')+' · source: <a href="https://app.pagescms.org/rarepondstudios/rare-pond-studios/main/file/colorlooks" target="_blank" rel="noopener">Pages CMS → Color Looks</a>';
-    });
+      document.getElementById('foot').innerHTML=looks.length+' looks · '
+        +(BROKEN.length?('<b style="color:#ff6b6b">'+BROKEN.length+' broken link'+(BROKEN.length>1?'s':'')+'</b>'):'<span style="color:#5ddc9a">every link valid</span>')
+        +' · source: <a href="https://app.pagescms.org/rarepondstudios/rare-pond-studios/main/file/colorlooks" target="_blank" rel="noopener">Pages CMS → Color Looks</a>';
     }).catch(function(){g.innerHTML='<div class="empty">Could not load colorlooks.json.</div>';});
   }
   load();
