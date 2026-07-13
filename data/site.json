@@ -104,10 +104,10 @@
   },
   "eventBanner": {
     "enabled": true,
-    "title": "Giving out FREE GAY PASSES",
+    "title": "Get your Earth Eviction Pass Here",
     "buttonText": "Claim Yours!",
     "buttonLink": "/#team",
-    "colorLook": "rainbow",
+    "colorLook": "rev",
     "gradientStyle": "stream"
   }
 }
