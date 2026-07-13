@@ -86,13 +86,19 @@
      picks it up automatically. Nothing else needs to change.
 
        btn:  the gradient the event-banner BUTTON uses on hover, so it always
-             matches the banner rather than falling back to something invented. */
+             matches the banner rather than falling back to something invented.
+       glow: the gradient a BUBBLE uses when a project's "Bubble glow uses this look"
+             switch is on. It is a conic gradient starting "from var(--ang)", which is
+             the angle the hue keyframes drive - so the pinwheel still spins on hover
+             exactly like the signature glow does. First and last stop must match, or
+             the spin shows a seam. */
   var SPECIALS = {
     rainbow: {
       label: "Rainbow",
       btn: "linear-gradient(120deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0)",
+      glow: "conic-gradient(from var(--ang),#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)",
     },
-    // futureSpecial: { label: "...", btn: "linear-gradient(...)" },
+    // futureSpecial: { label: "...", btn: "linear-gradient(...)", glow: "conic-gradient(from var(--ang),...)" },
   };
   function specialOf(L) {
     if (!L || L.kind !== "special") return null;
@@ -137,6 +143,47 @@
 
   /* looks: from colorlooks.json.  projects / rentals: the consumers that point at
      them. Both are optional - anything missing just falls back to the static CSS. */
+  /* ===== BUBBLE GLOW =========================================================
+     Pages CMS, per project: "Bubble glow uses this look" (default OFF).
+
+     OFF - the bubble keeps the site signature glow. That colour comes from --g1/--g2/--g3
+           on :root, so we simply leave the element alone.
+     ON  - we set --g1/--g2/--g3 ON THE BUBBLE ELEMENT. Because .glow/.edge (grid) and
+           .cglow/.cedge (carousel) all read those same three variables, overriding them
+           locally recolours every layer of that bubble at once, with no new CSS.
+     ON + a "special" look - three hex stops cannot express an animated eight-stop ramp,
+           so we hand the whole gradient over in --rp-glow and let one CSS rule use it.
+
+     One selector, [data-pk], covers the home carousel AND the projects grid, so the two
+     can never drift apart - which is the whole point of the switch.
+     Every property is REMOVED before anything is set, so switching back to OFF actually
+     reverts instead of leaving the last colour stuck on. */
+  var SAFE_KEY = /^[a-z0-9_-]+$/i;
+  function applyBubbleGlow(projects, byKey) {
+    (projects || []).forEach(function (p) {
+      if (!p || !p.key || !SAFE_KEY.test(p.key)) return;
+      var els = document.querySelectorAll('[data-pk="' + p.key + '"]');
+      if (!els.length) return;
+      var L  = p.bubbleGlow ? byKey[p.colorLook] : null;
+      var sp = specialOf(L);
+      Array.prototype.forEach.call(els, function (el) {
+        el.classList.remove("rp-glow-special");
+        ["--rp-glow", "--g1", "--g2", "--g3"].forEach(function (v) { el.style.removeProperty(v); });
+        if (!L) return;                                   // switch off -> inherit the signature
+        if (sp) {                                         // a special: hand over the whole gradient
+          if (sp.glow) {
+            el.style.setProperty("--rp-glow", sp.glow);
+            el.classList.add("rp-glow-special");
+          }
+          return;
+        }
+        if (hexOk(L.c1)) el.style.setProperty("--g1", L.c1);
+        if (hexOk(L.c2)) el.style.setProperty("--g2", L.c2);
+        if (hexOk(L.c3)) el.style.setProperty("--g3", L.c3);
+      });
+    });
+  }
+
   function applyLooks(looks, projects, rentals) {
     var byKey = {};
     looks.forEach(function (L) { if (L && L.key) byKey[L.key] = L; });
@@ -157,6 +204,10 @@
       if (hexOk(sig.c2)) rs.setProperty("--g2", sig.c2);
       if (hexOk(sig.c3)) rs.setProperty("--g3", sig.c3);
     }
+
+    // 1b) per-project bubble glow. Runs AFTER the signature above, because a project
+    //     that opts in overrides those same variables on its own bubbles.
+    try { applyBubbleGlow(projects, byKey); } catch (e) { /* signature glow stands */ }
 
     // 2) PROJECT LOOKS -> the film pages. This replaces the old "Theme" system:
     //    accent, scrim tints, kicker/tagline colour + style and title style all
@@ -179,7 +230,6 @@
         var a = pick(byProj[k], byProj[k].accent);
         if (a) accents[k] = a;
       });
-      window.RP_ACCENTS = accents;
       document.querySelectorAll(".citem[data-pk]").forEach(function (el) {
         var a = accents[el.getAttribute("data-pk")];
         if (a) el.style.setProperty("--accent", a);

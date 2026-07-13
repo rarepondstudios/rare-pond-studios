@@ -104,6 +104,10 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .citem.feat .cglow{opacity:.32;border-radius:18%}
   .citem:hover .cglow{opacity:.9;animation-play-state:running}
   .cbub{position:absolute;inset:0;z-index:1;overflow:hidden;border-radius:50%;transition:border-radius .6s;box-shadow:0 30px 60px -16px rgba(0,8,30,.7),0 6px 18px rgba(0,10,40,.45);animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;contain:layout paint}
+  /* Stand-in for the bubble's cast shadow, shown ONLY while swiping (see the swipe block
+     further down). A flat gradient - no blur, no box-shadow - so it costs nothing to
+     repaint while the slide is resizing. Invisible at rest; the real shadow does the work. */
+  .cdrop{position:absolute;left:50%;bottom:-7%;width:98%;height:27%;transform:translateX(-50%);border-radius:50%;z-index:0;pointer-events:none;opacity:0;background:radial-gradient(closest-side,rgba(0,8,30,.72),rgba(0,8,30,.34) 55%,transparent 78%)}
   .citem.feat .cbub{border-radius:13%/20%}
   .side-view{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;display:block;transition:opacity .45s;z-index:1}
   .side-view.cposter{display:grid;place-items:center;background:radial-gradient(circle at 38% 30%,#2f6bd6,#16306b 70%)}
@@ -177,6 +181,18 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .bubble>.bubble-logo img{height:calc(var(--bubble-size)*0.54);width:auto;max-width:calc(var(--bubble-size)*1.15);object-fit:contain;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45))}
   .bubble>.bubble-logo .txt{font-weight:800;font-size:clamp(18px,2.2vw,25px);color:#fff;text-align:center;line-height:1.05;text-shadow:0 4px 16px rgba(0,10,40,.6)}
   .bubble.placeholder>.bubble-logo .txt{font-family:"Kaushan Script",cursive;font-weight:400;font-size:clamp(22px,2.9vw,32px);color:#eaf3ff;opacity:.95}
+
+  /* ===== per-project bubble glow (Pages CMS → project → "Bubble glow uses this look") =====
+     OFF (default): the bubble glows with the site signature, because .glow/.edge read
+     --g1/--g2/--g3 and those are set on :root. Nothing below applies.
+     ON: assets/looks.js sets --g1/--g2/--g3 on the BUBBLE ELEMENT itself, which simply
+     overrides the :root values for that one bubble - no new rule needed, and it reaches
+     the carousel and the grid identically because both now carry data-pk.
+     ON + a "special" look (Rainbow): three hex stops cannot express an eight-stop
+     animated ramp, so looks.js sets --rp-glow to the special's gradient and adds this
+     class. Keyed off a variable, so a future special needs no new CSS here. */
+  .bubble.rp-glow-special .glow,.bubble.rp-glow-special .edge,
+  .citem.rp-glow-special .cglow,.citem.rp-glow-special .cedge{background:var(--rp-glow)}
   .caption{position:absolute;left:50%;top:calc(100% + 20px);transform:translateX(-50%);text-align:center;white-space:nowrap;pointer-events:none}
   .caption .t{font-weight:800;font-size:18px;margin-bottom:3px;opacity:0;transform:translateY(8px);transition:.35s;color:#eef5ff;text-shadow:0 2px 10px rgba(0,10,40,.5)}
   .caption .s{font-size:12px;color:#c4dcf6;letter-spacing:.16em;text-transform:uppercase;font-weight:700;text-shadow:0 2px 8px rgba(0,10,40,.5)}
@@ -444,10 +460,23 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   @keyframes orbbob{from{transform:translateY(-4px)}to{transform:translateY(5px)}}
   @media(prefers-reduced-motion:reduce){.orbi{animation:none}}
   @media(max-width:760px){.orbits{transform:scale(.58)}}
+  /* ===== carousel swipe: keep it smooth WITHOUT the effects visibly flashing off =====
+     The slides animate width and height, so anything painted on them is re-rasterised
+     every frame of the transition. Measured on a 120Hz Mac (median frame time, and
+     frames long enough to read as a visible stutter):
+
+       glow (.cglow), edge (.cedge), logo drop-shadow ... 10.0ms, 0 stutters  -> FREE
+       the bubble's cast shadow (.cbub box-shadow) ...... 16.8ms, ~1 stutter  -> EXPENSIVE
+
+     So the old code was hiding four things when only ONE of them ever cost anything -
+     and the three free ones were exactly the ones you could see popping in and out.
+     Now: the glow, edge and logo shadow simply stay on (they are free), the bob
+     animations still pause, and the one expensive shadow is swapped for .cdrop below -
+     a plain gradient ellipse with no blur and no box-shadow, which costs nothing and
+     reads as the same shadow. Net result: same frame rate, no visible flashing. */
   body.swiping .bgb,body.swiping .orbi,body.swiping .cbub{animation-play-state:paused !important}
-  body.swiping .cedge,body.swiping .cglow{opacity:0 !important;transition:opacity .15s !important}
   body.swiping .cbub{box-shadow:none !important}
-  body.swiping .clogo img{filter:none !important}
+  body.swiping .cdrop{opacity:1}
 
   /* ===== custom pages (Pages CMS → Custom Pages) ===== */
   #custom-page{position:relative;padding:calc(var(--header-h) + 38px) clamp(18px,5vw,60px) 0;min-height:100vh;background-size:cover;background-position:center;background-repeat:no-repeat}
@@ -583,7 +612,11 @@ const __d=await Promise.all([
 ]);
 const SITE=__d[0];
 const __projects=__d[1].projects;
-const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,characters:[],logline:p.cardLogline,logoText:p.logoText,placeholder:!!p.placeholder}));
+/* inCarousel: a project appears in the home-page carousel unless it is explicitly
+   switched off in Pages CMS. Absent === on, so existing projects (and any new one)
+   default to showing. Turning it off removes it from the carousel ONLY - it keeps its
+   place in the Projects grid and its own URL still works. */
+const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,characters:[],logline:p.cardLogline,logoText:p.logoText,placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
 const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,eyebrow:p.eyebrow,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,chips:p.chips||[],watch:p.watch,stills:p.stills||[],credits:p.credits}]));
 const TEAM=__d[2].team;
 const __pagesData=__d[3]||{pages:[]};
@@ -707,13 +740,21 @@ if(isWebKit)document.body.classList.add('webkit');
 const INTERACTIVE=matchMedia('(hover:hover) and (pointer:fine)').matches;
 
 
-const CAROUSEL=PROJECTS.filter(p=>!p.placeholder);   /* teaser only on Projects page */
+/* The carousel shows real projects that have not been switched off in Pages CMS.
+   Everything downstream (slide count, dots, arrows, swipe wrap-around) is derived from
+   CAROUSEL.length, so hiding a project needs no other change. If every project is
+   switched off, the carousel hides itself entirely rather than rendering an empty stage. */
+const CAROUSEL=PROJECTS.filter(p=>!p.placeholder&&p.inCarousel);
 function logoHTML(p){return p.logo?`<img src="${p.logo}" alt="${p.title} logo">`:`<div class="txt">${p.logoText||p.title}</div>`;}
 
 /* grid bubbles (Projects page) */
 const grid=document.getElementById('grid');
 function makeGridBubble(p,i){
   const bubble=document.createElement('article');bubble.className='bubble'+(p.placeholder?' placeholder':'');bubble.style.setProperty('--i',i);
+  /* data-pk lets assets/looks.js find this bubble later and recolour its glow. The
+     carousel items already carried it; the grid ones did not, which is why a look
+     could only ever reach half the bubbles. */
+  bubble.dataset.pk=p.key;
   if(!p.placeholder){bubble.setAttribute('role','button');bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','Open '+p.title);}
   const mediaHTML=p.placeholder?`<div class="bubble__media placeholder-fill"></div><div class="ph-logo" style="-webkit-mask:url('${SITE.logos.duckMark}') center/contain no-repeat;mask:url('${SITE.logos.duckMark}') center/contain no-repeat"></div><div class="ph-spin"></div>`
     :(p.poster?'<div class="bubble__media poster"></div>':`<img class="bubble__media" src="${p.img}" alt="${p.title}">`);
@@ -755,13 +796,17 @@ const ABOUT_ORB_POS=[[-172,-96,86],[-202,72,76],[-130,166,80],[10,196,72],[126,1
 (function buildOrbits(){const host=document.querySelector('.about-logo');if(!host)return;const wrap=document.createElement('div');wrap.className='orbits';ABOUT_ORBS.forEach((k,i)=>{const p=ABOUT_ORB_POS[i%ABOUT_ORB_POS.length];const orb=document.createElement('div');orb.className='orb';orb.style.setProperty('--tx',p[0]+'px');orb.style.setProperty('--ty',p[1]+'px');orb.style.setProperty('--sz',p[2]+'px');orb.style.setProperty('--bd',(i*0.6).toFixed(2)+'s');orb.innerHTML='<span class="orbi"><img src="'+(k||'')+'" alt="" loading="lazy"></span>';wrap.appendChild(orb);});host.appendChild(wrap);if(matchMedia('(prefers-reduced-motion:reduce)').matches){wrap.style.setProperty('--p','1');return;}let ticking=false;function upd(){ticking=false;const r=host.getBoundingClientRect();const vh2=innerHeight||document.documentElement.clientHeight;const c=r.top+r.height/2;let p=(vh2*1.04-c)/(vh2*0.46);p=Math.max(0,Math.min(1,p));wrap.style.setProperty('--p',p.toFixed(3));}addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(upd);}},{passive:true});addEventListener('resize',upd);upd();setTimeout(upd,300);})();
 
 /* carousel (home) - films only */
-const stage=document.getElementById('stage'),cinfo=document.getElementById('cinfo'),cdots=document.getElementById('cdots');
+const stage=document.getElementById('stage'),cdots=document.getElementById('cdots');
 let activeIdx=0,dragFlag=false;const N=CAROUSEL.length;
-/* NO hardcoded film colours. Each project's accent comes from its Linked color
-   look (assets/looks.js re-applies it once colorlooks.json lands). Anything not
-   assigned renders WHITE so the gap is obvious rather than silently papered over. */
-const ACCENT={};
-const accentFor=k=>ACCENT[k]||'#ffffff';
+/* If every project has been switched off (or there are none yet), hide the whole
+   carousel instead of leaving an empty stage - and make setActive a no-op, since
+   its wrap-around arithmetic divides by N. */
+if(!N){const __car=document.querySelector('.carousel');if(__car)__car.style.display='none';}
+/* NO hardcoded film colours. Every project's accent comes from its Linked color look;
+   assets/looks.js paints it once colorlooks.json lands. Until then - and for anything
+   with no look assigned - the accent is WHITE, so a missing link is obvious on screen
+   instead of being silently papered over by a stale hardcoded colour. */
+const accentFor=()=>'#ffffff';
 function focusHTML(p){
   const bg=p.focusVideo?`<div class="focus-bg"><video src="${p.focusVideo}" autoplay muted loop playsinline></video></div>`:`<div class="focus-bg" style="background-image:url('${p.focusBg||SITE.water}')"></div>`;
   return `<div class="focus-view">${bg}<div class="focus-scrim"></div><div class="focus-content"><div class="focus-eyebrow">${p.sub}</div><p class="focus-logline">${p.logline||p.blurb}</p></div></div>`;
@@ -769,7 +814,7 @@ function focusHTML(p){
 const citems=CAROUSEL.map((p,i)=>{
   const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',accentFor(p.key));
   const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" src="${p.img}" alt="${p.title}">`;
-  el.innerHTML=`<div class="cglow"></div><div class="cbub">${side}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
+  el.innerHTML=`<div class="cdrop"></div><div class="cglow"></div><div class="cbub">${side}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
   el.addEventListener('pointermove',e=>{if(INTERACTIVE&&el.classList.contains('feat')){const r=el.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){el.style.setProperty('--mx',(px*100).toFixed(1)+'%');el.style.setProperty('--my',(py*100).toFixed(1)+'%');}el.style.setProperty('--tilty',((px-.5)*9).toFixed(2)+'deg');el.style.setProperty('--tiltx',((.5-py)*7).toFixed(2)+'deg');}});
   el.addEventListener('pointerleave',()=>{if(INTERACTIVE){el.style.setProperty('--mx','80%');el.style.setProperty('--my','16%');el.style.setProperty('--tiltx','0deg');el.style.setProperty('--tilty','0deg');}});
   el.addEventListener('click',()=>{if(dragFlag)return;if(el.classList.contains('feat')){const r=el.getBoundingClientRect();openProject(p.key,r.left+r.width/2,r.top+r.height/2);}else setActive(i);});
@@ -791,7 +836,7 @@ function layout(){
   });
   [...cdots.children].forEach((d,i)=>d.classList.toggle('on',i===activeIdx));
 }
-function setActive(i){activeIdx=((i%N)+N)%N;document.body.classList.add('swiping');clearTimeout(window.__swT);window.__swT=setTimeout(function(){document.body.classList.remove('swiping');},700);layout();}
+function setActive(i){if(!N)return;activeIdx=((i%N)+N)%N;document.body.classList.add('swiping');clearTimeout(window.__swT);window.__swT=setTimeout(function(){document.body.classList.remove('swiping');},700);layout();}
 document.getElementById('carPrev').addEventListener('click',()=>setActive(activeIdx-1));
 document.getElementById('carNext').addEventListener('click',()=>setActive(activeIdx+1));
 let sx=0,sy=0,sdown=false;
@@ -804,7 +849,6 @@ layout();
 requestAnimationFrame(function(){requestAnimationFrame(function(){stage.classList.add('ready');});});
 
 /* universes */
-const PH='<span style="color:var(--accent);font-weight:700">✎ placeholder copy, easy to swap</span>';
 
 
 const teamList=document.getElementById('teamList');

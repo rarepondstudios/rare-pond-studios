@@ -125,7 +125,13 @@
       var realFilms = projects.filter(function(p){ return !p.placeholder; });
       var films = realFilms.map(function(p){
         var slug = p.slug || slugify(p.title);
-        return row(p.title || p.key, 'Film page  ·  look: ' + (p.colorLook || 'none'), '/' + slug);
+        /* inCarousel and bubbleGlow are opt-OUT / opt-IN respectively, so an absent value
+           means the default. Surfaced here because both are easy to set and then forget. */
+        var pills = (p.inCarousel === false ? '<span class="pill hidden">not in carousel</span>' : '')
+                  + (p.bubbleGlow ? '<span class="pill nav">glow: ' + esc(p.colorLook || '?') + '</span>' : '');
+        var sub = 'Film page  ·  look: ' + (p.colorLook || 'none')
+                + (p.inCarousel === false ? '  ·  hidden from the home carousel (still in Projects, link still works)' : '');
+        return row(p.title || p.key, sub, '/' + slug, pills);
       }).join('');
       var placeholders = projects.filter(function(p){ return p.placeholder; }).map(function(p){
         return '<tr><td><span class="nm">'+esc(p.title||p.key)+'</span>'

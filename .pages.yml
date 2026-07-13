@@ -191,6 +191,10 @@ content:
               description: "This ID is how the film is linked to its colors. To change this film's look (accent, background tints, kicker, tagline), go to COLOR LOOKS and open the Project entry whose 'Linked project key' matches this ID. There is nothing color-related on this screen." }
           - { name: colorLook, label: "Linked color look", type: string,
               description: "The name (ID) of a look in COLOR LOOKS. That look's colors are applied here. Type it exactly as the look's ID (e.g. signature, rainbow, red, geri). If it does not match a real look, nothing is applied and the built-in colors are used - open the Color Looks preview page, it flags any broken link in red. For a film, use a Film look (it carries the accent, background washes and typography)." }
+          - { name: bubbleGlow, label: "↳ Bubble glow uses this look", type: boolean, default: false,
+              description: "OFF (normal): the bubble glows with the standard Rare Pond signature colors, like every other bubble. ON: the bubble's glow and rim are recolored with the look chosen above - Color 1, 2 and 3 become the three colors of the pinwheel. It changes EVERY bubble for this film at once: the one on the home carousel and the one in the Projects section, so they can never look different from each other. If the linked look is a special one (Rainbow), the bubble gets that animated colorway instead. Leave OFF unless you specifically want this film's bubble to stand out." }
+          - { name: inCarousel, label: "Show in the home-page carousel", type: boolean, default: true,
+              description: "ON (normal): the film appears in the big rotating carousel on the home page. OFF: it is removed from the carousel only - it still appears in the Projects section and its own page still works at its usual address, so any link you have shared keeps working. Use this to quiet down a film without unpublishing it. The carousel adjusts itself: dots, arrows and swiping all follow." }
           - { name: title, label: Title, type: string }
           - { name: subtitle, label: Card subtitle / genre line, type: string }
           - { name: placeholder, label: Coming-soon placeholder bubble, type: boolean }
@@ -344,7 +348,8 @@ content:
           - name: slug
             label: URL slug (lowercase, no spaces - e.g. summer-open-house)
             type: string
-            description: "The page's web address. Slug 'summer-open-house' → rarepond.com/summer-open-house. Use letters, numbers and dashes only. It must not clash with a film's address or a built-in one (team, projects, rentals, admin) - those win, and a page with a clashing slug can never open. The page directory linked above flags any clash in red."
+            pattern: '^(?!(?:admin|assets|data|functions|geriaction|invalidopinion|media|projects|rentals|revelations|team|tools)$)[a-z0-9]+(?:-[a-z0-9]+)*$'
+            description: "The page's web address. Slug 'summer-open-house' → rarepond.com/summer-open-house. Use lowercase letters, numbers and single dashes only. Certain words are refused because a film or a built-in page already answers to them (team, projects, rentals, admin, geriaction, revelations, invalidopinion) - if a page used one of those it could never open, so it is blocked here rather than failing silently later. This list is generated from the live films by tools/check-slugs.mjs; after adding or renaming a film, run `node tools/check-slugs.mjs --write` (the tests fail if you forget)."
           - name: title
             label: Page title (browser tab + nav fallback)
             type: string

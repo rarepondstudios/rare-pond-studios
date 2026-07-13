@@ -31,7 +31,9 @@
       ],
       "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Cameron Quinn · Rachael DeBoer · Kennedy Porter · Adam Kezele",
       "blurb": "A retired superspy breaks out of her nursing home! A live-action x 2D animation hybrid proof of concept.",
-      "colorLook": "geri"
+      "colorLook": "geri",
+      "bubbleGlow": false,
+      "inCarousel": true
     },
     {
       "key": "rev",
@@ -63,7 +65,9 @@
       ],
       "credits": "<b>Directed & Written by</b> Jack Carlsen · Loyola Marymount University<br><b>Starring</b> Lawrence Lacey · Jesse Shafroth · John Klenk · Trinity Medina",
       "blurb": "Heaven is an office. Earth is the problem.",
-      "colorLook": "rev"
+      "colorLook": "rev",
+      "bubbleGlow": false,
+      "inCarousel": true
     },
     {
       "key": "invalid",
@@ -96,7 +100,9 @@
       ],
       "credits": "<b>Created by</b> Jack Carlsen<br><b>Starring</b> Iago Lashua · Nick Wittcoff<br><b>Director of Photography</b> Jash Shah · <b>Sound</b> Jacob Gensheimer",
       "blurb": "A fast, funny short about a guy who is always right.",
-      "colorLook": "invalid"
+      "colorLook": "invalid",
+      "bubbleGlow": false,
+      "inCarousel": true
     },
     {
       "key": "more",
@@ -107,7 +113,9 @@
       "focusBg": "/media/site/water.jpg",
       "cardLogline": "New worlds are in the works.",
       "blurb": "New worlds are in the works.",
-      "colorLook": "rainbow"
+      "colorLook": "rainbow",
+      "bubbleGlow": false,
+      "inCarousel": true
     }
   ]
 }
