@@ -212,18 +212,18 @@
       ".rp-evbanner.rp-ev-in{transform:translateY(0)}",
       // the colour sheet: SAME radial mask as .hdr-bg (identical curve, thickest at centre), shifted down
       // 38px so its opaque body + curved falloff extend below the fully-opaque white header.
-      ".rp-evbanner .rp-evsheet{position:absolute;left:0;right:0;top:38px;height:170px;background:linear-gradient(180deg,var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff));-webkit-mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%);mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%)}",
+      ".rp-evbanner .rp-evsheet{position:absolute;left:0;right:0;top:38px;height:170px;background:linear-gradient(180deg,var(--e1,#ffffff),var(--e2,#ffffff),var(--e3,#ffffff));-webkit-mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%);mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%)}",
       // angle custom-prop so we can rotate the CONIC (not an oversized element) -> pinwheel fills its box, cheap on the GPU
       "@property --rpev-a{syntax:'<angle>';inherits:false;initial-value:0deg}",
       // animated glow rides on top of the colour sheet, clipped to the SAME curved shape
       ".rp-evbanner .rp-evglow{position:absolute;left:0;right:0;top:38px;height:170px;overflow:hidden;-webkit-mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%);mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%)}",
       ".rp-evbanner .rp-evglow::before{content:'';position:absolute;inset:-15%;filter:blur(24px);will-change:transform}",
       // PINWHEEL: conic fills the whole box; rotating the angle 0->360 loops with NO seam (starts/ends on --e1)
-      ".rp-evbanner.rp-ev-pinwheel .rp-evglow::before{background:conic-gradient(from var(--rpev-a),var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));opacity:.5;animation:rpevspin 9s linear infinite}",
+      ".rp-evbanner.rp-ev-pinwheel .rp-evglow::before{background:conic-gradient(from var(--rpev-a),var(--e1,#ffffff),var(--e2,#ffffff),var(--e3,#ffffff),var(--e2,#ffffff),var(--e1,#ffffff));opacity:.5;animation:rpevspin 9s linear infinite}",
       "@keyframes rpevspin{to{--rpev-a:360deg}}",
       // STREAM: seamless CONVEYOR - a 200%-wide strip carrying TWO identical colour periods, slid left by exactly one period.
       // Because the two halves are identical, translateX(-50%) lands on a pixel-identical frame => no reset/seam ever.
-      ".rp-evbanner.rp-ev-stream .rp-evglow::before{background:linear-gradient(90deg,var(--e1,#3f6bff),var(--e2,#9b5cff),var(--e3,#56c8ff),var(--e2,#9b5cff),var(--e1,#3f6bff));background-size:50% 100%;background-repeat:repeat;opacity:.42;animation:rpevstream 16s linear infinite;will-change:background-position}",
+      ".rp-evbanner.rp-ev-stream .rp-evglow::before{background:linear-gradient(90deg,var(--e1,#ffffff),var(--e2,#ffffff),var(--e3,#ffffff),var(--e2,#ffffff),var(--e1,#ffffff));background-size:50% 100%;background-repeat:repeat;opacity:.42;animation:rpevstream 16s linear infinite;will-change:background-position}",
       // RAINBOW look selected -> paint the banner with the site's animated rainbow
       // instead of an e1/e2/e3 ramp. Same colours the "More to come" bubble uses.
       // PINWHEEL keeps the rotating conic. STREAM must be a LINEAR ramp that slides
@@ -241,7 +241,12 @@
       ".rp-evbanner .rp-evinner{position:absolute;left:0;right:0;top:104px;bottom:30px;z-index:3;max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:10px 22px;flex-wrap:wrap;padding:0 clamp(18px,5vw,60px);text-align:center}",
       ".rp-evbanner .rp-evtitle{font:800 clamp(15px,1.9vw,19px)/1.3 Heebo,system-ui,sans-serif;color:#fff;text-shadow:0 2px 12px rgba(0,6,22,.72);letter-spacing:.2px}",
       ".rp-evbanner .rp-evbtn{flex:none;padding:9px 20px;border-radius:10px;font:800 14px/1 Heebo,system-ui,sans-serif;text-decoration:none;color:#0c1836;background:#fff;box-shadow:0 6px 18px -5px rgba(0,0,0,.5);transition:transform .18s cubic-bezier(.3,.7,.2,1.4),box-shadow .22s,background .22s,color .22s}",
-      ".rp-evbanner .rp-evbtn:hover{transform:translateY(-2px) scale(1.05);color:#fff;background:linear-gradient(120deg,var(--e1),var(--e2),var(--e3));box-shadow:0 0 0 3px rgba(255,255,255,.55),0 0 26px 6px rgba(255,255,255,.6),0 12px 26px -6px rgba(0,0,0,.45)}",
+      /* The button's hover gradient is --ev-btn, set in JS from the SAME look the rest
+         of the banner uses - including Rainbow. It used to be hardcoded to
+         linear-gradient(120deg, var(--e1), var(--e2), var(--e3)), which broke on the
+         Rainbow look: rainbow has no Color 1/2/3, so e1/e2/e3 silently fell back to the
+         old signature blues and the button hovered blue on a rainbow banner. */
+      ".rp-evbanner .rp-evbtn:hover{transform:translateY(-2px) scale(1.05);color:#fff;background:var(--ev-btn);box-shadow:0 0 0 3px rgba(255,255,255,.55),0 0 26px 6px rgba(255,255,255,.6),0 12px 26px -6px rgba(0,0,0,.45)}",
       "@media(prefers-reduced-motion:reduce){.rp-evbanner{transition:none}.rp-evbanner .rp-evglow::before{animation:none}}"
     ].join("");
     var s = document.createElement("style"); s.id = "rp-ev-css"; s.textContent = css;
@@ -259,23 +264,32 @@
       return;
     }
     bannerCssOnce();
-    var L = byKey[eb.colorLook] || byKey.signature || { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" };
+    /* If the banner points at a look that does not exist, fall back to the Signature -
+       and if even that is missing, to nothing, which renders WHITE. No invented colours. */
+    var L = byKey[eb.colorLook] || byKey.signature || {};
     var btn = eb.buttonText ? ('<a class="rp-evbtn" href="' + esc(safeLink(eb.buttonLink)) + '">' + esc(eb.buttonText) + "</a>") : "";
     var el = document.createElement("div");
     var style = (eb.gradientStyle === "pinwheel") ? "pinwheel" : "stream";  // per-place gradient control; default Stream for this wide header
     el.className = "rp-evbanner rp-ev-" + style;
     /* RAINBOW is the one look that is not three colours: it is the animated 9-stop
-       conic gradient defined once as --rainbow in index.html (the same one the
-       "More to come" bubble uses). Selecting it here paints the banner with that
-       gradient instead of an e1/e2/e3 ramp. It is deliberately not editable. */
-    if (L.kind === "rainbow" || eb.colorLook === "rainbow") {
-      el.classList.add("rp-ev-rainbow");
-    }
-    /* Every look now carries Color 1/2/3, whatever its kind, so the banner just
-       uses them directly. No special-casing. */
-    var e1 = hexOk(L.c1) ? L.c1 : "#3f6bff";
+       gradient the "More to come" bubble uses. It is deliberately not editable. */
+    var isRainbow = (L.kind === "rainbow" || eb.colorLook === "rainbow");
+    if (isRainbow) el.classList.add("rp-ev-rainbow");
+
+    /* NO HIDDEN FALLBACK COLOURS. This used to fall back to #3f6bff/#9b5cff/#56c8ff -
+       the old signature blues - whenever a look had no Color 1/2/3. The Rainbow look
+       has none, so the banner painted itself rainbow (via .rp-ev-rainbow) while the
+       BUTTON still hovered in phantom blue. Unassigned now means white, the same rule
+       as everywhere else on the site, so a gap is visible instead of disguised. */
+    var e1 = hexOk(L.c1) ? L.c1 : "#ffffff";
     var e2 = hexOk(L.c2) ? L.c2 : e1;
     var e3 = hexOk(L.c3) ? L.c3 : e2;
+
+    /* ONE gradient, shared by every part of the banner - sheet, glow AND the button's
+       hover. Whatever the look is, they cannot disagree. */
+    el.style.setProperty("--ev-btn", isRainbow
+      ? "linear-gradient(120deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0)"
+      : ("linear-gradient(120deg," + e1 + "," + e2 + "," + e3 + ")"));
     el.style.setProperty("--e1", e1);
     el.style.setProperty("--e2", e2);
     el.style.setProperty("--e3", e3);
