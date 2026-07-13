@@ -475,11 +475,38 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   /* Footer on a light-background page: reverse text to dark for legibility (dark pages keep the styles above). */
 
   /* ===== universe ===== */
-  .universe{position:fixed;inset:0;z-index:100;visibility:hidden;overflow-y:auto;clip-path:circle(0px at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(0px at var(--ox,50%) var(--oy,50%));transition:clip-path .6s cubic-bezier(.6,0,.2,1),-webkit-clip-path .6s cubic-bezier(.6,0,.2,1);background:#05101f}
+  .universe{position:fixed;inset:0;z-index:100;visibility:hidden;overflow-y:auto;clip-path:circle(0px at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(0px at var(--ox,50%) var(--oy,50%));transition:clip-path .6s cubic-bezier(.6,0,.2,1),-webkit-clip-path .6s cubic-bezier(.6,0,.2,1);background:#05101f;
+    /* the flash's colours. Signature unless applyFlashLook() overrides them for this film.
+       --fgm is the hand-picked middle stop, kept exactly as it was. */
+    --fg1:var(--g1);--fg2:var(--g2);--fg3:var(--g3);--fgm:rgb(123,108,255)}
   .universe.open{clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%))}
   .u-bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center}
   .u-scrim{position:fixed;inset:0;z-index:1;background:radial-gradient(90% 70% at 50% 0%,var(--scrim-1,#ffffff),transparent 60%),linear-gradient(180deg,rgba(6,8,20,.6),rgba(4,6,16,.92))}
-  .u-flash{position:fixed;inset:0;z-index:6;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--ox,50%) var(--oy,50%),rgba(155,92,255,0) 0%,rgba(123,108,255,.5) 26%,rgba(86,200,255,.6) 46%,rgba(63,107,255,.55) 60%,transparent 74%)}
+  /* ===== THE ZOOM-IN FLASH ==========================================================
+     The burst of light that fires out of the bubble as the film opens. It is the last piece
+     of the bubble's glow, so it obeys the same switch: signature by default, the film's look
+     when "Bubble glow uses this look" is on.
+
+     --fg1/--fg2/--fg3 default to the signature on .universe and are overwritten per-film by
+     applyFlashLook() at open time, from the same --h1/--h2/--h3 the bubble is already
+     carrying. One source of truth, and it reverts by itself the moment the switch goes off.
+
+     The stops were rgba() literals - the signature's three colours with their alphas baked
+     in. color-mix keeps those exact alphas (transparent 50% == alpha .5) while letting the
+     hue come from a variable.
+
+     --fgm is the middle stop, and it has its own variable for one reason: in the signature it
+     was rgb(123,108,255), which is NOT the average of colour 1 and colour 2 (that would be
+     109,100,255). It was hand-picked. Deriving it with color-mix would therefore have quietly
+     shifted the signature flash - the state 99% of visits see - to fix the 1% that opted in.
+     So the signature keeps its exact literal, and only a film with a look gets a mixed one. */
+  .u-flash{position:fixed;inset:0;z-index:6;pointer-events:none;opacity:0;
+    background:radial-gradient(circle at var(--ox,50%) var(--oy,50%),
+      color-mix(in srgb,var(--fg2),transparent 100%) 0%,
+      color-mix(in srgb,var(--fgm),transparent 50%) 26%,
+      color-mix(in srgb,var(--fg3),transparent 40%) 46%,
+      color-mix(in srgb,var(--fg1),transparent 45%) 60%,
+      transparent 74%)}
   .universe.flash .u-flash{animation:enterflash .9s ease-out}.universe.flash-out .u-flash{animation:enterflash .6s ease-in}
   @keyframes enterflash{0%{opacity:0}28%{opacity:1}100%{opacity:0}}
   .u-inner{position:relative;z-index:2;min-height:100%;opacity:0;transform:translateY(14px);transition:opacity .5s .18s,transform .5s .18s;padding-top:calc(var(--header-h) + 6px)}
@@ -1238,6 +1265,36 @@ function setOrigin(sec,key){
   sec.style.setProperty('--ox',o.x+'px');
   sec.style.setProperty('--oy',o.y+'px');
 }
+
+/* ===== THE ZOOM-IN FLASH TAKES THE FILM'S LOOK ====================================
+   The flash is the bubble's glow still travelling after you click it, so it answers to the
+   same switch. It reads the colours off THE BUBBLE ITSELF - the same --h1/--h2/--h3 that
+   assets/looks.js already put there for the hover - rather than re-deriving them from the
+   data. That is deliberate: there is then exactly one place where "this film's look" is
+   decided, and the flash cannot drift out of step with the glow it came from.
+
+   Switch off -> the bubble has no .rp-hover-look and no --h*, so we clear the overrides and
+   .universe falls back to --g1/--g2/--g3: the signature flash, unchanged.
+
+   A "special" (Rainbow) has no three hex stops to give - it is an eight-stop animated ramp,
+   which a radial-gradient burst cannot express. Those films flash the signature, which is
+   the honest fallback rather than a wrong-looking approximation. */
+function applyFlashLook(sec,key){
+  ['--fg1','--fg2','--fg3','--fgm'].forEach(v=>sec.style.removeProperty(v));
+  if(!key) return;
+  const esc=(window.CSS&&CSS.escape)?CSS.escape(key):String(key).replace(/"/g,'\\"');
+  const src=document.querySelector('[data-pk="'+esc+'"].rp-hover-look');
+  if(!src) return;                                   // switch off -> signature
+  const h1=src.style.getPropertyValue('--h1'),
+        h2=src.style.getPropertyValue('--h2'),
+        h3=src.style.getPropertyValue('--h3');
+  if(!h1||!h2||!h3) return;                          // a special -> signature
+  sec.style.setProperty('--fg1',h1);
+  sec.style.setProperty('--fg2',h2);
+  sec.style.setProperty('--fg3',h3);
+  /* only a look film gets a derived middle stop; the signature keeps its own literal */
+  sec.style.setProperty('--fgm','color-mix(in srgb,'+h1+','+h2+')');
+}
 function openUniverse(key){
   if(!SECTIONS[key])return;
   const sec=built[key]||(built[key]=buildUniverse(key));
@@ -1259,6 +1316,7 @@ function openUniverse(key){
   sec.style.transition='none';
   sec.classList.remove('open','closing','flash','flash-out');
   setOrigin(sec,key);
+  applyFlashLook(sec,key);   // the burst leaves the bubble in the bubble's own colours
   sec.style.visibility='visible';sec.scrollTop=0;
   void sec.offsetWidth;
   sec.style.transition='';
