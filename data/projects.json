@@ -3,7 +3,7 @@
     {
       "key": "geri",
       "colorLook": "geri",
-      "bubbleGlow": true,
+      "bubbleGlow": false,
       "inCarousel": true,
       "title": "Geri-Action",
       "subtitle": "Hybrid Short Film",
