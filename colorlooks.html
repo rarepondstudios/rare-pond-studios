@@ -89,6 +89,12 @@
 .lay.rainbow{background:conic-gradient(from var(--ang,0deg),#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)!important;animation:hue 6s linear infinite}
 @property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
 @keyframes hue{to{--ang:360deg}}
+/* Link validator: badges + the loud banner. */
+.badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle;text-transform:uppercase}
+.badge.ok{background:rgba(93,220,154,.15);color:#5ddc9a;border:1px solid rgba(93,220,154,.35)}
+.badge.bad{background:rgba(255,107,107,.15);color:#ff6b6b;border:1px solid rgba(255,107,107,.45)}
+#linkwarn{display:none;margin:0 0 22px;padding:14px 16px;border-radius:12px;background:rgba(255,107,107,.10);border:1px solid rgba(255,107,107,.45);color:#ffd7d7;font-size:13.5px;line-height:1.6}
+#linkwarn code{background:rgba(0,0,0,.35);padding:1px 6px;border-radius:5px;color:#fff}
 </style>
 </head>
 <body>
@@ -113,7 +119,8 @@
       <div class="pk-shades" id="pkShades"></div>
     </div>
   </div>
-  <div class="grid" id="grid"></div>
+  <div id="linkwarn"></div>
+<div class="grid" id="grid"></div>
   <div class="foot" id="foot"></div>
 
 <script>
@@ -128,6 +135,45 @@
       +'<button class="cpy" title="Copy hex" data-idx="'+idx+'" data-slot="'+slot+'">&#10697;</button></div>'
       +'</div></div>';
   }
+  /* ---- LINK VALIDATOR -------------------------------------------------------
+     A project look is tied to a film by typing its ID into "Linked project key",
+     and a category look by typing the rentals category name. Both are plain text
+     and matched EXACTLY, so a typo silently does nothing: the page just falls
+     back to the built-in CSS and you are left wondering why your edit had no
+     effect. (This really happened: the Camera look said "Camera (Red)" while the
+     rentals code says "Camera", so that look never applied at all.)
+
+     Pages CMS cannot offer a dropdown here - its `reference` field only works
+     against a collection (one file per entry), and Projects is a single JSON
+     file. So instead of preventing the typo, we make it LOUD: this page checks
+     every link against the real data and flags any that match nothing.
+     Adding a new film needs no code change - it just has to match. */
+  var VALID = { project: null, category: null };   // null until loaded
+
+  function linkBadge(kind, value){
+    var known = VALID[kind];
+    if (!known) return '';                                   // not loaded yet
+    var v = String(value == null ? '' : value).trim();
+    if (!v) return ' <span class="badge bad">no link set</span>';
+    if (known.indexOf(v) >= 0) return ' <span class="badge ok">linked</span>';
+    return ' <span class="badge bad" title="Nothing matches this. This look is doing nothing. Known: '
+      + esc(known.join(', ')) + '">&#9888; no match &ndash; this look is inactive</span>';
+  }
+
+  function loadLinkTargets(){
+    var p1 = fetch('/data/projects.json?cb='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.json();})
+      .then(function(j){
+        var list = (j && j.projects) ? j.projects : (Array.isArray(j)?j:[]);
+        VALID.project = list.map(function(p){return p.key;}).filter(Boolean);
+      }).catch(function(){ VALID.project = null; });
+    // The rentals categories live in the rentals app, not in a data file, so we
+    // list the keys the rentals code actually uses. If a category is renamed
+    // there, add it here too.
+    VALID.category = ['Camera','Lighting','Grip','Electric','Sound Packages'];
+    return p1;
+  }
+
   /* RAINBOW is the one structural look: not three colors, but the animated 9-stop
      conic gradient (--rainbow) that the "More to come" bubble uses. It is shown
      here for reference and preview, with no editable swatches, because there is
@@ -155,7 +201,7 @@
         +'<div class="gb str"><div class="lay"></div><span class="tag">Stream</span></div>'
       +'</div>'
       +'<div class="lk-body">'
-        +'<div class="lk-meta">Project &middot; '+esc(L.project||'')+'</div>'
+        +'<div class="lk-meta">Project &middot; '+esc(L.project||'')+linkBadge('project',L.project)+'</div>'
         +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
         +'<div class="lk-key">'+esc(L.key)+'</div>'
         +'<div class="lk-note">'+(L.taglineItalic?'Italic tagline. ':'')+(L.kickerTracking?'Kicker tracking '+esc(L.kickerTracking)+'. ':'')+'Title: '+esc(L.titleStyle||'solid')+'.</div>'
@@ -165,7 +211,7 @@
   function card(L,idx){
     if(L.kind==='rainbow') return rainbowCard(L,idx);
     if(L.kind==='project') return projectCard(L,idx);
-    var mapline = L.kind==='category' ? ('Rentals category · '+esc(L.category||'')) : 'Basics';
+    var mapline = L.kind==='category' ? ('Rentals category · '+esc(L.category||'')+linkBadge('category',L.category)) : 'Basics';
     return '<div class="look" data-idx="'+idx+'" style="--c1:'+esc(L.c1)+';--c2:'+esc(L.c2)+';--c3:'+esc(L.c3)+'">'
       +'<div class="glowbar">'
         +'<div class="gb pin"><div class="lay"></div><span class="tag">Pinwheel</span></div>'
@@ -181,11 +227,33 @@
   }
   function load(){
     var g=document.getElementById('grid');
-    fetch('/data/colorlooks.json?cb='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+    // Load the real project IDs first, so every look can be checked against them.
+    loadLinkTargets().then(function(){
+    return fetch('/data/colorlooks.json?cb='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
       var looks=(j&&j.looks)||[];
       if(!looks.length){g.innerHTML='<div class="empty">No color looks found in colorlooks.json.</div>';return;}
       g.innerHTML=looks.map(card).join('');
-      document.getElementById('foot').innerHTML=looks.length+' looks · source: <a href="https://app.pagescms.org/rarepondstudios/rare-pond-studios/main/file/colorlooks" target="_blank" rel="noopener">Pages CMS → Color Looks</a>';
+
+      // Surface broken links loudly at the top, not just as a small badge.
+      var broken=looks.filter(function(L){
+        if(L.kind==='project')  return !VALID.project  || VALID.project.indexOf(String(L.project||'').trim())<0;
+        if(L.kind==='category') return !VALID.category || VALID.category.indexOf(String(L.category||'').trim())<0;
+        return false;
+      });
+      var warn=document.getElementById('linkwarn');
+      if(broken.length&&warn){
+        warn.style.display='block';
+        warn.innerHTML='<b>&#9888; '+broken.length+' look'+(broken.length>1?'s are':' is')+' linked to nothing and therefore doing nothing:</b><br>'
+          + broken.map(function(L){
+              var typed=L.kind==='project'?L.project:L.category;
+              var known=(L.kind==='project'?VALID.project:VALID.category)||[];
+              return '&nbsp;&nbsp;<b>'+esc(L.name||L.key)+'</b> is looking for <code>'+esc(typed||'(blank)')+'</code>, but the only valid options are: <code>'+esc(known.join('</code>, <code>'))+'</code>';
+            }).join('<br>')
+          + '<br><br>Fix the <i>Linked project key</i> / <i>Linked rentals category</i> field in Pages CMS so it matches exactly.';
+      } else if (warn) { warn.style.display='none'; }
+
+      document.getElementById('foot').innerHTML=looks.length+' looks · '+(broken.length?('<b style="color:#ff6b6b">'+broken.length+' broken link'+(broken.length>1?'s':'')+'</b>'):'<span style="color:#5ddc9a">all links valid</span>')+' · source: <a href="https://app.pagescms.org/rarepondstudios/rare-pond-studios/main/file/colorlooks" target="_blank" rel="noopener">Pages CMS → Color Looks</a>';
+    });
     }).catch(function(){g.innerHTML='<div class="empty">Could not load colorlooks.json.</div>';});
   }
   load();

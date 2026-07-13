@@ -204,7 +204,8 @@ content:
         type: object
         list: true
         fields:
-          - { name: key, label: ID (url-safe, e.g. geri), type: string }
+          - { name: key, label: ID (url-safe, e.g. geri), type: string,
+              description: "This ID is how the film is linked to its colors. To change this film's look (accent, background tints, kicker, tagline), go to COLOR LOOKS and open the Project entry whose 'Linked project key' matches this ID. There is nothing color-related on this screen." }
           - { name: title, label: Title, type: string }
           - { name: subtitle, label: Card subtitle / genre line, type: string }
           - { name: placeholder, label: Coming-soon placeholder bubble, type: boolean }
