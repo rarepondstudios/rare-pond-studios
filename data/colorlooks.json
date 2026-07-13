@@ -18,6 +18,51 @@
       "name": "Rainbow (locked)"
     },
     {
+      "kind": "basics",
+      "key": "red",
+      "name": "Red",
+      "c1": "#ea4335",
+      "c2": "#ea4335",
+      "c3": "#ea4335",
+      "note": "A named colour. Assign it to a rentals category on the Rentals page."
+    },
+    {
+      "kind": "basics",
+      "key": "amber",
+      "name": "Amber",
+      "c1": "#ff9900",
+      "c2": "#ff9900",
+      "c3": "#ff9900",
+      "note": "A named colour. Assign it to a rentals category on the Rentals page."
+    },
+    {
+      "kind": "basics",
+      "key": "violet",
+      "name": "Violet",
+      "c1": "#8b5cf6",
+      "c2": "#8b5cf6",
+      "c3": "#8b5cf6",
+      "note": "A named colour. Assign it to a rentals category on the Rentals page."
+    },
+    {
+      "kind": "basics",
+      "key": "yellow",
+      "name": "Yellow",
+      "c1": "#fbbc04",
+      "c2": "#fbbc04",
+      "c3": "#fbbc04",
+      "note": "A named colour. Assign it to a rentals category on the Rentals page."
+    },
+    {
+      "kind": "basics",
+      "key": "green",
+      "name": "Green",
+      "c1": "#34a853",
+      "c2": "#34a853",
+      "c3": "#34a853",
+      "note": "A named colour. Assign it to a rentals category on the Rentals page."
+    },
+    {
       "kind": "film",
       "key": "geri",
       "name": "Geri-Action",
@@ -70,51 +115,6 @@
       "titleGradientFrom": "#ffffff",
       "titleGradientTo": "#9cc3ff",
       "note": "The comedy's electric blue and indigo with a hot-red pop from the key art."
-    },
-    {
-      "kind": "basics",
-      "key": "red",
-      "name": "Red",
-      "c1": "#ea4335",
-      "c2": "#ea4335",
-      "c3": "#ea4335",
-      "note": "A named colour. Assign it to a rentals category on the Rentals page."
-    },
-    {
-      "kind": "basics",
-      "key": "amber",
-      "name": "Amber",
-      "c1": "#ff9900",
-      "c2": "#ff9900",
-      "c3": "#ff9900",
-      "note": "A named colour. Assign it to a rentals category on the Rentals page."
-    },
-    {
-      "kind": "basics",
-      "key": "violet",
-      "name": "Violet",
-      "c1": "#8b5cf6",
-      "c2": "#8b5cf6",
-      "c3": "#8b5cf6",
-      "note": "A named colour. Assign it to a rentals category on the Rentals page."
-    },
-    {
-      "kind": "basics",
-      "key": "yellow",
-      "name": "Yellow",
-      "c1": "#fbbc04",
-      "c2": "#fbbc04",
-      "c3": "#fbbc04",
-      "note": "A named colour. Assign it to a rentals category on the Rentals page."
-    },
-    {
-      "kind": "basics",
-      "key": "green",
-      "name": "Green",
-      "c1": "#34a853",
-      "c2": "#34a853",
-      "c3": "#34a853",
-      "note": "A named colour. Assign it to a rentals category on the Rentals page."
     }
   ]
 }
