@@ -70,6 +70,28 @@ computed server-side in Postgres (see the Supabase section).
 
 ---
 
+## How to actually reach n8n / NocoDB (and why no URLs are written here)
+
+This repo is **public**, so no internal hostnames, ports or IPs are written in it - on
+purpose. They were removed once already after leaking.
+
+The access details live in two places:
+
+- **ClickUp -> Work -> "Remote Access Cheat Sheet"** - the working doc. Every link in it
+  is tested. Start here.
+- `~/rp_site_private/REMOTE_ACCESS.md` on the Mac mini - the same thing, offline.
+
+The short version, without the specifics: n8n and NocoDB run in Docker on the studio Mac
+and are bound to **loopback + the Tailscale address only**. They are deliberately NOT
+reachable over the home Wi-Fi, and never over the public internet. You get to them by
+joining the private network (Tailscale), not by opening a port.
+
+Two rules that matter:
+- **Never run `tailscale funnel`** on them. `serve` keeps a service private to the
+  network; `funnel` publishes it to the entire internet.
+- **Never rebind them to `0.0.0.0`** to "make them work at home". That puts the rental
+  database and the automation engine on the local Wi-Fi.
+
 ## n8n (automations)
 
 Runs in Docker on an in-studio machine, bound to localhost - **not reachable from the
