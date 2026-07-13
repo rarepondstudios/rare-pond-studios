@@ -185,8 +185,49 @@ WHERE n.nspname = 'public'
 Only `catalog_availability` may be `true`. n8n uses the `service_role` key and bypasses all of
 this, so tightening these grants never affects the automations.
 
+## Closing a page (the maintenance cover)
+
+A page can be temporarily closed from Pages CMS. Rentals is the first one:
+**Pages CMS → Rentals page → "Rentals page is OPEN to the public"** (default ON).
+
+Off, `/rentals` serves `maintenance.html` — a "back soon" page that picks one of the
+variations in `data/maintenance.json` (Pages CMS → **Maintenance Cover**) at random on
+every load, and generates its own "come back to *Rentals* later" line from the name of the
+page it is covering.
+
+Three things about the design are deliberate:
+
+- **It is decided at the EDGE**, in `functions/_middleware.js`, not in the browser. The
+  rentals page renders its gear immediately from a built-in catalogue, so a client-side
+  check would paint the real page first and only then cover it — every visitor would see a
+  flash of the thing you just closed.
+- **The URL does not change.** `/rentals` stays `/rentals`; there is no redirect. Refresh
+  works, shared links still work, and flipping the switch back on makes the same URL the
+  real page again. The cover is a *state* of the page, not a different page.
+- **It fails OPEN.** Missing switch file, broken JSON, absent key, missing cover page — all
+  serve the REAL page. Wrongly showing the page is far cheaper than wrongly hiding it. All
+  of those paths are covered by `tools/test-maintenance.mjs`.
+
+To cover a different page later, add a row to `COVERABLE` in the middleware (which JSON
+file holds the switch, which key, and an id) and a matching entry in `PAGES` in
+`maintenance.html` (so it shows that page's header and wording). No other code changes.
+
 ## Things that have bitten us (don't re-learn these)
 
+- **Cloudflare Pages 308-redirects `/foo.html` to `/foo`.** A 308 is not `ok`, so a
+  `fetch('/maintenance.html')` inside the middleware silently failed and fell through to the
+  real page — in production only, while every test passed, because the test fixture served
+  `.html` with a 200. Ask for the extensionless path. The test now models the 308.
+- **A blurred layer on a resizing element is re-rasterised every frame.** This is the single
+  biggest frame-rate trap on this site. `filter: blur()` *and* `box-shadow` both do it, and
+  the blur radius is irrelevant (12px costs the same as 40px). It is why the carousel's cast
+  shadow is a plain gradient on a fixed-size, transform-scaled layer, and why the hover glow
+  is `visibility:hidden` rather than merely `opacity:0` when idle. Measure against a
+  **no-effect control** before believing any of it — see the comments in `index.html`.
+- **The studio paints before its data arrives.** `__main()` awaits five JSON fetches, so
+  whatever the *stylesheet* says is what the visitor sees first. The views used to default to
+  `display:block`, so the first paint was Home + Projects + Team stacked (6872px in an 872px
+  viewport) and then collapsed. If you add a view, start it hidden.
 - **Jotform's API returns deleted submissions** with `status: DELETED`. Deleting a bad
   submission does *not* protect a workflow that reads the API - you must filter on status.
   A single junk submission once poisoned the intake for three days.
