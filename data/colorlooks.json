@@ -4,72 +4,76 @@
   "previewPasswordLocation": "Apple Passwords, shared group \"Rare Pond\", entry \"Rare Pond Color Looks\". (Master copy: Cloudflare > Pages > rare-pond-studios > Settings > Variables and secrets > COLORLOOKS_PASSWORD)",
   "looks": [
     {
-      "kind": "basics",
       "key": "signature",
       "name": "Rare Pond Signature",
+      "kind": "basics",
       "c1": "#3f6bff",
       "c2": "#9b5cff",
       "c3": "#56c8ff",
+      "taglineItalic": false,
       "note": "The site-wide gradient: bubble glows and shared gradients. Color 1/2/3 are the three gradient stops."
     },
     {
-      "kind": "rainbow",
       "key": "rainbow",
       "name": "Rainbow (locked)",
-      "c1": "",
-      "c2": "",
-      "c3": "",
+      "kind": "rainbow",
+      "taglineItalic": false,
       "note": "Not three colors. The animated rainbow gradient built into the site. Nothing here is editable; it is listed so other places can point at it."
     },
     {
-      "kind": "category",
       "key": "red",
       "name": "Red",
+      "kind": "category",
       "c1": "#ea4335",
       "c2": "#ea4335",
       "c3": "#ea4335",
+      "taglineItalic": false,
       "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
     },
     {
-      "kind": "category",
       "key": "amber",
       "name": "Amber",
+      "kind": "category",
       "c1": "#ff9900",
       "c2": "#ff9900",
       "c3": "#ff9900",
+      "taglineItalic": false,
       "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
     },
     {
-      "kind": "category",
       "key": "violet",
       "name": "Violet",
+      "kind": "category",
       "c1": "#8b5cf6",
       "c2": "#8b5cf6",
       "c3": "#8b5cf6",
+      "taglineItalic": false,
       "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
     },
     {
-      "kind": "category",
       "key": "yellow",
       "name": "Yellow",
+      "kind": "category",
       "c1": "#fbbc04",
       "c2": "#fbbc04",
       "c3": "#fbbc04",
+      "taglineItalic": false,
       "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
     },
     {
-      "kind": "category",
       "key": "green",
       "name": "Green",
+      "kind": "category",
       "c1": "#34a853",
       "c2": "#34a853",
       "c3": "#34a853",
+      "taglineItalic": false,
       "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
     },
     {
-      "kind": "film",
       "key": "geri",
       "name": "Geri-Action",
+      "kind": "film",
       "c1": "#e0455f",
       "c2": "#4f77ff",
       "c3": "#9a4bc9",
@@ -88,9 +92,9 @@
       "note": "Pulled from the Geri-Action key art: magenta-reds, blues and purples."
     },
     {
-      "kind": "film",
       "key": "rev",
       "name": "Revelations",
+      "kind": "film",
       "c1": "#ffffff",
       "c2": "#bd9661",
       "c3": "#b86e19",
@@ -109,9 +113,9 @@
       "note": "Heaven's cool steel against Earth's warm gold, with the project's ember tones."
     },
     {
-      "kind": "film",
       "key": "invalid",
       "name": "Invalid Opinion",
+      "kind": "film",
       "c1": "#3f9bea",
       "c2": "#6360e1",
       "c3": "#ff5900",
@@ -120,7 +124,7 @@
       "mainAlpha": 0.3,
       "tint": "color3",
       "tintAlpha": 0.18,
-      "kickerColor": "color1",
+      "kickerColor": "color3",
       "kickerTracking": ".24em",
       "taglineColor": "lightBlue",
       "taglineItalic": false,
