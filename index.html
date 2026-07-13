@@ -163,7 +163,13 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .bubble.placeholder::before{display:none}
   .cbub{position:absolute;inset:0;z-index:1;overflow:hidden;border-radius:50%;transition:border-radius .6s;animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;contain:layout paint}
 
-  /* ===== THE BUBBLE'S CAST SHADOW =================================================
+  /* ===== THE BUBBLE'S CAST SHADOW - CURRENTLY OFF =================================
+     Switched off at Jack's call: with the ambient glow doing the depth work, the cast
+     shadow was competing with it rather than supporting it, and the bubbles read better
+     sitting IN the water than floating above a dark smudge. The rule `.cdrop{display:none}`
+     below is the whole switch - delete that one line to bring shadows back.
+     Everything under here still works and is kept because it was expensive to get right.
+     ---------------------------------------------------------------------------------
      The shadow is ALWAYS on. It is never hidden, faded or swapped for anything during a
      swipe, so there is nothing that can pop. Getting there took some measuring, and the
      numbers are worth writing down because they are counter-intuitive.
@@ -218,6 +224,9 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     transition:transform .6s cubic-bezier(.5,0,.2,1),border-radius .6s cubic-bezier(.5,0,.2,1),opacity .45s}
   .citem.feat .cdrop{border-radius:15%/23%}
   .citem.hide .cdrop{opacity:0}
+  /* SHADOWS OFF (Jack, testing the look without them). One line to put them back:
+     delete this rule. Everything above still works - the layer is just not painted. */
+  .cdrop{display:none}
 
   /* ===== THE SAME SHADOW, FOR THE PROJECTS-PAGE BUBBLES ============================
      These had NO shadow at all, and it was not an oversight in the styling - .bubble-inner
@@ -227,8 +236,8 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      Fixed by casting the shadow from a layer that is NOT clipped. These bubbles never
      resize (only a small hover scale), so there is no per-frame cost to worry about and a
      plain box-shadow is fine here - the carousel's constraints do not apply. */
-  .bubble::after{content:"";position:absolute;inset:0;border-radius:50%;z-index:0;pointer-events:none;
-    box-shadow:0 34px 66px -18px rgba(0,8,30,.7),0 6px 18px rgba(0,10,40,.45)}
+  /* SHADOWS OFF. Restore by putting the box-shadow back on this rule. */
+  .bubble::after{content:"";position:absolute;inset:0;border-radius:50%;z-index:0;pointer-events:none}
   .citem.feat .cbub{border-radius:13%/20%}
   .side-view{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;display:block;transition:opacity .45s;z-index:1}
   .side-view.cposter{display:grid;place-items:center;background:radial-gradient(circle at 38% 30%,#2f6bd6,#16306b 70%)}
