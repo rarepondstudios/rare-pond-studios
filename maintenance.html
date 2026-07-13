@@ -85,7 +85,37 @@
   .mbtn.ghost{background:rgba(255,255,255,.1);color:#eaf3ff;border:1px solid rgba(255,255,255,.3);box-shadow:none}
   .mbtn.ghost:hover{background:rgba(255,255,255,.2)}
 
-  @media(prefers-reduced-motion:reduce){.mbtn{transition:none}}
+  /* ===== social icons in the header - same treatment as the studio and rentals headers ===== */
+  .msocials{display:flex;gap:9px}
+  .msocials a{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#16386b;
+    box-shadow:0 3px 10px rgba(10,30,70,.18);transition:.18s}
+  .msocials a:hover{transform:translateY(-2px);color:#fff;background:#1f6fd0}
+  .msocials svg{width:19px;height:19px;fill:currentColor}
+  .msocials a[data-net="yt"]:hover{background:linear-gradient(135deg,#ff3b30,#d4271d)}
+  .msocials a[data-net="ig"]:hover{background:linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7)}
+  .msocials a[data-net="li"]:hover{background:linear-gradient(135deg,#0a66c2,#004182)}
+  .msocials a[data-net="fb"]:hover{background:linear-gradient(135deg,#1877f2,#0b5fce)}
+  /* on a narrow screen the nav already hides; drop the icons too rather than crowd the header */
+  @media(max-width:900px){.msocials{display:none}}
+
+  /* ===== footer ===== */
+  .mfoot{position:relative;background:rgba(3,14,36,.5);border-top:1px solid rgba(255,255,255,.1);
+    padding:40px clamp(18px,5vw,60px) 34px;text-align:center}
+  .mfoot-logo img{height:56px;width:auto;margin:0 auto 12px;display:block;filter:drop-shadow(0 6px 16px rgba(0,10,40,.4))}
+  .mfoot-tag{font-family:"Kaushan Script",cursive;font-size:23px;color:#dbe9ff;margin-bottom:16px}
+  .mfoot-soc{display:flex;gap:12px;justify-content:center;margin-bottom:18px}
+  .mfoot-soc a{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+    background:rgba(255,255,255,.1);color:#cfe3ff;border:1px solid rgba(255,255,255,.18);transition:.18s}
+  .mfoot-soc a:hover{background:#1f6fd0;color:#fff;transform:translateY(-2px)}
+  .mfoot-soc svg{width:20px;height:20px;fill:currentColor}
+  .mfoot-links{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+  .mfoot-links a{color:#bcd4f2;text-decoration:none;font-weight:700;font-size:14.5px;transition:.18s}
+  .mfoot-links a:hover{color:#fff}
+  .mfoot-copy{font-size:13px;color:#8fabd2}
+  .mfoot-copy a{color:#8fabd2;text-decoration:none}
+  .mfoot-copy a:hover{color:#cfe3ff}
+
+  @media(prefers-reduced-motion:reduce){.mbtn,.msocials a,.mfoot-soc a{transition:none}}
 </style>
 </head>
 <body>
@@ -94,7 +124,10 @@
   <a class="hdr-logo" id="mHome" href="/"><img src="/media/logos/duck-mark.png" alt="Rare Pond">
     <span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-sub" id="mBrandSub">Studios</span></span></a>
   <nav class="hnav" id="mNav"></nav>
-  <div class="hright"><a class="xsite" id="mCross" href="/"><span>&larr;</span>&nbsp;Studio&nbsp;Site</a></div>
+  <div class="hright">
+    <a class="xsite" id="mCross" href="/"><span>&larr;</span>&nbsp;Studio&nbsp;Site</a>
+    <div class="msocials" id="mSocials"></div>
+  </div>
 </header>
 
 <main class="mwrap">
@@ -107,6 +140,11 @@
   </div>
 </main>
 
+<!-- Header icons and the whole footer are rendered from data/site.json by assets/socials.js,
+     so they can never drift out of step with the rest of the site. -->
+<footer class="mfoot" id="mFoot"></footer>
+
+<script src="/assets/socials.js"></script>
 <script>
 (function () {
   /* WHAT ARE WE COVERING?
@@ -188,6 +226,13 @@
     try { sessionStorage.setItem(LAST_KEY, pick.header); } catch (e) {}
     return pick;
   }
+
+  /* Header icons + footer, from the same site.json the real pages use. If it fails to load,
+     the page simply has no footer - it never shows an error and never blocks the message. */
+  fetch('/data/site.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (site) { if (site && window.RP_renderChrome) window.RP_renderChrome(site, P); })
+    .catch(function () {});
 
   fetch('/data/maintenance.json', { cache: 'no-store' })
     .then(function (r) { return r.ok ? r.json() : null; })
