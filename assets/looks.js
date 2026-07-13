@@ -339,6 +339,9 @@
     if (!eb.enabled) {                    // OFF by default -> nothing renders, reclaim the reserved space
       document.documentElement.style.setProperty("--evbanner-h", "0px");
       document.documentElement.classList.remove("rp-ev-active");
+      // ...and forget the cached height, so the next page load does not reserve space
+      // for a banner that is no longer there.
+      if (window.RP_rememberBannerHeight) window.RP_rememberBannerHeight(0);
       return;
     }
     bannerCssOnce();
@@ -381,7 +384,12 @@
       var inner = el.querySelector(".rp-evinner");
       var hh = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--header-h"), 10) || 86;
       var bottom = inner ? (inner.offsetTop + inner.offsetHeight) : 150;
-      document.documentElement.style.setProperty("--evbanner-h", Math.max(0, bottom - hh + 24) + "px");
+      var px = Math.max(0, bottom - hh + 24);
+      document.documentElement.style.setProperty("--evbanner-h", px + "px");
+      /* Remember it, so the NEXT page load can reserve this space before it paints and
+         the page does not visibly jump down when the banner arrives. See
+         assets/banner-reserve.js. This is a cache, never the source of truth. */
+      if (window.RP_rememberBannerHeight) window.RP_rememberBannerHeight(px);
     };
     setH();
     try { window.removeEventListener("resize", window.__rpEvResize); } catch (e) {}

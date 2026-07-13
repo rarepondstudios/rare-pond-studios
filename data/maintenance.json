@@ -1,0 +1,19 @@
+{
+  "variations": [
+    {
+      "header": "The Pond Is Being Cleaned",
+      "subHeader": "The water will be like a mirror when we're done.",
+      "image": "/media/site/water.jpg"
+    },
+    {
+      "header": "The Wildlife Is Asleep!",
+      "subHeader": "Shhh! Don't wake them up.",
+      "image": "/media/stills/rev-heaven-1-2048.webp"
+    },
+    {
+      "header": "Something Is In The Pond...",
+      "subHeader": "It's Dangerous To Stay Here Too Long.",
+      "image": "/media/stills/rev-michael-bar-2048.webp"
+    }
+  ]
+}

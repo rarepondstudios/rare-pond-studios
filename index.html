@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Rare Pond Studios</title>
+<!-- Reserves the event banner's space before the first paint, so the page does not jump
+     down when the banner arrives. Must stay here, in <head>, with no defer/async. -->
+<script src="/assets/banner-reserve.js"></script>
 <script>
 /* Reload-jump fix. This page builds itself AFTER fetching data/*.json, so at the moment the
    browser tries to restore your previous scroll offset the document is still short. It then
@@ -26,16 +29,33 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     --header-h:86px;
   }
   *{box-sizing:border-box}
-  /* background backstop (no white flash on cross-page nav) + reserve the event-banner's space up front
-     so the page doesn't jump down when the banner reveals after load (banner is on; looks.js fine-tunes). */
-  html{scroll-behavior:smooth;background:#06122b;--evbanner-h:88px}
+  /* background backstop (no white flash on cross-page nav).
+     --evbanner-h is the space the event banner pushes the page down by. It starts at 0
+     and is set BEFORE FIRST PAINT by the inline script in <head> from the last known
+     height (see there for why), then confirmed by looks.js once site.json lands. */
+  html{scroll-behavior:smooth;background:#06122b;--evbanner-h:0px}
   body{margin:0;font-family:var(--font);color:#eaf2ff;background:#06122b;overflow-x:hidden}
   body.locked{overflow:hidden}
   section{scroll-margin-top:100px;position:relative}
   a{color:inherit}
+  /* THE VIEWS. showView() decides which one is up, but showView only runs once __main()
+     has finished fetching site/projects/team/pages/stills. Until then the browser paints
+     whatever the stylesheet says - and the stylesheet used to say "all of them", so the
+     first paint was Home + Projects + Team + a custom page stacked on top of each other
+     (measured: 6872px of page in an 872px viewport) which then collapsed to Home the
+     moment the data landed. That collapse is the flash you see when hopping between the
+     studio and rentals, because every hop is a fresh page load.
+     Home is the correct first paint for "/", so it stays block; the others start hidden
+     and showView turns the right one on. Nothing else changes - showView still has the
+     final say, it just no longer has to undo a wrong paint. */
   .view{display:block}
-  #rp-eventbanner-mount:empty{display:none}
-  /* event banner positions itself (fixed, full-width) + reserves its own space via looks.js (--evbanner-h). No page-specific offsets needed. */
+  #view-projects,#view-team,#view-page{display:none}
+  /* The banner itself is position:fixed; THIS is the spacer that holds its place in the
+     flow. It has to exist in the stylesheet (not only in the CSS looks.js injects later),
+     or the space is not reserved until after the banner has already arrived - which is
+     the downward jump we are removing. Empty + 0 tall = invisible, so it is harmless when
+     there is no banner. */
+  #rp-eventbanner-mount{height:var(--evbanner-h,0px)}
   @keyframes spin{to{transform:rotate(360deg)}}
   @property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
   @keyframes hue{to{--ang:360deg}}
@@ -103,6 +123,44 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .cglow{position:absolute;inset:-16px;border-radius:42%;z-index:0;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));-webkit-mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);filter:blur(6px);opacity:.2;transition:opacity .5s;animation:hue 6s linear infinite;animation-play-state:paused}
   .citem.feat .cglow{opacity:.32;border-radius:18%}
   .citem:hover .cglow{opacity:.9;animation-play-state:running}
+
+  /* ===== HOVER GLOW BLEED =========================================================
+     At rest the glow is contained by the bubble. On hover we want light to look like it
+     is ESCAPING past the rim - glowier - while the bubble's edge stays crisp.
+
+     This is a separate halo that lives OUTSIDE the bubble (::before on the container, so
+     no new markup) and is simply faded in on hover. The bubble's own rim (.cedge) is not
+     touched at all, which is what keeps the silhouette sharp: the halo blooms behind and
+     around the glass rather than softening it.
+
+     It fades with OPACITY only - nothing moves, nothing resizes. It is also driven by a
+     pseudo-element rather than a transform on the glow itself, because the glow carries a
+     permanently-running transform transition that silently swallowed the first attempt.
+
+     VISIBILITY, not just opacity, is what makes it FREE. This layer carries a blur, and a
+     blurred layer on a slide whose width/height are animating is re-rasterised every frame
+     - the exact cost that used to make the carousel drop frames. At opacity 0 the browser
+     is not obliged to skip it; at visibility:hidden it is, so nothing is painted at all.
+     The halo therefore does not exist until you hover, and the swipe budget is untouched.
+     The visibility flip is delayed until the fade-out ends, so it still fades away smoothly
+     instead of blinking off.
+
+     It reads the same --g1/--g2/--g3 as every other glow layer, so a project that opts in
+     to "Bubble glow uses this look" gets its own colours here too, and a special (Rainbow)
+     gets --rp-glow, with no extra wiring. */
+  .citem::before,.bubble::before{content:"";position:absolute;inset:-42px;z-index:0;pointer-events:none;
+    border-radius:50%;opacity:0;visibility:hidden;
+    transition:opacity .45s ease,visibility 0s linear .45s;
+    background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));
+    -webkit-mask:radial-gradient(closest-side,transparent 52%,rgba(0,0,0,.5) 72%,rgba(0,0,0,.22) 86%,transparent 100%);
+            mask:radial-gradient(closest-side,transparent 52%,rgba(0,0,0,.5) 72%,rgba(0,0,0,.22) 86%,transparent 100%);
+    filter:blur(16px)}
+  .citem.feat::before{border-radius:22%}
+  .citem:hover::before,.bubble:hover::before{opacity:.85;visibility:visible;transition:opacity .45s ease,visibility 0s}
+  /* a special look (Rainbow) hands over its whole gradient - same rule as the other layers */
+  .citem.rp-glow-special::before,.bubble.rp-glow-special::before{background:var(--rp-glow)}
+  /* the "more to come" bubble already has its own rainbow hover treatment - leave it be */
+  .bubble.placeholder::before{display:none}
   .cbub{position:absolute;inset:0;z-index:1;overflow:hidden;border-radius:50%;transition:border-radius .6s;animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;contain:layout paint}
 
   /* ===== THE BUBBLE'S CAST SHADOW =================================================
@@ -140,7 +198,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      3. The layer must be BIGGER than the bubble or you will not see it at all - the first
         version scaled it to exactly the bubble's size, so it hid behind it. See syncDrops. */
   .cdrop{position:absolute;left:50%;top:50%;width:400px;height:400px;margin:-200px 0 0 -200px;border-radius:50%;z-index:0;pointer-events:none;
-    background:radial-gradient(closest-side,rgba(0,8,30,.9),rgba(0,8,30,.62) 42%,rgba(0,8,30,.3) 62%,rgba(0,8,30,.1) 78%,transparent 90%);
+    background:radial-gradient(closest-side,rgba(0,8,30,.95),rgba(0,8,30,.72) 42%,rgba(0,8,30,.38) 62%,rgba(0,8,30,.14) 78%,transparent 90%);
     will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;
     transition:transform .6s cubic-bezier(.5,0,.2,1),opacity .45s}
   .citem.hide .cdrop{opacity:0}
@@ -155,7 +213,14 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .focus-scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(2,6,16,.86),rgba(2,6,16,.3) 34%,transparent 60%),radial-gradient(135% 96% at 1% 100%,rgba(2,6,16,.5),transparent 64%)}
   .focus-char{position:absolute;bottom:0;right:1%;height:100%;width:auto;object-fit:contain;object-position:bottom;filter:drop-shadow(0 12px 26px rgba(0,0,0,.55));transform:translateX(26px);opacity:0;transition:transform .6s .12s cubic-bezier(.2,.8,.2,1),opacity .5s .12s;z-index:2}
   .citem.feat .focus-char{transform:none;opacity:1}
-  .focus-content{position:absolute;inset:0;z-index:3;padding:clamp(20px,4.4%,46px);display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start}
+  /* TEXT SITS IN FRONT OF THE GLASS AND THE GLOW.
+     The layers inside a bubble stack: image (1) -> glass rim (5) -> specular (6) -> rim
+     glow (7) -> dive hint (8). The eyebrow + logline used to sit at 3, i.e. UNDER all of
+     them, so the rim glow washed over the words. The film logo never had this problem
+     because it lives outside the bubble, above everything. 9 puts the text above the
+     glass and the glow, matching the logo - and it is deliberately the TOP layer inside
+     the bubble, so any layer added later lands under the words, not over them. */
+  .focus-content{position:absolute;inset:0;z-index:9;padding:clamp(20px,4.4%,46px);display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start}
   .focus-eyebrow{font-size:clamp(10px,1.5vw,12.5px);letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--accent,#ffffff);margin-bottom:10px;text-shadow:0 2px 8px rgba(0,8,24,.7);opacity:0;transition:opacity .35s}
   .focus-logo{height:clamp(50px,15.5%,98px);width:auto;max-width:64%;object-fit:contain;object-position:left;filter:drop-shadow(0 6px 18px rgba(0,0,0,.5))}
   .focus-logotext{font-weight:800;font-size:clamp(26px,5vw,52px);color:#fff;line-height:.95;text-shadow:0 3px 14px rgba(0,8,24,.7)}

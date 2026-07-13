@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Back soon | Rare Pond</title>
+<meta name="robots" content="noindex">
+<!--
+  THE MAINTENANCE COVER.
+
+  This is ONE page that stands in front of ANY page you temporarily close. It is never
+  navigated to directly: functions/_middleware.js serves it AT the covered page's own URL,
+  so /rentals stays /rentals. That matters - refreshing works, links you have already
+  shared still work, and the moment you flip the switch back on the same URL is the real
+  page again. The cover is a STATE of the page, not a different page.
+
+  What is on screen is picked at random from data/maintenance.json (Pages CMS -> Maintenance
+  Cover), so a visitor who reloads sees a different message and picture. Add or edit entries
+  there and this page adapts with no code change.
+
+  The middleware tells us WHICH page is covered via <html data-covers>, so the header and
+  the "come back to ..." line are correct for whatever page is closed - that is what makes
+  this reusable rather than rentals-specific.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
+<style>
+  :root{--header-h:86px}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#eaf3ff;
+    background:linear-gradient(180deg,#2f72b8 0%,#256199 16%,#1d5089 40%,#183f72 72%,#123056 100%);
+    background-attachment:fixed;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
+
+  /* ===== header: the SAME chrome as the page being covered, so the visitor stays where
+     they thought they were and every nav link still works. ===== */
+  .site-header{position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:300;display:flex;align-items:center;gap:18px;padding:0 clamp(16px,4vw,46px)}
+  .hdr-bg{position:absolute;left:0;right:0;top:0;height:170px;z-index:-1;pointer-events:none;
+    background:linear-gradient(180deg,#fff 0%,#fff 52%,rgba(255,255,255,0) 100%);
+    -webkit-mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%);mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%)}
+  .hdr-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+  .hdr-logo img{height:60px;width:auto;filter:drop-shadow(0 3px 8px rgba(10,30,70,.2))}
+  .brandname{display:flex;flex-direction:column;justify-content:center;line-height:.9}
+  .bn-rare{font-family:"Kaushan Script",cursive;font-size:38px;color:#2f57a6;margin-bottom:2px}
+  .bn-sub{font-weight:700;font-size:15px;letter-spacing:.38em;color:#5e7bab;text-transform:uppercase;padding-left:3px}
+  .hnav{display:flex;gap:6px;margin-left:16px}
+  .hnav a{padding:9px 16px;border-radius:50px;font-weight:700;font-size:15px;color:#13325e;text-decoration:none;transition:.18s;white-space:nowrap}
+  .hnav a:hover{background:rgba(255,255,255,.6)}
+  .hright{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .xsite{display:flex;align-items:center;gap:6px;padding:8px 15px;border-radius:50px;font-weight:700;font-size:14px;color:#13325e;text-decoration:none;border:1px solid rgba(40,95,180,.32);background:rgba(255,255,255,.55);transition:.18s;white-space:nowrap}
+  .xsite:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
+  @media(max-width:780px){.hnav{display:none}.bn-rare{font-size:30px}.hdr-logo img{height:48px}}
+
+  /* ===== the cover ===== */
+  .mwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:calc(var(--header-h) + 34px) 22px 44px}
+  .mcard{width:100%;max-width:940px;text-align:center}
+  .mlogo{height:clamp(58px,7.5vw,88px);width:auto;margin:0 auto 20px;display:block;filter:drop-shadow(0 8px 22px rgba(0,10,40,.45))}
+
+  /* The picture is the focus, but the MESSAGE is the point - so the figure is capped by
+     viewport height, not just width. Otherwise on a laptop the image alone filled the
+     screen and pushed the header, sub-header and the "come back later" line below the
+     fold, which is exactly the text the visitor came here to read. */
+  .mfigure{position:relative;margin:0 auto 26px;width:min(100%,620px);max-height:38vh;aspect-ratio:16/9;border-radius:22px;overflow:hidden;
+    box-shadow:0 30px 60px -18px rgba(0,8,30,.66),0 6px 18px rgba(0,10,40,.4)}
+  .mfigure img{width:100%;height:100%;object-fit:cover;display:block}
+  .mfigure::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 110%,rgba(2,10,30,.45),transparent 60%);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+  /* No image set for this variation? Then don't render an empty grey box - the figure is
+     simply omitted (see JS) and the message stands on its own. */
+
+  .mhead{font-size:clamp(28px,4.6vw,52px);font-weight:800;line-height:1.08;letter-spacing:-.01em;margin:0 0 14px;
+    text-shadow:0 4px 18px rgba(0,10,40,.45)}
+  .msub{font-size:clamp(16px,2.1vw,22px);font-weight:600;color:#cfe3fb;margin:0 auto;max-width:36ch;line-height:1.45}
+
+  /* auto-generated, never typed by hand - names whatever page is covered */
+  .mback{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.16);
+    font-size:clamp(13.5px,1.6vw,16px);color:#9fbde3;font-weight:600;max-width:46ch;margin-left:auto;margin-right:auto}
+
+  .macts{margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .mbtn{padding:12px 22px;border-radius:50px;font-weight:800;font-size:15px;text-decoration:none;transition:.18s;
+    background:#fff;color:#13325e;box-shadow:0 8px 22px -8px rgba(0,10,40,.5)}
+  .mbtn:hover{transform:translateY(-1px);box-shadow:0 12px 26px -8px rgba(0,10,40,.6)}
+  .mbtn.ghost{background:rgba(255,255,255,.1);color:#eaf3ff;border:1px solid rgba(255,255,255,.3);box-shadow:none}
+  .mbtn.ghost:hover{background:rgba(255,255,255,.2)}
+
+  @media(prefers-reduced-motion:reduce){.mbtn{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="site-header"><div class="hdr-bg"></div>
+  <a class="hdr-logo" id="mHome" href="/"><img src="/media/logos/duck-mark.png" alt="Rare Pond">
+    <span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-sub" id="mBrandSub">Studios</span></span></a>
+  <nav class="hnav" id="mNav"></nav>
+  <div class="hright"><a class="xsite" id="mCross" href="/"><span>&larr;</span>&nbsp;Studio&nbsp;Site</a></div>
+</header>
+
+<main class="mwrap">
+  <div class="mcard">
+    <img class="mlogo" src="/media/logos/duck-mark.png" alt="Rare Pond">
+    <div id="mFigure"></div>
+    <h1 class="mhead" id="mHead">Back soon</h1>
+    <p class="msub" id="mSub"></p>
+    <p class="mback" id="mBack"></p>
+    <div class="macts" id="mActs"></div>
+  </div>
+</main>
+
+<script>
+(function () {
+  /* WHAT ARE WE COVERING?
+     The middleware stamps data-covers onto <html> (e.g. "rentals"). Everything below -
+     the header, the nav, the "come back to X" line - is derived from it, which is what
+     lets this same page cover a different section later with no new code. */
+  var covers = (document.documentElement.getAttribute('data-covers') || '').toLowerCase();
+
+  var PAGES = {
+    rentals: {
+      name:    'Rentals',
+      home:    '/rentals',
+      brand:   'Rentals',
+      nav:     [['/#team','Our Team'], ['/#projects','Projects'], ['/#contact','Contact']],
+      cross:   ['/', '← Studio Site'],
+      actions: [['/', 'Back to the studio site', 'primary']]
+    },
+    /* Default: something on the studio site. Add an entry here when you cover a new page. */
+    studio: {
+      name:    'this page',
+      home:    '/',
+      brand:   'Studios',
+      nav:     [['/#team','Our Team'], ['/#projects','Projects'], ['/#contact','Contact']],
+      cross:   ['/rentals', 'Rentals →'],
+      actions: [['/', 'Back to the home page', 'primary']]
+    }
+  };
+  var P = PAGES[covers] || PAGES.studio;
+
+  /* header chrome for the covered page */
+  document.getElementById('mBrandSub').textContent = P.brand;
+  document.getElementById('mHome').setAttribute('href', P.home === '/rentals' ? '/' : P.home);
+  document.getElementById('mNav').innerHTML =
+    P.nav.map(function (n) { return '<a href="' + n[0] + '">' + n[1] + '</a>'; }).join('');
+  var cross = document.getElementById('mCross');
+  cross.setAttribute('href', P.cross[0]);
+  cross.textContent = P.cross[1];
+  document.getElementById('mActs').innerHTML =
+    P.actions.map(function (a) { return '<a class="mbtn" href="' + a[0] + '">' + a[1] + '</a>'; }).join('') +
+    '<a class="mbtn ghost" href="javascript:location.reload()">Show me another</a>';
+
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  };
+
+  /* The "come back later" line is GENERATED from the covered page's name, never typed into
+     the CMS - so it can never say "Rentals" while sitting on top of something else. */
+  document.getElementById('mBack').textContent =
+    'Come back to ' + P.name + ' later and you might see something new...';
+
+  function paint(v) {
+    if (!v) return;
+    document.getElementById('mHead').textContent = v.header || 'Back soon';
+    document.getElementById('mSub').textContent  = v.subHeader || '';
+    document.title = (v.header || 'Back soon') + ' | Rare Pond';
+    if (v.image) {
+      document.getElementById('mFigure').innerHTML =
+        '<figure class="mfigure"><img src="' + esc(v.image) + '" alt=""></figure>';
+    }
+  }
+
+  fetch('/data/maintenance.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (m) {
+      var list = (m && m.variations) || [];
+      /* Only variations with an actual message are eligible - a half-filled CMS row
+         should never show a visitor a blank page. */
+      list = list.filter(function (v) { return v && v.header; });
+      if (!list.length) return;                     // keep the built-in "Back soon"
+      paint(list[Math.floor(Math.random() * list.length)]);
+    })
+    .catch(function () { /* keep the built-in message; never show an error to a visitor */ });
+})();
+</script>
+</body>
+</html>

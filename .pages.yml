@@ -245,6 +245,11 @@ content:
     type: file
     path: data/rentals.json
     fields:
+      - name: publicAccess
+        label: "🚧 Rentals page is OPEN to the public"
+        type: boolean
+        default: true
+        description: "ON (normal): visitors see the rentals page and can request a quote. OFF: the page is closed - anyone who goes to rarepond.com/rentals gets the 'back soon' cover instead, with a random message and picture from MAINTENANCE COVER below. The address stays the same, so links you have already shared are not broken and everything comes straight back the moment you switch this on again. The header and menus still work on the cover, so nobody is stranded. Takes effect within about a minute of committing."
       - { name: seoDescription, label: SEO description (search-result blurb), type: text }
       - { name: brandLine1, label: Header brand - line 1, type: string }
       - { name: brandLine2, label: Header brand - line 2 (rentals), type: string }
@@ -318,6 +323,31 @@ content:
           - { name: project, label: Project name, type: select, options: { values: [text, email, number, tel, url] } }
           - { name: budget,  label: Budget (number = digits only), type: select, options: { values: [text, email, number, tel, url] } }
           - { name: notes,   label: Notes, type: select, options: { values: [text, email, number, tel, url] } }
+
+  - name: maintenance
+    label: Maintenance Cover
+    type: file
+    path: data/maintenance.json
+    fields:
+      - name: variations
+        label: Messages shown when a page is closed
+        type: object
+        list: true
+        description: >-
+          When a page is switched off (Rentals page -> "Rentals page is OPEN to the public"),
+          visitors get a "back soon" cover instead. ONE of the entries below is picked AT
+          RANDOM each time the page is loaded, so someone who reloads sees a different message
+          and a different picture. Add as many as you like - they are all equally likely, and
+          nothing else needs changing. Every entry shows the Rare Pond duck, then your header
+          and sub-header, and underneath that a line the site writes itself telling the visitor
+          which page to come back to. An entry with no message is skipped, so a half-finished
+          one can never be shown to a visitor.
+        fields:
+          - { name: header, label: Header (the big line), type: string,
+              description: "Required. An entry with no header is never shown." }
+          - { name: subHeader, label: Sub-header (the smaller line underneath), type: string }
+          - { name: image, label: Picture, type: image,
+              description: "SPECS: 16:9, about 1600x900 px, JPG or WebP, under 400 KB. Shown as the focus of the page, above the message. PLACEHOLDER: the three pictures here now were borrowed from existing site artwork just so the page looks finished - swap them for something you actually want. If you leave this empty the entry still works; it just shows the message with no picture. COLOR: export sRGB, 8-bit." }
 
   - name: pages
     label: Custom Pages

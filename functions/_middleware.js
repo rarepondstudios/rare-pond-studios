@@ -82,6 +82,85 @@ function locked(msg) {
   });
 }
 
+/* ===== MAINTENANCE COVER =====================================================
+ *
+ * A page can be temporarily closed from Pages CMS. When it is, we serve the maintenance
+ * cover AT THE PAGE'S OWN URL - /rentals stays /rentals. No redirect. That means refresh
+ * works, links already shared still work, and flipping the switch back on makes the same
+ * URL the real page again.
+ *
+ * WHY THIS IS DONE HERE, AT THE EDGE, AND NOT IN THE BROWSER
+ *   The rentals page renders its gear immediately from a built-in catalogue. A client-side
+ *   check would therefore paint the real page first and only then cover it - every visitor
+ *   would see a flash of the thing you just closed. Deciding here means the browser is
+ *   only ever sent the cover.
+ *
+ * TO COVER ANOTHER PAGE LATER: add a row to COVERABLE. `flag` is the JSON file holding the
+ * switch, `key` the boolean inside it (true = open), and `covers` the id the cover page
+ * uses to pick the right header and wording.
+ *
+ * FAILS OPEN, deliberately: if the switch file cannot be read or is malformed we serve the
+ * REAL page. A hiccup fetching a JSON file must never take the rentals page off the air -
+ * the cost of wrongly showing the page is far lower than wrongly hiding it.
+ */
+const COVERABLE = [
+  { match: (p) => p === '/rentals' || p.startsWith('/rentals/'),
+    flag: '/data/rentals.json', key: 'publicAccess', covers: 'rentals' },
+];
+
+async function readJson(env, request, path) {
+  const url = new URL(path, request.url);
+  // env.ASSETS is the Pages static-asset binding; fall back to a plain fetch if it is not
+  // there (e.g. local harnesses), so this code is testable outside Cloudflare.
+  const res = env && env.ASSETS && env.ASSETS.fetch
+    ? await env.ASSETS.fetch(new Request(url.toString(), { headers: request.headers }))
+    : await fetch(url.toString());
+  if (!res || !res.ok) return null;
+  return res.json();
+}
+
+async function maintenanceFor(context, pathname) {
+  const { request, env } = context;
+  const rule = COVERABLE.find((r) => r.match(pathname));
+  if (!rule) return null;
+
+  let open = true;
+  try {
+    const cfg = await readJson(env, request, rule.flag);
+    // Absent === open. Only an explicit false closes the page, so a missing or partial
+    // file can never accidentally take a page down.
+    if (cfg && cfg[rule.key] === false) open = false;
+  } catch (e) {
+    return null;                       // fail open - serve the real page
+  }
+  if (open) return null;
+
+  let html;
+  try {
+    const res = env && env.ASSETS && env.ASSETS.fetch
+      ? await env.ASSETS.fetch(new Request(new URL('/maintenance.html', request.url).toString()))
+      : await fetch(new URL('/maintenance.html', request.url).toString());
+    if (!res || !res.ok) return null;  // cover page missing -> rather show the real page
+    html = await res.text();
+  } catch (e) {
+    return null;
+  }
+
+  // Tell the cover which page it is standing in front of, so it shows that page's header
+  // and says "come back to Rentals later" rather than something generic.
+  html = html.replace('<html lang="en">', '<html lang="en" data-covers="' + rule.covers + '">');
+
+  return new Response(html, {
+    status: 200,                        // 200, not 503: this is a normal page to a visitor
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      // Never cache the cover, or it would linger after the page is reopened.
+      'Cache-Control': 'no-store',
+      'X-Robots-Tag': 'noindex',
+    },
+  });
+}
+
 export async function onRequest(context) {
   const { request, env, next } = context;
 
@@ -92,6 +171,10 @@ export async function onRequest(context) {
     // If we can't even parse the URL, don't take the whole site down.
     return next();
   }
+
+  // A page that has been closed in Pages CMS shows the cover instead - at its own URL.
+  const cover = await maintenanceFor(context, pathname);
+  if (cover) return cover;
 
   // Everything outside /admin/ is served exactly as before.
   if (!isProtected(pathname)) return next();

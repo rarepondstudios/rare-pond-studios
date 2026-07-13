@@ -1,6 +1,11 @@
 :root{--header-h:86px}
 *{box-sizing:border-box}
-html{overflow-x:hidden}
+html{overflow-x:hidden;--evbanner-h:0px}
+/* Spacer that holds the event banner's place in the flow. Set before the first paint by
+   /assets/banner-reserve.js from the last known height, then confirmed by looks.js once
+   site.json lands - so the page no longer jumps down when the banner appears. 0 when
+   there is no banner, so it costs nothing. Mirrors the same rule in the studio's index.html. */
+#rp-eventbanner-mount{height:var(--evbanner-h,0px)}
 body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#eaf3ff;background:linear-gradient(180deg,#2f72b8 0%,#256199 16%,#1d5089 40%,#183f72 72%,#123056 100%);background-attachment:fixed;min-height:100vh;overflow-x:hidden}
 .wrap{max-width:1180px;margin:0 auto;padding:calc(var(--header-h) + 40px) 22px 0}
 .site-header{position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:300;display:flex;align-items:center;gap:18px;padding:0 clamp(16px,4vw,46px)}
