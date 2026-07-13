@@ -106,27 +106,42 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .cbub{position:absolute;inset:0;z-index:1;overflow:hidden;border-radius:50%;transition:border-radius .6s;animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;contain:layout paint}
 
   /* ===== THE BUBBLE'S CAST SHADOW =================================================
-     This used to be a box-shadow on .cbub. The slides animate their WIDTH and HEIGHT,
-     and a 60px-blur box-shadow on a resizing element has to be re-rasterised on every
-     single frame - measured at ~1 dropped frame per swipe on a 120Hz Mac, and far worse
-     on a phone. The old workaround was to switch the shadow off mid-swipe, which is what
-     made it visibly pop out and back.
+     The shadow is ALWAYS on. It is never hidden, faded or swapped for anything during a
+     swipe, so there is nothing that can pop. Getting there took some measuring, and the
+     numbers are worth writing down because they are counter-intuitive.
 
-     The fix is to stop the shadow resizing at all. It is now its own layer at a FIXED
-     400px, and the carousel scales it with a transform to match whatever size the slide
-     is. A transform is composited: the blur is rasterised once and then just stretched,
-     so it costs nothing to animate. Because it is always on and never swapped for
-     anything, there is no pop - there is only ever one shadow.
+     The shadow used to be a box-shadow on .cbub, switched off mid-swipe to protect the
+     frame rate - which is exactly what made it flash. Measured on a 120Hz Mac, p95 frame
+     time during a swipe. It scales with the window (a wider window means a bigger slide
+     to repaint), so these are ranges, all taken back to back on the same machine:
 
-     Measured: 8.7-9.1ms p95, ZERO dropped frames - i.e. as cheap as having no shadow at
-     all, and cheaper than the old code, which paid 16.8ms whenever the shadow was up.
-     Keep the size FIXED. Setting width/height here instead of scale would quietly put
-     the per-frame blur cost straight back. */
+       no shadow at all (the floor) ............. 9.0 - 9.2ms
+       THIS: gradient shadow, always on ........ 10.1 - 13.3ms  <- shipped
+       blurred silhouette, always on ........... 16.6 - 16.7ms
+       box-shadow on .cbub (the old one) ....... 17.2ms
+
+     All of them drop ZERO frames; the difference is whether a 120Hz screen holds 120fps
+     or falls back to a locked 60.
+
+     Two things that surprised me and are easy to get wrong later:
+
+     1. A CSS `filter: blur()` is the expensive part, NOT the blur radius. blur(12px) and
+        blur(40px) both cost ~16.6ms, because a filter forces the element onto its own
+        render surface every frame while the slide is resizing. So the softness here comes
+        from a GRADIENT, which needs no filter. Do not "improve" this by swapping the
+        gradient for filter:blur() - that is a 3.5ms regression per frame.
+
+     2. Scaling with a transform instead of animating width/height is what keeps even the
+        gradient affordable: the layer is a FIXED 400px and the carousel scales it to fit
+        (see syncDrops). Setting width/height here would make it re-rasterise every frame.
+
+     There is no free lunch: a permanently visible shadow costs ~4ms over having none.
+     It drops ZERO frames, so it is smooth - it just is not free, and pretending otherwise
+     is how the flashing got introduced in the first place. */
   .cdrop{position:absolute;left:50%;top:50%;width:400px;height:400px;margin:-200px 0 0 -200px;border-radius:50%;z-index:0;pointer-events:none;
-    background:rgba(0,8,30,.8);filter:blur(40px);
+    background:radial-gradient(closest-side,rgba(0,8,30,.85),rgba(0,8,30,.5) 45%,rgba(0,8,30,.18) 70%,transparent 85%);
     will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;
-    transition:transform .6s cubic-bezier(.5,0,.2,1),border-radius .6s,opacity .45s}
-  .citem.feat .cdrop{border-radius:14%/22%}
+    transition:transform .6s cubic-bezier(.5,0,.2,1),opacity .45s}
   .citem.hide .cdrop{opacity:0}
   .citem.feat .cbub{border-radius:13%/20%}
   .side-view{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;display:block;transition:opacity .45s;z-index:1}
@@ -484,14 +499,14 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      NOTHING visual is switched off during a swipe any more - no glow flashing out, no
      shadow popping. Every effect that used to be hidden was measured on a 120Hz Mac:
 
-       glow (.cglow), rim (.cedge), logo drop-shadow ... 10.0ms, 0 stutters -> always free
-       the cast shadow, as a box-shadow on .cbub ....... 16.8ms, ~1 stutter -> the only cost
-       the cast shadow, as fixed-size .cdrop (above) ...  8.7ms, 0 stutters -> free too
+       glow (.cglow), rim (.cedge), logo drop-shadow ... no measurable cost -> always on
+       the cast shadow, as a box-shadow on .cbub ....... 17.2ms -> replaced (see .cdrop)
+       the cast shadow, as the gradient .cdrop ......... 13.2ms -> what we ship
 
-     Three of the four things the old code hid never cost anything at all; they simply
-     stay on now. The fourth was genuinely expensive, and rather than hide it, .cdrop
-     re-implements it in a way that is free (see the comment on .cdrop). So there is
-     nothing left to toggle, and nothing left to pop.
+     Three of the four things the old code hid cost nothing at all; they simply stay on
+     now. The fourth genuinely costs something, and rather than hide it (which is what
+     made it flash), .cdrop re-implements it as cheaply as a visible shadow can be done.
+     So there is nothing left to toggle, and nothing left to pop.
 
      The only thing a swipe still does is PAUSE the idle bob/float animations, which is
      invisible - they resume from where they were. */
@@ -871,9 +886,8 @@ function syncDrops(){
     const d=el.querySelector('.cdrop'); if(!d) return;
     const s=DROP_SIZES[el.dataset.slot]||DROP_SIZES.hide; if(!s||!s.w) return;
     /* How far the shadow sits below the bubble. Tuned by A/B against the original
-       box-shadow: the featured slide stretches this layer 2.1x wide but only 1.2x tall,
-       so the 40px blur lands as ~48px vertically - which is why the numbers here look
-       larger than the box-shadow's 30px offset yet match it on screen. */
+       box-shadow rather than guessed - the first attempt read visibly lighter than
+       production. */
     const dy=el.dataset.slot==='feat'?34:22;
     d.style.transform='translateY('+dy+'px) scale('+(s.w/DROP_BASE).toFixed(4)+','+(s.h/DROP_BASE).toFixed(4)+')';
   });
