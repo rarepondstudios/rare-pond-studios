@@ -144,8 +144,8 @@ content:
           - { name: key, label: "ID (type this to link to it - do not change)", type: string,
               description: "The name other screens use to point at this look. Changing it breaks anything already linked to it." }
           - { name: name, label: Name, type: string }
-          - { name: kind, label: Kind, type: select, options: { values: [basics, rainbow, category, film] },
-              description: "What this look is for. Looks are always GROUPED in this order on the Color Looks page: Basics, then Rainbow, then Rentals categories, then Films - so a new film you add here will appear with the other films even though it lands at the bottom of the list. basics = the site-wide signature gradient. rainbow = the locked animated rainbow; its colors are ignored. category = a rentals category color (Color 1 is the one used). film = a movie's page and bubble; the use-case dropdowns below apply." }
+          - { name: kind, label: Kind, type: select, options: { values: [basics, special, category, film] },
+              description: "What this look is for. Looks are always GROUPED in this order on the Color Looks page: Basics, then Specials, then Rentals categories, then Films - so a new film you add here will appear with the other films even though it lands at the bottom of the list. basics = the site-wide signature gradient. special = a colorway that cannot be built from three hex boxes (an animation, a multi-stop ramp). Defined in code and locked here; Color 1/2/3 are ignored. Rainbow is the first one. category = a rentals category color (Color 1 is the one used). film = a movie's page and bubble; the use-case dropdowns below apply." }
 
           # ---- THE THREE COLORS ------------------------------------------------
           - { name: c1, label: "Color 1 (hex)", type: string, description: "e.g. #e0455f. For a rentals category, Color 1 is the color it uses." }

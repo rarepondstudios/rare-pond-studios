@@ -1,5 +1,5 @@
 {
-  "previewUrl": "https://www.rarepond.com/colorlooks.html",
+  "previewUrl": "https://www.rarepond.com/colorlooks",
   "previewUser": "rarepond",
   "previewPasswordLocation": "Apple Passwords, shared group \"Rare Pond\", entry \"Rare Pond Color Looks\". (Master copy: Cloudflare > Pages > rare-pond-studios > Settings > Variables and secrets > COLORLOOKS_PASSWORD)",
   "looks": [
@@ -15,10 +15,10 @@
     },
     {
       "key": "rainbow",
-      "name": "Rainbow (locked)",
-      "kind": "rainbow",
+      "name": "Rainbow",
+      "kind": "special",
       "taglineItalic": false,
-      "note": "Not three colors. The animated rainbow gradient built into the site. Nothing here is editable; it is listed so other places can point at it."
+      "note": "A SPECIAL colorway: not three colors, so there is nothing to edit here. It is the animated rainbow gradient built into the site (the \"More to come\" bubble uses it). Specials are defined in code because the editor cannot express them. Point anything at it by using this ID."
     },
     {
       "key": "red",

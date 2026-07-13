@@ -1,9 +1,9 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Page Directory - Rare Pond Studios</title>
+<title>Page Index - Rare Pond Studios</title>
 <!--
-  INTERNAL PAGE DIRECTORY. Password-protected (same gate as colorlooks.html).
+  INTERNAL PAGE DIRECTORY. Password-protected (same gate as /colorlooks).
 
   This page is GENERATED, never hand-maintained. It reads the same data files the
   live site reads - projects.json, pages.json, rentals.json, site.json - and rebuilds
@@ -65,7 +65,7 @@
     <b>Always use <code>www.rarepond.com</code></b> - every link below already does.
     The bare <code>rarepond.com</code> only serves the homepage; any deeper address on it returns a
     <b>404</b>, because the apex domain points at a GoDaddy forwarding service rather than at the site.
-    If you send someone <code>rarepond.com/colorlooks</code> they will get a 404 - not the password screen.
+    If you send someone <code>rarepond.com/colorlooks</code> they will get a 404 - not the password screen. Use <code>www.rarepond.com/colorlooks</code>.
   </div>
 
   <div id="out"></div>
@@ -149,9 +149,11 @@
       html += table('Rentals', row('Rentals', 'The gear rentals section (its own app)', '/rentals/'));
 
       /* ---- internal, password-protected ---- */
-      html += table('Internal tools (password-protected)',
-          row('Color Looks', 'Live preview of every colour look', '/colorlooks.html', '<span class="pill lock">locked</span>')
-        + row('Page Directory', 'This page', '/pages.html', '<span class="pill lock">locked</span>')
+      /* The admin pages. Every one of these is listed in functions/_middleware.js
+         PROTECTED - if it is not in that list, it is public. */
+      html += table('Admin pages (password-protected)',
+          row('Color Looks', 'Live preview of every colour look, plus the colour picker', '/colorlooks', '<span class="pill lock">locked</span>')
+        + row('Page Directory', 'This page - every address on the site', '/pagesindex', '<span class="pill lock">locked</span>')
       );
 
       out.innerHTML = html;

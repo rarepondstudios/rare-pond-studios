@@ -231,7 +231,7 @@
      Looks always display grouped, in this order, no matter what order they happen
      to sit in colorlooks.json:
 
-         Basics (the site signature)  ->  Rainbow  ->  Rentals categories  ->  Films
+         Basics (the site signature)  ->  Specials  ->  Rentals categories  ->  Films
 
      This is ENFORCED here, not just tidied once in the data file. When you add a
      new film in Pages CMS it lands at the bottom of the JSON, but it will still
@@ -240,7 +240,7 @@
 
      assets/looks.js keeps the same list (LOOK_ORDER). If you add a new kind, add
      it in BOTH places or it will sort to the end. */
-  var LOOK_ORDER = { basics:0, rainbow:1, category:2, film:3 };
+  var LOOK_ORDER = { basics:0, special:1, category:2, film:3 };
   function sortLooks(looks){
     return looks.slice().sort(function(a,b){
       var ka = LOOK_ORDER[a && a.kind]; if(ka===undefined) ka = 99;
@@ -292,18 +292,20 @@
   }
 
   function card(L,idx){
-    var locked = L.kind==='rainbow';
+    var locked = L.kind==='special';   // specials are code-defined; nothing to edit
     var c1=L.c1||'', c2=L.c2||'', c3=L.c3||'';
     var kindTag = L.kind==='film' ? 'Film'
               : L.kind==='category' ? 'Rentals category'
-              : locked ? 'Rainbow (locked)' : 'Basics';
+              : locked ? 'Special (locked)' : 'Basics';
+    /* the preview layer gets a class named after the special's ID, e.g. .lay.rainbow,
+       so adding a special = adding one CSS rule, not editing this function. */
     var bars = locked
-      ? '<div class="gb pin"><div class="lay rainbow"></div><span class="tag">Pinwheel</span></div>'
-        +'<div class="gb str"><div class="lay rainbow"></div><span class="tag">Stream</span></div>'
+      ? '<div class="gb pin"><div class="lay '+esc(L.key)+'"></div><span class="tag">Pinwheel</span></div>'
+        +'<div class="gb str"><div class="lay '+esc(L.key)+'"></div><span class="tag">Stream</span></div>'
       : '<div class="gb pin"><div class="lay"></div><span class="tag">Pinwheel</span></div>'
         +'<div class="gb str"><div class="lay"></div><span class="tag">Stream</span></div>';
     var swatches = locked
-      ? '<div class="lk-note">Not editable, and not three colors. This is the animated rainbow gradient built into the site. It is listed as a look so other places can point at it.</div>'
+      ? ''   // a special's explanation comes from its note in the CMS
       : '<div class="sw">'+chip('Color 1',c1,idx,'c1')+chip('Color 2',c2,idx,'c2')+chip('Color 3',c3,idx,'c3')+'</div>';
     return '<div class="look'+(locked?' locked':'')+'" data-idx="'+idx+'" style="--c1:'+esc(c1)+';--c2:'+esc(c2||c1)+';--c3:'+esc(c3||c2||c1)+'">'
       +'<div class="glowbar">'+bars+'</div>'
@@ -324,14 +326,14 @@
     Promise.all([get('/data/colorlooks.json'),get('/data/projects.json'),get('/data/rentals.json'),get('/data/site.json')])
     .then(function(res){
       var j=res[0];
-      var looks=sortLooks((j&&j.looks)||[]);   // always grouped: basics -> rainbow -> categories -> films
+      var looks=sortLooks((j&&j.looks)||[]);   // always grouped: basics -> specials -> categories -> films
       if(!looks.length){g.innerHTML='<div class="empty">No color looks found in colorlooks.json.</div>';return;}
       var projects=(res[1]&&(res[1].projects||res[1]))||[];
       var rentals=res[2]||{};
       var site=res[3]||{};
 
       collectUsage(looks,projects,rentals,site);
-      var GROUP_TITLE={basics:'Basics',rainbow:'Basics',category:'Rentals categories',film:'Films'};
+      var GROUP_TITLE={basics:'Basics',special:'Specials',category:'Rentals categories',film:'Films'};
       var lastGroup=null;
       g.innerHTML=looks.map(function(L,i){
         var t=GROUP_TITLE[L.kind]||'Other';

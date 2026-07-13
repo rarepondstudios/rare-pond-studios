@@ -44,14 +44,17 @@ console.log(`${nocache ? 'PASS' : 'FAIL'}  authed response is no-store`);
 if (!nocache) fails++;
 
 // --- the internal page directory must be gated too ---
-await check('/pages.html  no credentials', await call('/pages.html'), 401);
-await check('/pages       no credentials', await call('/pages'), 401);
-await check('/pages.html  wrong password', await call('/pages.html', { Authorization: basic('rarepond','wrong') }), 401);
-const goodPages = await call('/pages.html', { Authorization: basic('rarepond', 's3cret') });
+await check('/pagesindex  no credentials', await call('/pagesindex'), 401);
+await check('/pagesindex.html back-door is gated too', await call('/pagesindex.html'), 401);
+await check('/pagesindex  wrong password', await call('/pagesindex', { Authorization: basic('rarepond','wrong') }), 401);
+const goodPages = await call('/pagesindex', { Authorization: basic('rarepond', 's3cret') });
 const gpBody = await goodPages.clone().text();
 const gpOk = goodPages.status === 200 && gpBody.includes('SECRET COLOR TOOL');
-console.log(`${gpOk ? 'PASS' : 'FAIL'}  /pages.html correct password serves the page  -> ${goodPages.status}`);
+console.log(`${gpOk ? 'PASS' : 'FAIL'}  /pagesindex correct password serves the page  -> ${goodPages.status}`);
 if (!gpOk) fails++;
+
+// --- the OLD name must not still serve the directory ---
+await check('/pages (old name) is not the directory', await call('/pages'), 200, false);
 
 // --- and PUBLIC pages must NOT be gated ---
 await check('/projects stays public', await call('/projects'), 200, false);

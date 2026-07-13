@@ -29,12 +29,17 @@
  *   hex values aren't secret (they're on screen anyway) - we're hiding the tool.
  */
 
-/* Every internal-only page. Add a page here and it is instantly behind the password;
-   forget to, and it is public. Both spellings of each path are listed because
-   Cloudflare Pages serves /foo and /foo.html as the same file. */
+/* EVERY INTERNAL-ONLY PAGE. Add one here and it is instantly behind the password;
+   forget to, and it is public. This list is the only thing standing between an admin
+   page and the open internet, so when you add an admin page, add it here FIRST.
+
+   BOTH SPELLINGS of each path must be listed. Cloudflare Pages serves /foo and
+   /foo.html as the same file, so gating only one leaves the other wide open. The
+   published address is the clean one (/colorlooks); the .html form is listed purely
+   so it cannot be used as a back door. */
 const PROTECTED = new Set([
-  '/colorlooks', '/colorlooks.html',   // the colour-look preview + picker
-  '/pages',      '/pages.html',        // the internal page directory
+  '/colorlooks', '/colorlooks.html',   // colour-look preview + picker
+  '/pagesindex', '/pagesindex.html',   // the internal page directory
 ]);
 const REALM = 'Rare Pond - Internal';
 

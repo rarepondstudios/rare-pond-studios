@@ -63,13 +63,41 @@
 
   /* THE KINDS, and the order they are always grouped in:
        basics   - the site signature (its 3 colours are the shared gradient)
-       rainbow  - the locked animated rainbow; its colours are ignored
+       special  - a colourway that CANNOT be built from three hex boxes, so it is
+                  defined in code and locked in the CMS. See SPECIALS below.
        category - a rentals category colour (Color 1 is the one used)
-       film     - a movie; the use-case tokens below apply
-     Nothing here depends on the ORDER at runtime - the site looks a look up by key,
-     not by position. The order exists so the CMS and the preview page group things
-     sensibly. colorlooks.html has the same list; keep them in step. */
-  var LOOK_ORDER = { basics: 0, rainbow: 1, category: 2, film: 3 };
+       film     - a movie; the use-case tokens apply
+     Nothing depends on the ORDER at runtime - a look is found by KEY, never by
+     position. The order only decides how things group in the CMS and on the preview
+     page. The colorlooks preview page has the same list; keep them in step. */
+  var LOOK_ORDER = { basics: 0, special: 1, category: 2, film: 3 };
+
+  /* ---- SPECIAL COLOURWAYS ------------------------------------------------------
+     A "special" is any look that is not three flat colours - an animation, a
+     multi-stop ramp, anything the built-in editor cannot express. It lives HERE, in
+     code, and shows in Pages CMS as read-only, because there is nothing meaningful
+     to type into a hex box.
+
+     TO ADD A NEW SPECIAL - three steps, all in one place each:
+       1. add an entry below, keyed by the look's ID
+       2. add a look to data/colorlooks.json with that ID and  kind: "special"
+       3. add its CSS to bannerCssOnce() below, as .rp-ev-<id>
+     Everything else - grouping, the banner, the button hover, the preview page -
+     picks it up automatically. Nothing else needs to change.
+
+       btn:  the gradient the event-banner BUTTON uses on hover, so it always
+             matches the banner rather than falling back to something invented. */
+  var SPECIALS = {
+    rainbow: {
+      label: "Rainbow",
+      btn: "linear-gradient(120deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0)",
+    },
+    // futureSpecial: { label: "...", btn: "linear-gradient(...)" },
+  };
+  function specialOf(L) {
+    if (!L || L.kind !== "special") return null;
+    return SPECIALS[L.key] || null;
+  }
 
   /* token -> hex. Returns "" for anything unrecognised, and "" means UNASSIGNED,
      which the CSS renders as WHITE on purpose so the gap is obvious. */
@@ -271,10 +299,10 @@
     var el = document.createElement("div");
     var style = (eb.gradientStyle === "pinwheel") ? "pinwheel" : "stream";  // per-place gradient control; default Stream for this wide header
     el.className = "rp-evbanner rp-ev-" + style;
-    /* RAINBOW is the one look that is not three colours: it is the animated 9-stop
-       gradient the "More to come" bubble uses. It is deliberately not editable. */
-    var isRainbow = (L.kind === "rainbow" || eb.colorLook === "rainbow");
-    if (isRainbow) el.classList.add("rp-ev-rainbow");
+    /* A SPECIAL look is not three colours (Rainbow is the first one). Its CSS lives in
+       bannerCssOnce() as .rp-ev-<id>, so adding a new special needs no change here. */
+    var special = specialOf(L);
+    if (special) el.classList.add("rp-ev-" + L.key);
 
     /* NO HIDDEN FALLBACK COLOURS. This used to fall back to #3f6bff/#9b5cff/#56c8ff -
        the old signature blues - whenever a look had no Color 1/2/3. The Rainbow look
@@ -286,9 +314,9 @@
     var e3 = hexOk(L.c3) ? L.c3 : e2;
 
     /* ONE gradient, shared by every part of the banner - sheet, glow AND the button's
-       hover. Whatever the look is, they cannot disagree. */
-    el.style.setProperty("--ev-btn", isRainbow
-      ? "linear-gradient(120deg,#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0)"
+       hover. Whatever the look is, special or not, they cannot disagree. */
+    el.style.setProperty("--ev-btn", special
+      ? special.btn
       : ("linear-gradient(120deg," + e1 + "," + e2 + "," + e3 + ")"));
     el.style.setProperty("--e1", e1);
     el.style.setProperty("--e2", e2);
