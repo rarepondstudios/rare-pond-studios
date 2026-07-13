@@ -105,7 +105,7 @@ content:
           - { name: title, label: Banner title text, type: string }
           - { name: buttonText, label: Button text, type: string }
           - { name: buttonLink, label: "Button link (URL or /path)", type: string }
-          - { name: colorLook, label: Color scheme (from Color Looks), type: select, options: { values: [signature, spectrum, geri, rev, invalid, category-camera, category-lighting, category-grip, category-electric, category-sound] } }
+          - { name: colorLook, label: Color scheme (from Color Looks), type: select, options: { values: [signature, rainbow, geri, rev, invalid, category-camera, category-lighting, category-grip, category-electric, category-sound] } }
           - { name: gradientStyle, label: "Gradient style - Stream (wide horizontal sweep, best for this banner) or Pinwheel (rotating conic, best for round bubbles)", type: select, options: { values: [stream, pinwheel] } }
 
   - name: colorlooks
@@ -129,19 +129,70 @@ content:
         readonly: true
         description: "On Mac/iPhone/iPad, Safari will autofill the login box for you. Not written down here on purpose: this repo is PUBLIC, so anything typed into Pages CMS is visible to the world. Never put a password, key or token in this CMS."
       - name: looks
-        label: Color looks (single source of truth for site gradients)
-        type: object
+        label: Color looks (single source of truth for site colors)
+        type: block
         list: true
-        fields:
-          - { name: key, label: ID (used by code - do not change), type: string }
-          - { name: name, label: Name, type: string }
-          - { name: kind, label: Kind, type: select, options: { values: [signature, spectrum, project, category] } }
-          - { name: project, label: Linked project key (optional), type: string }
-          - { name: category, label: Linked rentals category (optional), type: string }
-          - { name: c1, label: Color 1 (hex), type: string }
-          - { name: c2, label: Color 2 (hex), type: string }
-          - { name: c3, label: Color 3 (hex), type: string }
-          - { name: note, label: Note, type: text }
+        blockKey: kind
+        blocks:
+          # ---- BASICS: always loaded, used across the whole site ----------------
+          - name: basics
+            label: "Basics (always loaded site-wide)"
+            fields:
+              - { name: key, label: ID (used by code - do not change), type: string, readonly: true }
+              - { name: name, label: Name, type: string }
+              - { name: c1, label: Color 1 (hex), type: string }
+              - { name: c2, label: Color 2 (hex), type: string }
+              - { name: c3, label: Color 3 (hex), type: string }
+              - { name: note, label: Note, type: text }
+
+          # ---- RAINBOW: structural, not editable -------------------------------
+          - name: rainbow
+            label: "Basics: Rainbow (locked - not editable)"
+            fields:
+              - { name: key, label: ID, type: string, readonly: true }
+              - { name: name, label: Name, type: string, readonly: true,
+                  description: "This look is LOCKED on purpose. It is not three colors - it is the animated 9-stop conic rainbow gradient (--rainbow in index.html), the one the 'More to come' bubble uses. There is nothing to edit; it is listed here so other places can point at it. You can preview it on the Color Looks page." }
+
+          # ---- PROJECT: a film's entire look. This replaced the old 'Theme'. ----
+          - name: project
+            label: "Project (a film's page + bubble)"
+            fields:
+              - { name: key, label: ID (used by code - do not change), type: string, readonly: true }
+              - { name: name, label: Name, type: string }
+              - { name: project, label: Linked project key, type: string,
+                  description: "Must match the project's ID in Projects (e.g. geri, rev, invalid). This is what ties this look to that film." }
+              - { name: accent, label: Accent color (hex), type: string,
+                  description: "The film's highlight color: kicker text, 'Where to Watch' label, carousel glow." }
+              - { name: scrimTint1, label: Background tint 1 (hex), type: string,
+                  description: "The colored wash over the film's page background." }
+              - { name: scrimTint1Alpha, label: Background tint 1 opacity (0-1), type: number }
+              - { name: scrimTint2, label: Background tint 2 (hex, optional), type: string,
+                  description: "Second wash. Only some films use one. Leave blank for none." }
+              - { name: scrimTint2Alpha, label: Background tint 2 opacity (0-1), type: number }
+              - { name: kickerColor, label: Kicker color (hex, optional), type: string,
+                  description: "Leave blank to use the Accent color." }
+              - { name: kickerTracking, label: "Kicker letter-spacing (e.g. .3em, optional)", type: string,
+                  description: "Leave blank for the site default (.24em)." }
+              - { name: taglineColor, label: Tagline color (hex, optional), type: string }
+              - { name: taglineItalic, label: Tagline in italics, type: boolean }
+              - { name: titleStyle, label: Title style, type: select, options: { values: [solid, gradient] },
+                  description: "Only applies to a film with NO title logo (it falls back to text). All current films have logos, so this does nothing for them yet." }
+              - { name: titleGradientFrom, label: Title gradient - top color (hex), type: string }
+              - { name: titleGradientTo, label: Title gradient - bottom color (hex), type: string }
+              - { name: note, label: Note, type: text }
+
+          # ---- CATEGORY: rentals section colours --------------------------------
+          - name: category
+            label: "Rentals category"
+            fields:
+              - { name: key, label: ID (used by code - do not change), type: string, readonly: true }
+              - { name: name, label: Name, type: string }
+              - { name: category, label: Linked rentals category, type: string,
+                  description: "Must match the category name in the rentals database exactly (e.g. Camera (Red))." }
+              - { name: c1, label: Color 1 (hex), type: string, description: "This is the color the category actually uses." }
+              - { name: c2, label: Color 2 (hex), type: string }
+              - { name: c3, label: Color 3 (hex), type: string }
+              - { name: note, label: Note, type: text }
 
   - name: projects
     label: Projects (bubbles + pages)
@@ -156,7 +207,6 @@ content:
           - { name: key, label: ID (url-safe, e.g. geri), type: string }
           - { name: title, label: Title, type: string }
           - { name: subtitle, label: Card subtitle / genre line, type: string }
-          - { name: theme, label: Theme, type: select, options: { values: [geri, rev, invalid] } }
           - { name: placeholder, label: Coming-soon placeholder bubble, type: boolean }
           - { name: logoText, label: "↳ Text inside the coming-soon bubble", type: string, description: "Only used when the toggle above is ON. Real films show their Title logo here instead, so this is ignored for them." }
           - { name: bubbleImage, label: Bubble image, type: image, description: "SPECS: square, 1200x1200 px, JPG, under 350 KB. Masked into a circle - keep the subject centred and away from the corners. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }

@@ -244,7 +244,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .universe{position:fixed;inset:0;z-index:100;visibility:hidden;overflow-y:auto;clip-path:circle(0px at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(0px at var(--ox,50%) var(--oy,50%));transition:clip-path .6s cubic-bezier(.6,0,.2,1),-webkit-clip-path .6s cubic-bezier(.6,0,.2,1);background:#05101f}
   .universe.open{clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%))}
   .u-bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center}
-  .u-scrim{position:fixed;inset:0;z-index:1}
+  .u-scrim{position:fixed;inset:0;z-index:1;background:radial-gradient(90% 70% at 50% 0%,var(--scrim-1,rgba(80,150,255,.25)),transparent 60%),linear-gradient(180deg,rgba(6,8,20,.6),rgba(4,6,16,.92))}
   .u-flash{position:fixed;inset:0;z-index:6;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--ox,50%) var(--oy,50%),rgba(155,92,255,0) 0%,rgba(123,108,255,.5) 26%,rgba(86,200,255,.6) 46%,rgba(63,107,255,.55) 60%,transparent 74%)}
   .universe.flash .u-flash{animation:enterflash .9s ease-out}.universe.flash-out .u-flash{animation:enterflash .6s ease-in}
   @keyframes enterflash{0%{opacity:0}28%{opacity:1}100%{opacity:0}}
@@ -267,10 +267,34 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .u-shot{flex:1 1 320px;border-radius:16px;overflow:hidden;min-height:200px;background-size:cover;background-position:center;box-shadow:0 20px 50px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12);position:relative}
   .u-shot .lbl{position:absolute;left:14px;bottom:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:13px;text-shadow:0 2px 10px rgba(0,0,0,.7)}
   .placeholder-note{margin:0 clamp(18px,5vw,54px) 70px;max-width:760px;font-size:13.5px;color:#a9c0e6;border-left:3px solid var(--accent,#ffd21f);padding:6px 0 6px 14px;background:linear-gradient(90deg,rgba(255,255,255,.05),transparent)}
-  .theme-geri{--accent:#ffd21f}.theme-geri .u-scrim{background:radial-gradient(90% 70% at 80% 10%,rgba(255,90,106,.3),transparent 60%),linear-gradient(180deg,rgba(8,6,20,.55),rgba(6,8,24,.9))}.theme-geri .u-kicker{color:var(--accent)}.theme-geri .u-tagline{color:#ffd9a0}
-  .theme-rev{--accent:#ff5230}.theme-rev .u-scrim{background:radial-gradient(80% 60% at 20% 15%,rgba(255,82,48,.34),transparent 55%),radial-gradient(70% 60% at 90% 90%,rgba(255,210,122,.18),transparent 60%),linear-gradient(180deg,rgba(10,4,4,.6),rgba(8,4,8,.92))}.theme-rev .u-kicker{color:#ffd27a;letter-spacing:.3em}.theme-rev .u-tagline{color:#ffd9c0;font-style:italic}
-  .theme-invalid{--accent:#74b3ff}.theme-invalid .u-scrim{background:radial-gradient(90% 70% at 50% 0%,rgba(80,150,255,.3),transparent 60%),linear-gradient(180deg,rgba(4,12,30,.6),rgba(3,9,24,.92))}.theme-invalid .u-kicker{color:var(--accent)}
-  .theme-invalid .u-title{font-weight:800;font-size:clamp(44px,8vw,104px);background:linear-gradient(180deg,#fff,#9cc3ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  /* ---- PROJECT LOOKS ----------------------------------------------------------
+     Every value below is now a CSS variable whose FALLBACK is the original
+     hardcoded value. assets/looks.js reads data/colorlooks.json (kind: project)
+     and sets these variables, so the film pages are edited in Pages CMS -> Color
+     Looks, in one place.
+     If colorlooks.json ever fails to load, nothing is set and these fallbacks
+     render the site exactly as it looked before this system existed.
+     The scrim GEOMETRY (the % positions/sizes of the radial gradients) stays here
+     in CSS on purpose - it is bespoke per film and is not worth a CMS field.
+     Colours, accents and typography are all data-driven.                        */
+  .theme-geri{--accent:#ffd21f}
+  .theme-geri .u-scrim{background:radial-gradient(90% 70% at 80% 10%,var(--scrim-1,rgba(255,90,106,.3)),transparent 60%),linear-gradient(180deg,rgba(8,6,20,.55),rgba(6,8,24,.9))}
+  .theme-geri .u-kicker{color:var(--kicker-color,var(--accent));letter-spacing:var(--kicker-tracking,.24em)}
+  .theme-geri .u-tagline{color:var(--tagline-color,#ffd9a0);font-style:var(--tagline-style,normal)}
+  .theme-rev{--accent:#ff5230}
+  .theme-rev .u-scrim{background:radial-gradient(80% 60% at 20% 15%,var(--scrim-1,rgba(255,82,48,.34)),transparent 55%),radial-gradient(70% 60% at 90% 90%,var(--scrim-2,rgba(255,210,122,.18)),transparent 60%),linear-gradient(180deg,rgba(10,4,4,.6),rgba(8,4,8,.92))}
+  .theme-rev .u-kicker{color:var(--kicker-color,#ffd27a);letter-spacing:var(--kicker-tracking,.3em)}
+  .theme-rev .u-tagline{color:var(--tagline-color,#ffd9c0);font-style:var(--tagline-style,italic)}
+  .theme-invalid{--accent:#74b3ff}
+  .theme-invalid .u-scrim{background:radial-gradient(90% 70% at 50% 0%,var(--scrim-1,rgba(80,150,255,.3)),transparent 60%),linear-gradient(180deg,rgba(4,12,30,.6),rgba(3,9,24,.92))}
+  .theme-invalid .u-kicker{color:var(--kicker-color,var(--accent));letter-spacing:var(--kicker-tracking,.24em)}
+  .theme-invalid .u-tagline{color:var(--tagline-color,inherit);font-style:var(--tagline-style,normal)}
+  /* Gradient-filled title. Was .theme-invalid .u-title; now any project can opt in
+     via its look's "Title style" field, which adds .u-title-gradient. The
+     .theme-invalid selector is kept as the no-JS fallback so Invalid Opinion still
+     renders its gradient title if colorlooks.json fails to load. */
+  .theme-invalid .u-title,
+  .u-title.u-title-gradient{font-weight:800;font-size:clamp(44px,8vw,104px);background:linear-gradient(180deg,var(--title-from,#fff),var(--title-to,#9cc3ff));-webkit-background-clip:text;background-clip:text;color:transparent}
   @media (prefers-reduced-motion: reduce){.bubble-inner,.glow,.edge,.cglow,.cbub,.cedge{animation:none}.universe{transition:clip-path .3s ease,-webkit-clip-path .3s ease}}
   .u-watch{margin:30px 0 0;display:flex;flex-direction:column;align-items:flex-start;gap:14px}
   .u-watch-label{display:block;font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:var(--accent);opacity:.9;margin-bottom:12px}
@@ -564,8 +588,8 @@ const __d=await Promise.all([
 ]);
 const SITE=__d[0];
 const __projects=__d[1].projects;
-const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.bubbleImage,logo:p.titleLogo,theme:p.theme,blurb:p.blurb,focusBg:p.focusBg,characters:[],logline:p.cardLogline,logoText:p.logoText,placeholder:!!p.placeholder}));
-const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.theme,bg:p.focusBg,logo:p.titleLogo,eyebrow:p.eyebrow,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,chips:p.chips||[],watch:p.watch,stills:p.stills||[],credits:p.credits}]));
+const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,characters:[],logline:p.cardLogline,logoText:p.logoText,placeholder:!!p.placeholder}));
+const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,eyebrow:p.eyebrow,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,chips:p.chips||[],watch:p.watch,stills:p.stills||[],credits:p.credits}]));
 const TEAM=__d[2].team;
 const __pagesData=__d[3]||{pages:[]};
 
@@ -738,6 +762,11 @@ const ABOUT_ORB_POS=[[-172,-96,86],[-202,72,76],[-130,166,80],[10,196,72],[126,1
 /* carousel (home) - films only */
 const stage=document.getElementById('stage'),cinfo=document.getElementById('cinfo'),cdots=document.getElementById('cdots');
 let activeIdx=0,dragFlag=false;const N=CAROUSEL.length;
+/* Fallback accents only. The real values come from Color Looks (kind: project);
+   assets/looks.js re-applies them to .citem elements once colorlooks.json lands,
+   so these just cover the moment before that fetch resolves (and 'more', the
+   placeholder bubble, which has no project look). Do not edit these to restyle
+   a film - edit the film's Color Look. */
 const ACCENT={geri:'#ffd21f',rev:'#ff5230',invalid:'#74b3ff',more:'#9b5cff'};
 function focusHTML(p){
   const bg=p.focusVideo?`<div class="focus-bg"><video src="${p.focusVideo}" autoplay muted loop playsinline></video></div>`:`<div class="focus-bg" style="background-image:url('${p.focusBg||SITE.water}')"></div>`;
