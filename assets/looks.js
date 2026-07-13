@@ -61,6 +61,16 @@
     darkBlue:  "#0b2c55",   // --ink, the site's dark text colour
   };
 
+  /* THE KINDS, and the order they are always grouped in:
+       basics   - the site signature (its 3 colours are the shared gradient)
+       rainbow  - the locked animated rainbow; its colours are ignored
+       category - a rentals category colour (Color 1 is the one used)
+       film     - a movie; the use-case tokens below apply
+     Nothing here depends on the ORDER at runtime - the site looks a look up by key,
+     not by position. The order exists so the CMS and the preview page group things
+     sensibly. colorlooks.html has the same list; keep them in step. */
+  var LOOK_ORDER = { basics: 0, rainbow: 1, category: 2, film: 3 };
+
   /* token -> hex. Returns "" for anything unrecognised, and "" means UNASSIGNED,
      which the CSS renders as WHITE on purpose so the gap is obvious. */
   function pick(L, token) {

@@ -22,6 +22,51 @@
       "note": "Not three colors. The animated rainbow gradient built into the site. Nothing here is editable; it is listed so other places can point at it."
     },
     {
+      "kind": "category",
+      "key": "red",
+      "name": "Red",
+      "c1": "#ea4335",
+      "c2": "#ea4335",
+      "c3": "#ea4335",
+      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
+    },
+    {
+      "kind": "category",
+      "key": "amber",
+      "name": "Amber",
+      "c1": "#ff9900",
+      "c2": "#ff9900",
+      "c3": "#ff9900",
+      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
+    },
+    {
+      "kind": "category",
+      "key": "violet",
+      "name": "Violet",
+      "c1": "#8b5cf6",
+      "c2": "#8b5cf6",
+      "c3": "#8b5cf6",
+      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
+    },
+    {
+      "kind": "category",
+      "key": "yellow",
+      "name": "Yellow",
+      "c1": "#fbbc04",
+      "c2": "#fbbc04",
+      "c3": "#fbbc04",
+      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
+    },
+    {
+      "kind": "category",
+      "key": "green",
+      "name": "Green",
+      "c1": "#34a853",
+      "c2": "#34a853",
+      "c3": "#34a853",
+      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
+    },
+    {
       "kind": "film",
       "key": "geri",
       "name": "Geri-Action",
@@ -83,51 +128,6 @@
       "titleGradientFrom": "white",
       "titleGradientTo": "lightBlue",
       "note": "The comedy's electric blue and indigo with a hot-red pop from the key art."
-    },
-    {
-      "kind": "basics",
-      "key": "red",
-      "name": "Red",
-      "c1": "#ea4335",
-      "c2": "#ea4335",
-      "c3": "#ea4335",
-      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
-    },
-    {
-      "kind": "basics",
-      "key": "amber",
-      "name": "Amber",
-      "c1": "#ff9900",
-      "c2": "#ff9900",
-      "c3": "#ff9900",
-      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
-    },
-    {
-      "kind": "basics",
-      "key": "violet",
-      "name": "Violet",
-      "c1": "#8b5cf6",
-      "c2": "#8b5cf6",
-      "c3": "#8b5cf6",
-      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
-    },
-    {
-      "kind": "basics",
-      "key": "yellow",
-      "name": "Yellow",
-      "c1": "#fbbc04",
-      "c2": "#fbbc04",
-      "c3": "#fbbc04",
-      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
-    },
-    {
-      "kind": "basics",
-      "key": "green",
-      "name": "Green",
-      "c1": "#34a853",
-      "c2": "#34a853",
-      "c3": "#34a853",
-      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
     }
   ]
 }
