@@ -115,31 +115,32 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      time during a swipe. It scales with the window (a wider window means a bigger slide
      to repaint), so these are ranges, all taken back to back on the same machine:
 
-       no shadow at all (the floor) ............. 9.0 - 9.2ms
-       THIS: gradient shadow, always on ........ 10.1 - 13.3ms  <- shipped
-       blurred silhouette, always on ........... 16.6 - 16.7ms
-       box-shadow on .cbub (the old one) ....... 17.2ms
+       no shadow at all (the control) .......... 9.0 - 9.8ms
+       THIS: gradient shadow, always on ......... 9.2 - 10.1ms  <- shipped, i.e. free
+       box-shadow on the fixed layer ........... 16.6ms  (still costly - see note 1)
+       blurred silhouette, always on ........... 16.7ms
+       box-shadow on .cbub (the original) ...... 17.2ms
 
-     All of them drop ZERO frames; the difference is whether a 120Hz screen holds 120fps
-     or falls back to a locked 60.
+     The shipped one lands inside the noise of the no-shadow control and drops zero
+     frames. The others each cost about a frame at 120Hz.
 
-     Two things that surprised me and are easy to get wrong later:
+     Three things that are easy to get wrong later:
 
-     1. A CSS `filter: blur()` is the expensive part, NOT the blur radius. blur(12px) and
-        blur(40px) both cost ~16.6ms, because a filter forces the element onto its own
-        render surface every frame while the slide is resizing. So the softness here comes
-        from a GRADIENT, which needs no filter. Do not "improve" this by swapping the
-        gradient for filter:blur() - that is a 3.5ms regression per frame.
+     1. ANY real blur is expensive here, and the radius is irrelevant. blur(12px) and
+        blur(40px) both cost ~16.6ms, and a box-shadow costs the same even on this fixed
+        layer - because both force the element onto its own render surface on every frame
+        that its transform changes. So the softness comes from a GRADIENT instead, which
+        needs no filter and no shadow. Do NOT "improve" this by swapping the gradient back
+        for filter:blur() or box-shadow: that is the whole cost, right there.
 
      2. Scaling with a transform instead of animating width/height is what keeps even the
         gradient affordable: the layer is a FIXED 400px and the carousel scales it to fit
         (see syncDrops). Setting width/height here would make it re-rasterise every frame.
 
-     There is no free lunch: a permanently visible shadow costs ~4ms over having none.
-     It drops ZERO frames, so it is smooth - it just is not free, and pretending otherwise
-     is how the flashing got introduced in the first place. */
+     3. The layer must be BIGGER than the bubble or you will not see it at all - the first
+        version scaled it to exactly the bubble's size, so it hid behind it. See syncDrops. */
   .cdrop{position:absolute;left:50%;top:50%;width:400px;height:400px;margin:-200px 0 0 -200px;border-radius:50%;z-index:0;pointer-events:none;
-    background:radial-gradient(closest-side,rgba(0,8,30,.85),rgba(0,8,30,.5) 45%,rgba(0,8,30,.18) 70%,transparent 85%);
+    background:radial-gradient(closest-side,rgba(0,8,30,.9),rgba(0,8,30,.62) 42%,rgba(0,8,30,.3) 62%,rgba(0,8,30,.1) 78%,transparent 90%);
     will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;
     transition:transform .6s cubic-bezier(.5,0,.2,1),opacity .45s}
   .citem.hide .cdrop{opacity:0}
@@ -881,15 +882,22 @@ function measureSlots(){
   });
   probe.remove();
 }
+/* The shadow layer must be BIGGER than the bubble, or you cannot see it.
+   First attempt scaled it to exactly the slide's size, which meant the whole gradient sat
+   behind an opaque bubble and only a sliver ever showed - it read as "no shadow at all".
+
+   So: spill a little sideways (SX) and more downwards (SY), then push the layer down by
+   half the vertical spill. That tucks the top edge behind the bubble, so everything that
+   escapes falls BELOW it - a cast shadow rather than a halo ringing the bubble.
+   The extra 2% is a nudge to seat it, matched by eye against the original box-shadow. */
+const DROP_SX=1.10, DROP_SY=1.24;
 function syncDrops(){
   citems.forEach(el=>{
     const d=el.querySelector('.cdrop'); if(!d) return;
     const s=DROP_SIZES[el.dataset.slot]||DROP_SIZES.hide; if(!s||!s.w) return;
-    /* How far the shadow sits below the bubble. Tuned by A/B against the original
-       box-shadow rather than guessed - the first attempt read visibly lighter than
-       production. */
-    const dy=el.dataset.slot==='feat'?34:22;
-    d.style.transform='translateY('+dy+'px) scale('+(s.w/DROP_BASE).toFixed(4)+','+(s.h/DROP_BASE).toFixed(4)+')';
+    const dy=Math.round(s.h*(DROP_SY-1)/2 + s.h*0.02);
+    d.style.transform='translateY('+dy+'px) scale('
+      +((s.w*DROP_SX)/DROP_BASE).toFixed(4)+','+((s.h*DROP_SY)/DROP_BASE).toFixed(4)+')';
   });
 }
 measureSlots();
