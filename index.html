@@ -38,7 +38,13 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      --evbanner-h is the space the event banner pushes the page down by. It starts at 0
      and is set BEFORE FIRST PAINT by the inline script in <head> from the last known
      height (see there for why), then confirmed by looks.js once site.json lands. */
-  html{scroll-behavior:smooth;background:#06122b;--evbanner-h:0px}
+  /* scrollbar-gutter keeps the scrollbar's space reserved even when body.locked turns
+     overflow off to open a film. Without it, on any platform with classic (space-taking)
+     scrollbars the page jumps sideways by the scrollbar's width the instant a film opens
+     and jumps back when it closes - which also drags the radial wipe's origin off the
+     bubble it is supposed to be growing out of. Mac's overlay scrollbars take no space,
+     so this is a no-op here and a fix everywhere else. */
+  html{scroll-behavior:smooth;background:#06122b;--evbanner-h:0px;scrollbar-gutter:stable}
   body{margin:0;font-family:var(--font);color:#eaf2ff;background:#06122b;overflow-x:hidden}
   body.locked{overflow:hidden}
   section{scroll-margin-top:100px;position:relative}
@@ -63,6 +69,19 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   #rp-eventbanner-mount{height:var(--evbanner-h,0px)}
   @keyframes spin{to{transform:rotate(360deg)}}
   @property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+  /* ===== the colour the GLOW layers actually draw with =====================================
+     Every glow layer (.glow / .cglow and the ::before halo) reads --gg1/--gg2/--gg3, NOT the
+     signature --g1/--g2/--g3 directly. At rest --gg* simply forwards the signature, so an
+     untouched bubble is the same blue/purple it always was.
+
+     Registering them as <color> is the whole trick: a registered custom property can be
+     TRANSITIONED, so when a project opts in to "Bubble glow uses this look" the hover swap
+     is a smooth fade from the signature to the project's colours instead of a snap.
+     The rim (.edge / .cedge) is deliberately left on --g1/--g2/--g3 - it is the bubble's
+     silhouette, not its glow, and it stays signature in every state. */
+  @property --gg1{syntax:"<color>";inherits:true;initial-value:#3f6bff}
+  @property --gg2{syntax:"<color>";inherits:true;initial-value:#9b5cff}
+  @property --gg3{syntax:"<color>";inherits:true;initial-value:#56c8ff}
   @keyframes hue{to{--ang:360deg}}
   @keyframes bob{from{transform:translateY(-9px)}to{transform:translateY(11px)}}
 
@@ -91,7 +110,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .xsite:hover .xarrow{color:#0b59c4;filter:drop-shadow(0 0 6px rgba(31,111,208,.95));transform:translateX(4px)}
   @media(max-width:780px){.xsite{padding:7px 11px;font-size:13px}}
   @media(max-width:560px){.hright2 .socials{display:none}}
-  @media(max-width:780px){.nav a{padding:8px 10px;font-size:13px}.brandname{display:none}.socials a{width:34px;height:34px}}
+  @media(max-width:780px){.nav a{padding:8px 10px;font-size:13px}.brandname{display:none}}   /* icon sizes: /assets/chrome.css */
 
   /* ===== depth sections ===== */
   #home-projects{position:relative;background:transparent}
@@ -120,7 +139,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .citem.sideL{--off:calc(-1 * min(45.5vw,632px));width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
   .citem.sideR{--off:min(45.5vw,632px);width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
   .citem.hide{--off:0;width:150px;height:150px;opacity:0;z-index:1;pointer-events:none}
-  .cglow{position:absolute;inset:-16px;border-radius:42%;z-index:0;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));-webkit-mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);filter:blur(6px);opacity:.2;transition:opacity .5s;/* two animations: hue (paused until hover) and bob (always, in step with .cbub). animation-play-state takes one entry per animation, which is how they differ. */animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;animation-play-state:paused,running}
+  .cglow{position:absolute;inset:-16px;border-radius:42%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);filter:blur(6px);opacity:.2;transition:opacity .5s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;/* two animations: hue (paused until hover) and bob (always, in step with .cbub). animation-play-state takes one entry per animation, which is how they differ. */animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;animation-play-state:paused,running}
   .citem.feat .cglow{opacity:.32;border-radius:18%}
   .citem:hover .cglow{opacity:.9;animation-play-state:running,running}
 
@@ -145,9 +164,9 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      The visibility flip is delayed until the fade-out ends, so it still fades away smoothly
      instead of blinking off.
 
-     It reads the same --g1/--g2/--g3 as every other glow layer, so a project that opts in
-     to "Bubble glow uses this look" gets its own colours here too, and a special (Rainbow)
-     gets --rp-glow, with no extra wiring.
+     It reads the same --gg1/--gg2/--gg3 as every other glow layer, so a project that opts in
+     to "Bubble glow uses this look" gets its own colours here too (on hover only - see the
+     per-project block further down), and a special (Rainbow) gets --rp-glow.
 
      NO MASK. The first version masked the halo with a radial-gradient ring, which on the
      wide featured card only ever showed at the top and bottom: a radial-gradient's "closest
@@ -159,16 +178,17 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      around, which is what was wanted. */
   .citem::before,.bubble::before{content:"";position:absolute;inset:-26px;z-index:0;pointer-events:none;
     border-radius:50%;opacity:0;visibility:hidden;
-    transition:opacity .45s ease,visibility 0s linear .45s;
-    background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));
+    transition:opacity .45s ease,visibility 0s linear .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;
+    background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));
     filter:blur(14px);
     /* bob in step with the bubble, or the glow visibly detaches and floats while the bubble
        drifts. Same duration and --i offset as .cbub / .bubble-inner, so they move as one. */
     animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate}
   .bubble::before{animation-duration:calc(7s + var(--i,0)*0.9s)}
   .citem.feat::before{border-radius:16%/24%}
-  .citem:hover::before,.bubble:hover::before{opacity:.42;visibility:visible;transition:opacity .45s ease,visibility 0s}
-  /* a special look (Rainbow) hands over its whole gradient - same rule as the other layers */
+  .citem:hover::before,.bubble:hover::before{opacity:.42;visibility:visible;transition:opacity .45s ease,visibility 0s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
+  /* A special look (Rainbow) hands over its whole gradient. The halo only exists on hover in
+     the first place, so this needs no :hover qualifier - it can never show at rest. */
   .citem.rp-glow-special::before,.bubble.rp-glow-special::before{background:var(--rp-glow)}
   /* the "more to come" bubble already has its own rainbow hover treatment - leave it be */
   .bubble.placeholder::before{display:none}
@@ -256,7 +276,22 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .focus-view{position:absolute;inset:0;opacity:0;transition:opacity .5s;z-index:1}
   .citem.feat .focus-view{opacity:1}
   .focus-bg{position:absolute;inset:0;background-size:cover;background-position:center}
-  .focus-bg video{width:100%;height:100%;object-fit:cover;display:block}
+  /* ===== FEATURED-CARD VIDEO =======================================================
+     The still (.focus-bg) is always there and is never removed. The video is a layer ON TOP
+     of it that starts fully transparent and only fades in once the browser says it can play
+     the whole thing without stalling. So the card is never empty, never black, and never
+     shows a spinner: no video, slow network, decode error, Save-Data, reduced-motion - any
+     of those and you simply keep looking at the still, which is exactly what is there today.
+
+     object-fit:cover is what makes "any 16:9 source" true: 1920x1080 or 3840x2160, the frame
+     is scaled to the card and centre-cropped, so it always fills it at the card's own
+     aspect - no letterboxing, no CSS per film.
+
+     Only the FEATURED card ever gets a src (see syncFocusVideo). The side bubbles keep the
+     still, as asked - and, usefully, that means at most one video is ever decoding. */
+  .focus-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
+    opacity:0;transition:opacity .8s ease;pointer-events:none}
+  .focus-vid.ready{opacity:1}
   .focus-scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(2,6,16,.86),rgba(2,6,16,.3) 34%,transparent 60%),radial-gradient(135% 96% at 1% 100%,rgba(2,6,16,.5),transparent 64%)}
   .focus-char{position:absolute;bottom:0;right:1%;height:100%;width:auto;object-fit:contain;object-position:bottom;filter:drop-shadow(0 12px 26px rgba(0,0,0,.55));transform:translateX(26px);opacity:0;transition:transform .6s .12s cubic-bezier(.2,.8,.2,1),opacity .5s .12s;z-index:2}
   .citem.feat .focus-char{transform:none;opacity:1}
@@ -308,7 +343,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .bubble{position:relative;flex:0 0 auto;width:var(--bubble-size);height:var(--bubble-size);cursor:pointer;
     --mx:73%;--my:26%;--tiltx:0deg;--tilty:0deg;transform:rotateX(var(--tiltx)) rotateY(var(--tilty));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
   .bubble.placeholder{cursor:default}
-  .glow{position:absolute;inset:-16px;border-radius:50%;z-index:0;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);filter:blur(9px);opacity:.32;transition:opacity .45s;animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate;animation-play-state:paused,running}
+  .glow{position:absolute;inset:-16px;border-radius:50%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);filter:blur(9px);opacity:.32;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate;animation-play-state:paused,running}
   .bubble.placeholder .glow{opacity:.2}
   .bubble.placeholder:hover .glow{background:var(--rainbow);opacity:.85}
   .bubble-inner{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;-webkit-clip-path:circle(50%);clip-path:circle(50%);/* NO box-shadow here: clip-path clips it away. The shadow is cast by .bubble::after. */animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
@@ -331,16 +366,36 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .bubble.placeholder>.bubble-logo .txt{font-family:"Kaushan Script",cursive;font-weight:400;font-size:clamp(22px,2.9vw,32px);color:#eaf3ff;opacity:.95}
 
   /* ===== per-project bubble glow (Pages CMS → project → "Bubble glow uses this look") =====
-     OFF (default): the bubble glows with the site signature, because .glow/.edge read
-     --g1/--g2/--g3 and those are set on :root. Nothing below applies.
-     ON: assets/looks.js sets --g1/--g2/--g3 on the BUBBLE ELEMENT itself, which simply
-     overrides the :root values for that one bubble - no new rule needed, and it reaches
-     the carousel and the grid identically because both now carry data-pk.
-     ON + a "special" look (Rainbow): three hex stops cannot express an eight-stop
-     animated ramp, so looks.js sets --rp-glow to the special's gradient and adds this
-     class. Keyed off a variable, so a future special needs no new CSS here. */
-  .bubble.rp-glow-special .glow,.bubble.rp-glow-special .edge,
-  .citem.rp-glow-special .cglow,.citem.rp-glow-special .cedge{background:var(--rp-glow)}
+     THE AMBIENT GLOW IS ALWAYS THE SIGNATURE BLUE/PURPLE. That is the rule this whole block
+     exists to protect: a bubble sitting there untouched looks like every other bubble on the
+     site, whatever look the film is tagged with. The switch only changes what happens when
+     you HOVER it.
+
+     OFF (default): hovering brightens the same signature glow. Nothing below applies.
+     ON: assets/looks.js puts the look's three colours on the bubble as --h1/--h2/--h3 and
+         adds .rp-hover-look. Only the :hover rule below reads them, so the colour swap can
+         only ever happen under the cursor.
+
+     The glow layers draw with --gg1/--gg2/--gg3, which forward the signature at rest. Those
+     are REGISTERED (@property, at the top of this sheet) as <color>, which is what lets them
+     be transitioned - so the swap is a fade, not a snap.
+
+     The fade is declared on the GLOW LAYERS, not on .citem/.bubble. Putting it on the bubble
+     would have replaced .citem's transition list - the one that animates a slide's transform,
+     width, height and opacity - and quietly killed the carousel's motion for exactly those
+     films that opted in. The layers inherit --gg* from the bubble, so a change on the bubble
+     is a computed-value change on the layer, and the layer's own transition animates it.
+
+     The rim (.edge/.cedge) is untouched: it reads --g1/--g2/--g3 in every state. It is the
+     bubble's silhouette, not its glow.
+
+     ON + a "special" look (Rainbow): three hex stops cannot express an eight-stop animated
+     ramp, so looks.js hands the whole gradient over in --rp-glow. A gradient cannot be
+     interpolated, so that one lands on hover as a straight swap - still hover-only. */
+  .citem,.bubble{--gg1:var(--g1);--gg2:var(--g2);--gg3:var(--g3)}
+  .citem.rp-hover-look:hover,.bubble.rp-hover-look:hover{--gg1:var(--h1,var(--g1));--gg2:var(--h2,var(--g2));--gg3:var(--h3,var(--g3))}
+  .bubble.rp-glow-special:hover .glow,
+  .citem.rp-glow-special:hover .cglow{background:var(--rp-glow)}
   .caption{position:absolute;left:50%;top:calc(100% + 20px);transform:translateX(-50%);text-align:center;white-space:nowrap;pointer-events:none}
   .caption .t{font-weight:800;font-size:18px;margin-bottom:3px;opacity:0;transform:translateY(8px);transition:.35s;color:#eef5ff;text-shadow:0 2px 10px rgba(0,10,40,.5)}
   .caption .s{font-size:12px;color:#c4dcf6;letter-spacing:.16em;text-transform:uppercase;font-weight:700;text-shadow:0 2px 8px rgba(0,10,40,.5)}
@@ -471,7 +526,6 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     .nav{margin-left:6px;gap:2px}
     .nav a{padding:7px 9px;font-size:12.5px}
     .socials{margin-left:auto;gap:7px}
-    .socials a{width:33px;height:33px}
     .hero p{font-size:15px}
     .carousel{padding:16px 0 22px}
     .stage{height:380px}
@@ -496,9 +550,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     .hdr-logo .hdr-duck{height:40px}
     .nav{margin-left:4px;gap:1px}
     .nav a{padding:6px 7px;font-size:12px}
-    .socials{gap:5px}
-    .socials a{width:30px;height:30px}
-    .socials svg{width:16px;height:16px}
+    .socials{gap:5px}   /* icon sizes: /assets/chrome.css */
   }
   @media(max-width:380px){
     .nav a{padding:6px 6px;font-size:11px}
@@ -747,7 +799,7 @@ const __projects=__d[1].projects;
    switched off in Pages CMS. Absent === on, so existing projects (and any new one)
    default to showing. Turning it off removes it from the carousel ONLY - it keeps its
    place in the Projects grid and its own URL still works. */
-const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,characters:[],logline:p.cardLogline,logoText:p.logoText,placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
+const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,focusVideo:p.focusVideo||'',characters:[],logline:p.cardLogline,logoText:p.logoText,placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
 const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,eyebrow:p.eyebrow,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,chips:p.chips||[],watch:p.watch,stills:p.stills||[],credits:p.credits}]));
 const TEAM=__d[2].team;
 const __pagesData=__d[3]||{pages:[]};
@@ -890,7 +942,7 @@ function makeGridBubble(p,i){
   bubble.addEventListener('pointermove',e=>{if(!INTERACTIVE)return;const r=bubble.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){bubble.style.setProperty('--mx',(px*100).toFixed(1)+'%');bubble.style.setProperty('--my',(py*100).toFixed(1)+'%');}const tm=7;bubble.style.setProperty('--tilty',((px-.5)*tm*2).toFixed(2)+'deg');bubble.style.setProperty('--tiltx',((.5-py)*tm*2).toFixed(2)+'deg');});
   bubble.addEventListener('pointerleave',()=>{if(INTERACTIVE){bubble.style.setProperty('--mx','73%');bubble.style.setProperty('--my','26%');bubble.style.setProperty('--tiltx','0deg');bubble.style.setProperty('--tilty','0deg');}});
   if(!p.placeholder){
-    const open=()=>{const r=bubble.getBoundingClientRect();openProject(p.key,r.left+r.width/2,r.top+r.height/2);};
+    const open=()=>openProject(p.key);   // the wipe's origin is measured in bubbleOrigin(), from data-pk
     bubble.addEventListener('click',open);bubble.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
   }
   return bubble;
@@ -936,7 +988,11 @@ if(!N){const __car=document.querySelector('.carousel');if(__car)__car.style.disp
    instead of being silently papered over by a stale hardcoded colour. */
 const accentFor=()=>'#ffffff';
 function focusHTML(p){
-  const bg=p.focusVideo?`<div class="focus-bg"><video src="${p.focusVideo}" autoplay muted loop playsinline></video></div>`:`<div class="focus-bg" style="background-image:url('${p.focusBg||SITE.water}')"></div>`;
+  /* The still is unconditional - it is the fallback, so it must exist even when a video is
+     set. preload="none" on the video means adding one to a film costs nothing until that
+     film is actually the featured card; syncFocusVideo() gives it its src at that point. */
+  const bg=`<div class="focus-bg" style="background-image:url('${p.focusBg||SITE.water}')"></div>`
+    + (p.focusVideo?`<video class="focus-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'');
   /* .focus-content is a SIBLING of .focus-view, not a child. .focus-view has z-index:1,
      which makes it a stacking context - anything inside it is trapped below the glass
      and the rim glow no matter what z-index it is given. Keeping the text outside is
@@ -950,7 +1006,7 @@ const citems=CAROUSEL.map((p,i)=>{
   el.innerHTML=`<div class="cdrop"></div><div class="cglow"></div><div class="cbub">${side}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
   el.addEventListener('pointermove',e=>{if(INTERACTIVE&&el.classList.contains('feat')){const r=el.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){el.style.setProperty('--mx',(px*100).toFixed(1)+'%');el.style.setProperty('--my',(py*100).toFixed(1)+'%');}el.style.setProperty('--tilty',((px-.5)*9).toFixed(2)+'deg');el.style.setProperty('--tiltx',((.5-py)*7).toFixed(2)+'deg');}});
   el.addEventListener('pointerleave',()=>{if(INTERACTIVE){el.style.setProperty('--mx','80%');el.style.setProperty('--my','16%');el.style.setProperty('--tiltx','0deg');el.style.setProperty('--tilty','0deg');}});
-  el.addEventListener('click',()=>{if(dragFlag)return;if(el.classList.contains('feat')){const r=el.getBoundingClientRect();openProject(p.key,r.left+r.width/2,r.top+r.height/2);}else setActive(i);});
+  el.addEventListener('click',()=>{if(dragFlag)return;if(el.classList.contains('feat'))openProject(p.key);else setActive(i);});
   stage.appendChild(el);return el;
 });
 CAROUSEL.forEach((p,i)=>{const b=document.createElement('button');b.setAttribute('aria-label',p.title);b.addEventListener('click',()=>setActive(i));cdots.appendChild(b);});
@@ -1015,7 +1071,49 @@ function layout(){
   });
   [...cdots.children].forEach((d,i)=>d.classList.toggle('on',i===activeIdx));
   syncDrops();          // shadows follow the slots, in the same frame the slots change
+  syncFocusVideo();     // and so does the video: only the featured card ever plays one
 }
+
+/* ===== FEATURED-CARD VIDEO =========================================================
+   Pages CMS, per project: "Featured card video" (optional).
+
+   Rules, in order of importance:
+     1. THE STILL IS THE FALLBACK AND IT NEVER LEAVES. The video sits on top at opacity 0.
+        It is only revealed on `canplaythrough` - the browser's own promise that it can play
+        it start to finish without stopping to buffer. If that promise never comes, or the
+        file 404s, or the codec is unsupported, nothing is revealed and the card looks exactly
+        as it does today. The one failure mode we refuse is a half-loaded video stuttering in
+        front of a perfectly good photograph.
+     2. ONLY THE FEATURED CARD. Side bubbles keep the still. That is what Jack asked for, and
+        it also means at most one video is ever decoding, however many films get one.
+     3. IT COSTS NOTHING UNTIL IT IS NEEDED. preload="none" plus a data-src: a film with a
+        video attached does not fetch a single byte until it becomes the featured card.
+     4. WE STOP WHEN NOBODY IS LOOKING. Opening a film, or switching tab, pauses it.
+
+   Save-Data and prefers-reduced-motion are honoured by simply never giving the video a src -
+   those users stay on the still, everyone else (phones included) gets the reel. */
+const VID_OK = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
+            && !(navigator.connection && navigator.connection.saveData);
+function syncFocusVideo(){
+  citems.forEach(el=>{
+    const v=el.querySelector('.focus-vid');
+    if(!v) return;
+    /* body.locked == a film is open over the top of us. Deliberately NOT `currentOpen`: this
+       function runs during the very first layout(), which happens before that `let` is
+       initialised, and reading it there would throw. */
+    if(el.dataset.slot!=='feat' || !VID_OK || document.hidden || document.body.classList.contains('locked')){ v.pause(); return; }
+    if(!v.getAttribute('src')){
+      v.addEventListener('canplaythrough',()=>v.classList.add('ready'),{once:true});
+      /* Anything at all goes wrong -> take the video out of the document. The still is
+         already underneath it, so this is a silent, complete fallback. */
+      v.addEventListener('error',()=>v.remove(),{once:true});
+      v.setAttribute('src',v.dataset.src);
+    }
+    const pr=v.play();
+    if(pr&&pr.catch) pr.catch(()=>{});   // autoplay refused -> still stays, no console noise
+  });
+}
+document.addEventListener('visibilitychange',syncFocusVideo);
 function setActive(i){if(!N)return;activeIdx=((i%N)+N)%N;document.body.classList.add('swiping');clearTimeout(window.__swT);window.__swT=setTimeout(function(){document.body.classList.remove('swiping');},700);layout();}
 document.getElementById('carPrev').addEventListener('click',()=>setActive(activeIdx-1));
 document.getElementById('carNext').addEventListener('click',()=>setActive(activeIdx+1));
@@ -1068,22 +1166,91 @@ function buildUniverse(key){
   sec.querySelector('.back').addEventListener('click',()=>history.back());universes.appendChild(sec);return sec;
 }
 const built={};let currentOpen=null;
-function openUniverse(key,ox,oy){
+
+/* ===== WHERE THE RADIAL WIPE COMES FROM ==========================================
+   The wipe is a clip-path circle that grows from (--ox,--oy). For it to read as "the
+   bubble is expanding", that point has to be the CENTRE OF THE BUBBLE ON SCREEN RIGHT
+   NOW - not where it was when the page loaded, not the middle of the window.
+
+   So there is exactly one place that answers the question, and open, close, back/forward
+   and deep links all ask it. Previously the click handlers measured the bubble themselves
+   and passed coordinates in, while every other route into openUniverse() (popstate, a
+   pasted URL, the keyboard) passed nothing and silently fell back to the centre of the
+   screen - which is exactly the "it came from the wrong place" Jack was seeing. Measuring
+   once, here, on demand, also means a resize or a scroll while the film is open cannot
+   leave a stale origin behind: the retraction re-measures and still lands on the bubble.
+
+   .universe is position:fixed, so its clip-path coordinates ARE viewport coordinates,
+   which is what getBoundingClientRect gives us - no scroll maths anywhere.
+
+   Order matters: the grid bubble first, then the featured carousel card, then any card.
+   In practice only one of them is ever laid out (the other view is display:none, so it
+   measures 0x0 and is skipped), which is why the width check is the real filter. The one
+   case where two DO measure is the home carousel, where the film may be sitting in a side
+   slot - and then the featured card, the thing that visually opens, is the honest answer. */
+function bubbleOrigin(key){
+  if(!key) return null;
+  const esc=(window.CSS&&CSS.escape)?CSS.escape(key):String(key).replace(/"/g,'\\"');
+  const sel='[data-pk="'+esc+'"]';
+  const cands=[...document.querySelectorAll('.bubble'+sel),
+               ...document.querySelectorAll('.citem.feat'+sel),
+               ...document.querySelectorAll('.citem'+sel)];
+  for(const el of cands){
+    const r=el.getBoundingClientRect();
+    if(r.width>4&&r.height>4) return {x:r.left+r.width/2,y:r.top+r.height/2};
+  }
+  return null;
+}
+function setOrigin(sec,key){
+  const o=bubbleOrigin(key)||{x:innerWidth/2,y:innerHeight/2};
+  sec.style.setProperty('--ox',o.x+'px');
+  sec.style.setProperty('--oy',o.y+'px');
+}
+function openUniverse(key){
   if(!SECTIONS[key])return;
-  if(ox==null){ox=innerWidth/2;oy=innerHeight/2;}
   const sec=built[key]||(built[key]=buildUniverse(key));
+  sec.dataset.key=key;
   sec.querySelector('.back').textContent=(activeView==='projects')?'‹ Back to projects':'‹ Back to the pond';
-  sec.style.setProperty('--ox',ox+'px');sec.style.setProperty('--oy',oy+'px');
-  document.body.classList.add('locked');sec.scrollTop=0;
-  sec.classList.remove('closing','flash-out');sec.style.visibility='visible';
-  sec.classList.remove('flash');void sec.offsetWidth;sec.classList.add('flash');
+
+  /* Reopening a film while its own close is still animating used to make the wipe leap: the
+     clip-path was mid-flight at the OLD origin, and moving the origin under a half-drawn
+     circle drags the whole circle sideways. So we cut the transition, plant the closed
+     circle at the new origin, force the browser to commit that (offsetWidth), and only then
+     hand the transition back - the standard "snap to the start, then animate" move. */
+  sec.style.transition='none';
+  sec.classList.remove('open','closing','flash','flash-out');
+  setOrigin(sec,key);
+  sec.style.visibility='visible';sec.scrollTop=0;
+  void sec.offsetWidth;
+  sec.style.transition='';
+
+  document.body.classList.add('locked');
+  sec.classList.add('flash');
   requestAnimationFrame(()=>sec.classList.add('open'));currentOpen=sec;
+  syncFocusVideo();     // the carousel is behind a full-screen film now - stop decoding it
 }
 function closeUniverse(sec){
-  if(!sec)return;document.body.classList.remove('locked');
+  if(!sec)return;
+  /* Unlock FIRST, then measure. body.locked is overflow:hidden, and on any platform with
+     classic (space-taking) scrollbars, unlocking gives the scrollbar its width back and
+     shifts the whole page sideways. Measuring before that would retract to where the bubble
+     was while it was locked, missing it by half a scrollbar. Re-measuring here is also what
+     makes a resize-while-open close correctly.
+     The circle is at full radius right now, so moving its origin is invisible - and it has to
+     be COMMITTED at full radius (transition off, reflow, transition back on), or the browser
+     interpolates the origin as well as the radius and the circle slides across the screen as
+     it shrinks instead of retracting straight into the bubble. Measured: with the layout
+     shifted 34px behind an open film, the retraction started 34px off and crept to the right
+     place. Now it starts on the bubble and stays there. */
+  document.body.classList.remove('locked');
+  sec.style.transition='none';
+  setOrigin(sec,sec.dataset.key);
+  void sec.offsetWidth;
+  sec.style.transition='';
   sec.classList.add('closing','flash-out');sec.classList.remove('flash','open');currentOpen=null;
   const done=(e)=>{if(e.target!==sec||(e.propertyName!=='clip-path'&&e.propertyName!=='-webkit-clip-path'))return;sec.style.visibility='hidden';sec.classList.remove('closing','flash','flash-out');sec.removeEventListener('transitionend',done);};
   sec.addEventListener('transitionend',done);setTimeout(()=>{if(sec.style.visibility!=='hidden'){sec.style.visibility='hidden';sec.classList.remove('closing','flash','flash-out');}},800);
+  syncFocusVideo();     // back on the carousel - the featured card picks up where it left off
 }
 addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){if(e.key==='Escape')closeLB();else if(e.key==='ArrowRight')lbShow(lbIdx+1);else if(e.key==='ArrowLeft')lbShow(lbIdx-1);return;}if(e.key==='Escape'&&currentOpen)history.back();});
 
@@ -1270,7 +1437,7 @@ document.body.addEventListener('click', e => {
 });
 function nav(path){if(location.pathname+location.search!==path)history.pushState({},'',path);renderRoute();}
 /* open a project from a bubble/card click - keeps the zoom-from-bubble animation */
-function openProject(key,ox,oy){const sl='/'+KEY2SLUG[key];if(location.pathname!==sl)history.pushState({},'',sl);openUniverse(key,ox,oy);}
+function openProject(key){const sl='/'+KEY2SLUG[key];if(location.pathname!==sl)history.pushState({},'',sl);openUniverse(key);}
 document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();const d=a.getAttribute('data-go');if(d==='contact'||d==='about'){nav('/');showView('home','#'+d);}else nav(pathForDest(d));});
 /* browser back / forward drives the view (this is how the universe closes on Back) */
 addEventListener('popstate',()=>renderRoute());

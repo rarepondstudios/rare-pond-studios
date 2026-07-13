@@ -9,12 +9,14 @@
    Run: node tools/serve-like-cloudflare.mjs [port] */
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
 import { join, extname } from 'node:path';
 import { onRequest } from '../functions/_middleware.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const PORT = Number(process.argv[2] || 8899);
-const TYPES = { '.html':'text/html', '.js':'text/javascript', '.json':'application/json',
+const TYPES = {
+  '.mp4': 'video/mp4', '.html':'text/html', '.js':'text/javascript', '.json':'application/json',
   '.css':'text/css', '.svg':'image/svg+xml', '.png':'image/png', '.jpg':'image/jpeg',
   '.webp':'image/webp', '.avif':'image/avif', '.ico':'image/x-icon' };
 
@@ -44,11 +46,55 @@ const ASSETS = {
 
 createServer(async (req, res) => {
   const url = 'http://127.0.0.1:' + PORT + req.url;
+
+  /* HTTP RANGE. Cloudflare serves byte ranges; this server did not, and a <video> that is
+     told "no ranges here" either refuses to seek or, in Chrome, sits there waiting - which
+     is not a bug in the site but it looks exactly like one while testing. The middleware has
+     no interest in media, so ranges are answered before it. */
+  const media = /\.(mp4|webm|mov|m4v)$/i.test(req.url.split('?')[0]);
+  if (media && req.method === 'GET') {
+    const f = await asset(decodeURIComponent(new URL(url).pathname));
+    if (f) {
+      const size = (await stat(f)).size;
+      const type = TYPES[extname(f)] || 'video/mp4';
+      const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+      if (m) {
+        const start = m[1] ? parseInt(m[1], 10) : 0;
+        const end = m[2] ? Math.min(parseInt(m[2], 10), size - 1) : size - 1;
+        res.writeHead(206, {
+          'Content-Type': type, 'Accept-Ranges': 'bytes',
+          'Content-Range': `bytes ${start}-${end}/${size}`,
+          'Content-Length': end - start + 1,
+        });
+        createReadStream(f, { start, end }).pipe(res);
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Content-Length': size });
+      createReadStream(f).pipe(res);
+      return;
+    }
+  }
+
   const request = new Request(url, { method: req.method });
 
   // Static serving + the SPA fallback, expressed as the middleware's next().
   const next = async () => {
     const pathname = decodeURIComponent(new URL(url).pathname);
+
+    /* DIRECTORY -> TRAILING SLASH, 308. Cloudflare Pages redirects /rentals to /rentals/
+       before serving rentals/index.html, and that redirect is not cosmetic: the rentals page
+       links its CSS and JS RELATIVELY (assets/styles.css), so served at /rentals they resolve
+       to /assets/styles.css - the wrong directory - and the page arrives with no stylesheet.
+       This server used to serve /rentals directly and so displayed a broken page production
+       never shows. It belongs HERE, inside next(), because that is the asset layer: the
+       middleware still gets first refusal, which is what lets the maintenance cover answer
+       /rentals itself without ever being redirected. (Same lesson as the /maintenance.html
+       308 that once hid the cover in production: a dev server that does not redirect exactly
+       like the edge will lie to you.) */
+    if (!pathname.endsWith('/') && !extname(pathname) && await exists(join(ROOT, pathname, 'index.html'))) {
+      return new Response(null, { status: 308, headers: { Location: pathname + '/' } });
+    }
+
     const f = (await asset(pathname)) || join(ROOT, 'index.html');
     return new Response(await readFile(f), {
       status: 200,

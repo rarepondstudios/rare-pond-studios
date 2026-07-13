@@ -146,16 +146,23 @@
   /* ===== BUBBLE GLOW =========================================================
      Pages CMS, per project: "Bubble glow uses this look" (default OFF).
 
-     OFF - the bubble keeps the site signature glow. That colour comes from --g1/--g2/--g3
-           on :root, so we simply leave the element alone.
-     ON  - we set --g1/--g2/--g3 ON THE BUBBLE ELEMENT. Because .glow/.edge (grid) and
-           .cglow/.cedge (carousel) all read those same three variables, overriding them
-           locally recolours every layer of that bubble at once, with no new CSS.
-     ON + a "special" look - three hex stops cannot express an animated eight-stop ramp,
-           so we hand the whole gradient over in --rp-glow and let one CSS rule use it.
+     THE AMBIENT GLOW NEVER CHANGES. Sitting untouched, every bubble on the site glows the
+     signature blue/purple, whatever look its film is tagged with. This switch only decides
+     what the glow becomes WHEN YOU HOVER IT.
 
-     One selector, [data-pk], covers the home carousel AND the projects grid, so the two
-     can never drift apart - which is the whole point of the switch.
+     OFF - hover just brightens the signature glow. We leave the element alone entirely.
+     ON  - we set --h1/--h2/--h3 (H for hover) on the bubble and add .rp-hover-look. The CSS
+           only reads those under :hover, so there is no way for them to leak into the resting
+           state; the glow layers fade between the two because --gg1/--gg2/--gg3 are
+           registered as <color> and can therefore be transitioned.
+     ON + a "special" look - three hex stops cannot express an animated eight-stop ramp, so we
+           hand the whole gradient over in --rp-glow and let one hover-scoped CSS rule use it.
+
+     (This used to overwrite --g1/--g2/--g3 on the element, which was simpler but recoloured
+     the bubble in every state, resting included - the thing we now specifically do not want.)
+
+     One selector, [data-pk], covers the home carousel AND the projects grid, so the two can
+     never drift apart - which is the whole point of the switch.
      Every property is REMOVED before anything is set, so switching back to OFF actually
      reverts instead of leaving the last colour stuck on. */
   var SAFE_KEY = /^[a-z0-9_-]+$/i;
@@ -167,19 +174,23 @@
       var L  = p.bubbleGlow ? byKey[p.colorLook] : null;
       var sp = specialOf(L);
       Array.prototype.forEach.call(els, function (el) {
-        el.classList.remove("rp-glow-special");
-        ["--rp-glow", "--g1", "--g2", "--g3"].forEach(function (v) { el.style.removeProperty(v); });
-        if (!L) return;                                   // switch off -> inherit the signature
+        el.classList.remove("rp-glow-special", "rp-hover-look");
+        /* --g1/--g2/--g3 are cleared too: they are never set any more, but a bubble that was
+           coloured by the old build could still be carrying them in a cached page. */
+        ["--rp-glow", "--h1", "--h2", "--h3", "--g1", "--g2", "--g3"]
+          .forEach(function (v) { el.style.removeProperty(v); });
+        if (!L) return;                                   // switch off -> signature, hover and all
         if (sp) {                                         // a special: hand over the whole gradient
           if (sp.glow) {
             el.style.setProperty("--rp-glow", sp.glow);
-            el.classList.add("rp-glow-special");
+            el.classList.add("rp-glow-special", "rp-hover-look");
           }
           return;
         }
-        if (hexOk(L.c1)) el.style.setProperty("--g1", L.c1);
-        if (hexOk(L.c2)) el.style.setProperty("--g2", L.c2);
-        if (hexOk(L.c3)) el.style.setProperty("--g3", L.c3);
+        if (hexOk(L.c1)) el.style.setProperty("--h1", L.c1);
+        if (hexOk(L.c2)) el.style.setProperty("--h2", L.c2);
+        if (hexOk(L.c3)) el.style.setProperty("--h3", L.c3);
+        el.classList.add("rp-hover-look");
       });
     });
   }

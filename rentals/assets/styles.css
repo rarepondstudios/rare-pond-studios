@@ -23,14 +23,12 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .xsite .xarrow{font-size:19px;line-height:1;transition:.2s;color:#2f6cb0}
 .xsite:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
 .xsite:hover .xarrow{color:#0b59c4;filter:drop-shadow(0 0 6px rgba(31,111,208,.95));transform:translateX(-4px)}
-/* Base icon styling is in /assets/chrome.css (.rp-soc). These three lines are a REAL
-   difference, not a duplicate: the rentals header runs its icons 1px smaller (38/18) than
-   the studio (39/19). Preserved deliberately - loading after chrome.css lets them win. */
-.hsoc{display:flex;gap:9px}
-.hsoc a{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#16386b;box-shadow:0 3px 10px rgba(10,30,70,.18);transition:.18s}
-.hsoc a:hover{transform:translateY(-2px);color:#fff;background:#1f6fd0}.hsoc svg{width:18px;height:18px;fill:currentColor}
+/* The header icons are styled ENTIRELY by /assets/chrome.css (.rp-soc), including the
+   small-screen size - nothing about them is redeclared here any more. That is the point:
+   one file to change, and the studio, the rentals site and the maintenance cover all move
+   together. .hsoc itself is now just a hook - the header puts it in place via .hright. */
 /* Per-network gradient hover (header + footer) - same schemes the studio project pages use */
-@media(max-width:900px){.hnav a{padding:8px 10px;font-size:13px}.brandname{display:none}.hsoc a{width:33px;height:33px}.xsite{padding:7px 11px;font-size:13px}}@media(max-width:760px){.hnav{display:none}}@media(max-width:600px){.hdr-logo img{height:50px}.fab{right:14px;bottom:14px;padding:11px 15px;font-size:14px}.fab .badge{min-width:20px;height:20px;font-size:12px}.panel{padding-bottom:84px}.home{padding-bottom:90px}.home::before{height:300px}}
+@media(max-width:900px){.hnav a{padding:8px 10px;font-size:13px}.brandname{display:none}.xsite{padding:7px 11px;font-size:13px}}@media(max-width:760px){.hnav{display:none}}@media(max-width:600px){.hdr-logo img{height:50px}.fab{right:14px;bottom:14px;padding:11px 15px;font-size:14px}.fab .badge{min-width:20px;height:20px;font-size:12px}.panel{padding-bottom:84px}.home{padding-bottom:90px}.home::before{height:300px}}
 .tabs{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px;position:relative;z-index:3}
 .tab{padding:9px 16px;border-radius:12px 12px 0 0;font-size:14.5px;font-weight:700;cursor:pointer;color:#dbe9fb;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.14);border-bottom:none;display:flex;gap:7px;align-items:center;transition:box-shadow .2s,background .2s,color .2s}
 .tab svg{width:17px;height:17px}
