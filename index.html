@@ -79,7 +79,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      there is no banner. */
   #rp-eventbanner-mount{height:var(--evbanner-h,0px)}
   @keyframes spin{to{transform:rotate(360deg)}}
-  @property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+  @property --ang{syntax:"<angle>";inherits:true;initial-value:0deg}
   /* ===== the colour the GLOW layers actually draw with =====================================
      Every glow layer (.glow / .cglow and the ::before halo) reads --gg1/--gg2/--gg3, NOT the
      signature --g1/--g2/--g3 directly. At rest --gg* simply forwards the signature, so an
@@ -150,9 +150,9 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .citem.sideL{--off:calc(-1 * min(45.5vw,632px));width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
   .citem.sideR{--off:min(45.5vw,632px);width:clamp(158px,18vw,220px);height:clamp(158px,18vw,220px);z-index:3;opacity:.7}
   .citem.hide{--off:0;width:150px;height:150px;opacity:0;z-index:1;pointer-events:none}
-  .cglow{position:absolute;inset:-16px;border-radius:42%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);filter:blur(6px);opacity:.2;transition:opacity .45s ease,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;/* two animations: hue (paused until hover) and bob (always, in step with .cbub). animation-play-state takes one entry per animation, which is how they differ. */animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;animation-play-state:paused,running}
+  .cglow{position:absolute;inset:-16px;border-radius:42%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);filter:blur(6px);opacity:.2;transition:opacity .45s ease,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;/* two animations: hue (paused until hover) and bob (always, in step with .cbub). animation-play-state takes one entry per animation, which is how they differ. */animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate}
   .citem.feat .cglow{opacity:.32;border-radius:18%}
-  .citem:hover .cglow{opacity:.9;animation-play-state:running,running}
+  .citem:hover .cglow{opacity:.9}
 
   /* ===== HOVER GLOW BLEED =========================================================
      At rest the glow is contained by the bubble. On hover we want light to look like it
@@ -205,13 +205,12 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
        animation-play-state takes one entry per animation, which is what lets hue be
        hover-only while bob runs continuously. */
-    animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;
-    animation-play-state:paused,running}
+    animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate}
   /* two animations now, so the duration override has to be a LIST - a bare calc() here would
      have been applied to hue as well and left the halo spinning at a different speed. */
-  .bubble::before{animation-duration:6s,calc(7s + var(--i,0)*0.9s)}
+  .bubble::before{animation-duration:calc(7s + var(--i,0)*0.9s)}
   .citem.feat::before{border-radius:16%/24%}
-  .citem:hover::before,.bubble:hover::before{opacity:.42;visibility:visible;animation-play-state:running,running;transition:opacity .45s ease,visibility 0s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
+  .citem:hover::before,.bubble:hover::before{opacity:.42;visibility:visible;transition:opacity .45s ease,visibility 0s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
   /* A special look (Rainbow) hands over its whole gradient. The halo only exists on hover in
      the first place, so this needs no :hover qualifier - it can never show at rest. */
   .citem.rp-glow-special::before,.bubble.rp-glow-special::before{background:var(--rp-glow)}
@@ -337,8 +336,8 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .cshade{position:absolute;inset:0;z-index:4;border-radius:inherit;pointer-events:none;background:radial-gradient(120% 90% at 50% 120%,rgba(0,8,28,.24),transparent 55%),linear-gradient(180deg,rgba(255,255,255,.1),transparent 28%)}
   .crim{position:absolute;inset:0;z-index:5;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 18px rgba(255,255,255,.3),inset 0 0 6px rgba(255,255,255,.55),inset 6px 8px 22px rgba(0,10,40,.5)}
   .cspec{position:absolute;inset:0;z-index:6;border-radius:inherit;pointer-events:none;background:radial-gradient(30% 24% at var(--mx,80%) var(--my,16%),rgba(255,255,255,.55),transparent 60%);opacity:.5;transition:background .2s}
-  .cedge{position:absolute;inset:0;z-index:7;border-radius:inherit;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);opacity:.4;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;animation:hue 6s linear infinite;animation-play-state:paused}
-  .citem:hover .cedge{opacity:.9;animation-play-state:running}
+  .cedge{position:absolute;inset:0;z-index:7;border-radius:inherit;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);opacity:.4;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
+  .citem:hover .cedge{opacity:.9}
   .divehint{position:absolute;left:0;right:0;bottom:0;z-index:8;padding:30px 0 12px;text-align:center;pointer-events:none;font-weight:800;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#fff;opacity:0;transition:opacity .3s;background:linear-gradient(180deg,transparent,rgba(2,10,28,.55));text-shadow:0 2px 8px rgba(0,10,40,.8)}
   .citem.feat:hover .divehint{opacity:1}
   .citem .clogo{will-change:left,top,transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;position:absolute;left:50%;top:-20%;transform:translateX(-50%) scale(.46);transform-origin:center top;width:clamp(150px,21vw,290px);z-index:11;pointer-events:none;display:grid;place-items:center;transition:left .55s cubic-bezier(.4,0,.2,1),top .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1),opacity .45s;will-change:transform,left,top}
@@ -368,7 +367,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .bubble{position:relative;flex:0 0 auto;width:var(--bubble-size);height:var(--bubble-size);cursor:pointer;
     --mx:73%;--my:26%;--tiltx:0deg;--tilty:0deg;transform:rotateX(var(--tiltx)) rotateY(var(--tilty));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
   .bubble.placeholder{cursor:default}
-  .glow{position:absolute;inset:-16px;border-radius:50%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);filter:blur(9px);opacity:.32;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;animation:hue 6s linear infinite,bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate;animation-play-state:paused,running}
+  .glow{position:absolute;inset:-16px;border-radius:50%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);filter:blur(9px);opacity:.32;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
   .bubble.placeholder .glow{opacity:.2}
   .bubble.placeholder:hover .glow{background:var(--rainbow);opacity:.85}
   .bubble-inner{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;-webkit-clip-path:circle(50%);clip-path:circle(50%);/* NO box-shadow here: clip-path clips it away. The shadow is cast by .bubble::after. */animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
@@ -382,7 +381,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .glass .spec{position:absolute;inset:0;border-radius:50%;background:radial-gradient(34% 26% at var(--mx) var(--my),rgba(255,255,255,.82),rgba(255,255,255,.2) 36%,transparent 60%);opacity:.6;transition:background .25s}
   .glass .spec.small{background:radial-gradient(8% 7% at calc(var(--mx) - 5%) calc(var(--my) - 5%),rgba(255,255,255,1),transparent 60%);opacity:.9}
   .edge{position:absolute;inset:0;border-radius:50%;z-index:4;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));
-    -webkit-mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);opacity:.45;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;animation:hue 6s linear infinite;animation-play-state:paused}
+    -webkit-mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);opacity:.45;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
   .bubble.placeholder .edge{opacity:.5}
   .bubble.placeholder:hover .edge{background:var(--rainbow);opacity:1}
   .bubble>.bubble-logo{position:absolute;left:50%;top:-17%;transform:translateX(-50%);z-index:7;pointer-events:none;display:grid;place-items:center;transition:opacity .4s,transform .5s}
@@ -434,8 +433,8 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .bubble:hover{transform:translateZ(40px) scale(1.06) rotateX(var(--tiltx)) rotateY(var(--tilty))}
   .bubble:hover>.bubble-logo{opacity:0;transform:translateX(-50%) translateY(-12px) scale(.95)}
   .bubble:hover .caption .t{opacity:1;transform:translateY(0)}
-  .bubble:hover .glow{opacity:1;filter:blur(12px);animation-play-state:running,running}
-  .bubble:hover .edge{opacity:.95;animation-play-state:running}
+  .bubble:hover .glow{opacity:1;filter:blur(12px)}
+  .bubble:hover .edge{opacity:.95}
 
   body.webkit .glass .spec,body.webkit .cspec{opacity:.55}
 
@@ -551,7 +550,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      .theme-invalid selector is kept as the no-JS fallback so Invalid Opinion still
      renders its gradient title if colorlooks.json fails to load. */
   .u-title.u-title-gradient{font-weight:800;font-size:clamp(44px,8vw,104px);background:linear-gradient(180deg,var(--title-from,#ffffff),var(--title-to,#ffffff));-webkit-background-clip:text;background-clip:text;color:transparent}
-  @media (prefers-reduced-motion: reduce){.bubble-inner,.glow,.edge,.cglow,.cbub,.cedge{animation:none}.universe{transition:clip-path .3s ease,-webkit-clip-path .3s ease}}
+  @media (prefers-reduced-motion: reduce){.bubble-inner,.glow,.edge,.cglow,.cbub,.cedge,.citem::before,.bubble::before{animation:none}.universe{transition:clip-path .3s ease,-webkit-clip-path .3s ease}}
   .u-watch{margin:30px 0 0;display:flex;flex-direction:column;align-items:flex-start;gap:14px}
   .u-watch-label{display:block;font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:var(--accent);opacity:.9;margin-bottom:12px}
   .watch-status{display:inline-flex;align-items:center;gap:11px;padding:12px 22px;border-radius:50px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);font-weight:700;font-size:15px;color:#eef4ff}
@@ -1173,6 +1172,43 @@ function syncFocusVideo(){
   });
 }
 document.addEventListener('visibilitychange',syncFocusVideo);
+
+/* ===== ONE PINWHEEL CLOCK PER BUBBLE (the hover glow's colour spin) =================
+   --ang is the angle of the conic gradient every glow layer draws from. It used to be
+   animated in CSS - but as a SEPARATE `hue` animation on each layer (.glow, .edge, .cglow,
+   .cedge and the ::before halo). Five copies of the same timer, each paused at rest and
+   resumed on hover on its own, and pause/resume never lands on the identical sub-frame for
+   all five, so their angles slid a little further apart on every hover and never re-synced.
+   That is the inner glow and outer glow separating over time.
+
+   The fix has to be a SINGLE source the layers share. CSS can't provide it here: an
+   animation that lives on the container (so children could inherit one value) is silently
+   not ticked by the browser unless the container ITSELF visibly renders with --ang, which it
+   must not. So one tiny rAF drives --ang instead. It is written to the hovered bubble only;
+   --ang inherits (see @property), so .glow, .edge and the ::before halo all read that one
+   number - they cannot disagree with a value there is only one of. The layers keep their
+   own `bob` (vertical drift), which never desyncs because it is never paused.
+
+   Cost: one inline style write per frame, on the single element under the cursor, and only
+   while something is hovered - the loop stops itself when nothing is. Reduced-motion holds
+   the angle still. */
+(function(){
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var SEL='.bubble[data-pk],.citem';
+  var active=new Set(), raf=0, ang=0, last=0, PER=6000; // ms per full turn, matches the old 6s
+  function frame(t){
+    if(!active.size){ raf=0; last=0; return; }
+    if(last) ang=(ang + (t-last)/PER*360) % 360;
+    last=t;
+    var a=ang.toFixed(2)+'deg';
+    active.forEach(function(el){ el.style.setProperty('--ang',a); });
+    raf=requestAnimationFrame(frame);
+  }
+  function enter(el){ if(reduce||active.has(el))return; active.add(el); if(!raf){ last=0; raf=requestAnimationFrame(frame); } }
+  function leave(el){ if(!active.has(el))return; active.delete(el); el.style.setProperty('--ang',ang.toFixed(2)+'deg'); } // freeze where it stopped
+  document.addEventListener('pointerover',function(e){ var el=e.target.closest&&e.target.closest(SEL); if(el)enter(el); });
+  document.addEventListener('pointerout', function(e){ var el=e.target.closest&&e.target.closest(SEL); if(el && !el.contains(e.relatedTarget))leave(el); });
+})();
 function setActive(i){if(!N)return;activeIdx=((i%N)+N)%N;document.body.classList.add('swiping');clearTimeout(window.__swT);window.__swT=setTimeout(function(){document.body.classList.remove('swiping');},700);layout();}
 document.getElementById('carPrev').addEventListener('click',()=>setActive(activeIdx-1));
 document.getElementById('carNext').addEventListener('click',()=>setActive(activeIdx+1));
