@@ -2,6 +2,10 @@
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+  # HSTS: force HTTPS for this host for 6 months. Deliberately host-only (no
+  # includeSubDomains / preload) so it can never affect other rarepond.com
+  # subdomains (e.g. tooling) and is easy to roll back (set max-age=0).
+  Strict-Transport-Security: max-age=15552000
 
 # Always re-check content JSON so CMS edits show up immediately
 /data/*
