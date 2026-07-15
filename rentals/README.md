@@ -6,11 +6,12 @@ A standalone gear‑rentals site for Rare Pond Studios. Built to deploy as its *
 
 ```
 rare-pond-rentals/
-├─ index.html            the site (light – ~3 KB; all logic/data is in assets/)
+├─ index.html            the site (light – ~10 KB; all logic/data is in assets/)
 ├─ form-check.html       one‑click "are my forms wired correctly?" tool (see below)
 ├─ assets/
 │  ├─ styles.css         all styling
 │  ├─ form-config.js     ← THE ONLY FILE YOU EDIT to change the forms
+│  ├─ availability.js    live availability (reads Supabase, greys out booked gear)
 │  └─ app.js             app logic + the gear catalog data
 └─ media/                all images as cached files (products, kits, logo)
 ```
@@ -24,6 +25,8 @@ The gear photos are real image files (not embedded), so browsers cache them and 
 Both on‑site forms - the **Rental Request** (from the cart) and the **Crew Inquiry** (from the home page) - keep the site's custom styling and **post their answers to Jotform**, so every submission lands in one Jotform dashboard you can view, export, and manage.
 
 Everything that can break lives in **one file: `assets/form-config.js`.** Nothing else references Jotform.
+
+> Behind the scenes a submission also flows Jotform -> HubSpot (the hidden `rp_order_data` field becomes a deal) -> n8n -> Supabase (the booking, which then drives availability) and a Google Calendar hold. Those hidden fields and the `orderData` payload format must not be renamed - see OPERATIONS.md.
 
 ### To add or change a question
 1. In **Jotform**, add/rename the field. Copy its **input name** - Jotform → *Publish → Embed → Source Code*; each input looks like `name="q7_insurance"`. That number is stable (reordering fields in Jotform does **not** change it).

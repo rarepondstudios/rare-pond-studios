@@ -2,7 +2,7 @@ let RENTALS=[{"cat": "Camera", "sec": "Camera Kits", "name": "Hard Carrying Case
    Categories -> Linked color look, applied by assets/looks.js via RP_setCategories().
    A category with no colour reads back as WHITE, so an unassigned or mis-linked
    category is obvious on the page instead of silently showing a stale default. */
-const COL=new Proxy({},{get:function(t,k){return t[k]||'#ffffff';}});const LOGO="media/gear/g_638b0b68a0746c1e.png";
+const COL=new Proxy({},{get:function(t,k){return t[k]||'#ffffff';}});
 const LOGOC="media/gear/g_ff961e8ddce4f40b.png";
 /* Editable copy from Pages CMS (data/rentals.json), exposed on window.RP_RENTALS by
    the page loader. Every getter falls back to the original hard-coded string, so a
@@ -213,12 +213,6 @@ var RP_PKG_CSS=
 ".dpback svg{width:20px;height:20px}";
 function rpEnsureStyles(){if(document.getElementById('rp-pkg-css'))return;var s=document.createElement('style');s.id='rp-pkg-css';s.textContent=RP_PKG_CSS;document.head.appendChild(s);}
 function rpBoxSvg(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v9"/></svg>';}
-function rpToggle(c,mode,col){var pkgOn=mode==='packages';
- var camSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="'+ICON[c]+'"/></svg>';
- var st='--pc:'+col+';--pcg:'+hx(col,.5);
- var itemsPill='<div class="rp-pill '+(pkgOn?'off':'on')+'" data-view="items">'+camSvg+'Items</div>';
- var pkgPill='<div class="rp-pill '+(pkgOn?'on':'off')+'" data-view="packages">'+rpBoxSvg()+'Packages</div>';
- return '<div class="rp-toggle" style="'+st+'">'+itemsPill+pkgPill+'</div>';}
 function rpPkgCard(p,col){rpEnsureStyles();var mem=rpMembers(p);var price=rpPkgPrice(p);var inC=cart[p._id];var dd=days();
  var thumb=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  var ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add package</button>');
@@ -439,7 +433,7 @@ function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={}
 async function loadCatalog(){var u=SB_URL+"/rest/v1/items?select=*&order=sort_order.asc";var r=await fetch(u,{headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY},cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);return sbToRentals(await r.json());}
 /* Paint immediately with the built-in catalog so the page never waits on the network, then refresh from Supabase in the background. */
 RENTALS.forEach(function(p,i){p._id=i;});render();uc();
-(async function(){try{var d=await loadCatalog();if(d&&d.length){RENTALS=d;RENTALS.forEach(function(p,i){p._id=i;});buildDbIdx();render();uc();console.log("[RP Rentals] catalog refreshed from Supabase: "+RENTALS.length+" items");}}catch(e){console.warn("[RP Rentals] keeping built-in catalog (Supabase load failed): "+(e&&e.message));}})();
+(async function(){try{var d=await loadCatalog();if(d&&d.length){RENTALS=d;RENTALS.forEach(function(p,i){p._id=i;});buildDbIdx();render();uc();}}catch(e){console.warn("[RP Rentals] keeping built-in catalog (Supabase load failed): "+(e&&e.message));}})();
 (function(){var hl=document.getElementById('rpHome');if(hl)hl.addEventListener('click',function(e){e.preventDefault();active='Home';q='';render();window.scrollTo(0,0);});})();
 
 function fillFrac_req(){var flds=RCFG.render,n=0;flds.forEach(function(f){var v=String(reqData[f.key]||'').trim();if(f.type==='email'){if(/.+@.+\..+/.test(v))n++;}else if(v)n++;});if(D.s&&D.e)n++;return flds.length?n/(flds.length+1):0;}

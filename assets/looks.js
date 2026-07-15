@@ -70,7 +70,6 @@
      Nothing depends on the ORDER at runtime - a look is found by KEY, never by
      position. The order only decides how things group in the CMS and on the preview
      page. The colorlooks preview page has the same list; keep them in step. */
-  var LOOK_ORDER = { basics: 0, special: 1, category: 2, film: 3 };
 
   /* ---- SPECIAL COLOURWAYS ------------------------------------------------------
      A "special" is any look that is not three flat colours - an animation, a

@@ -10,7 +10,7 @@
  *     node tools/chrome-snapshot.mjs diff
  *
  * `diff` fails loudly if any computed value moved. Needs the local server on :8899, and
- * playwright, which is NOT a dependency of this repo (there is deliberately no package.json -
+ * playwright, which is NOT a dependency of this repo (package.json/node_modules are gitignored (not committed, so Pages runs no build) -
  * Cloudflare Pages would see one and start running a build for a site that has none). Install
  * it locally when you want to run this:
  *

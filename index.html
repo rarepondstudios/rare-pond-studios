@@ -78,7 +78,6 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      the downward jump we are removing. Empty + 0 tall = invisible, so it is harmless when
      there is no banner. */
   #rp-eventbanner-mount{height:var(--evbanner-h,0px)}
-  @keyframes spin{to{transform:rotate(360deg)}}
   @property --ang{syntax:"<angle>";inherits:true;initial-value:0deg}
   /* ===== the colour the GLOW layers actually draw with =====================================
      Every glow layer (.glow / .cglow and the ::before halo) reads --gg1/--gg2/--gg3, NOT the
@@ -317,8 +316,6 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     opacity:0;transition:opacity .8s ease;pointer-events:none}
   .focus-vid.ready{opacity:1}
   .focus-scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(2,6,16,.86),rgba(2,6,16,.3) 34%,transparent 60%),radial-gradient(135% 96% at 1% 100%,rgba(2,6,16,.5),transparent 64%)}
-  .focus-char{position:absolute;bottom:0;right:1%;height:100%;width:auto;object-fit:contain;object-position:bottom;filter:drop-shadow(0 12px 26px rgba(0,0,0,.55));transform:translateX(26px);opacity:0;transition:transform .6s .12s cubic-bezier(.2,.8,.2,1),opacity .5s .12s;z-index:2}
-  .citem.feat .focus-char{transform:none;opacity:1}
   /* TEXT SITS IN FRONT OF THE GLASS AND THE GLOW.
      The layers inside a bubble stack: image (1) -> glass rim (5) -> specular (6) -> rim
      glow (7) -> dive hint (8). The eyebrow + logline used to sit at 3, i.e. UNDER all of
@@ -328,8 +325,6 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      the bubble, so any layer added later lands under the words, not over them. */
   .focus-content{position:absolute;inset:0;z-index:9;pointer-events:none;padding:clamp(20px,4.4%,46px);display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start}
   .focus-eyebrow{font-size:clamp(10px,1.5vw,12.5px);letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--accent,#ffffff);margin-bottom:10px;text-shadow:0 2px 8px rgba(0,8,24,.7);opacity:0;transition:opacity .35s}
-  .focus-logo{height:clamp(50px,15.5%,98px);width:auto;max-width:64%;object-fit:contain;object-position:left;filter:drop-shadow(0 6px 18px rgba(0,0,0,.5))}
-  .focus-logotext{font-weight:800;font-size:clamp(26px,5vw,52px);color:#fff;line-height:.95;text-shadow:0 3px 14px rgba(0,8,24,.7)}
   .focus-logline{margin-top:14px;max-width:min(64%,480px);font-size:clamp(12.5px,1.55vw,17px);line-height:1.5;color:#eef4ff;font-weight:500;text-shadow:0 2px 10px rgba(0,8,24,.9);opacity:0;transition:opacity .35s}
   .citem.feat .focus-eyebrow{opacity:1;transition:opacity .45s .5s}
   .citem.feat .focus-logline{opacity:1;transition:opacity .5s .58s}
@@ -340,7 +335,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .citem:hover .cedge{opacity:.9}
   .divehint{position:absolute;left:0;right:0;bottom:0;z-index:8;padding:30px 0 12px;text-align:center;pointer-events:none;font-weight:800;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#fff;opacity:0;transition:opacity .3s;background:linear-gradient(180deg,transparent,rgba(2,10,28,.55));text-shadow:0 2px 8px rgba(0,10,40,.8)}
   .citem.feat:hover .divehint{opacity:1}
-  .citem .clogo{will-change:left,top,transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;position:absolute;left:50%;top:-20%;transform:translateX(-50%) scale(.46);transform-origin:center top;width:clamp(150px,21vw,290px);z-index:11;pointer-events:none;display:grid;place-items:center;transition:left .55s cubic-bezier(.4,0,.2,1),top .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1),opacity .45s;will-change:transform,left,top}
+  .citem .clogo{-webkit-backface-visibility:hidden;backface-visibility:hidden;position:absolute;left:50%;top:-20%;transform:translateX(-50%) scale(.46);transform-origin:center top;width:clamp(150px,21vw,290px);z-index:11;pointer-events:none;display:grid;place-items:center;transition:left .55s cubic-bezier(.4,0,.2,1),top .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1),opacity .45s;will-change:transform,left,top}
   .citem .clogo img{width:100%;height:auto;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))}
   .citem .clogo .txt{font-weight:800;font-size:clamp(20px,2.8vw,34px);color:#fff;text-align:center;line-height:1.05;text-shadow:0 4px 16px rgba(0,10,40,.6)}
   .citem.feat .clogo{left:84%;top:-8%;transform:translateX(-50%) scale(1)}
@@ -523,10 +518,6 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .u-meta{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 0}
   .chip{font-size:12.5px;padding:8px 14px;border-radius:50px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);font-weight:600}
   .u-credits{margin-top:30px;font-size:14px;color:#cdddf7;line-height:1.7}.u-credits b{color:#fff}
-  .u-gallery{display:flex;gap:18px;flex-wrap:wrap;padding:8px clamp(18px,5vw,54px) 70px;max-width:1100px}
-  .u-shot{flex:1 1 320px;border-radius:16px;overflow:hidden;min-height:200px;background-size:cover;background-position:center;box-shadow:0 20px 50px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12);position:relative}
-  .u-shot .lbl{position:absolute;left:14px;bottom:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:13px;text-shadow:0 2px 10px rgba(0,0,0,.7)}
-  .placeholder-note{margin:0 clamp(18px,5vw,54px) 70px;max-width:760px;font-size:13.5px;color:#a9c0e6;border-left:3px solid var(--accent,#ffffff);padding:6px 0 6px 14px;background:linear-gradient(90deg,rgba(255,255,255,.05),transparent)}
   /* ---- FILM LOOKS -------------------------------------------------------------
      NO COLOUR VALUES LIVE HERE. Every colour comes from Pages CMS -> Color Looks,
      applied by assets/looks.js.

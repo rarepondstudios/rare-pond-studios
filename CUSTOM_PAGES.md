@@ -11,7 +11,7 @@ the spec - follow it rather than inventing a new pattern.
 **Make a page:** Pages CMS → **Custom Pages** → **Add item** at the bottom.
 Fill in the slug (e.g. `summer-open-house`), a title, then add **blocks**.
 
-**Your page is live immediately at:** `rarepond.com/?p=summer-open-house`
+**Your page is live immediately at:** `rarepond.com/summer-open-house`
 
 **Put it in the top banner:** flip **"Show in the STUDIO top banner"** on.
 There's a separate toggle for the rentals banner. Both are OFF by default, so a
@@ -55,10 +55,11 @@ best - the page automatically switches to light text on a custom background.
 **Rentals banner links:** `assets/custom-pages-nav.js` (loaded by `rentals/index.html`)
 
 ### Routing
-Pages are a **query on the root**: `/?p=<slug>`. No new files, no build step, no
-`_redirects` rule - `/` already serves `index.html`. `renderRoute()` is the single
-entry point: it reads `location.search`, and falls back to the existing path router
-(`renderPath`) when there is no `?p=`. `popstate` and the initial load both go through it.
+Pages live at a **clean path**: `/<slug>` (e.g. `/summer-open-house`). The old
+`/?p=<slug>` form still works but auto-rewrites itself to the clean path. The SPA
+fallback in `_redirects` (`/* -> /index.html`) serves the app for any slug, and
+`tools/check-slugs.mjs` guards against a page slug colliding with a film or built-in
+route. `renderRoute()` is the single entry point for `popstate` and initial load.
 
 ### Adding a NEW BLOCK TYPE (the intended extension point)
 Two edits, nothing else:
@@ -85,6 +86,6 @@ block type.
 
 ### Known-good example
 `data/pages.json` currently holds one real page, slug **`submit-a-screenplay`**, live at
-`rarepond.com/?p=submit-a-screenplay` and shown in the studio top banner. It is a working
+`rarepond.com/submit-a-screenplay` and shown in the studio top banner. It is a working
 reference for every block type in use (subheader / body / button). Copy its shape when
 building a new page.
