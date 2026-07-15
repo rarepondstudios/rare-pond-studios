@@ -19,6 +19,7 @@
  */
 import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
+import { validateProjects } from './validate-projects.mjs';
 
 const PORT = 8899;
 const BASE = 'http://127.0.0.1:' + PORT;
@@ -42,6 +43,14 @@ function attach(page, bucket) {
 }
 
 async function main() {
+  // 0) Validate the project catalogue (static, no browser) - fails fast on a bad film entry:
+  //    missing required field, typo'd media path, duplicate key, slug collision, bad colorLook.
+  console.log('Project catalogue');
+  const pv = validateProjects();
+  pv.warnings.forEach((w) => console.log('  ⚠︎ ' + w));
+  if (pv.errors.length) pv.errors.forEach((e) => fail('projects.json: ' + e));
+  else ok('projects.json valid (' + pv.warnings.length + ' warnings)');
+
   // 1) start the server
   const srv = spawn('node', ['tools/serve-like-cloudflare.mjs', String(PORT)], { stdio: 'ignore' });
   const stop = () => { try { srv.kill('SIGKILL'); } catch (e) {} };
