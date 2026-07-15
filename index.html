@@ -16,6 +16,11 @@
 <meta name="twitter:title" content="Rare Pond Studios - Countless Worlds. One Pond.">
 <meta name="twitter:description" content="Escapist short films that transport you somewhere new.">
 <meta name="twitter:image" content="https://www.rarepond.com/media/logos/rare-pond-color.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/media/site/favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/media/site/favicon-48.png">
+<link rel="apple-touch-icon" href="/media/site/apple-touch-icon.png">
+<!-- Production error beacon. Loads FIRST so it is watching before any other script parses. -->
+<script src="/assets/error-beacon.js"></script>
 <!-- Reserves the event banner's space before the first paint, so the page does not jump
      down when the banner arrives. Must stay here, in <head>, with no defer/async. -->
 <script src="/assets/banner-reserve.js"></script>
@@ -1601,7 +1606,7 @@ addEventListener('hashchange',routeHash);
 
 }
 __main().catch(e=>console.error("init error",e));</script>
-<script src="/rentals/assets/form-config.js" defer></script>
+<script src="/assets/form-config.js" defer></script>
 <script src="/assets/date-picker.js" defer></script>
 <script src="/assets/crew-form.js" defer></script>
 <script src="/assets/looks.js"></script>

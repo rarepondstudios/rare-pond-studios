@@ -10,11 +10,17 @@ rare-pond-rentals/
 ├─ form-check.html       one‑click "are my forms wired correctly?" tool (see below)
 ├─ assets/
 │  ├─ styles.css         all styling
-│  ├─ form-config.js     ← THE ONLY FILE YOU EDIT to change the forms
 │  ├─ availability.js    live availability (reads Supabase, greys out booked gear)
 │  └─ app.js             app logic + the gear catalog data
 └─ media/                all images as cached files (products, kits, logo)
 ```
+
+> **Form config moved to the shared `/assets/form-config.js`** (site‑level, not
+> `rentals/assets/`). It is loaded by BOTH the studio home (crew form) and the rentals
+> cart, and it must stay reachable even while the rentals page is temporarily closed —
+> anything under `/rentals/` is replaced by the "back soon" cover when closed, which would
+> otherwise hand the studio HTML instead of the script. `/assets/` is never covered.
+> **It is still THE ONLY FILE YOU EDIT to change the forms** — just at the new path.
 
 The gear photos are real image files (not embedded), so browsers cache them and the page loads fast on phones. Off‑screen images lazy‑load.
 
@@ -24,13 +30,13 @@ The gear photos are real image files (not embedded), so browsers cache them and 
 
 Both on‑site forms - the **Rental Request** (from the cart) and the **Crew Inquiry** (from the home page) - keep the site's custom styling and **post their answers to Jotform**, so every submission lands in one Jotform dashboard you can view, export, and manage.
 
-Everything that can break lives in **one file: `assets/form-config.js`.** Nothing else references Jotform.
+Everything that can break lives in **one file: `/assets/form-config.js`.** Nothing else references Jotform.
 
 > Behind the scenes a submission also flows Jotform -> HubSpot (the hidden `rp_order_data` field becomes a deal) -> n8n -> Supabase (the booking, which then drives availability) and a Google Calendar hold. Those hidden fields and the `orderData` payload format must not be renamed - see OPERATIONS.md.
 
 ### To add or change a question
 1. In **Jotform**, add/rename the field. Copy its **input name** - Jotform → *Publish → Embed → Source Code*; each input looks like `name="q7_insurance"`. That number is stable (reordering fields in Jotform does **not** change it).
-2. In `assets/form-config.js`, add/adjust the line in `fields`: `siteKey: "q7_insurance"`.
+2. In `/assets/form-config.js`, add/adjust the line in `fields`: `siteKey: "q7_insurance"`.
 3. To make a **new** question actually appear on the site, also add a line to that form's `render` list (`label` + `type`). Standard types (`text`, `email`, `url`, `yesno`) render automatically in the site's styling - no other code.
 4. Open **`/form-check.html`**, paste your Jotform API key, and click **Run check** (see next section).
 5. Submit **one test entry** on the site and confirm it lands complete in your Jotform inbox.
@@ -48,7 +54,7 @@ Everything that can break lives in **one file: `assets/form-config.js`.** Nothin
 
 ### What I still need from you to switch it on
 - Create the two Jotform forms ("Rental Request", "Crew Inquiry").
-- Paste their **form IDs** into `assets/form-config.js`, and confirm the field **input names** match the `fields` map.
+- Paste their **form IDs** into `/assets/form-config.js`, and confirm the field **input names** match the `fields` map.
 - Set up the Notification + styled Autoresponder and verify rentals@ as a sender.
 Until those IDs are filled in, the site runs on the email fallback (fully functional) and the health check will tell you exactly what's left.
 
