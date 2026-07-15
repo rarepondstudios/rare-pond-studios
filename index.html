@@ -1034,7 +1034,23 @@ function makeBgBubbles(host,count,fade){
   host.appendChild(c);
 }
 function bgbInto(field,count){for(let i=0;i<count;i++){const b=document.createElement('div');b.className='bgb';const depth=Math.random();const size=Math.round(34+depth*depth*360);b.style.width=b.style.height=size+'px';b.style.left=(Math.random()*98).toFixed(1)+'%';b.style.top=(Math.random()*100).toFixed(1)+'%';b.style.setProperty('--peak',(0.12+depth*0.5).toFixed(2));b.style.setProperty('--ringop',(0.12+depth*0.20).toFixed(2));b.style.setProperty('--dx',(Math.random()*116-58).toFixed(0)+'px');b.style.setProperty('--d',(15+Math.random()*22).toFixed(1)+'s');b.style.animationDelay=(-Math.random()*42).toFixed(1)+'s';field.appendChild(b);}}
-(function buildHomeCanvas(){const vh=document.getElementById('view-home');if(!vh)return;const canvas=document.createElement('div');canvas.className='home-canvas';const field=document.createElement('div');field.className='home-bubbles';canvas.appendChild(field);bgbInto(field,18);vh.insertBefore(canvas,vh.firstChild);const fit=()=>{const c=document.getElementById('contact');if(c)canvas.style.height=c.offsetTop+'px';};fit();addEventListener('resize',fit);addEventListener('load',fit);setTimeout(fit,400);setTimeout(fit,1300);})();
+(function buildHomeCanvas(){const vh=document.getElementById('view-home');if(!vh)return;const canvas=document.createElement('div');canvas.className='home-canvas';const field=document.createElement('div');field.className='home-bubbles';canvas.appendChild(field);bgbInto(field,18);vh.insertBefore(canvas,vh.firstChild);
+  /* Size the bubble layer so it ends exactly at the contact section. The OLD version only
+     measured at load + 400ms + 1300ms, so ANY later reflow - a web font swapping in, a late
+     poster/image, the event banner settling - left the canvas at a stale height. Because the
+     canvas paints its own copy of the water gradient scaled to that height, a stale value
+     produced a hard gradient seam near the footer and a truncated/blank bubble field (the
+     random glitch). Now we refit whenever the layout actually changes (ResizeObserver on the
+     home view) and once web fonts finish loading, with a rAF guard so it only writes when the
+     value really moved. The canvas is position:absolute (out of flow), so resizing it never
+     feeds back into the observer. The load/resize/timeout calls stay as belt-and-suspenders. */
+  let last=-1, queued=false;
+  const apply=()=>{queued=false;const c=document.getElementById('contact');if(!c)return;const h=c.offsetTop;if(h!==last){last=h;canvas.style.height=h+'px';}};
+  const fit=()=>{if(queued)return;queued=true;requestAnimationFrame(apply);};
+  fit();addEventListener('resize',fit);addEventListener('load',fit);
+  if(window.ResizeObserver){try{new ResizeObserver(fit).observe(vh);}catch(e){}}
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit).catch(()=>{});
+  setTimeout(fit,400);setTimeout(fit,1300);})();
 makeBgBubbles(document.getElementById('projects-page'),20,'fade-b');
 /* About-logo scroll-tied film-still orbit bubbles. Edit ABOUT_ORBS (IMG keys) to swap images. */
 
