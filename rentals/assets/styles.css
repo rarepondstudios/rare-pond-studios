@@ -135,3 +135,6 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .flashred{animation:flashred .5s ease 0s 3;border-color:transparent!important;border-radius:11px}
 .datearrow{position:fixed;z-index:400;color:#ff5a5a;font-size:30px;font-weight:900;pointer-events:none;animation:arrowpulse 1.7s ease forwards;filter:drop-shadow(0 0 7px rgba(255,74,74,.85))}
 @keyframes arrowpulse{0%{opacity:0;transform:translateX(10px)}14%{opacity:1}72%{opacity:1;transform:translateX(-3px)}100%{opacity:0;transform:translateX(-3px)}}
+
+/* keyboard focus ring for the div-based controls now made keyboard-operable (role=button) */
+.tab:focus-visible,.card:focus-visible,.kit:focus-visible,.cd:focus-visible{outline:2px solid #7fc4ff;outline-offset:2px}

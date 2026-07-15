@@ -130,7 +130,7 @@
         bd='<span class="rpd-bd" style="left:'+left+';right:'+right+';border-radius:'+rad+';background:linear-gradient(90deg,'+gL+','+gR+')"></span>';}
       if(isS)cls+=' rpd-selS';if(isE)cls+=' rpd-selE';if(inR)cls+=' rpd-inr';if(badDay===is)cls+=' rpd-bad';
       var dot=(isS||isE)?'<span class="rpd-dot"></span>':'';
-      cells+='<div class="'+cls+'" data-d="'+is+'">'+bd+dot+'<span class="rpd-num">'+d+'</span></div>';}
+      cells+='<div class="'+cls+'" data-d="'+is+'" role="button" tabindex="0" aria-label="'+is+'">'+bd+dot+'<span class="rpd-num">'+d+'</span></div>';}
     el.innerHTML='<div class="rpd-rule">Heads up: shoots &amp; rentals need at least <b>3 business days\'</b> lead time, so the earliest date you can pick is <b>'+fmtOne(minStartISO())+'</b>.</div>'
       +'<div class="rpd-toggle"><button class="rpd-tS'+(pick==='start'?' rpd-on':'')+'" data-pick="start">Start date</button><button class="rpd-tE'+(pick==='end'?' rpd-on':'')+'" data-pick="end">End date</button></div>'
       +'<div class="rpd-head"><button class="rpd-nav" data-nav="-1">‹</button><span>'+mon+'</span><button class="rpd-nav" data-nav="1">›</button></div>'
@@ -170,6 +170,16 @@
   }
 
   function onChange(fn){ if(typeof fn==='function'){listeners.push(fn);} return function(){var i=listeners.indexOf(fn);if(i!==-1)listeners.splice(i,1);}; }
+
+  /* Enter/Space activate the calendar day cells, which are role="button" <div>s. The
+     nav arrows and start/end toggle are already real <button>s. */
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    var t=e.target;
+    if(!t||!t.matches||t.matches('button,a,input,textarea,select'))return;
+    if(!t.matches('.rpd-cd[data-d]'))return;
+    e.preventDefault(); t.click();
+  });
 
   window.RPDates = {
     get:function(){return {start:S.start,end:S.end};},

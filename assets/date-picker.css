@@ -55,3 +55,6 @@
 .rpd-acts .rpd-cl{background:rgba(255,255,255,.14);color:#fff}
 
 @media(prefers-reduced-motion:reduce){.rpd-cd.rpd-bad{animation:none}}
+
+/* keyboard focus ring for the calendar day cells (role=button divs) */
+.rpd-cd:focus-visible{outline:2px solid #7fc4ff;outline-offset:2px}

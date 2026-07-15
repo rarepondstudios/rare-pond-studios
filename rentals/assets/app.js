@@ -74,7 +74,7 @@ function renderTabs(){
   /* data-c stays the DATABASE id (that is what groups the gear); only the visible
      text uses the CMS display name. Renaming a category in Pages CMS therefore
      never touches the database. */
-  return '<div class="tab'+(on?' on':'')+'" data-c="'+c+'" style="'+st+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="'+(ICON[c]||'')+'"/></svg>'+esc(c==='Home'?datesLabel():(LABELS[c]||c))+'</div>';}).join('');
+  return '<div class="tab'+(on?' on':'')+'" data-c="'+c+'" role="button" tabindex="0" style="'+st+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="'+(ICON[c]||'')+'"/></svg>'+esc(c==='Home'?datesLabel():(LABELS[c]||c))+'</div>';}).join('');
  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{active=t.dataset.c;q='';render();});
  const col=tabColor();
  $('tabline').style.background='linear-gradient(90deg,'+hx(col,0)+' 0%,'+hx(col,.9)+' 14%,'+hx(col,.9)+' 86%,'+hx(col,0)+' 100%)';$('tabline').style.setProperty('--gc',active==='Home'?'transparent':hx(col,.5));
@@ -128,9 +128,9 @@ function card(p,col){
  const inC=cart[p._id];
  const thumb=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  const avb='<div class="rp-availbanner rp-in" data-avb-def="'+p.qty+' available">'+p.qty+' available</div>';
- const kit=p.contents.length?('<div class="kit" data-k="'+p._id+'">View kit contents ('+p.contents.length+')</div><div class="kitlist" id="kl'+p._id+'">'+p.contents.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" alt="" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+'</span></div>').join('')+'</div>'):'';
+ const kit=p.contents.length?('<div class="kit" data-k="'+p._id+'" role="button" tabindex="0">View kit contents ('+p.contents.length+')</div><div class="kitlist" id="kl'+p._id+'">'+p.contents.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" alt="" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+'</span></div>').join('')+'</div>'):'';
  const ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add to cart</button>');
- return '<div class="card" data-open="'+p._id+'" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+avb+kit
+ return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+avb+kit
  +'<div class="row2">'+priceBlk(p,false)+(p.val?'<span class="rv">value '+esc(p.val)+'</span>':'')+'</div>'
  +ctl+'</div></div>';}
 function bind(){
@@ -216,7 +216,7 @@ function rpBoxSvg(){return '<svg viewBox="0 0 24 24" fill="none" stroke="current
 function rpPkgCard(p,col){rpEnsureStyles();var mem=rpMembers(p);var price=rpPkgPrice(p);var inC=cart[p._id];var dd=days();
  var thumb=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  var ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add package</button>');
- return '<div class="card" data-open="'+p._id+'" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'<span class="rp-badge">Package</span></div><div class="body"><h3>'+esc(p.name)+'</h3>'
+ return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'<span class="rp-badge">Package</span></div><div class="body"><h3>'+esc(p.name)+'</h3>'
   +'<div class="rp-incount">'+mem.length+' item'+(mem.length!==1?'s':'')+' included</div>'
   +'<div class="row2">'+(dd?('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day × '+dd+'d</span></div><div class="tot">'+fmt(price*dd)+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div></div>'):('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div></div>'))+'</div>'
   +'<div class="row2"><span class="stat">Bundle price</span></div>'+ctl+'</div></div>';}
@@ -261,7 +261,7 @@ function calRender(){
    bd='<span class="bd" style="left:'+left+';right:'+right+';border-radius:'+rad+';background:linear-gradient(90deg,'+gL+','+gR+')"></span>';}
   if(isS)cls+=' selS';if(isE)cls+=' selE';if(inR)cls+=' inr';if(badDay===is)cls+=' bad';
   const dot=(isS||isE)?'<span class="dot"></span>':'';
-  cells+='<div class="'+cls+'" data-d="'+is+'">'+bd+dot+'<span class="num">'+d+'</span></div>';}
+  cells+='<div class="'+cls+'" data-d="'+is+'" role="button" tabindex="0" aria-label="'+is+'">'+bd+dot+'<span class="num">'+d+'</span></div>';}
  el.innerHTML='<div class="calrule">Heads up: rentals need at least <b>3 business days\'</b> lead time, so the earliest date you can pick is <b>'+fmtOne(minStartISO())+'</b>.</div><div class="caltoggle"><button class="tS'+(pick==='start'?' on':'')+'" data-pick="start">Start date</button><button class="tE'+(pick==='end'?' on':'')+'" data-pick="end">End date</button></div>'
   +'<div class="calhead"><button class="cnav" data-nav="-1">‹</button><span>'+mon+'</span><button class="cnav" data-nav="1">›</button></div>'
   +'<div class="calgrid"><div class="cw">Su</div><div class="cw">Mo</div><div class="cw">Tu</div><div class="cw">We</div><div class="cw">Th</div><div class="cw">Fr</div><div class="cw">Sa</div>'+cells+'</div>'
@@ -441,6 +441,22 @@ function flashEmptyReq(){document.querySelectorAll('#reqpop [data-fk]').forEach(
 function syncFills(){var qb=$('quote');if(qb){var ids=cartOrder.filter(function(id){return id in cart;});setFill(qb,(ids.length?.5:0)+((D.s&&D.e)?.5:0));}var dd=$('ddone');if(dd)setFill(dd,(D.s?.5:0)+(D.e?.5:0));var qn=$('qnext');if(qn)setFill(qn,fillFrac_req());}
 document.addEventListener('input',function(){syncFills();},true);
 document.addEventListener('click',function(){setTimeout(syncFills,0);},true);
+
+/* KEYBOARD OPERABILITY. The category tabs, product cards, kit-contents toggles and calendar
+   day cells are <div>s (not <button>s) for styling reasons. role="button" + tabindex="0"
+   (added in their templates) makes them focusable and announced as buttons; this one
+   delegated handler makes Enter and Space activate them, exactly like a real button. It fires
+   the element's own click(), so it reuses every existing onclick with no rewiring, and it
+   survives the grid re-rendering on search/cart changes. Native buttons/links/inputs are
+   skipped so nothing double-fires, and preventDefault stops Space from scrolling the page. */
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  var t=e.target;
+  if(!t||!t.matches||t.matches('button,a,input,textarea,select'))return;
+  if(!t.matches('.tab,.card[data-open],.kit[data-k],.cd[data-d]'))return;
+  e.preventDefault();
+  t.click();
+});
 setTimeout(syncFills,300);
 
 /* Shared dates changed elsewhere on the site (e.g. the crew form) -> keep the
