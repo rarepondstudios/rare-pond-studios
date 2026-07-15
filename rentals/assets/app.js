@@ -96,7 +96,7 @@ function renderHome(){
  $('hdate').onclick=openDates;$('hbrowse').onclick=()=>{active='Camera';render();};$('crewbtn').onclick=function(){if(window.RPCrew)window.RPCrew.open();};}
 function renderCat(){
  const c=active,col=COL[c];
- const tool='<div class="ptool"><input class="search" id="q" placeholder="Search '+esc(c)+'…" value="'+esc(q)+'">'
+ const tool='<div class="ptool"><input class="search" id="q" aria-label="Search gear" placeholder="Search '+esc(c)+'…" value="'+esc(q)+'">'
   +'<button class="datechip" id="dchip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>'+esc(datesLabel())+(days()?' · '+days()+'d':'')+'</button>'
   +'<span class="count" id="cnt"></span></div>';
  $('stage').innerHTML='<div class="panel" style="border-color:'+hx(col,0.42)+';background:linear-gradient(180deg,'+hx(col,0.22)+','+hx(col,0.13)+');box-shadow:0 6px 40px 2px '+hx(col,0.4)+', inset 0 0 42px '+hx(col,0.12)+'">'+tool+'<div id="results"></div></div>';
@@ -126,9 +126,9 @@ function renderResults(){
 function card(p,col){
  if(p.kind==='package')return rpPkgCard(p,col);
  const inC=cart[p._id];
- const thumb=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
+ const thumb=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  const avb='<div class="rp-availbanner rp-in" data-avb-def="'+p.qty+' available">'+p.qty+' available</div>';
- const kit=p.contents.length?('<div class="kit" data-k="'+p._id+'">View kit contents ('+p.contents.length+')</div><div class="kitlist" id="kl'+p._id+'">'+p.contents.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+'</span></div>').join('')+'</div>'):'';
+ const kit=p.contents.length?('<div class="kit" data-k="'+p._id+'">View kit contents ('+p.contents.length+')</div><div class="kitlist" id="kl'+p._id+'">'+p.contents.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" alt="" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+'</span></div>').join('')+'</div>'):'';
  const ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add to cart</button>');
  return '<div class="card" data-open="'+p._id+'" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+avb+kit
  +'<div class="row2">'+priceBlk(p,false)+(p.val?'<span class="rv">value '+esc(p.val)+'</span>':'')+'</div>'
@@ -145,7 +145,7 @@ function addCart(id){if(!cart[id])cartOrder.push(id);cart[id]=(cart[id]||0)+1;re
 function refresh(){if(active!=='Home')renderResults();uc();if(dpOpen!=null)openDP(dpOpen);}
 function openDP(id){const p=RENTALS[id];if(!p)return;dpOpen=id;rpEnsureStyles();
  const isPkg=p.kind==='package';const dpc=COL[p.cat]||'#2f57a6';
- const hero=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');const inC=cart[id];
+ const hero=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');const inC=cart[id];
  const back=dpStack.length?'<button class="dpback" id="dpback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>':'';
  const desc=p.desc?'<p class="dpdesc">'+esc(p.desc)+'</p>':'';
  const eyb='<div class="eyb" style="color:'+dpc+'">'+esc(p.cat)+' · '+esc(p.sec)+(isPkg?' · Package':'')+'</div>';
@@ -162,7 +162,7 @@ function openDP(id){const p=RENTALS[id];if(!p)return;dpOpen=id;rpEnsureStyles();
    +(acc.length?'<div class="rp-sec" style="--dpc:'+dpc+'">Recommended accessories</div><div class="rp-mgrid">'+acc.map(function(m){return rpMiniCard(m,null,true);}).join('')+'</div>':'')
    +(inc.length?'<div class="rp-sec" style="--dpc:'+dpc+'">Included in packages</div><div class="rp-mgrid">'+inc.map(function(m){return rpMiniCard(m,'Package');}).join('')+'</div>':'');
  }
- $('dp').innerHTML='<div class="dpc"><button class="dpx" id="dpx">&times;</button>'+back+'<div class="dphero">'+hero+'</div><div class="dpbody">'
+ $('dp').innerHTML='<div class="dpc"><button class="dpx" id="dpx" aria-label="Close">&times;</button>'+back+'<div class="dphero">'+hero+'</div><div class="dpbody">'
   +eyb+'<h2>'+esc(p.name)+'</h2>'+desc+meta
   +'<div class="dprow">'+ctl+dpDateBtn()+'</div>'+extra+'</div></div>';
  $('dp').classList.add('show');document.body.style.overflow='hidden';
@@ -214,13 +214,13 @@ var RP_PKG_CSS=
 function rpEnsureStyles(){if(document.getElementById('rp-pkg-css'))return;var s=document.createElement('style');s.id='rp-pkg-css';s.textContent=RP_PKG_CSS;document.head.appendChild(s);}
 function rpBoxSvg(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v9"/></svg>';}
 function rpPkgCard(p,col){rpEnsureStyles();var mem=rpMembers(p);var price=rpPkgPrice(p);var inC=cart[p._id];var dd=days();
- var thumb=p.img?('<img src="'+p.img+'" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
+ var thumb=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  var ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add package</button>');
  return '<div class="card" data-open="'+p._id+'" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'<span class="rp-badge">Package</span></div><div class="body"><h3>'+esc(p.name)+'</h3>'
   +'<div class="rp-incount">'+mem.length+' item'+(mem.length!==1?'s':'')+' included</div>'
   +'<div class="row2">'+(dd?('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day × '+dd+'d</span></div><div class="tot">'+fmt(price*dd)+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div></div>'):('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div></div>'))+'</div>'
   +'<div class="row2"><span class="stat">Bundle price</span></div>'+ctl+'</div></div>';}
-function rpMiniCard(m,tag,qa){var thumb=m.img?'<img src="'+m.img+'" loading="lazy" decoding="async">':'<span class="rp-mi">'+catIcon(m.cat,'ic')+'</span>';
+function rpMiniCard(m,tag,qa){var thumb=m.img?'<img src="'+m.img+'" alt="" loading="lazy" decoding="async">':'<span class="rp-mi">'+catIcon(m.cat,'ic')+'</span>';
  var price=(m.kind==='package')?rpPkgPrice(m):(Number(m.fn)||0);var pl=price>0?(fmt(price)+'/day'):'Included in kit';
  var nav='<div class="rp-mnav" data-nav="'+m._id+'">'+thumb+'<div><div class="rp-mn">'+esc(m.name)+'</div><div class="rp-mp">'+esc(pl)+'</div>'+(tag?'<span class="rp-mtag">'+esc(tag)+'</span>':'')+'</div></div>';
  /* qa = quick-add control (recommended accessories): white "+" that glows this item's own
@@ -232,7 +232,7 @@ function rpMiniCard(m,tag,qa){var thumb=m.img?'<img src="'+m.img+'" loading="laz
  return '<div class="rp-mcard">'+nav+ctrl+'</div>';}
 function rpKitHtml(p){if(!p.contents.length)return '';var grps=[];p.contents.forEach(function(c){if(grps.indexOf(c.g)<0)grps.push(c.g);});var multiG=grps.length>1;
  var kh='<div class="kh">Kit contents · '+p.contents.length+' items</div>';
- grps.forEach(function(g){if(multiG)kh+='<div class="ggrp">'+esc(g)+'</div>';kh+='<div class="kgrid">'+p.contents.filter(function(c){return c.g===g;}).map(function(c){return '<div class="kc">'+(c.img?'<img src="'+c.img+'" loading="lazy" decoding="async">':catIcon(p.cat,'ic'))+'<div><div class="kl">'+esc(c.l)+'</div>'+(c.v?'<div class="kv">Replacement value '+esc(c.v)+'</div>':'')+'</div></div>';}).join('')+'</div>';});
+ grps.forEach(function(g){if(multiG)kh+='<div class="ggrp">'+esc(g)+'</div>';kh+='<div class="kgrid">'+p.contents.filter(function(c){return c.g===g;}).map(function(c){return '<div class="kc">'+(c.img?'<img src="'+c.img+'" alt="" loading="lazy" decoding="async">':catIcon(p.cat,'ic'))+'<div><div class="kl">'+esc(c.l)+'</div>'+(c.v?'<div class="kv">Replacement value '+esc(c.v)+'</div>':'')+'</div></div>';}).join('')+'</div>';});
  return kh;}
 function dpDateBtn(){return '<button class="chgdate" id="dpchg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>'+(D.s&&D.e?'Change dates ('+fmtRange()+')':'Set rental dates')+'</button>';}
 function dpNavigate(id){if(dpOpen!=null)dpStack.push(dpOpen);openDP(id);}
@@ -345,13 +345,13 @@ function renderReq(){
    if(flds[i].half&&flds[i+1]&&flds[i+1].half){inner+='<div class="rgrid2"><div>'+reqFieldHTML(flds[i])+'</div><div>'+reqFieldHTML(flds[i+1])+'</div></div>';i+=2;}
    else{inner+=reqFieldHTML(flds[i]);i++;}
   }
-  h='<div class="reqbox"><button class="dpx" id="reqx">&times;</button><h2>Request your rental</h2><p class="crewlede">A few details so we can put your quote together.</p>'
+  h='<div class="reqbox"><button class="dpx" id="reqx" aria-label="Close">&times;</button><h2>Request your rental</h2><p class="crewlede">A few details so we can put your quote together.</p>'
    +inner+'<div class="reqwarn" id="qwarn">'+esc(reqErr)+'</div><button class="crewsend pbtn" id="qnext"><span>Review request →</span></button></div>';
  } else if(reqStep===1){
   const dd=days();const ids=cartOrder.filter(id=>id in cart);
   const gear=ids.map(id=>cart[id]+'× '+esc(RENTALS[id].name)).join('<br>');
   const rows=RCFG.render.map(f=>'<div class="qrow"><span>'+esc(f.label.replace(/\?$/,''))+'</span><b>'+esc(reqData[f.key]||'-')+'</b></div>').join('');
-  h='<div class="reqbox"><button class="dpx" id="reqx">&times;</button><h2>Confirm your request</h2>'
+  h='<div class="reqbox"><button class="dpx" id="reqx" aria-label="Close">&times;</button><h2>Confirm your request</h2>'
    +'<div class="qsum">'+rows+'<div class="qrow"><span>Dates</span><b>'+(dd?esc(fmtRange())+' · '+dd+' days':'-')+'</b></div><div class="qrow"><span>Estimated total</span><b>'+fmt(reqTotal())+(dd?' ('+dd+'d)':'')+'</b></div></div>'
    +'<button class="reqback" id="qdates" style="margin:10px 0 0;padding:9px 16px">Change shoot dates</button>'
    +'<div class="crewlab">Gear</div><div class="qgear">'+gear+'</div>'

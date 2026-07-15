@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Rare Pond Studios</title>
+<meta name="description" content="Rare Pond Studios makes escapist short films that transport you somewhere new - hybrid animation, comedy and drama. Countless worlds, one pond.">
+<link rel="canonical" href="https://www.rarepond.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Rare Pond Studios">
+<meta property="og:title" content="Rare Pond Studios - Countless Worlds. One Pond.">
+<meta property="og:description" content="Escapist short films that transport you somewhere new.">
+<meta property="og:url" content="https://www.rarepond.com/">
+<meta property="og:image" content="https://www.rarepond.com/media/logos/rare-pond-color.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rare Pond Studios - Countless Worlds. One Pond.">
+<meta name="twitter:description" content="Escapist short films that transport you somewhere new.">
+<meta name="twitter:image" content="https://www.rarepond.com/media/logos/rare-pond-color.png">
 <!-- Reserves the event banner's space before the first paint, so the page does not jump
      down when the banner arrives. Must stay here, in <head>, with no defer/async. -->
 <script src="/assets/banner-reserve.js"></script>
@@ -747,8 +759,8 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 <body>
   <header class="site-header">
     <div class="hdr-bg"></div>
-    <a class="hdr-logo" data-go="home"><img class="hdr-duck" id="hdrDuck" src="/media/logos/duck-mark.png" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
-    <nav class="nav"><a data-go="team">Our&nbsp;Team</a><a data-go="projects" id="navProjects">Projects</a><a data-go="contact">Contact</a></nav>
+    <a class="hdr-logo" href="/" data-go="home"><img class="hdr-duck" id="hdrDuck" src="/media/logos/duck-mark.png" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
+    <nav class="nav"><a href="/team" data-go="team">Our&nbsp;Team</a><a href="/projects" data-go="projects" id="navProjects">Projects</a><a href="/#contact" data-go="contact">Contact</a></nav>
     <div class="hright2"><a class="xsite" href="/rentals" title="Go to the Rare Pond Rentals site">Rentals&nbsp;<span class="xarrow">&rarr;</span></a><div class="socials rp-soc" id="socialsHost"></div></div>
   </header>
 
@@ -761,8 +773,8 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
         <p>We create escapist films that transport you somewhere new. See where you can go...</p>
       </div>
       <div class="carousel">
-        <div class="carr left" id="carPrev" aria-label="Previous"><span class="ci">‹</span><span class="cl">Prev</span></div>
-        <div class="carr right" id="carNext" aria-label="Next"><span class="ci">›</span><span class="cl">Next</span></div>
+        <div class="carr left" id="carPrev" role="button" tabindex="0" aria-label="Previous slide"><span class="ci">‹</span><span class="cl">Prev</span></div>
+        <div class="carr right" id="carNext" role="button" tabindex="0" aria-label="Next slide"><span class="ci">›</span><span class="cl">Next</span></div>
         <div class="stage" id="stage"></div>
         <div class="cinfo" id="cinfo"></div>
         <div class="cdots" id="cdots"></div>
@@ -776,7 +788,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
           <div class="ey">What we do</div><h2>Worlds worth escaping into.</h2>
           <p>Rare Pond Studios is an independent film studio crafting escapist stories that feel like peering into an alternate world. We work across live-action and 2D / 3D animation, blending mediums to build immersive little universes, from a retired superspy breaking out of her nursing home to a surreal vision of Heaven and Earth.</p>
           <p>Founded by writer-director Jack Carlsen, the studio is built on a simple idea: every project is a window into somewhere else. We develop, shoot, animate, and finish our films in-house, and we love collaborating with other creatives to bring ambitious worlds to life.</p>
-          <a class="learn-btn" data-go="team">Learn who we are &rarr;</a>
+          <a class="learn-btn" href="/team" data-go="team">Learn who we are &rarr;</a>
         </div>
       </div>
     </section>
@@ -827,7 +839,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     <div class="footer-logo"><img class="rpColor" alt="Rare Pond Studios"></div>
     <div class="tag">Let's Make Something Amazing...</div>
     <div class="fsoc" data-socials></div>
-    <div class="flinks"><a data-go="team">Our Team</a><a data-go="projects">Projects</a><a href="/rentals">Rentals</a><a data-go="contact">Contact</a></div>
+    <div class="flinks"><a href="/team" data-go="team">Our Team</a><a href="/projects" data-go="projects">Projects</a><a href="/rentals">Rentals</a><a href="/#contact" data-go="contact">Contact</a></div>
     <div class="copy"><a href="https://rarepond.com" target="_blank" rel="noopener">rarepond.com</a> · © Rare Pond Studios 2026</div>
   </template>
 
@@ -1203,6 +1215,7 @@ document.addEventListener('visibilitychange',syncFocusVideo);
 function setActive(i){if(!N)return;activeIdx=((i%N)+N)%N;document.body.classList.add('swiping');clearTimeout(window.__swT);window.__swT=setTimeout(function(){document.body.classList.remove('swiping');},700);layout();}
 document.getElementById('carPrev').addEventListener('click',()=>setActive(activeIdx-1));
 document.getElementById('carNext').addEventListener('click',()=>setActive(activeIdx+1));
+['carPrev','carNext'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setActive(activeIdx+(id==='carNext'?1:-1));}}));
 let sx=0,sy=0,sdown=false;
 stage.addEventListener('pointerdown',e=>{sdown=true;dragFlag=false;sx=e.clientX;sy=e.clientY;});
 addEventListener('pointermove',e=>{if(sdown&&Math.abs(e.clientX-sx)>10)dragFlag=true;});
@@ -1245,7 +1258,7 @@ function renderWatch(w){
 }
 function buildUniverse(key){
   const s=SECTIONS[key];const sec=document.createElement('section');sec.className='universe '+s.theme;sec.id='u-'+key;sec.style.scrollMarginTop='0';
-  const titleEl=s.logo?`<img class="u-logo" src="${s.logo}" alt="logo">`:`<h2 class="u-title">${s.title}</h2>`;
+  const titleEl=s.logo?`<img class="u-logo" src="${s.logo}" alt="${esc2(s.title)}">`:`<h2 class="u-title">${s.title}</h2>`;
   const watchHTML=renderWatch(s.watch);
   const stillsHTML=(s.stills&&s.stills.length)?`<div class="u-stills"><h3 class="stills-h">Stills</h3><div class="stills-grid">${s.stills.map(src=>`<button class="still" type="button" data-full="${stillFull(src)}" data-fallback="${stillFallback(src)}">${stillThumb(src)}</button>`).join('')}</div></div>`:'';
   sec.innerHTML=`<div class="u-bg" style="background-image:url('${s.bg||SITE.water}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${s.eyebrow}</span></div><div class="u-hero"><div class="u-kicker">${s.kicker}</div>${titleEl}<div class="u-tagline">${s.tagline}</div><p class="u-logline">${s.logline}</p><div class="u-meta">${s.chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${s.credits}</div></div>${stillsHTML}</div>`;

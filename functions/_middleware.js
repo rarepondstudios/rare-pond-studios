@@ -124,9 +124,15 @@ const COVERABLE = [
    the table above. Instead we look the path up in pages.json: if a page with that slug has
    been switched off, it gets covered, and the cover is told the page's real TITLE so it can
    say "come back to Summer Open House later". Add a page, get the switch for free. */
+/* Slugs that are real routes, not custom pages - a custom page can never be one of these
+   (tools/check-slugs.mjs blocks saving a colliding slug), and this makes sure the cover path
+   never intercepts them even if one somehow existed. Keeping /admin out of here in
+   particular means a page slugged "admin" can never stand in front of the auth gate. */
+const RESERVED_SEGS = new Set(['admin','assets','data','functions','media','tools','maintenance','rentals','team','projects']);
 async function customPageRule(env, request, pathname) {
   const seg = pathname.replace(/^\/+|\/+$/g, '');
   if (!seg || seg.indexOf('/') !== -1) return null;          // not a single-segment path
+  if (RESERVED_SEGS.has(seg)) return null;                   // a real route, not a custom page
   let data;
   try { data = await readJson(env, request, '/data/pages.json'); } catch (e) { return null; }
   const list = (data && data.pages) || [];
@@ -195,7 +201,7 @@ async function maintenanceFor(context, pathname) {
      The NAME is passed rather than looked up, because a custom page's name lives in the CMS
      and the cover has no way to know it otherwise. */
   const attrs = ' data-covers="' + esc(hit.covers) + '" data-page-name="' + esc(hit.name) + '"';
-  html = html.replace('<html lang="en">', '<html lang="en"' + attrs + '>');
+  html = html.replace(/<html\b[^>]*>/i, (tag) => tag.replace(/>\s*$/, attrs + '>'));
 
   return new Response(html, {
     status: 200,                        // 200, not 503: this is a normal page to a visitor
@@ -220,7 +226,10 @@ export async function onRequest(context) {
   }
 
   // A page that has been closed in Pages CMS shows the cover instead - at its own URL.
-  const cover = await maintenanceFor(context, pathname);
+  // Wrapped so an unexpected throw fails OPEN (serve the page) rather than 500-ing it; the
+  // /admin gate below is separate and still fails closed.
+  let cover = null;
+  try { cover = await maintenanceFor(context, pathname); } catch (e) { cover = null; }
   if (cover) return cover;
 
   // Everything outside /admin/ is served exactly as before.
