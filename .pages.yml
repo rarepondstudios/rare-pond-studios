@@ -250,6 +250,14 @@ content:
           - { name: role, label: Role, type: string }
           - { name: photo, label: Photo, type: image, description: "SPECS: square, 800x800 px, JPG, under 250 KB. Cropped to a circle - centre the face. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
           - { name: desc, label: Bio, type: text }
+          # ---- Portfolio links (all optional). Any you leave blank is simply not shown, and the
+          #      row closes the gap - so a person with only a website and Instagram shows exactly
+          #      two icons, no empty spaces. Paste the FULL https:// address for each.
+          - { name: website,   label: "Portfolio - Website (optional)",   type: string, description: "Full https:// link to this person's own site/portfolio. Blank = hidden." }
+          - { name: youtube,   label: "Portfolio - YouTube (optional)",   type: string, description: "Full https:// link. Blank = hidden." }
+          - { name: instagram, label: "Portfolio - Instagram (optional)", type: string, description: "Full https:// link. Blank = hidden." }
+          - { name: linkedin,  label: "Portfolio - LinkedIn (optional)",  type: string, description: "Full https:// link. Blank = hidden." }
+          - { name: facebook,  label: "Portfolio - Facebook (optional)",  type: string, description: "Full https:// link. Blank = hidden." }
 
   - name: rentals
     label: Rentals page

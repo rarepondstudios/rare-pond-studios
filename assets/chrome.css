@@ -49,6 +49,7 @@
 .rp-soc a[data-net="ig"]:hover,.rp-footer .fsoc a[data-net="ig"]:hover{background:linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7);color:#fff}
 .rp-soc a[data-net="li"]:hover,.rp-footer .fsoc a[data-net="li"]:hover{background:linear-gradient(135deg,#0a66c2,#004182);color:#fff}
 .rp-soc a[data-net="fb"]:hover,.rp-footer .fsoc a[data-net="fb"]:hover{background:linear-gradient(135deg,#1877f2,#0b5fce);color:#fff}
+.rp-soc a[data-net="web"]:hover,.rp-footer .fsoc a[data-net="web"]:hover{background:linear-gradient(135deg,#2ba7a0,#127e8c);color:#fff}
 
 /* ---------- the footer's contents ---------- */
 .rp-footer .footer-logo img{width:150px;height:auto;margin:0 auto 6px;

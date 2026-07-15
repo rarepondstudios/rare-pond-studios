@@ -649,6 +649,9 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .m-copy h3{font-size:clamp(21px,2.4vw,28px);font-weight:800;margin:0 0 4px;color:#0b2c55;letter-spacing:-.01em}
   .m-role{font-size:13px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;color:#1c72c9;margin-bottom:14px}
   .m-desc{font-size:clamp(13.5px,1.3vw,15.5px);line-height:1.62;color:#2e4d76;max-width:430px;margin:0 auto}
+  /* Per-person portfolio links row (reuses .rp-soc). Centered under the bio; only rendered
+     when a member has at least one link, so it never leaves an empty band. */
+  .m-links{justify-content:center;margin-top:16px}
   @media(max-width:680px){.team-list{grid-template-columns:1fr;gap:30px}}
   /* ===== ambient background bubbles (non-interactive) ===== */
   .bg-bubbles{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
@@ -1253,7 +1256,20 @@ const teamList=document.getElementById('teamList');
 if(teamList){TEAM.forEach((m,i)=>{
   const row=document.createElement('div');row.className='member'+(i%2?' flip':'');row.style.setProperty('--i',i);
   const ph=m.photo?`<img src="${m.photo}" alt="${m.name}">`:`<div class="m-initials">${m.initials||m.name[0]}</div>`;
-  row.innerHTML=`<div class="m-photo"><div class="m-bubble">${ph}<div class="m-rim"></div><div class="m-spec"></div><div class="m-edge"></div></div></div><div class="m-copy"><h3>${m.name}</h3><div class="m-role">${m.role}</div><p class="m-desc">${m.desc}</p></div>`;
+  /* Per-person portfolio links. FIXED order; only the ones that are filled render, so a
+     blank field leaves NO gap - the row re-flows to close it. Reuses the shared social-icon
+     component (.rp-soc + RP_SOCIAL_ICONS) so a team member's links look and hover exactly
+     like the site's social icons. Only http(s) URLs are emitted. */
+  const _icon=window.RP_SOCIAL_ICONS||{};
+  const _url=u=>/^https?:\/\//i.test(String(u||''))?String(u):'';
+  const _a=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const _LBL={web:'Website',yt:'YouTube',ig:'Instagram',li:'LinkedIn',fb:'Facebook'};
+  const _links=[['web',m.website],['yt',m.youtube],['ig',m.instagram],['li',m.linkedin],['fb',m.facebook]]
+    .filter(p=>_icon[p[0]]&&_url(p[1]))
+    .map(p=>`<a href="${_a(_url(p[1]))}" target="_blank" rel="noopener" data-net="${p[0]}" aria-label="${_a(m.name+' on '+_LBL[p[0]])}" title="${_a(_LBL[p[0]])}">${_icon[p[0]]}</a>`)
+    .join('');
+  const _linksHTML=_links?`<div class="m-links rp-soc">${_links}</div>`:'';
+  row.innerHTML=`<div class="m-photo"><div class="m-bubble">${ph}<div class="m-rim"></div><div class="m-spec"></div><div class="m-edge"></div></div></div><div class="m-copy"><h3>${m.name}</h3><div class="m-role">${m.role}</div><p class="m-desc">${m.desc}</p>${_linksHTML}</div>`;
   teamList.appendChild(row);
 });}
 const universes=document.getElementById('universes');
