@@ -1258,7 +1258,7 @@ function renderWatch(w){
 }
 function buildUniverse(key){
   const s=SECTIONS[key];const sec=document.createElement('section');sec.className='universe '+s.theme;sec.id='u-'+key;sec.style.scrollMarginTop='0';
-  const titleEl=s.logo?`<img class="u-logo" src="${s.logo}" alt="${esc2(s.title)}">`:`<h2 class="u-title">${s.title}</h2>`;
+  const titleEl=s.logo?`<img class="u-logo" src="${s.logo}" alt="${String(s.title||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}">`:`<h2 class="u-title">${s.title}</h2>`;
   const watchHTML=renderWatch(s.watch);
   const stillsHTML=(s.stills&&s.stills.length)?`<div class="u-stills"><h3 class="stills-h">Stills</h3><div class="stills-grid">${s.stills.map(src=>`<button class="still" type="button" data-full="${stillFull(src)}" data-fallback="${stillFallback(src)}">${stillThumb(src)}</button>`).join('')}</div></div>`:'';
   sec.innerHTML=`<div class="u-bg" style="background-image:url('${s.bg||SITE.water}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${s.eyebrow}</span></div><div class="u-hero"><div class="u-kicker">${s.kicker}</div>${titleEl}<div class="u-tagline">${s.tagline}</div><p class="u-logline">${s.logline}</p><div class="u-meta">${s.chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${s.credits}</div></div>${stillsHTML}</div>`;
