@@ -1403,12 +1403,36 @@ function renderWatch(w){
   const watchBlock = body ? `<span class="u-watch-label">Where to Watch</span>${body}` : '';
   return `<div class="u-watch">${watchBlock}${socials}</div>`;
 }
+/* ---- Credits ----
+   NocoDB stores credits as plain text, ONE credit per line, in the form
+   "Role: Name(s)" - everything before the first colon is the role (rendered bold),
+   everything after is the name(s) (rendered as typed). The site does ALL formatting
+   here, so the database stays a clean repository. Add/remove a line in NocoDB and it
+   propagates automatically. A line with no colon is shown as-is. {variables} work
+   inside each line. */
+function renderCredits(raw,vars){
+  if(raw==null) return '';
+  const s=String(raw);
+  // Back-compat: if a credit contains HTML tags (older inline format, or a deliberate
+  // one-off), render it verbatim rather than parsing it as "Role: Name" lines.
+  if(/<[a-z!/][\s\S]*>/i.test(s)) return fillVars(s,vars);
+  const lines=s.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  if(!lines.length) return '';
+  return lines.map(line=>{
+    const i=line.indexOf(':');
+    let title='', names=line;
+    if(i>-1){ title=line.slice(0,i).trim(); names=line.slice(i+1).trim(); }
+    title=fillVars(title,vars); names=fillVars(names,vars);
+    if(!title) return _wEsc(names);
+    return `<b>${_wEsc(title)}</b>${names?' '+_wEsc(names):''}`;
+  }).filter(Boolean).join('<br>');
+}
 function buildUniverse(key){
   const s=SECTIONS[key];const sec=document.createElement('section');sec.className='universe '+s.theme;sec.id='u-'+key;sec.style.scrollMarginTop='0';
   const titleEl=s.logo?`<img class="u-logo" src="${s.logo}" alt="${String(s.title||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}">`:`<h2 class="u-title">${s.title}</h2>`;
   const watchHTML=renderWatch(s.watch);
   const stillsHTML=(s.stills&&s.stills.length)?`<div class="u-stills"><h3 class="stills-h">Stills</h3><div class="stills-grid">${s.stills.map(src=>`<button class="still" type="button" data-full="${stillFull(src)}" data-fallback="${stillFallback(src)}">${stillThumb(src)}</button>`).join('')}</div></div>`:'';
-  sec.innerHTML=`<div class="u-bg" style="background-image:url('${s.bg||SITE.water}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p><div class="u-meta">${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${fillVars(s.credits,s.vars)}</div></div>${stillsHTML}</div>`;
+  sec.innerHTML=`<div class="u-bg" style="background-image:url('${s.bg||SITE.water}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p><div class="u-meta">${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${renderCredits(s.credits,s.vars)}</div></div>${stillsHTML}</div>`;
   sec.querySelector('.back').addEventListener('click',()=>history.back());universes.appendChild(sec);return sec;
 }
 const built={};let currentOpen=null;
