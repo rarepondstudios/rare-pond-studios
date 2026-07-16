@@ -1345,9 +1345,12 @@ function detectNet(u){
   return {icon:'web',label:'Website'};
 }
 function buildWatch(p){
-  let yt=p.watchYoutube||'',vim=p.watchVimeo||'',status=p.watchStatus||'',socials=p.socialLinks||'';
-  if(!yt&&!vim&&!status&&!socials&&p.watch){ // legacy fallback
-    const w=p.watch;
+  const w=p.watch||{};
+  // Primary: watch object {youtube,vimeo,status,socials} (built in the DB from the
+  // per-film fields) OR flat watchYoutube/... fields if the export ever emits them.
+  let yt=w.youtube||p.watchYoutube||'', vim=w.vimeo||p.watchVimeo||'', status=w.status||p.watchStatus||'', socials=w.socials||p.socialLinks||'';
+  // Legacy {type,url,id,text,ig} fallback, so nothing breaks mid-migration.
+  if(!yt&&!vim&&!status&&!socials){
     if(w.type==='youtube') yt=w.url||(w.id?('https://youtu.be/'+w.id):'');
     else if(w.text) status=w.text;
     if(w.ig) socials='https://www.instagram.com/'+w.ig+'/';
