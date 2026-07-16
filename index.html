@@ -860,10 +860,16 @@ const __d=await Promise.all([
   fetch('/data/projects.json').then(r=>r.json()),
   fetch('/data/team.json').then(r=>r.json()),
   fetch('/data/pages.json').then(r=>r.json()).catch(()=>({pages:[]})),
-  fetch('/data/stills-hd.json').then(r=>r.json()).catch(()=>({hd:[]}))
+  fetch('/data/stills-hd.json').then(r=>r.json()).catch(()=>({hd:[]})),
+  fetch('/data/section-templates.json').then(r=>r.json()).catch(()=>({}))
 ]);
 const SITE=__d[0];
 const __projects=__d[1].projects;
+/* Section templates live in their own file (data/section-templates.json), edited in
+   Pages CMS under the Projects area. Kept separate from projects.json (which the NocoDB
+   sync overwrites) and site.json. Fall back to site.json then a hardcoded default so the
+   site never breaks if the file is missing. */
+const TPL=__d[5]||{};
 /* inCarousel: a project appears in the home-page carousel unless it is explicitly
    switched off in Pages CMS. Absent === on, so existing projects (and any new one)
    default to showing. Turning it off removes it from the carousel ONLY - it keeps its
@@ -887,10 +893,10 @@ function fillVars(str,vars){
   out=out.replace(/\s*·\s*$/,'').replace(/^\s*·\s*/,'').replace(/\s{2,}/g,' ').trim();
   return out;
 }
-const EYEBROW_TPL=(SITE.eyebrowTemplate||'{production} · {released}');
-const CARD_EYEBROW_TPL=(SITE.cardEyebrowTemplate||'{kicker}');
-const CARD_LOGLINE_TPL=(SITE.cardLoglineTemplate||'{blurb}');
-const GRID_CAPTION_TPL=(SITE.gridCaptionTemplate||'{kicker}');
+const EYEBROW_TPL=(TPL.eyebrowTemplate||SITE.eyebrowTemplate||'{production} · {released}');
+const CARD_EYEBROW_TPL=(TPL.cardEyebrowTemplate||SITE.cardEyebrowTemplate||'{kicker}');
+const CARD_LOGLINE_TPL=(TPL.cardLoglineTemplate||SITE.cardLoglineTemplate||'{blurb}');
+const GRID_CAPTION_TPL=(TPL.gridCaptionTemplate||SITE.gridCaptionTemplate||'{kicker}');
 const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.kicker,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,focusVideo:p.focusVideo||'',characters:[],logline:p.blurb,placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
 const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,genre:p.genre||[],watch:p.watch,stills:p.stills||[],credits:p.credits,vars:VARS[p.key]}]));
 const TEAM=__d[2].team;

@@ -1,0 +1,6 @@
+{
+  "eyebrowTemplate": "{production} · {released}",
+  "cardEyebrowTemplate": "{kicker}",
+  "cardLoglineTemplate": "{blurb}",
+  "gridCaptionTemplate": "{kicker}"
+}

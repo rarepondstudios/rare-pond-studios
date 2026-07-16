@@ -147,9 +147,13 @@ function insertChip(name){
 }
 Promise.all([
   fetch('/data/projects.json').then(function(r){return r.json();}),
-  fetch('/data/site.json').then(function(r){return r.json();})
+  fetch('/data/site.json').then(function(r){return r.json();}),
+  fetch('/data/section-templates.json').then(function(r){return r.json();}).catch(function(){return {};})
 ]).then(function(res){
-  projects=(res[0].projects||res[0]);site=res[1]||{};
+  projects=(res[0].projects||res[0]);
+  /* Templates now live in section-templates.json (edited in Pages CMS under Projects).
+     Merge over site.json so the preview reads whatever the live site reads. */
+  site=Object.assign({},res[1]||{},res[2]||{});
   $film.innerHTML=projects.map(function(p,i){return '<option value="'+i+'">'+(p.title||p.key)+'</option>';}).join('');
   $chips.innerHTML=VAR_NAMES.map(function(n){return '<button class="chip" type="button" data-n="'+n+'">{'+n+'}</button>';}).join('');
   $chips.querySelectorAll('.chip').forEach(function(b){b.onclick=function(){insertChip(b.dataset.n);};});
