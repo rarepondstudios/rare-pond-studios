@@ -20,10 +20,7 @@
       "genre": [
         "Comedy / Action"
       ],
-      "watch": {
-        "status": "Coming to Film Festivals, Fall 2026",
-        "socials": "https://www.instagram.com/geri_action_film/"
-      },
+      "socialLinks": "https://www.instagram.com/geri_action_film/",
       "stills": [
         "/media/projects/geri/stills/geri-anim-1.jpg",
         "/media/projects/geri/stills/geri-anim-2.jpg",
@@ -54,10 +51,7 @@
       "genre": [
         "Surreal Fantasy"
       ],
-      "watch": {
-        "status": "In Post-Production",
-        "socials": "https://www.instagram.com/revelations_film/"
-      },
+      "socialLinks": "https://www.instagram.com/revelations_film/",
       "stills": [
         "/media/projects/rev/stills/rev-earth-1.jpg",
         "/media/projects/rev/stills/rev-earth-2.jpg",
@@ -88,9 +82,7 @@
       "genre": [
         "Comedy"
       ],
-      "watch": {
-        "youtube": "https://www.youtube.com/watch?v=XGYQv3h3-y4"
-      },
+      "watchYoutube": "https://www.youtube.com/watch?v=XGYQv3h3-y4",
       "stills": [
         "/media/projects/invalid/stills/invalid-1.jpg",
         "/media/projects/invalid/stills/invalid-2.jpg",
