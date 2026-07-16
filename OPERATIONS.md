@@ -24,14 +24,67 @@ Push to `main` → live in about a minute. There is no staging environment.
 **`_headers`** sets no-cache on `/data/*` so CMS edits appear immediately.
 **`_redirects`** does the SPA rewrite so deep links like `/geriaction` work.
 
-**Editing:** [Pages CMS](https://app.pagescms.org) reads `.pages.yml` and renders the edit
-forms. Saving there commits to GitHub, which redeploys. Sections: Site Settings, Color Looks,
-Projects, Team, Rentals page, Form input types, Custom Pages.
+**Editing — two places, one for each kind of thing:**
+
+- **Projects (the film catalogue)** live in the **shared database**, edited through **NocoDB**
+  (`http://localhost:8080`). This is the single source of truth for every project: its content,
+  and which sites show it (`sites` = Rare Pond / jackcarlsen / Corporate). A background n8n
+  workflow (**"Projects: DB to site (rarepond)"**) rebuilds `data/projects.json` from the database
+  and commits it — see "The projects pipeline" below.
+- **Everything else** stays in **[Pages CMS](https://app.pagescms.org)** (reads `.pages.yml`,
+  saving commits to GitHub → redeploys): **Color Looks**, Team, Site Settings, Rentals page,
+  Form input types, Custom Pages, Maintenance. The **Projects** section in Pages CMS is now just
+  the site-wide *"projects page open/closed"* switch plus a **read-only mirror** of the catalogue —
+  edit projects in NocoDB, not there (anything typed into the mirror is overwritten by the sync).
+
+**Why the split:** projects change often and are shared across sites, so they belong in one
+database that every site reads from. Color looks, team, and settings are small, site-specific,
+and benefit from git history, so they stay in Pages CMS. A project references a color look **by
+name** (`colorLook`), so the two never fight: the palette lives in Color Looks, the assignment
+lives on the project.
 
 **Recurring maintenance — the n8n GitHub token expires.** n8n commits the projects
 catalogue to this repo using a GitHub PAT that has an expiry date. When it lapses, the
 projects export silently stops. A desktop reminder fires ~8 days before, and the full
 recovery procedure lives in [`tools/ROTATE-GITHUB-PAT.md`](tools/ROTATE-GITHUB-PAT.md).
+
+---
+
+## The projects pipeline (database → site)
+
+**The chain:** edit in NocoDB → the n8n workflow **"Projects: DB to site (rarepond)"** reads
+`rp.projects` from Supabase → rebuilds `data/projects.json` (only projects whose `sites` includes
+`rarepond`) → commits to GitHub → Cloudflare redeploys. It runs every 5 minutes and can be run by
+hand from n8n. It **only commits when something actually changed** (it compares by meaning, so
+JSON key-order never triggers a needless commit).
+
+**Where each thing lives**
+
+| Thing | Lives in | Edited in |
+|---|---|---|
+| Project content (title, blurb, stills, watch, images…) | `rp.projects` row | NocoDB |
+| Which sites show a project | `rp.projects.sites` | NocoDB (multi-select) |
+| Per-site flags (which color look, bubble glow, in carousel) | `rp.projects.per_site` | NocoDB |
+| Colour palettes (the actual colours) | `data/colorlooks.json` | Pages CMS → Color Looks |
+| Projects page open/closed | `data/projects.json` `publicAccess` | Pages CMS → Projects |
+
+**How to make common changes**
+
+- **Add a new Rare Pond project:** in NocoDB, add a row, fill the content, set `sites` to include
+  `rarepond`. Leave the color look blank and the site uses the **`signature`** look; when you want a
+  bespoke palette, add a *film* look in Pages CMS → Color Looks and put its ID in the project's
+  color-look field. Within ~5 min it's live.
+- **Take a project off Rare Pond (or put it back):** just remove/add `rarepond` in that row's
+  `sites`. **Nothing is lost** — the row, all its content, and its per-site settings stay in the
+  database; the color look stays in Pages CMS. Re-adding `rarepond` brings it back exactly as it
+  was. (Same row can be on jackcarlsen and Corporate independently.)
+- **Change a film's colours:** Pages CMS → Color Looks → open that film's look. Every project
+  pointing at it updates. No project edit needed.
+- **Close/open the projects page:** Pages CMS → Projects → the "open to the public" switch.
+- **Reorder the carousel:** the `sort_order` column in NocoDB (lower = earlier).
+
+**One source of truth:** never edit the project list inside Pages CMS — it's a read-only mirror and
+the sync overwrites it. Projects = NocoDB; colours, team, settings = Pages CMS.
 
 ---
 

@@ -178,7 +178,7 @@ content:
           - { name: note, label: Note, type: text }
 
   - name: projects
-    label: Projects (bubbles + pages)
+    label: "Projects — page toggle (list now lives in NocoDB)"
     type: file
     path: data/projects.json
     fields:
@@ -187,10 +187,16 @@ content:
         type: boolean
         default: true
         description: "ON (normal): visitors see the page as usual. OFF: the page is closed - anyone who goes to rarepond.com/projects gets the 'back soon' cover instead, with a random message from MAINTENANCE COVER. The address stays the same, so links you have already shared are not broken and everything comes straight back the moment you switch this on again. The header and menus still work on the cover, so nobody is stranded. Takes effect within about a minute of committing."
+      - name: cmsNote
+        label: "ℹ️ Where projects are edited now"
+        type: string
+        readonly: true
+        description: "Projects are now managed in the shared database via NocoDB (http://localhost:8080) - that is where you add a project, edit its content, and tick which sites show it (Rare Pond / jackcarlsen / Corporate). A background sync rebuilds this file from the database automatically, so the list below is a READ-ONLY MIRROR: anything you change in it here is overwritten within a few minutes. The ONLY control on this screen you should use is the 'Projects page is OPEN to the public' switch above (the sync preserves it). Colour palettes still live in COLOR LOOKS exactly as before - a new Rare Pond project uses the 'signature' look until you make it its own."
       - name: projects
-        label: Projects
+        label: "Projects (read-only mirror - edit in NocoDB)"
         type: object
         list: true
+        readonly: true
         fields:
           - { name: key, label: "ID (url-safe, e.g. geri)", type: string,
               description: "This ID is how the film is linked to its colors. To change this film's look (accent, background tints, kicker, tagline), go to COLOR LOOKS and open the Project entry whose 'Linked project key' matches this ID. There is nothing color-related on this screen." }
