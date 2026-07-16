@@ -1346,11 +1346,13 @@ function detectNet(u){
 }
 function buildWatch(p){
   const w=p.watch||{};
-  // Primary: watch object {youtube,vimeo,status,socials} (built in the DB from the
-  // per-film fields) OR flat watchYoutube/... fields if the export ever emits them.
-  let yt=w.youtube||p.watchYoutube||'', vim=w.vimeo||p.watchVimeo||'', status=w.status||p.watchStatus||'', socials=w.socials||p.socialLinks||'';
+  // Watch links come from the flat fields (export) or a watch object (older exports).
+  let yt=p.watchYoutube||w.youtube||'', vim=p.watchVimeo||w.vimeo||'', socials=p.socialLinks||w.socials||'';
+  // The availability line (shown only when there's no watch link) is the film's own
+  // status - e.g. "In Post-Production", "Coming To Festivals". One field, no duplicate.
+  let status=p.status||w.status||p.watchStatus||'';
   // Legacy {type,url,id,text,ig} fallback, so nothing breaks mid-migration.
-  if(!yt&&!vim&&!status&&!socials){
+  if(!yt&&!vim&&!socials&&!(p.status||w.status)){
     if(w.type==='youtube') yt=w.url||(w.id?('https://youtu.be/'+w.id):'');
     else if(w.text) status=w.text;
     if(w.ig) socials='https://www.instagram.com/'+w.ig+'/';
