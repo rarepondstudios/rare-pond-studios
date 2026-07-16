@@ -44,13 +44,13 @@
     }
   ],
   "orbits": [
-    "/media/stills/geri-anim-1.jpg",
-    "/media/stills/geri-anim-2.jpg",
-    "/media/stills/geri-madeline.jpg",
-    "/media/stills/rev-earth-2.jpg",
-    "/media/stills/rev-heaven-1.jpg",
-    "/media/stills/invalid-orbit.jpg",
-    "/media/projects/invalid-shot-2.jpg"
+    "/media/projects/geri/stills/geri-anim-1.jpg",
+    "/media/projects/geri/stills/geri-anim-2.jpg",
+    "/media/projects/geri/stills/geri-madeline.jpg",
+    "/media/projects/rev/stills/rev-earth-2.jpg",
+    "/media/projects/rev/stills/rev-heaven-1.jpg",
+    "/media/projects/invalid/stills/invalid-orbit.jpg",
+    "/media/projects/invalid/invalid-shot-2.jpg"
   ],
   "header": {
     "brandLine1": "Rare Pond",

@@ -1,23 +1,23 @@
 {
   "_comment": "Stills re-pulled from the ProRes masters. Each key lists the widths that ACTUALLY exist for that still (we never upscale, so a 2K master only offers up to 2048). Any still NOT listed here renders as a plain <img> from its original file, so this is always safe to extend one film at a time. On-screen layout size is identical for every still regardless of the widths available -- the browser just gets more or less density to work with.",
   "hd": {
-    "/media/stills/geri-anim-1.jpg":     [800, 1600, 2560],
-    "/media/stills/geri-anim-2.jpg":     [800, 1600, 2560],
-    "/media/stills/geri-anim-3.jpg":     [800, 1600, 2560],
-    "/media/stills/geri-madeline.jpg":   [800, 1600, 2560],
-    "/media/stills/geri-nursing-1.jpg":  [800, 1600, 2560],
-    "/media/stills/geri-nursing-2.jpg":  [800, 1600, 2560],
+    "/media/projects/geri/stills/geri-anim-1.jpg":     [800, 1600, 2560],
+    "/media/projects/geri/stills/geri-anim-2.jpg":     [800, 1600, 2560],
+    "/media/projects/geri/stills/geri-anim-3.jpg":     [800, 1600, 2560],
+    "/media/projects/geri/stills/geri-madeline.jpg":   [800, 1600, 2560],
+    "/media/projects/geri/stills/geri-nursing-1.jpg":  [800, 1600, 2560],
+    "/media/projects/geri/stills/geri-nursing-2.jpg":  [800, 1600, 2560],
 
-    "/media/stills/invalid-1.jpg":         [800, 1600, 2560],
-    "/media/stills/invalid-2.jpg":         [800, 1600, 2560],
-    "/media/stills/invalid-3.jpg":         [800, 1600, 2560],
-    "/media/stills/invalid-sourpatch.jpg": [800, 1600, 2560],
-    "/media/stills/invalid-5.jpg":         [800, 1600, 2560],
+    "/media/projects/invalid/stills/invalid-1.jpg":         [800, 1600, 2560],
+    "/media/projects/invalid/stills/invalid-2.jpg":         [800, 1600, 2560],
+    "/media/projects/invalid/stills/invalid-3.jpg":         [800, 1600, 2560],
+    "/media/projects/invalid/stills/invalid-sourpatch.jpg": [800, 1600, 2560],
+    "/media/projects/invalid/stills/invalid-5.jpg":         [800, 1600, 2560],
 
-    "/media/stills/rev-earth-1.jpg":      [800, 1600, 2048],
-    "/media/stills/rev-earth-2.jpg":      [800, 1600, 2048],
-    "/media/stills/rev-heaven-1.jpg":     [800, 1600, 2048],
-    "/media/stills/rev-heaven-2.jpg":     [800, 1600, 2048],
-    "/media/stills/rev-michael-bar.jpg":  [800, 1600, 2048]
+    "/media/projects/rev/stills/rev-earth-1.jpg":      [800, 1600, 2048],
+    "/media/projects/rev/stills/rev-earth-2.jpg":      [800, 1600, 2048],
+    "/media/projects/rev/stills/rev-heaven-1.jpg":     [800, 1600, 2048],
+    "/media/projects/rev/stills/rev-heaven-2.jpg":     [800, 1600, 2048],
+    "/media/projects/rev/stills/rev-michael-bar.jpg":  [800, 1600, 2048]
   }
 }
