@@ -17,7 +17,7 @@
       "kicker": "Live-Action + 2D Animation Hybrid",
       "tagline": "Old Spy. New Mission.",
       "pageLogline": "Once the world's greatest superspy, <b>Agent M</b> is now old and decades past her prime. Now she takes on a new mission: using her old skills to escape her elderly nursing home, at any cost.",
-      "chips": [
+      "genre": [
         "Comedy / Action"
       ],
       "watch": {
@@ -52,7 +52,7 @@
       "kicker": "Live-Action + VFX Short",
       "tagline": "Even angels answer to management.",
       "pageLogline": "A surreal vision of Heaven and Earth, where angels work a vast office space and keep themselves quarantined from the sinful humans below. When the angel <b>Emmanuel</b> goes missing, his angelic manager <b>Michael</b> must descend to Earth to bring him back before they are both corrupted by the world they find there.",
-      "chips": [
+      "genre": [
         "Surreal Fantasy"
       ],
       "watch": {
@@ -78,7 +78,6 @@
       "title": "Invalid Opinion",
       "subtitle": "Comedy Short Sketch",
       "placeholder": false,
-      "logoText": "Invalid Opinion",
       "bubbleImage": "/media/projects/invalid/invalid-bubble.jpg",
       "titleLogo": "/media/projects/invalid/invalid-logo.png",
       "focusBg": "/media/projects/invalid/invalid-focus.jpg",
@@ -88,7 +87,7 @@
       "kicker": "Comedy Short",
       "tagline": "Everybody's a critic.",
       "pageLogline": "When a self-proclaimed <b>expert Redditor</b> stumbles on a distasteful meme, he does what any genius would: fires up his most advanced AI tech to engineer the <i>perfect</i> witty comeback. A fast, funny send-up of online self-importance, where <b>Tony Stonk</b> is never in doubt and never more wrong.",
-      "chips": [
+      "genre": [
         "Comedy"
       ],
       "watch": {
@@ -114,7 +113,6 @@
       "title": "More to come...",
       "subtitle": "Stay tuned",
       "placeholder": true,
-      "logoText": "More to come...",
       "focusBg": "/media/site/water.jpg",
       "cardLogline": "New worlds are in the works.",
       "blurb": "New worlds are in the works."

@@ -868,8 +868,8 @@ const __projects=__d[1].projects;
    switched off in Pages CMS. Absent === on, so existing projects (and any new one)
    default to showing. Turning it off removes it from the carousel ONLY - it keeps its
    place in the Projects grid and its own URL still works. */
-const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,focusVideo:p.focusVideo||'',characters:[],logline:p.cardLogline,logoText:p.logoText,placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
-const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,eyebrow:p.eyebrow,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,chips:p.chips||[],watch:p.watch,stills:p.stills||[],credits:p.credits}]));
+const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,focusVideo:p.focusVideo||'',characters:[],logline:p.cardLogline,placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
+const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,eyebrow:p.eyebrow,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,genre:p.genre||[],watch:p.watch,stills:p.stills||[],credits:p.credits}]));
 const TEAM=__d[2].team;
 const __pagesData=__d[3]||{pages:[]};
 
@@ -994,7 +994,7 @@ const INTERACTIVE=matchMedia('(hover:hover) and (pointer:fine)').matches;
    CAROUSEL.length, so hiding a project needs no other change. If every project is
    switched off, the carousel hides itself entirely rather than rendering an empty stage. */
 const CAROUSEL=PROJECTS.filter(p=>!p.placeholder&&p.inCarousel);
-function logoHTML(p){return p.logo?`<img src="${p.logo}" alt="${p.title} logo">`:`<div class="txt">${p.logoText||p.title}</div>`;}
+function logoHTML(p){return p.logo?`<img src="${p.logo}" alt="${p.title} logo">`:`<div class="txt">${p.title}</div>`;}
 
 /* grid bubbles (Projects page) */
 const grid=document.getElementById('grid');
@@ -1298,7 +1298,7 @@ function buildUniverse(key){
   const titleEl=s.logo?`<img class="u-logo" src="${s.logo}" alt="${String(s.title||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}">`:`<h2 class="u-title">${s.title}</h2>`;
   const watchHTML=renderWatch(s.watch);
   const stillsHTML=(s.stills&&s.stills.length)?`<div class="u-stills"><h3 class="stills-h">Stills</h3><div class="stills-grid">${s.stills.map(src=>`<button class="still" type="button" data-full="${stillFull(src)}" data-fallback="${stillFallback(src)}">${stillThumb(src)}</button>`).join('')}</div></div>`:'';
-  sec.innerHTML=`<div class="u-bg" style="background-image:url('${s.bg||SITE.water}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${s.eyebrow}</span></div><div class="u-hero"><div class="u-kicker">${s.kicker}</div>${titleEl}<div class="u-tagline">${s.tagline}</div><p class="u-logline">${s.logline}</p><div class="u-meta">${s.chips.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${s.credits}</div></div>${stillsHTML}</div>`;
+  sec.innerHTML=`<div class="u-bg" style="background-image:url('${s.bg||SITE.water}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${s.eyebrow}</span></div><div class="u-hero"><div class="u-kicker">${s.kicker}</div>${titleEl}<div class="u-tagline">${s.tagline}</div><p class="u-logline">${s.logline}</p><div class="u-meta">${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${s.credits}</div></div>${stillsHTML}</div>`;
   sec.querySelector('.back').addEventListener('click',()=>history.back());universes.appendChild(sec);return sec;
 }
 const built={};let currentOpen=null;
