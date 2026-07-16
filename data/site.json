@@ -1,5 +1,6 @@
 {
   "projectsPublicAccess": true,
+  "eyebrowTemplate": "{production} · {released}",
   "imageSpecs": "sRGB 8-bit only. Stills 2560x1440 (16:9). Backgrounds 2560x1440. Bubbles 1200x1200. Team 800x800. Logos = transparent PNG 1400px+. Under 600 KB. Video frames: Rec.709 LIMITED (16-235) must be expanded to FULL (0-255). Never upscale. See STILLS.md.",
   "logos": {
     "color": "/media/logos/rare-pond-color.png",

@@ -1,0 +1,137 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Template Preview - Rare Pond Studios</title>
+<!--
+  LIVE TEMPLATE PREVIEW. Lives at /admin/preview. Everything under /admin/ is
+  password-protected automatically by functions/_middleware.js.
+
+  Type a template with {variables}, pick a film, and see exactly what the website
+  would render - instantly, without waiting on a deploy. It reads the SAME data the
+  live site reads (data/projects.json + data/site.json) and uses the SAME fill logic
+  as index.html (projVars + fillVars). If you change that logic in index.html, mirror
+  it here, or this preview will drift from the real site.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#070d18;--card:#0e1728;--line:rgba(255,255,255,.12);--txt:#eaf2ff;--dim:#8ba6c9;--accent:#9b5cff;--ok:#5ddc9a;--warn:#ff6b6b}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:400 15px/1.6 Heebo,system-ui,sans-serif;padding:34px 22px 90px}
+  .wrap{max-width:960px;margin:0 auto}
+  .bn-rare{font-family:"Kaushan Script",cursive;font-size:20px;color:var(--accent);margin-bottom:2px}
+  h1{margin:0 0 8px;font-size:30px;font-weight:800}
+  .lead{color:var(--dim);max-width:720px;margin:0 0 22px}
+  .lead b{color:var(--txt)}
+  .row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
+  label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px}
+  select,textarea{background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:10px;font:400 15px/1.5 Heebo,sans-serif;padding:11px 13px}
+  select{min-width:230px;height:44px}
+  textarea{width:100%;min-height:80px;resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:14px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 4px}
+  .chip{background:#1b2942;border:1px solid var(--line);color:#bcd4f5;border-radius:20px;padding:5px 12px;font:700 12.5px ui-monospace,Menlo,monospace;cursor:pointer}
+  .chip:hover{background:#25375a;color:#fff}
+  .out{margin-top:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+  .out .k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:8px}
+  .rendered{font-size:22px;line-height:1.35;min-height:30px;word-break:break-word}
+  .rendered.empty{color:var(--dim);font-style:italic;font-size:15px}
+  .eyebrow-demo{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+  .eyebrow-demo .val{font-size:16px;color:#cfe3ff;font-weight:600}
+  h2{margin:34px 0 10px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--dim)}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th{text-align:left;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:10px 14px;border-bottom:1px solid var(--line);font-weight:800}
+  td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.var{font-family:ui-monospace,Menlo,monospace;color:#9fd0ff;white-space:nowrap}
+  td.empty{color:var(--dim);font-style:italic}
+  .note{color:var(--dim);font-size:13px;margin-top:8px}
+  .reload{background:#1b2942;color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:9px 15px;font:700 13px Heebo,sans-serif;cursor:pointer}
+  .reload:hover{background:#25375a}
+  .err{color:var(--warn)}
+</style></head><body><div class="wrap">
+  <div class="bn-rare">Rare Pond</div>
+  <h1>Template Preview</h1>
+  <p class="lead">Type any text with <b>{variables}</b> in curly braces, pick a film, and see exactly what the website would render - live, no deploy needed. Same data and same fill logic as the real site.</p>
+
+  <div class="row">
+    <div>
+      <label for="film">Film</label>
+      <select id="film"></select>
+    </div>
+    <div style="flex:1;min-width:260px">
+      <label for="tpl">Template (type here)</label>
+      <textarea id="tpl" spellcheck="false"></textarea>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+
+  <div class="out">
+    <div class="k">Renders on the website as</div>
+    <div class="rendered" id="rendered"></div>
+    <div class="eyebrow-demo">
+      <div class="k">This film's eyebrow (from Site Settings &rarr; Eyebrow template)</div>
+      <div class="val" id="eyebrow"></div>
+    </div>
+  </div>
+
+  <h2>This film's variable values</h2>
+  <table><thead><tr><th>Variable</th><th>Value for this film</th></tr></thead><tbody id="vars"></tbody></table>
+  <p class="note">Empty variables (and a separator left dangling next to them, like a stray " · ") are dropped automatically. These same variables work inside the NocoDB text fields too.</p>
+
+  <p style="margin-top:26px"><button class="reload" onclick="location.reload()">&#8635; Reload data</button></p>
+</div>
+<script>
+/* --- SAME logic as index.html (projVars + fillVars). Keep in sync. --- */
+function projVars(p){
+  var yr=(p.year!=null&&p.year!=='')?p.year:'';
+  return {title:p.title||'',year:yr,production:p.production||'',status:p.status||'',
+    kicker:p.kicker||'',tagline:p.tagline||'',blurb:p.blurb||'',genre:(p.genre||[]).join(', '),
+    released:(yr!==''?yr:(p.status||''))};
+}
+function fillVars(str,vars){
+  if(str==null) return '';
+  var out=String(str).replace(/\{(\w+)\}/g,function(m,k){return (vars&&vars[k]!=null&&vars[k]!=='')?vars[k]:'';});
+  out=out.replace(/\s*·\s*$/,'').replace(/^\s*·\s*/,'').replace(/\s{2,}/g,' ').trim();
+  return out;
+}
+var VAR_NAMES=['production','year','status','released','title','kicker','tagline','genre','blurb'];
+var projects=[],site={};
+var $film=document.getElementById('film'),$tpl=document.getElementById('tpl'),
+    $rendered=document.getElementById('rendered'),$eyebrow=document.getElementById('eyebrow'),
+    $vars=document.getElementById('vars'),$chips=document.getElementById('chips');
+
+function cur(){return projects[$film.value]||{};}
+function render(){
+  var p=cur(),v=projVars(p);
+  var t=$tpl.value;
+  var r=fillVars(t,v);
+  if(r===''){$rendered.className='rendered empty';$rendered.textContent='(nothing - the template is empty, or every variable in it is blank for this film)';}
+  else{$rendered.className='rendered';$rendered.textContent=r;}
+  $eyebrow.textContent=fillVars(site.eyebrowTemplate||'{production} · {released}',v)||'(blank)';
+  $vars.innerHTML=VAR_NAMES.map(function(n){
+    var val=v[n];
+    return '<tr><td class="var">{'+n+'}</td>'+(val===''||val==null?'<td class="empty">(blank)</td>':'<td>'+String(val).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})+'</td>')+'</tr>';
+  }).join('');
+}
+function insertChip(name){
+  var s=$tpl,a=s.selectionStart,b=s.selectionEnd,tok='{'+name+'}';
+  s.value=s.value.slice(0,a)+tok+s.value.slice(b);
+  s.selectionStart=s.selectionEnd=a+tok.length;s.focus();render();
+}
+Promise.all([
+  fetch('/data/projects.json').then(function(r){return r.json();}),
+  fetch('/data/site.json').then(function(r){return r.json();})
+]).then(function(res){
+  projects=(res[0].projects||res[0]);site=res[1]||{};
+  $film.innerHTML=projects.map(function(p,i){return '<option value="'+i+'">'+(p.title||p.key)+'</option>';}).join('');
+  $chips.innerHTML=VAR_NAMES.map(function(n){return '<button class="chip" type="button" data-n="'+n+'">{'+n+'}</button>';}).join('');
+  $chips.querySelectorAll('.chip').forEach(function(b){b.onclick=function(){insertChip(b.dataset.n);};});
+  $tpl.value=site.eyebrowTemplate||'This film was finished in {year}';
+  $film.onchange=render;$tpl.oninput=render;
+  render();
+}).catch(function(e){
+  document.querySelector('.out').innerHTML='<div class="err">Could not load site data: '+e+'</div>';
+});
+</script>
+</body></html>

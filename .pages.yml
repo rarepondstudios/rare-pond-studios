@@ -19,6 +19,11 @@ content:
         type: boolean
         default: true
         description: "ON (normal): visitors see the Projects page as usual. OFF: the page is closed - anyone who goes to rarepond.com/projects gets the 'back soon' cover instead (a random message from MAINTENANCE COVER), while the address, header and menus keep working so no links break and nobody is stranded. Everything returns the moment you switch it back on. Takes effect within about a minute of saving. (This switch used to live under Projects; it moved here because the project list itself is now managed in NocoDB.)"
+      - name: eyebrowTemplate
+        label: "🏷️ Eyebrow template (top-right label on every film's page)"
+        type: string
+        default: "{production} · {released}"
+        description: "Written ONCE here, applied to EVERY film - the site fills it in from each film's own data in NocoDB. Type plain text plus any {variable} in curly braces and the site swaps in that film's value. AVAILABLE VARIABLES: {production} (e.g. Rare Pond Studios), {year} (e.g. 2026 - blank until you set it in NocoDB), {status} (e.g. In Post-Production / Released), {released} (smart: the year if set, otherwise the status), {title}, {kicker}, {tagline}, {genre}. EXAMPLES: '{production} · {released}' shows 'Rare Pond Studios · 2026' (or '· In Post-Production' when there's no year yet); 'Finished in {year}' shows 'Finished in 2026'. Empty variables (and a separator left dangling next to them) are dropped automatically, so you never get a stray ' · '. TIP: preview any template live against a real film at rarepond.com/admin/preview before saving. These same {variables} also work inside the text fields in NocoDB (blurb, tagline, kicker, credits, page logline)."
       - name: logos
         label: Logos
         type: object

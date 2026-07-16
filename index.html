@@ -868,8 +868,28 @@ const __projects=__d[1].projects;
    switched off in Pages CMS. Absent === on, so existing projects (and any new one)
    default to showing. Turning it off removes it from the carousel ONLY - it keeps its
    place in the Projects grid and its own URL still works. */
-const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.subtitle,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,focusVideo:p.focusVideo||'',characters:[],logline:p.cardLogline,placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
-const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,eyebrow:p.eyebrow,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,genre:p.genre||[],watch:p.watch,stills:p.stills||[],credits:p.credits}]));
+/* ===== TEMPLATE VARIABLES =====
+   Every project's atomic facts, exposed so any text field (in NocoDB or the eyebrow
+   template in Pages CMS) can reference them as {name}. fillVars() substitutes them and
+   tidies up a separator left dangling by an empty value (e.g. "Studio · " when there is
+   no year yet). The full, authoritative list also lives in /admin/preview and the Pages
+   CMS cheat-sheet - keep those three in sync if you add a variable here. */
+function projVars(p){
+  var yr=(p.year!=null&&p.year!=='')?p.year:'';
+  return {title:p.title||'',year:yr,production:p.production||'',status:p.status||'',
+    kicker:p.kicker||'',tagline:p.tagline||'',blurb:p.blurb||'',genre:(p.genre||[]).join(', '),
+    released:(yr!==''?yr:(p.status||''))};
+}
+var VARS=Object.fromEntries(__projects.map(function(p){return [p.key,projVars(p)];}));
+function fillVars(str,vars){
+  if(str==null) return '';
+  var out=String(str).replace(/\{(\w+)\}/g,function(m,k){return (vars&&vars[k]!=null&&vars[k]!=='')?vars[k]:'';});
+  out=out.replace(/\s*·\s*$/,'').replace(/^\s*·\s*/,'').replace(/\s{2,}/g,' ').trim();
+  return out;
+}
+const EYEBROW_TPL=(SITE.eyebrowTemplate||'{production} · {released}');
+const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.kicker,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,focusVideo:p.focusVideo||'',characters:[],logline:p.blurb,placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
+const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,genre:p.genre||[],watch:p.watch,stills:p.stills||[],credits:p.credits,vars:VARS[p.key]}]));
 const TEAM=__d[2].team;
 const __pagesData=__d[3]||{pages:[]};
 
@@ -1007,7 +1027,7 @@ function makeGridBubble(p,i){
   if(!p.placeholder){bubble.setAttribute('role','button');bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','Open '+p.title);}
   const mediaHTML=p.placeholder?`<div class="bubble__media placeholder-fill"></div><div class="ph-logo" style="-webkit-mask:url('${SITE.logos.duckMark}') center/contain no-repeat;mask:url('${SITE.logos.duckMark}') center/contain no-repeat"></div><div class="ph-spin"></div>`
     :(p.poster?'<div class="bubble__media poster"></div>':`<img class="bubble__media" src="${p.img}" alt="${p.title}">`);
-  bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${p.sub}</div></div>`;
+  bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${fillVars(p.sub,VARS[p.key])}</div></div>`;
   bubble.addEventListener('pointermove',e=>{if(!INTERACTIVE)return;const r=bubble.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){bubble.style.setProperty('--mx',(px*100).toFixed(1)+'%');bubble.style.setProperty('--my',(py*100).toFixed(1)+'%');}const tm=7;bubble.style.setProperty('--tilty',((px-.5)*tm*2).toFixed(2)+'deg');bubble.style.setProperty('--tiltx',((.5-py)*tm*2).toFixed(2)+'deg');});
   bubble.addEventListener('pointerleave',()=>{if(INTERACTIVE){bubble.style.setProperty('--mx','73%');bubble.style.setProperty('--my','26%');bubble.style.setProperty('--tiltx','0deg');bubble.style.setProperty('--tilty','0deg');}});
   if(!p.placeholder){
@@ -1083,7 +1103,7 @@ function focusHTML(p){
      and the rim glow no matter what z-index it is given. Keeping the text outside is
      what lets it actually sit in front of the glow. */
   return `<div class="focus-view">${bg}<div class="focus-scrim"></div></div>`
-       + `<div class="focus-content"><div class="focus-eyebrow">${p.sub}</div><p class="focus-logline">${p.logline||p.blurb}</p></div>`;
+       + `<div class="focus-content"><div class="focus-eyebrow">${fillVars(p.sub,VARS[p.key])}</div><p class="focus-logline">${fillVars(p.logline||p.blurb,VARS[p.key])}</p></div>`;
 }
 const citems=CAROUSEL.map((p,i)=>{
   const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',accentFor(p.key));
@@ -1298,7 +1318,7 @@ function buildUniverse(key){
   const titleEl=s.logo?`<img class="u-logo" src="${s.logo}" alt="${String(s.title||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}">`:`<h2 class="u-title">${s.title}</h2>`;
   const watchHTML=renderWatch(s.watch);
   const stillsHTML=(s.stills&&s.stills.length)?`<div class="u-stills"><h3 class="stills-h">Stills</h3><div class="stills-grid">${s.stills.map(src=>`<button class="still" type="button" data-full="${stillFull(src)}" data-fallback="${stillFallback(src)}">${stillThumb(src)}</button>`).join('')}</div></div>`:'';
-  sec.innerHTML=`<div class="u-bg" style="background-image:url('${s.bg||SITE.water}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${s.eyebrow}</span></div><div class="u-hero"><div class="u-kicker">${s.kicker}</div>${titleEl}<div class="u-tagline">${s.tagline}</div><p class="u-logline">${s.logline}</p><div class="u-meta">${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${s.credits}</div></div>${stillsHTML}</div>`;
+  sec.innerHTML=`<div class="u-bg" style="background-image:url('${s.bg||SITE.water}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p><div class="u-meta">${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${fillVars(s.credits,s.vars)}</div></div>${stillsHTML}</div>`;
   sec.querySelector('.back').addEventListener('click',()=>history.back());universes.appendChild(sec);return sec;
 }
 const built={};let currentOpen=null;
