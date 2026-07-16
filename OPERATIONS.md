@@ -28,6 +28,11 @@ Push to `main` → live in about a minute. There is no staging environment.
 forms. Saving there commits to GitHub, which redeploys. Sections: Site Settings, Color Looks,
 Projects, Team, Rentals page, Form input types, Custom Pages.
 
+**Recurring maintenance — the n8n GitHub token expires.** n8n commits the projects
+catalogue to this repo using a GitHub PAT that has an expiry date. When it lapses, the
+projects export silently stops. A desktop reminder fires ~8 days before, and the full
+recovery procedure lives in [`tools/ROTATE-GITHUB-PAT.md`](tools/ROTATE-GITHUB-PAT.md).
+
 ---
 
 ## The rental pipeline (the part with moving parts)
