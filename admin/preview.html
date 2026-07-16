@@ -49,6 +49,12 @@
   .reload{background:#1b2942;color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:9px 15px;font:700 13px Heebo,sans-serif;cursor:pointer}
   .reload:hover{background:#25375a}
   .err{color:var(--warn)}
+  .sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+  .sec-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:8px}
+  .sec-tpl{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#9fd0ff;background:#0b1424;border:1px solid var(--line);border-radius:8px;padding:7px 10px;word-break:break-word}
+  .sec-arrow{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:800;margin:8px 0 6px}
+  .sec-out{font-size:17px;line-height:1.4;color:var(--txt);word-break:break-word}
+  .sec-empty{color:var(--dim);font-style:italic;font-size:14px}
 </style></head><body><div class="wrap">
   <div class="bn-rare">Rare Pond</div>
   <h1>Template Preview</h1>
@@ -75,6 +81,10 @@
     </div>
   </div>
 
+  <h2>Your live section templates (edit these in Pages CMS &rarr; Site Settings)</h2>
+  <div id="sections"></div>
+  <p class="note">These are the actual template fields from Site Settings, each filled with the selected film's data exactly as the website renders it right now. Change the <b>template</b> in Pages CMS; change the <b>values</b> in NocoDB.</p>
+
   <h2>This film's variable values</h2>
   <table><thead><tr><th>Variable</th><th>Value for this film</th></tr></thead><tbody id="vars"></tbody></table>
   <p class="note">Empty variables (and a separator left dangling next to them, like a stray " · ") are dropped automatically. These same variables work inside the NocoDB text fields too.</p>
@@ -96,10 +106,18 @@ function fillVars(str,vars){
   return out;
 }
 var VAR_NAMES=['production','year','status','released','title','kicker','tagline','genre','blurb'];
+var SECTION_TPLS=[
+  {key:'eyebrowTemplate',def:'{production} · {released}',label:'Project page — eyebrow (top-right label)'},
+  {key:'cardEyebrowTemplate',def:'{kicker}',label:'Home featured card — small line above title'},
+  {key:'cardLoglineTemplate',def:'{blurb}',label:'Home featured card — one-liner under title'},
+  {key:'gridCaptionTemplate',def:'{kicker}',label:'Projects grid — caption under each tile'}
+];
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
 var projects=[],site={};
 var $film=document.getElementById('film'),$tpl=document.getElementById('tpl'),
     $rendered=document.getElementById('rendered'),$eyebrow=document.getElementById('eyebrow'),
-    $vars=document.getElementById('vars'),$chips=document.getElementById('chips');
+    $vars=document.getElementById('vars'),$chips=document.getElementById('chips'),
+    $sections=document.getElementById('sections');
 
 function cur(){return projects[$film.value]||{};}
 function render(){
@@ -109,6 +127,14 @@ function render(){
   if(r===''){$rendered.className='rendered empty';$rendered.textContent='(nothing - the template is empty, or every variable in it is blank for this film)';}
   else{$rendered.className='rendered';$rendered.textContent=r;}
   $eyebrow.textContent=fillVars(site.eyebrowTemplate||'{production} · {released}',v)||'(blank)';
+  $sections.innerHTML=SECTION_TPLS.map(function(t){
+    var tpl=(site[t.key]!=null&&site[t.key]!=='')?site[t.key]:t.def;
+    var o=fillVars(tpl,v);
+    return '<div class="sec"><div class="sec-label">'+t.label+'</div>'
+      +'<div class="sec-tpl">'+esc(tpl)+'</div>'
+      +'<div class="sec-arrow">renders as</div>'
+      +'<div class="sec-out">'+(o===''?'<span class="sec-empty">(blank for this film)</span>':esc(o))+'</div></div>';
+  }).join('');
   $vars.innerHTML=VAR_NAMES.map(function(n){
     var val=v[n];
     return '<tr><td class="var">{'+n+'}</td>'+(val===''||val==null?'<td class="empty">(blank)</td>':'<td>'+String(val).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})+'</td>')+'</tr>';

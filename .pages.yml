@@ -24,6 +24,21 @@ content:
         type: string
         default: "{production} · {released}"
         description: "Written ONCE here, applied to EVERY film - the site fills it in from each film's own data in NocoDB. Type plain text plus any {variable} in curly braces and the site swaps in that film's value. AVAILABLE VARIABLES: {production} (e.g. Rare Pond Studios), {year} (e.g. 2026 - blank until you set it in NocoDB), {status} (e.g. In Post-Production / Released), {released} (smart: the year if set, otherwise the status), {title}, {kicker}, {tagline}, {genre}. EXAMPLES: '{production} · {released}' shows 'Rare Pond Studios · 2026' (or '· In Post-Production' when there's no year yet); 'Finished in {year}' shows 'Finished in 2026'. Empty variables (and a separator left dangling next to them) are dropped automatically, so you never get a stray ' · '. TIP: preview any template live against a real film at rarepond.com/admin/preview before saving. These same {variables} also work inside the text fields in NocoDB (blurb, tagline, kicker, credits, page logline)."
+      - name: cardEyebrowTemplate
+        label: "🏷️ Home card — small line above the title"
+        type: string
+        default: "{kicker}"
+        description: "The little uppercase line on the FEATURED (center) card of the home carousel. Written ONCE here, applied to every featured film - the site fills it in from that film's data in NocoDB. Type plain text plus any {variable}: {title}, {year}, {production}, {status}, {released} (year if set, else status), {kicker}, {tagline}, {genre}, {blurb}. Default '{kicker}' just shows the film's kicker. EXAMPLE: '{production} · {released}' would show 'Rare Pond Studios · 2026'. Empty variables (and a stray separator next to them) drop out automatically. Preview live at rarepond.com/admin/preview."
+      - name: cardLoglineTemplate
+        label: "🏷️ Home card — one-liner under the title"
+        type: string
+        default: "{blurb}"
+        description: "The sentence shown on the FEATURED (center) card of the home carousel. Written ONCE here, applied to every featured film. Type plain text plus any {variable}: {title}, {year}, {production}, {status}, {released}, {kicker}, {tagline}, {genre}, {blurb}. Default '{blurb}' shows the film's short blurb. Empty variables drop out automatically. Preview live at rarepond.com/admin/preview."
+      - name: gridCaptionTemplate
+        label: "🏷️ Projects grid — caption under each tile"
+        type: string
+        default: "{kicker}"
+        description: "The small caption under each bubble in the Projects grid / carousel. Written ONCE here, applied to every film. Type plain text plus any {variable}: {title}, {year}, {production}, {status}, {released}, {kicker}, {tagline}, {genre}, {blurb}. Default '{kicker}' shows the film's kicker. EXAMPLE: '{genre} · {year}' would show 'Sci-Fi · 2026'. Empty variables (and stray separators) drop out automatically. Preview live at rarepond.com/admin/preview."
       - name: logos
         label: Logos
         type: object

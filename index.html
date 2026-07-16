@@ -888,6 +888,9 @@ function fillVars(str,vars){
   return out;
 }
 const EYEBROW_TPL=(SITE.eyebrowTemplate||'{production} · {released}');
+const CARD_EYEBROW_TPL=(SITE.cardEyebrowTemplate||'{kicker}');
+const CARD_LOGLINE_TPL=(SITE.cardLoglineTemplate||'{blurb}');
+const GRID_CAPTION_TPL=(SITE.gridCaptionTemplate||'{kicker}');
 const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.kicker,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,focusVideo:p.focusVideo||'',characters:[],logline:p.blurb,placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
 const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,genre:p.genre||[],watch:p.watch,stills:p.stills||[],credits:p.credits,vars:VARS[p.key]}]));
 const TEAM=__d[2].team;
@@ -1027,7 +1030,7 @@ function makeGridBubble(p,i){
   if(!p.placeholder){bubble.setAttribute('role','button');bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','Open '+p.title);}
   const mediaHTML=p.placeholder?`<div class="bubble__media placeholder-fill"></div><div class="ph-logo" style="-webkit-mask:url('${SITE.logos.duckMark}') center/contain no-repeat;mask:url('${SITE.logos.duckMark}') center/contain no-repeat"></div><div class="ph-spin"></div>`
     :(p.poster?'<div class="bubble__media poster"></div>':`<img class="bubble__media" src="${p.img}" alt="${p.title}">`);
-  bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${fillVars(p.sub,VARS[p.key])}</div></div>`;
+  bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${fillVars(GRID_CAPTION_TPL,VARS[p.key])}</div></div>`;
   bubble.addEventListener('pointermove',e=>{if(!INTERACTIVE)return;const r=bubble.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){bubble.style.setProperty('--mx',(px*100).toFixed(1)+'%');bubble.style.setProperty('--my',(py*100).toFixed(1)+'%');}const tm=7;bubble.style.setProperty('--tilty',((px-.5)*tm*2).toFixed(2)+'deg');bubble.style.setProperty('--tiltx',((.5-py)*tm*2).toFixed(2)+'deg');});
   bubble.addEventListener('pointerleave',()=>{if(INTERACTIVE){bubble.style.setProperty('--mx','73%');bubble.style.setProperty('--my','26%');bubble.style.setProperty('--tiltx','0deg');bubble.style.setProperty('--tilty','0deg');}});
   if(!p.placeholder){
@@ -1103,7 +1106,7 @@ function focusHTML(p){
      and the rim glow no matter what z-index it is given. Keeping the text outside is
      what lets it actually sit in front of the glow. */
   return `<div class="focus-view">${bg}<div class="focus-scrim"></div></div>`
-       + `<div class="focus-content"><div class="focus-eyebrow">${fillVars(p.sub,VARS[p.key])}</div><p class="focus-logline">${fillVars(p.logline||p.blurb,VARS[p.key])}</p></div>`;
+       + `<div class="focus-content"><div class="focus-eyebrow">${fillVars(CARD_EYEBROW_TPL,VARS[p.key])}</div><p class="focus-logline">${fillVars(CARD_LOGLINE_TPL,VARS[p.key])}</p></div>`;
 }
 const citems=CAROUSEL.map((p,i)=>{
   const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',accentFor(p.key));
