@@ -30,7 +30,7 @@
         "/media/projects/geri/stills/geri-nursing-2.jpg",
         "/media/projects/geri/stills/geri-madeline.jpg"
       ],
-      "credits": "Directed & Written By: Jack Carlsen - Loyola Marymount University\nStarring: Cameron Quinn - Rachael DeBoer - Kennedy Porter - Adam Kezele",
+      "credits": "Directed & Written By: Jack Carlsen\nLoyola Marymount University\nStarring: Cameron Quinn - Rachael DeBoer - Kennedy Porter - Adam Kezele",
       "blurb": "The world's greatest superspy is now old and decades past her prime, and she'll break out of her nursing home at any cost."
     },
     {
@@ -60,7 +60,7 @@
         "/media/projects/rev/stills/rev-heaven-1.jpg",
         "/media/projects/rev/stills/rev-heaven-2.jpg"
       ],
-      "credits": "Directed & Written By: Jack Carlsen - Loyola Marymount University\nStarring: Lawrence Lacey - Jesse Shafroth - John Klenk - Trinity Medina",
+      "credits": "Directed & Written By: Jack Carlsen\nLoyola Marymount University\nStarring: Lawrence Lacey - Jesse Shafroth - John Klenk - Trinity Medina",
       "blurb": "Angels work a vast Heaven office, quarantined from the sinful world below. When the angel Emmanuel goes missing, his manager Michael must descend to Earth to bring him back."
     },
     {
@@ -103,32 +103,6 @@
       "placeholder": true,
       "focusBg": "/media/site/water.jpg",
       "blurb": "New worlds are in the works."
-    },
-    {
-      "key": "testproject",
-      "colorLook": "signature",
-      "bubbleGlow": true,
-      "inCarousel": true,
-      "title": "Test Project",
-      "placeholder": false,
-      "bubbleImage": "/media/projects/invalid/invalid-bubble.jpg",
-      "focusBg": "/media/projects/invalid/invalid-focus.jpg",
-      "kicker": "Pipeline Test",
-      "tagline": "Proving the automation works.",
-      "production": "Rare Pond Studios",
-      "status": "Coming Soon",
-      "year": 2026,
-      "pageLogline": "This is a test entry. If you can read this on the live website, a brand-new NocoDB row propagated end-to-end with no manual steps.",
-      "genre": [
-        "Test",
-        "Demo"
-      ],
-      "stills": [
-        "/media/projects/invalid/stills/invalid-1.jpg",
-        "/media/projects/invalid/stills/invalid-2.jpg"
-      ],
-      "credits": "Directed By: Test Director\nStarring: Test Actor One - Test Actor Two\nSound: Test Person",
-      "blurb": "A temporary test project created straight from NocoDB to confirm a brand-new row flows to the live site automatically."
     }
   ]
 }
