@@ -1342,11 +1342,11 @@ document.addEventListener('click',e=>{const b=e.target.closest('.still');if(b)op
 document.addEventListener('click',e=>{const f=e.target.closest('.yt-facade');if(f){const id=f.dataset.id;const ifr=document.createElement('iframe');ifr.src='https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0&playsinline=1';ifr.title='Watch on YouTube';ifr.setAttribute('allow','accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share');ifr.setAttribute('allowfullscreen','');ifr.setAttribute('referrerpolicy','strict-origin-when-cross-origin');f.replaceWith(ifr);}});
 document.addEventListener('click',e=>{const f=e.target.closest('.vim-facade');if(f){const id=f.dataset.id;const ifr=document.createElement('iframe');ifr.src='https://player.vimeo.com/video/'+id+'?autoplay=1&title=0&byline=0&portrait=0';ifr.title='Watch on Vimeo';ifr.setAttribute('allow','autoplay;fullscreen;picture-in-picture');ifr.setAttribute('allowfullscreen','');ifr.setAttribute('referrerpolicy','strict-origin-when-cross-origin');f.replaceWith(ifr);}});
 /* ---- Where to Watch + per-project social links ----
-   From NocoDB: watch_youtube, watch_vimeo (film links), watch_status (availability
-   note shown only when there's no film link yet), social_links (one URL per line -
-   the project's social pages, platform auto-detected for the icon). A valid YouTube
-   or Vimeo URL becomes a play button + click-to-load embed. buildWatch also falls
-   back to the legacy `watch` JSON so nothing breaks mid-migration. */
+   From NocoDB: watch (one link per line - paste a YouTube and/or Vimeo URL, platform
+   auto-detected per line), status (availability note shown only when there's no watch
+   link yet, e.g. "In Post-Production"), social_links (one URL per line - the project's
+   social pages, platform auto-detected for the icon). A valid YouTube or Vimeo URL
+   becomes a play button + click-to-load embed. */
 function _wEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function _wUrl(u){return /^https?:\/\//i.test(String(u||''))?String(u):'';}
 function ytId(u){const m=String(u||'').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/);return m?m[1]:'';}
@@ -1359,10 +1359,8 @@ function detectNet(u){
 }
 function buildWatch(p){
   // ONE `watch` field: paste a YouTube and/or Vimeo link, one per line - the site
-  // detects the platform from each URL. Falls back to the older split watchYoutube/
-  // watchVimeo fields during a data migration so nothing breaks mid-change.
-  let watch=(typeof p.watch==='string')?p.watch:'';
-  if(!watch){ watch=[p.watchYoutube,p.watchVimeo].filter(Boolean).join('\n'); }
+  // detects the platform from each URL.
+  const watch=(typeof p.watch==='string')?p.watch:'';
   // The availability line (shown only when there's no watch link) is the film's own
   // status - e.g. "In Post-Production", "Coming To Festivals". One field, no duplicate.
   const status=p.status||'';
