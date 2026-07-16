@@ -703,15 +703,28 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .watch-btns{display:flex;gap:12px;flex-wrap:wrap}
   .watch-btn.vimeo{background:linear-gradient(135deg,#1ab7ea,#1281c4);box-shadow:0 10px 26px rgba(20,130,200,.45)}
   .watch-btn.vimeo:hover{box-shadow:0 14px 34px rgba(20,130,200,.6)}
+  .watch-btn.generic{background:linear-gradient(135deg,#5a6b8c,#3f4d69);box-shadow:0 10px 26px rgba(40,55,90,.45)}
+  .watch-btn.generic:hover{box-shadow:0 14px 34px rgba(40,55,90,.6)}
   .vim-facade{position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;cursor:pointer;display:grid;place-items:center;background:radial-gradient(120% 120% at 50% 40%,#12384d,#081019)}
   .vim-facade::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.36))}
   .vim-facade .yt-play{background:rgba(26,183,234,.95)}
   .vim-facade:hover .yt-play{transform:scale(1.08);background:#1ab7ea}
   .proj-socials{margin:22px 0 0;display:flex;flex-direction:column;align-items:flex-start;gap:11px}
   .proj-soc-row{display:flex;gap:12px;flex-wrap:wrap}
-  .proj-soc{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#eef4ff;transition:.18s}
-  .proj-soc:hover{transform:translateY(-2px);background:rgba(255,255,255,.16)}
+  .proj-soc{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#eef4ff;transition:transform .18s,background .18s,box-shadow .18s,color .18s,border-color .18s}
+  .proj-soc:hover{transform:translateY(-3px)}
   .proj-soc svg{width:20px;height:20px;fill:currentColor}
+  /* Per-platform brand colour + glow on hover, to pull the eye toward the film's socials
+     (same idea as the always-red YouTube watch button). */
+  .proj-soc[data-net=ig]:hover{color:#fff;background:linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7);border-color:transparent;box-shadow:0 0 20px rgba(238,42,123,.65),0 8px 22px rgba(190,40,120,.5)}
+  .proj-soc[data-net=yt]:hover{color:#fff;background:#ff0000;border-color:transparent;box-shadow:0 0 20px rgba(255,0,0,.7)}
+  .proj-soc[data-net=tiktok]:hover{color:#fff;background:#111;border-color:transparent;box-shadow:0 0 20px rgba(37,244,238,.55),0 0 12px rgba(254,44,85,.6)}
+  .proj-soc[data-net=x]:hover{color:#fff;background:#000;border-color:transparent;box-shadow:0 0 20px rgba(140,140,140,.6)}
+  .proj-soc[data-net=fb]:hover{color:#fff;background:#1877f2;border-color:transparent;box-shadow:0 0 20px rgba(24,119,242,.7)}
+  .proj-soc[data-net=threads]:hover{color:#fff;background:#000;border-color:transparent;box-shadow:0 0 20px rgba(170,170,170,.6)}
+  .proj-soc[data-net=vimeo]:hover{color:#fff;background:#1ab7ea;border-color:transparent;box-shadow:0 0 20px rgba(26,183,234,.7)}
+  .proj-soc[data-net=li]:hover{color:#fff;background:#0a66c2;border-color:transparent;box-shadow:0 0 20px rgba(10,102,194,.7)}
+  .proj-soc[data-net=web]:hover{color:#fff;background:#9b5cff;border-color:transparent;box-shadow:0 0 20px rgba(155,92,255,.65)}
   /* ===== v24: About-logo film-still orbit bubbles ===== */
   .about-logo{position:relative}
   .about-logo .about-bubble{position:relative;z-index:2}
@@ -1345,19 +1358,25 @@ function detectNet(u){
   return {icon:'web',label:'Website'};
 }
 function buildWatch(p){
-  const w=p.watch||{};
-  // Watch links come from the flat fields (export) or a watch object (older exports).
-  let yt=p.watchYoutube||w.youtube||'', vim=p.watchVimeo||w.vimeo||'', socials=p.socialLinks||w.socials||'';
+  // ONE `watch` field: paste a YouTube and/or Vimeo link, one per line - the site
+  // detects the platform from each URL. Falls back to the older split watchYoutube/
+  // watchVimeo fields during a data migration so nothing breaks mid-change.
+  let watch=(typeof p.watch==='string')?p.watch:'';
+  if(!watch){ watch=[p.watchYoutube,p.watchVimeo].filter(Boolean).join('\n'); }
   // The availability line (shown only when there's no watch link) is the film's own
   // status - e.g. "In Post-Production", "Coming To Festivals". One field, no duplicate.
-  let status=p.status||w.status||p.watchStatus||'';
-  // Legacy {type,url,id,text,ig} fallback, so nothing breaks mid-migration.
-  if(!yt&&!vim&&!socials&&!(p.status||w.status)){
-    if(w.type==='youtube') yt=w.url||(w.id?('https://youtu.be/'+w.id):'');
-    else if(w.text) status=w.text;
-    if(w.ig) socials='https://www.instagram.com/'+w.ig+'/';
-  }
-  return {yt:yt,vim:vim,status:status,socials:socials};
+  const status=p.status||'';
+  const socials=p.socialLinks||'';
+  return {watch:watch,status:status,socials:socials};
+}
+/* Split the watch field into links and auto-detect each one's platform. */
+function parseWatchLinks(raw){
+  const urls=String(raw||'').split(/[\r\n]+/).map(s=>s.trim()).filter(s=>_wUrl(s));
+  return urls.map(u=>{
+    const y=ytId(u); if(y) return {net:'youtube',id:y,url:u};
+    const v=vimeoId(u); if(v) return {net:'vimeo',id:v,url:u};
+    return {net:'link',id:'',url:u};
+  });
 }
 function renderSocials(raw){
   const urls=String(raw||'').split(/[\r\n,]+/).map(s=>s.trim()).filter(s=>_wUrl(s));
@@ -1367,12 +1386,17 @@ function renderSocials(raw){
 }
 function renderWatch(w){
   if(!w) return '';
-  const yid=ytId(w.yt), vid=vimeoId(w.vim);
-  let btns='', embed='';
-  if(yid) btns+=`<a class="watch-btn" href="${_wEsc(_wUrl(w.yt))}" target="_blank" rel="noopener">▶ Watch on YouTube</a>`;
-  if(vid) btns+=`<a class="watch-btn vimeo" href="${_wEsc(_wUrl(w.vim))}" target="_blank" rel="noopener">▶ Watch on Vimeo</a>`;
-  if(yid) embed=`<div class="u-embed"><button class="yt-facade" type="button" data-id="${yid}" aria-label="Play video on YouTube" style="background-image:url('https://i.ytimg.com/vi/${yid}/hqdefault.jpg')"><span class="yt-play"></span></button></div>`;
-  else if(vid) embed=`<div class="u-embed"><button class="vim-facade" type="button" data-id="${vid}" aria-label="Play video on Vimeo"><span class="yt-play"></span></button></div>`;
+  const links=parseWatchLinks(w.watch);
+  let btns='';
+  links.forEach(L=>{
+    if(L.net==='youtube') btns+=`<a class="watch-btn" href="${_wEsc(L.url)}" target="_blank" rel="noopener">▶ Watch on YouTube</a>`;
+    else if(L.net==='vimeo') btns+=`<a class="watch-btn vimeo" href="${_wEsc(L.url)}" target="_blank" rel="noopener">▶ Watch on Vimeo</a>`;
+    else btns+=`<a class="watch-btn generic" href="${_wEsc(L.url)}" target="_blank" rel="noopener">▶ Watch</a>`;
+  });
+  const yt=links.find(L=>L.net==='youtube'), vim=links.find(L=>L.net==='vimeo');
+  let embed='';
+  if(yt) embed=`<div class="u-embed"><button class="yt-facade" type="button" data-id="${yt.id}" aria-label="Play video on YouTube" style="background-image:url('https://i.ytimg.com/vi/${yt.id}/hqdefault.jpg')"><span class="yt-play"></span></button></div>`;
+  else if(vim) embed=`<div class="u-embed"><button class="vim-facade" type="button" data-id="${vim.id}" aria-label="Play video on Vimeo"><span class="yt-play"></span></button></div>`;
   let body='';
   if(btns) body=`<div class="watch-btns">${btns}</div>${embed}`;
   else if(w.status) body=`<div class="watch-status">${_wEsc(w.status)}</div>`;
