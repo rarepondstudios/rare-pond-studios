@@ -117,7 +117,7 @@ const COVERABLE = [
   { match: (p) => p === '/team',
     flag: '/data/team.json', key: 'publicAccess', covers: 'studio', name: 'Our Team' },
   { match: (p) => p === '/projects',
-    flag: '/data/projects.json', key: 'publicAccess', covers: 'studio', name: 'Projects' },
+    flag: '/data/site.json', key: 'projectsPublicAccess', covers: 'studio', name: 'Projects' },
 ];
 
 /* CUSTOM PAGES are not a fixed list - you add them in Pages CMS - so they cannot be rows in

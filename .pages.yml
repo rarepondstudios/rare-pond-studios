@@ -14,6 +14,11 @@ content:
         type: text
         readonly: true
         description: "COLOR (applies to EVERY image): export sRGB, 8-bit. Do NOT export Display P3 or Adobe RGB - browsers will render them wrong (usually oversaturated). If you are exporting a frame from a video: video is Rec.709 and usually LIMITED range (16-235); it must be converted to sRGB FULL range (0-255), or blacks look milky and washed out. || SIZES: Film stills 2560x1440 (16:9). Page/feature backgrounds 2560x1440. Project bubbles 1200x1200 square. Team photos 800x800 square. Logos: transparent PNG, 1400 px+. Header duck mark 512x512 PNG. || FORMAT: photos = JPG or WebP (WebP preferred, ~30% smaller). Anything needing transparency = PNG. Keep every file under 600 KB. || NEVER UPSCALE a small image to hit these numbers - it just adds blur and weight. Better a sharp 1600 px file than a soft fake 2560. || Full detail + the stills pipeline: see STILLS.md and README.md in the repo."
+      - name: projectsPublicAccess
+        label: "🚧 Projects page is OPEN to the public"
+        type: boolean
+        default: true
+        description: "ON (normal): visitors see the Projects page as usual. OFF: the page is closed - anyone who goes to rarepond.com/projects gets the 'back soon' cover instead (a random message from MAINTENANCE COVER), while the address, header and menus keep working so no links break and nobody is stranded. Everything returns the moment you switch it back on. Takes effect within about a minute of saving. (This switch used to live under Projects; it moved here because the project list itself is now managed in NocoDB.)"
       - name: logos
         label: Logos
         type: object
@@ -178,64 +183,24 @@ content:
           - { name: note, label: Note, type: text }
 
   - name: projects
-    label: "Projects — page toggle (list now lives in NocoDB)"
+    label: "Projects — reference (edit in NocoDB)"
     type: file
     path: data/projects.json
     fields:
-      - name: publicAccess
-        label: "🚧 Projects page is OPEN to the public"
-        type: boolean
-        default: true
-        description: "ON (normal): visitors see the page as usual. OFF: the page is closed - anyone who goes to rarepond.com/projects gets the 'back soon' cover instead, with a random message from MAINTENANCE COVER. The address stays the same, so links you have already shared are not broken and everything comes straight back the moment you switch this on again. The header and menus still work on the cover, so nobody is stranded. Takes effect within about a minute of committing."
       - name: cmsNote
-        label: "ℹ️ Where projects are edited now"
+        label: "ℹ️ Projects are edited in NocoDB now"
         type: string
         readonly: true
-        description: "Projects are now managed in the shared database via NocoDB (http://localhost:8080) - that is where you add a project, edit its content, and tick which sites show it (Rare Pond / jackcarlsen / Corporate). A background sync rebuilds this file from the database automatically, so the list below is a READ-ONLY MIRROR: anything you change in it here is overwritten within a few minutes. The ONLY control on this screen you should use is the 'Projects page is OPEN to the public' switch above (the sync preserves it). Colour palettes still live in COLOR LOOKS exactly as before - a new Rare Pond project uses the 'signature' look until you make it its own."
+        description: "Projects live in the shared database and are edited in NocoDB (http://localhost:8080): content, images, which sites show each one, colour look, carousel and glow toggles, and order. A background sync rebuilds the site from there automatically. THIS SCREEN IS READ-ONLY - it just lists each Rare Pond project by name, its linked colour look, and its bubble image so you can identify them; there is nothing to edit here. To open or close the whole Projects page, use SITE SETTINGS and the 'Projects page is OPEN to the public' switch. Colour palettes still live in COLOR LOOKS."
       - name: projects
-        label: "Projects (read-only mirror - edit in NocoDB)"
+        label: "Projects on Rare Pond (read-only - to identify only)"
         type: object
         list: true
         readonly: true
         fields:
-          - { name: key, label: "ID (url-safe, e.g. geri)", type: string,
-              description: "This ID is how the film is linked to its colors. To change this film's look (accent, background tints, kicker, tagline), go to COLOR LOOKS and open the Project entry whose 'Linked project key' matches this ID. There is nothing color-related on this screen." }
-          - { name: colorLook, label: "Linked color look", type: string,
-              description: "The name (ID) of a look in COLOR LOOKS. That look's colors are applied here. Type it exactly as the look's ID (e.g. signature, rainbow, red, geri). If it does not match a real look, nothing is applied and the built-in colors are used - open the Color Looks preview page, it flags any broken link in red. For a film, use a Film look (it carries the accent, background washes and typography)." }
-          - { name: bubbleGlow, label: "↳ Bubble glow uses this look", type: boolean, default: false,
-              description: "THIS ONLY AFFECTS HOVER. Sitting there untouched, this film's bubble always glows the standard Rare Pond blue/purple, exactly like every other bubble on the site - that never changes. OFF (normal): hovering the bubble just brightens that same signature glow. ON: hovering the bubble fades its glow over to the look chosen above - Color 1, 2 and 3 become the three colors of the pinwheel - and it fades back when you move away - the whole glow changes together: the halo behind the bubble, the glow around it, and the ring of light over the artwork itself. It applies to EVERY bubble for this film at once: the one on the home carousel and the one in the Projects section, so they can never look different from each other. If the linked look is a special one (Rainbow), the hover glow becomes that animated colorway instead." }
-          - { name: inCarousel, label: "Show in the home-page carousel", type: boolean, default: true,
-              description: "ON (normal): the film appears in the big rotating carousel on the home page. OFF: it is removed from the carousel only - it still appears in the Projects section and its own page still works at its usual address, so any link you have shared keeps working. Use this to quiet down a film without unpublishing it. The carousel adjusts itself: dots, arrows and swiping all follow." }
-          - { name: title, label: Title, type: string }
-          - { name: subtitle, label: Card subtitle / genre line, type: string }
-          - { name: placeholder, label: Coming-soon placeholder bubble, type: boolean }
-          - { name: logoText, label: "↳ Text inside the coming-soon bubble", type: string, description: "Only used when the toggle above is ON. Real films show their Title logo here instead, so this is ignored for them." }
-          - { name: bubbleImage, label: Bubble image, type: image, description: "SPECS: square, 1200x1200 px, JPG, under 350 KB. Masked into a circle - keep the subject centred and away from the corners. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
-          - { name: titleLogo, label: Title logo (transparent PNG), type: image, description: "SPECS: transparent PNG, about 1600 px wide, under 500 KB. Must read against a dark background. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
-          - { name: focusBg, label: Feature / page background, type: image, description: "SPECS: JPG or WebP, 2560x1440 px (16:9), under 600 KB. Scaled to cover and darkened behind text - pick something without important detail at the edges. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
-          - { name: focusVideo, label: "↳ Feature card video (optional)", type: file, description: "OPTIONAL. A short silent clip that plays INSIDE THE BIG CARD on the home carousel, in place of the background image above. Leave it empty and nothing changes. The image above is ALWAYS the fallback: it stays underneath, and the video only appears once the browser confirms it can play the whole thing without stopping to buffer - so on a slow connection, or if the file is ever broken, visitors just see the picture, never a stall or a black box. It plays muted and on a loop, and only ever on the big card (the small side bubbles keep the image). EXPORT SETTINGS - H.264 (x264) MP4, 1280x720, 16:9, no audio track, 24-30 fps, 10-20 seconds, CRF 24-26 (or ~2-3 Mbps), and TICK \"fast start\" / \"web optimized\" (moov atom at the front) or it will not start playing until the whole file has downloaded. Keep it UNDER 5 MB - this is the single heaviest thing on the home page, and the whole point is that it costs nothing. Give it a 4K or 1080p 16:9 master and it will still fit the card correctly (it is scaled to cover and centre-cropped), but do not upload a 4K file: 720p is all the card is ever displayed at, and anything bigger is bandwidth the visitor pays for and cannot see." }
-          - { name: cardLogline, label: Carousel logline, type: text }
-          - { name: eyebrow, label: Eyebrow, type: string }
-          - { name: kicker, label: Kicker, type: string }
-          - { name: tagline, label: Tagline, type: string }
-          - { name: pageLogline, label: Project-page logline (HTML allowed), type: text }
-          - { name: chips, label: Genre chips, type: string, list: true }
-          - name: watch
-            label: Where to watch
-            type: object
-            fields:
-              - { name: type, label: Type, type: select, options: { values: [festival, post, youtube] } }
-              - { name: text, label: Status text, type: string }
-              - { name: id, label: YouTube video ID, type: string }
-              - { name: url, label: YouTube URL, type: string }
-              - { name: ig, label: Instagram handle, type: string }
-          - name: stills
-            label: Stills gallery
-            type: image
-            list: true
-            description: "SPECS: 16:9, 2560x1440 px, JPG or WebP, under 600 KB. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers). EXPORT FROM THE FILM MASTER, not from a compressed delivery file - and if the master is Rec.709 LIMITED range (16-235), expand it to FULL (0-255) or the blacks come out milky. IMPORTANT: stills you upload here are served exactly as uploaded. The high-resolution responsive versions (the -800/-1600/-2560 files) are generated by the stills pipeline from the ProRes master and listed in data/stills-hd.json - ask your developer/AI to run it for any still you add. See STILLS.md."
-          - { name: credits, label: Credits (HTML allowed), type: text }
-          - { name: blurb, label: Short blurb, type: text }
+          - { name: title, label: Name, type: string, readonly: true }
+          - { name: colorLook, label: Linked color look, type: string, readonly: true }
+          - { name: bubbleImage, label: Bubble image, type: image, readonly: true }
 
   - name: team
     label: Team
