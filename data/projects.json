@@ -22,9 +22,9 @@
         "Comedy / Action"
       ],
       "watch": {
-        "type": "festival",
+        "ig": "geri_action_film",
         "text": "Coming to Film Festivals, Fall 2026",
-        "ig": "geri_action_film"
+        "type": "festival"
       },
       "stills": [
         "/media/stills/geri-anim-1.jpg",
@@ -57,9 +57,9 @@
         "Surreal Fantasy"
       ],
       "watch": {
-        "type": "post",
+        "ig": "revelations_film",
         "text": "In Post-Production",
-        "ig": "revelations_film"
+        "type": "post"
       },
       "stills": [
         "/media/stills/rev-earth-1.jpg",
@@ -93,9 +93,9 @@
         "Comedy"
       ],
       "watch": {
-        "type": "youtube",
         "id": "XGYQv3h3-y4",
-        "url": "https://www.youtube.com/watch?v=XGYQv3h3-y4"
+        "url": "https://www.youtube.com/watch?v=XGYQv3h3-y4",
+        "type": "youtube"
       },
       "stills": [
         "/media/stills/invalid-1.jpg",
@@ -117,7 +117,7 @@
       "placeholder": true,
       "logoText": "More to come...",
       "focusBg": "/media/site/water.jpg",
-      "cardLogline": "New worlds are in the works.",
+      "cardLogline": "SYNC TEST marker (temporary)",
       "blurb": "New worlds are in the works."
     }
   ]
