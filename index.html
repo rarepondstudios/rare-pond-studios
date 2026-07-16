@@ -699,6 +699,19 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .yt-play{position:relative;z-index:1;width:70px;height:49px;border-radius:14px;background:rgba(229,9,20,.93);box-shadow:0 8px 22px rgba(0,0,0,.45);transition:transform .2s,background .2s}
   .yt-play::before{content:"";position:absolute;left:53%;top:50%;transform:translate(-50%,-50%);border-style:solid;border-width:11px 0 11px 19px;border-color:transparent transparent transparent #fff}
   .yt-facade:hover .yt-play{transform:scale(1.08);background:#ff0000}
+  /* ===== Watch: Vimeo button + facade, and the per-project social row ===== */
+  .watch-btns{display:flex;gap:12px;flex-wrap:wrap}
+  .watch-btn.vimeo{background:linear-gradient(135deg,#1ab7ea,#1281c4);box-shadow:0 10px 26px rgba(20,130,200,.45)}
+  .watch-btn.vimeo:hover{box-shadow:0 14px 34px rgba(20,130,200,.6)}
+  .vim-facade{position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;cursor:pointer;display:grid;place-items:center;background:radial-gradient(120% 120% at 50% 40%,#12384d,#081019)}
+  .vim-facade::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.36))}
+  .vim-facade .yt-play{background:rgba(26,183,234,.95)}
+  .vim-facade:hover .yt-play{transform:scale(1.08);background:#1ab7ea}
+  .proj-socials{margin:22px 0 0;display:flex;flex-direction:column;align-items:flex-start;gap:11px}
+  .proj-soc-row{display:flex;gap:12px;flex-wrap:wrap}
+  .proj-soc{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#eef4ff;transition:.18s}
+  .proj-soc:hover{transform:translateY(-2px);background:rgba(255,255,255,.16)}
+  .proj-soc svg{width:20px;height:20px;fill:currentColor}
   /* ===== v24: About-logo film-still orbit bubbles ===== */
   .about-logo{position:relative}
   .about-logo .about-bubble{position:relative;z-index:2}
@@ -898,7 +911,7 @@ const CARD_EYEBROW_TPL=(TPL.cardEyebrowTemplate||SITE.cardEyebrowTemplate||'{kic
 const CARD_LOGLINE_TPL=(TPL.cardLoglineTemplate||SITE.cardLoglineTemplate||'{blurb}');
 const GRID_CAPTION_TPL=(TPL.gridCaptionTemplate||SITE.gridCaptionTemplate||'{kicker}');
 const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.kicker,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,focusVideo:p.focusVideo||'',characters:[],logline:p.blurb,placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
-const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,genre:p.genre||[],watch:p.watch,stills:p.stills||[],credits:p.credits,vars:VARS[p.key]}]));
+const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,genre:p.genre||[],watch:buildWatch(p),stills:p.stills||[],credits:p.credits,vars:VARS[p.key]}]));
 const TEAM=__d[2].team;
 const __pagesData=__d[3]||{pages:[]};
 
@@ -1314,13 +1327,54 @@ function closeLB(){lightbox.classList.remove('open');lbImg.removeAttribute('src'
 lightbox.addEventListener('click',e=>{const nav=e.target.closest('.lb-nav');if(nav){e.stopPropagation();lbShow(lbIdx+(nav.classList.contains('lb-next')?1:-1));return;}if(e.target===lightbox||e.target.classList.contains('lb-close'))closeLB();});
 document.addEventListener('click',e=>{const b=e.target.closest('.still');if(b)openLB(b);});
 document.addEventListener('click',e=>{const f=e.target.closest('.yt-facade');if(f){const id=f.dataset.id;const ifr=document.createElement('iframe');ifr.src='https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0&playsinline=1';ifr.title='Watch on YouTube';ifr.setAttribute('allow','accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share');ifr.setAttribute('allowfullscreen','');ifr.setAttribute('referrerpolicy','strict-origin-when-cross-origin');f.replaceWith(ifr);}});
+document.addEventListener('click',e=>{const f=e.target.closest('.vim-facade');if(f){const id=f.dataset.id;const ifr=document.createElement('iframe');ifr.src='https://player.vimeo.com/video/'+id+'?autoplay=1&title=0&byline=0&portrait=0';ifr.title='Watch on Vimeo';ifr.setAttribute('allow','autoplay;fullscreen;picture-in-picture');ifr.setAttribute('allowfullscreen','');ifr.setAttribute('referrerpolicy','strict-origin-when-cross-origin');f.replaceWith(ifr);}});
+/* ---- Where to Watch + per-project social links ----
+   From NocoDB: watch_youtube, watch_vimeo (film links), watch_status (availability
+   note shown only when there's no film link yet), social_links (one URL per line -
+   the project's social pages, platform auto-detected for the icon). A valid YouTube
+   or Vimeo URL becomes a play button + click-to-load embed. buildWatch also falls
+   back to the legacy `watch` JSON so nothing breaks mid-migration. */
+function _wEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function _wUrl(u){return /^https?:\/\//i.test(String(u||''))?String(u):'';}
+function ytId(u){const m=String(u||'').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/);return m?m[1]:'';}
+function vimeoId(u){const m=String(u||'').match(/vimeo\.com\/(?:video\/|channels\/[^\/]+\/|groups\/[^\/]+\/videos\/)?(\d{6,})/);return m?m[1]:'';}
+function detectNet(u){
+  u=String(u||'');
+  const map=[[/instagram\.com/i,'ig','Instagram'],[/tiktok\.com/i,'tiktok','TikTok'],[/(?:youtube\.com|youtu\.be)/i,'yt','YouTube'],[/(?:twitter\.com|x\.com)/i,'x','X'],[/(?:facebook\.com|fb\.com|fb\.me)/i,'fb','Facebook'],[/threads\.(?:net|com)/i,'threads','Threads'],[/vimeo\.com/i,'vimeo','Vimeo'],[/linkedin\.com/i,'li','LinkedIn']];
+  for(const t of map){ if(t[0].test(u)) return {icon:t[1],label:t[2]}; }
+  return {icon:'web',label:'Website'};
+}
+function buildWatch(p){
+  let yt=p.watchYoutube||'',vim=p.watchVimeo||'',status=p.watchStatus||'',socials=p.socialLinks||'';
+  if(!yt&&!vim&&!status&&!socials&&p.watch){ // legacy fallback
+    const w=p.watch;
+    if(w.type==='youtube') yt=w.url||(w.id?('https://youtu.be/'+w.id):'');
+    else if(w.text) status=w.text;
+    if(w.ig) socials='https://www.instagram.com/'+w.ig+'/';
+  }
+  return {yt:yt,vim:vim,status:status,socials:socials};
+}
+function renderSocials(raw){
+  const urls=String(raw||'').split(/[\r\n,]+/).map(s=>s.trim()).filter(s=>_wUrl(s));
+  if(!urls.length) return '';
+  const items=urls.map(u=>{const n=detectNet(u);const svg=SOCIAL_SVG[n.icon]||SOCIAL_SVG.web||'';return `<a class="proj-soc" href="${_wEsc(u)}" target="_blank" rel="noopener" data-net="${n.icon}" aria-label="${_wEsc(n.label)}" title="${_wEsc(n.label)}">${svg}</a>`;}).join('');
+  return `<div class="proj-socials"><span class="u-watch-label">Follow</span><div class="proj-soc-row">${items}</div></div>`;
+}
 function renderWatch(w){
-  if(!w)return '';
-  let inner;
-  if(w.type==='youtube'){inner=`<a class="watch-btn" href="${w.url}" target="_blank" rel="noopener">▶ Watch on YouTube</a><div class="u-embed"><button class="yt-facade" type="button" data-id="${w.id}" aria-label="Play video on YouTube" style="background-image:url('https://i.ytimg.com/vi/${w.id}/hqdefault.jpg')"><span class="yt-play"></span></button></div>`;}
-  else{inner=`<div class="watch-status">${w.text}</div>`;}
-  const ig=w.ig?`<a class="ig-follow" href="https://www.instagram.com/${w.ig}/" target="_blank" rel="noopener">${SOCIAL_SVG.ig}<span>Follow the journey: @${w.ig}</span></a>`:'';
-  return `<div class="u-watch"><span class="u-watch-label">Where to Watch</span>${inner}${ig}</div>`;
+  if(!w) return '';
+  const yid=ytId(w.yt), vid=vimeoId(w.vim);
+  let btns='', embed='';
+  if(yid) btns+=`<a class="watch-btn" href="${_wEsc(_wUrl(w.yt))}" target="_blank" rel="noopener">▶ Watch on YouTube</a>`;
+  if(vid) btns+=`<a class="watch-btn vimeo" href="${_wEsc(_wUrl(w.vim))}" target="_blank" rel="noopener">▶ Watch on Vimeo</a>`;
+  if(yid) embed=`<div class="u-embed"><button class="yt-facade" type="button" data-id="${yid}" aria-label="Play video on YouTube" style="background-image:url('https://i.ytimg.com/vi/${yid}/hqdefault.jpg')"><span class="yt-play"></span></button></div>`;
+  else if(vid) embed=`<div class="u-embed"><button class="vim-facade" type="button" data-id="${vid}" aria-label="Play video on Vimeo"><span class="yt-play"></span></button></div>`;
+  let body='';
+  if(btns) body=`<div class="watch-btns">${btns}</div>${embed}`;
+  else if(w.status) body=`<div class="watch-status">${_wEsc(w.status)}</div>`;
+  const socials=renderSocials(w.socials);
+  if(!body && !socials) return '';
+  const watchBlock = body ? `<span class="u-watch-label">Where to Watch</span>${body}` : '';
+  return `<div class="u-watch">${watchBlock}${socials}</div>`;
 }
 function buildUniverse(key){
   const s=SECTIONS[key];const sec=document.createElement('section');sec.className='universe '+s.theme;sec.id='u-'+key;sec.style.scrollMarginTop='0';
