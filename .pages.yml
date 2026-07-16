@@ -183,35 +183,15 @@ content:
           - { name: note, label: Note, type: text }
 
   - name: projects
-    label: "Projects — reference (edit in NocoDB)"
-    type: file
-    path: data/projects.json
-    fields:
-      - name: cmsNote
-        label: "ℹ️ Projects are edited in NocoDB now"
-        type: string
-        readonly: true
-        description: "Projects live in the shared database and are edited in NocoDB (http://localhost:8080): content, images, which sites show each one, colour look, carousel and glow toggles, and order. A background sync rebuilds the site from there automatically. THIS SCREEN IS READ-ONLY - it just lists each Rare Pond project by name, its linked colour look, and its bubble image so you can identify them; there is nothing to edit here. To open or close the whole Projects page, use SITE SETTINGS and the 'Projects page is OPEN to the public' switch. Colour palettes still live in COLOR LOOKS."
-      - name: projects
-        label: "Projects on Rare Pond (read-only - to identify only)"
-        type: object
-        list: true
-        readonly: true
-        fields:
-          - { name: title, label: Name, type: string, readonly: true }
-          - { name: colorLook, label: Linked color look, type: string, readonly: true }
-          - { name: bubbleImage, label: Bubble image, type: image, readonly: true }
-
-  - name: projectTemplates
-    label: "Projects — page & card templates"
+    label: "Projects"
     type: file
     path: data/section-templates.json
     fields:
       - name: cmsNote
-        label: "ℹ️ How these work"
+        label: "✏️ EDIT HERE — shared text templates for every film"
         type: string
         readonly: true
-        description: "These are the SHARED templates for the lines of text the site builds around every film. You write each one ONCE here and it applies to EVERY project - the site fills in each film's own values (from NocoDB) wherever you put a {variable} in curly braces. Change the wording of the LINE here; change the wording of each film's CONTENT (kicker, tagline, blurb, page logline, credits) in NocoDB. AVAILABLE VARIABLES: {title}, {year}, {production}, {status}, {released} (smart: year if set, otherwise status), {kicker}, {tagline}, {genre}, {blurb}. Empty variables - and any separator left dangling next to them, like a stray ' · ' - are dropped automatically. TIP: see any template rendered live against a real film at rarepond.com/admin/preview before you save."
+        description: "The four boxes below are the SHARED templates for the lines of text the site builds around every film. Write each one ONCE and it applies to EVERY project - the site fills in each film's own values (from NocoDB) wherever you put a {variable} in curly braces. Change the wording of the LINE here; change each film's actual CONTENT (kicker, tagline, blurb, page logline, credits) in NocoDB. AVAILABLE VARIABLES: {title}, {year}, {production}, {status}, {released} (smart: year if set, otherwise status), {kicker}, {tagline}, {genre}, {blurb}. Empty variables - and any separator left dangling next to them, like a stray ' · ' - are dropped automatically. TIP: see any template rendered live against a real film at rarepond.com/admin/preview before you save."
       - name: eyebrowTemplate
         label: "🏷️ Project page — eyebrow (top-right label)"
         type: string
@@ -232,6 +212,11 @@ content:
         type: string
         default: "{kicker}"
         description: "The small caption under each bubble in the Projects grid / carousel. Default '{kicker}' shows each film's kicker. EXAMPLE: '{genre} · {year}' would show 'Sci-Fi · 2026'."
+      - name: nocodbNote
+        label: "📋 The project list itself is edited in NocoDB (read-only here)"
+        type: string
+        readonly: true
+        description: "The films themselves - their names, images, which sites show each one, colour look, carousel and glow toggles, per-film text (kicker, tagline, blurb, page logline, credits), and order - all live in the shared database and are edited in NocoDB at http://localhost:8080, where you can also see each project by name with its bubble thumbnail. A background sync rebuilds the site from there automatically, so there is nothing to edit for the list itself on this screen. To OPEN or CLOSE the whole Projects page to the public, use SITE SETTINGS → 'Projects page is OPEN to the public'. Colour palettes live in COLOR LOOKS. The boxes ABOVE are the only editable things here - they control the shared wording, not the individual films."
 
   - name: team
     label: Team
