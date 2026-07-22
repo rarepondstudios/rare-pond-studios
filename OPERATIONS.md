@@ -156,16 +156,24 @@ Runs in Docker on an in-studio machine, bound to localhost - **not reachable fro
 internet**. Backed by SQLite. (Exact host, port and access details are deliberately not in this
 public repo - see "Where the private details live" at the bottom.)
 
-Live workflows:
+Workflows (mind the **Status** column - some are inactive *by design*):
 
-| Workflow | What it does |
-|---|---|
-| HubSpot → Rental DB Sync | polls HubSpot, writes orders/bookings to Supabase |
-| Rental DB → HubSpot Stage Push | pushes stage changes back |
-| Website Forms → HubSpot + Calendar (crew) | crew form |
-| Website Forms → HubSpot + Calendar (rental) | rental form |
-| **[Alerts] Workflow Failure → Email** | fires on ANY workflow error |
-| **[Alerts] Watchdog - workflow gone silent** | every 30 min, flags a workflow that has stopped running at all |
+| Workflow | Status | What it does |
+|---|---|---|
+| HubSpot → Rental DB Sync | **ACTIVE** | polls HubSpot, writes orders/bookings to Supabase |
+| Rental DB → HubSpot Stage Push | **ACTIVE** | pushes stage changes back |
+| Projects: DB to site (rarepond) | **ACTIVE** | every 5 min, exports `rp.projects` → `data/projects.json`, commits to GitHub (see the projects pipeline) |
+| **[Alerts] Workflow Failure → Email** | **ACTIVE** | fires on ANY workflow error |
+| **[Alerts] Watchdog - workflow gone silent** | **ACTIVE** | every 30 min, flags a workflow that has stopped running at all |
+| `[Website Forms]` Jotform Intake / Crew / Rental → HubSpot + Calendar | **INACTIVE - leave OFF** | The old n8n copy of the form → HubSpot + Calendar job. **Retired on purpose** - **Jotform's own native integrations do this now** (see "The rental pipeline" above). Re-activating them while Jotform native is on recreates duplicate deals + duplicate calendar events. |
+
+> **Do not be misled by these `[Website Forms]` workflows still existing in n8n.** Their being
+> **inactive is the correct, intended end state** - not a broken or rolled-back migration. The
+> source of truth for form → HubSpot + Calendar is **Jotform's native integrations**, full stop.
+> If someone reports "the Website Forms workflows are off, did the migration revert?" - the
+> answer is no; that's how it's supposed to be. The only way to safely turn them back on would be
+> to *simultaneously disable* Jotform's native integrations, which the "things that have bitten
+> us" list says never to do. So: leave them off.
 
 ### The alerting, and why it is shaped this way
 - **Layer 1** is an n8n *Error Workflow*. On n8n 2.x an error workflow **must itself be ACTIVE**
