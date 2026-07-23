@@ -63,6 +63,14 @@
           "formHeight": 900
         }
       ]
+    },
+    {
+      "slug": "comic-con",
+      "publicAccess": true,
+      "title": "We're At Comic-Con Right Now!",
+      "showInStudioNav": true,
+      "showInRentalsNav": false,
+      "bubbles": false
     }
   ]
 }
