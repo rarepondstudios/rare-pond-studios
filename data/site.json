@@ -1,6 +1,6 @@
 {
-  "projectsPublicAccess": true,
   "imageSpecs": "sRGB 8-bit only. Stills 2560x1440 (16:9). Backgrounds 2560x1440. Bubbles 1200x1200. Team 800x800. Logos = transparent PNG 1400px+. Under 600 KB. Video frames: Rec.709 LIMITED (16-235) must be expanded to FULL (0-255). Never upscale. See STILLS.md.",
+  "projectsPublicAccess": true,
   "logos": {
     "color": "/media/logos/rare-pond-color.png",
     "footer": "/media/RP_V3_Simple-Logo-White_FULL-CANVAS.png",
@@ -104,11 +104,11 @@
     "formId": "2f174b0e-b67d-4ca2-b12c-bd877ac8cab3"
   },
   "eventBanner": {
-    "enabled": false,
-    "title": "Rent Our Shit",
-    "buttonText": "Do It",
+    "enabled": true,
+    "title": "We're At San Diego Comic-Con!",
+    "buttonText": "Woa Really?",
     "buttonLink": "/#rentals",
-    "colorLook": "rainbow",
+    "colorLook": "geri",
     "gradientStyle": "stream"
   }
 }
