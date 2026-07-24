@@ -67,10 +67,17 @@
     {
       "slug": "comic-con",
       "publicAccess": true,
-      "title": "We're At Comic-Con Right Now!",
+      "title": "Comic-Con",
+      "navLabel": "Come See Us At Comic-Con!",
       "showInStudioNav": true,
       "showInRentalsNav": false,
-      "bubbles": false
+      "bubbles": false,
+      "blocks": [
+        {
+          "text": "Come Find Us At Comic-Con 2026!",
+          "image": "/media/20260723_104418.jpeg"
+        }
+      ]
     }
   ]
 }
