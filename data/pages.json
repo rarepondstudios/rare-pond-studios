@@ -5,7 +5,7 @@
   "pages": [
     {
       "slug": "submit-a-screenplay",
-      "publicAccess": true,
+      "publicAccess": false,
       "title": "Submit Your Screenplay",
       "navLabel": "Submit Your Screenplay",
       "showInStudioNav": false,
@@ -66,7 +66,7 @@
     },
     {
       "slug": "comic-con",
-      "publicAccess": true,
+      "publicAccess": false,
       "title": "Comic-Con",
       "navLabel": "Come See Us At Comic-Con!",
       "showInStudioNav": true,
