@@ -1,0 +1,66 @@
+{
+  "geri": [
+    {
+      "src": "/media/projects/geri/bts/geri-01.jpg",
+      "full": "/media/projects/geri/bts/geri-01-full.jpg",
+      "w": 900,
+      "h": 596
+    },
+    {
+      "src": "/media/projects/geri/bts/geri-02.jpg",
+      "full": "/media/projects/geri/bts/geri-02-full.jpg",
+      "w": 900,
+      "h": 596
+    },
+    {
+      "src": "/media/projects/geri/bts/geri-03.jpg",
+      "full": "/media/projects/geri/bts/geri-03-full.jpg",
+      "w": 900,
+      "h": 596
+    },
+    {
+      "src": "/media/projects/geri/bts/geri-04.jpg",
+      "full": "/media/projects/geri/bts/geri-04-full.jpg",
+      "w": 900,
+      "h": 675
+    },
+    {
+      "src": "/media/projects/geri/bts/geri-05.jpg",
+      "full": "/media/projects/geri/bts/geri-05-full.jpg",
+      "w": 900,
+      "h": 675
+    }
+  ],
+  "rev": [
+    {
+      "src": "/media/projects/rev/bts/rev-01.jpg",
+      "full": "/media/projects/rev/bts/rev-01-full.jpg",
+      "w": 900,
+      "h": 675
+    },
+    {
+      "src": "/media/projects/rev/bts/rev-02.jpg",
+      "full": "/media/projects/rev/bts/rev-02-full.jpg",
+      "w": 900,
+      "h": 675
+    },
+    {
+      "src": "/media/projects/rev/bts/rev-03.jpg",
+      "full": "/media/projects/rev/bts/rev-03-full.jpg",
+      "w": 900,
+      "h": 675
+    },
+    {
+      "src": "/media/projects/rev/bts/rev-04.jpg",
+      "full": "/media/projects/rev/bts/rev-04-full.jpg",
+      "w": 900,
+      "h": 675
+    },
+    {
+      "src": "/media/projects/rev/bts/rev-05.jpg",
+      "full": "/media/projects/rev/bts/rev-05-full.jpg",
+      "w": 900,
+      "h": 675
+    }
+  ]
+}
