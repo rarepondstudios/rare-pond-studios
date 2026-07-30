@@ -96,8 +96,8 @@
     },
     {
       "key": "more_to_come",
-      "colorLook": "signature",
-      "bubbleGlow": false,
+      "colorLook": "rainbow",
+      "bubbleGlow": true,
       "inCarousel": true,
       "title": "More to come...",
       "placeholder": true,
