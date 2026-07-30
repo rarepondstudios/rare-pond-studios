@@ -559,7 +559,11 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      renders its gradient title if colorlooks.json fails to load. */
   .u-title.u-title-gradient{font-weight:800;font-size:clamp(44px,8vw,104px);background:linear-gradient(180deg,var(--title-from,#ffffff),var(--title-to,#ffffff));-webkit-background-clip:text;background-clip:text;color:transparent}
   @media (prefers-reduced-motion: reduce){.bubble-inner,.glow,.edge,.cglow,.cbub,.cedge,.citem::before,.bubble::before{animation:none}.universe{transition:clip-path .3s ease,-webkit-clip-path .3s ease}}
-  .u-watch{margin:30px 0 0;display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+  /* Where-to-Watch (left) and Follow (pushed right) share one row on desktop; stacks on mobile. */
+  .u-watch{margin:30px 0 0;display:flex;flex-wrap:wrap;align-items:flex-start;gap:18px 40px}
+  .u-watch-main{display:flex;flex-direction:column;align-items:flex-start;gap:14px;min-width:0}
+  .u-watch .proj-socials{margin:0 0 0 auto;align-items:flex-end}
+  .u-watch .proj-socials .proj-soc-row{justify-content:flex-end}
   .u-watch-label{display:block;font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:var(--accent);opacity:.9;margin-bottom:12px}
   .watch-status{display:inline-flex;align-items:center;gap:11px;padding:12px 22px;border-radius:50px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);font-weight:700;font-size:15px;color:#eef4ff}
   .watch-status::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
@@ -608,6 +612,9 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     .u-hero{padding-top:6px}
     .u-logline{max-width:100%}
     .u-embed{max-width:100%}
+    .u-watch{flex-wrap:nowrap;flex-direction:column}
+    .u-watch .proj-socials{margin:22px 0 0;align-items:flex-start}
+    .u-watch .proj-socials .proj-soc-row{justify-content:flex-start}
     .stills-grid{grid-template-columns:1fr 1fr;gap:10px}
   }
   @media(max-width:430px){
@@ -1402,7 +1409,7 @@ function renderWatch(w){
   else if(w.status) body=`<div class="watch-status">${_wEsc(w.status)}</div>`;
   const socials=renderSocials(w.socials);
   if(!body && !socials) return '';
-  const watchBlock = body ? `<span class="u-watch-label">Where to Watch</span>${body}` : '';
+  const watchBlock = body ? `<div class="u-watch-main"><span class="u-watch-label">Where to Watch</span>${body}</div>` : '';
   return `<div class="u-watch">${watchBlock}${socials}</div>`;
 }
 /* ---- Credits ----
