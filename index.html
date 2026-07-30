@@ -662,7 +662,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   @media(max-width:680px){.team-list{grid-template-columns:1fr;gap:30px}}
   /* ===== ambient background bubbles (non-interactive) ===== */
   .bg-bubbles{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-  .bgb{position:absolute;border-radius:50%;pointer-events:none;will-change:transform,opacity;opacity:0;
+  .bgb{position:absolute;border-radius:50%;pointer-events:none;contain:layout paint;opacity:0;
     background:radial-gradient(38% 30% at 33% 26%,rgba(255,255,255,.6),transparent 56%),radial-gradient(circle at 50% 55%,rgba(170,200,255,.22),rgba(120,150,235,.10) 52%,rgba(90,120,210,.04) 72%,transparent 78%);
     box-shadow:inset 0 -10px 22px rgba(70,110,200,.16),inset 0 6px 14px rgba(255,255,255,.24);
     animation:bgdrift var(--d,26s) ease-in-out infinite}
@@ -672,6 +672,14 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     opacity:var(--ringop,.14)}
   @keyframes bgdrift{0%{opacity:0;transform:translate(0,46px) scale(.88)}18%{opacity:var(--peak,.3)}48%{transform:translate(calc(var(--dx,0px) * .6),-32px) scale(1)}82%{opacity:var(--peak,.3)}100%{opacity:0;transform:translate(calc(var(--dx,0px) * 1.7),-116px) scale(1.08)}}
   @media(prefers-reduced-motion:reduce){.bgb{animation:none;opacity:var(--peak,.25)}}
+  /* perf: the ambient bubbles inside non-featured (tiny / hidden) carousel cards were still
+     animating invisibly, and all of them kept animating while the tab was hidden - both are
+     imperceptible but each was a live compositor layer competing with the featured film's
+     decode. Pausing them is the single biggest GPU relief with zero visible change. */
+  .citem:not(.feat) .bgb{animation-play-state:paused}
+  body.bg-idle .bgb,body.bg-idle .orbi{animation-play-state:paused}
+  /* skip rendering the tall, off-screen contact section until it's scrolled near */
+  #contact{content-visibility:auto;contain-intrinsic-size:1px 1200px}
   /* ===== 'More to come' hover reveal of RP mark ===== */
   .bubble.placeholder .ph-logo{position:absolute;inset:20%;z-index:5;pointer-events:none;opacity:0;transition:opacity .45s ease;background:#e6ebff;filter:drop-shadow(0 0 12px rgba(155,92,255,.55))}
   .bubble.placeholder:hover .ph-logo{opacity:.95}
@@ -1263,6 +1271,8 @@ function syncFocusVideo(){
   });
 }
 document.addEventListener('visibilitychange',syncFocusVideo);
+/* freeze ambient bubble/orbit animation while the tab is hidden (no repaint cost off-screen) */
+document.addEventListener('visibilitychange',()=>{document.body.classList.toggle('bg-idle',document.hidden);});
 
 /* ===== ONE PINWHEEL CLOCK PER BUBBLE (the hover glow's colour spin) =================
    --ang is the angle of the conic gradient every glow layer draws from. It used to be
