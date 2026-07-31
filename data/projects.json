@@ -2,7 +2,7 @@
   "projects": [
     {
       "key": "geri_action",
-      "colorLook": "geri",
+      "colorLook": "geri_action",
       "bubbleGlow": true,
       "inCarousel": true,
       "title": "Geri-Action",
@@ -35,7 +35,7 @@
     },
     {
       "key": "revelations",
-      "colorLook": "rev",
+      "colorLook": "revelations",
       "bubbleGlow": true,
       "inCarousel": true,
       "title": "Revelations",
@@ -65,7 +65,7 @@
     },
     {
       "key": "invalid_opinion",
-      "colorLook": "invalid",
+      "colorLook": "invalid_opinion",
       "bubbleGlow": true,
       "inCarousel": true,
       "title": "Invalid Opinion",
