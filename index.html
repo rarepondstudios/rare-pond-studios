@@ -394,6 +394,15 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .bubble-inner{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;-webkit-clip-path:circle(50%);clip-path:circle(50%);/* NO box-shadow here: clip-path clips it away. The shadow is cast by .bubble::after. */animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
   .bubble.placeholder .bubble-inner{opacity:.7}
   .bubble__media{position:absolute;inset:-3%;width:106%;height:106%;object-fit:cover;display:block}
+  /* ===== PROJECTS-PAGE BUBBLE HOVER-PREVIEW REEL ===================================
+     The muted looping preview that crossfades OVER the still (.bubble__media) when a grid
+     bubble is hovered - the round-bubble twin of the carousel's .side-vid. It lives INSIDE
+     .bubble-inner, so it is clipped to the circle and shares the still's stacking context.
+     z-index:2 puts it above the still but BENEATH the glass (.glass z3) and rim glow
+     (.edge z4), so the bubble's glass/rim treatment keeps sitting on top and is never fought.
+     object-fit:cover makes the reel FILL the circle at any source aspect (no letterboxing). */
+  .bubble-vid{position:absolute;inset:-3%;width:106%;height:106%;object-fit:cover;display:block;opacity:0;transition:opacity .45s;z-index:2;pointer-events:none}
+  .bubble-vid.on{opacity:1}
   .poster{display:grid;place-items:center;background:radial-gradient(circle at 38% 30%,#2f6bd6,#16306b 70%)}
   .placeholder-fill{display:grid;place-items:center;background:radial-gradient(circle at 42% 32%,#88a9d8,#4d6c9f 72%)}
   .glass{position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:3}
@@ -1069,6 +1078,20 @@ const isWebKit=/AppleWebKit/.test(navigator.userAgent)&&!/Chrome|Chromium|Edg|OP
 if(isWebKit)document.body.classList.add('webkit');
 const INTERACTIVE=matchMedia('(hover:hover) and (pointer:fine)').matches;
 
+/* ===== SHARED HOVER-PREVIEW PRIMITIVES ============================================
+   One set of primitives shared by BOTH the home carousel's side cards (.side-vid) and the
+   Projects page's grid bubbles (.bubble-vid), so there is a single site-wide guarantee that
+   at most ONE preview reel is ever decoding/playing at a time (sideActive), one place that
+   pauses-without-resetting on leave (stopSideVid -> resume-not-restart), and one gate for
+   reduced-motion / Save-Data (SIDE_VID_OK). Defined up here because makeGridBubble (below)
+   is created before the carousel; the carousel wiring reuses these same three. */
+const SIDE_VID_OK = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
+                 && !(navigator.connection && navigator.connection.saveData);
+let sideActive=null;
+/* PAUSE (never reset currentTime) + drop the visible class, so a re-hover RESUMES the reel
+   from where it left off, showing a new part rather than restarting. */
+function stopSideVid(v){if(!v)return;v.pause();v.classList.remove('on');if(sideActive===v)sideActive=null;}
+
 
 /* The carousel shows real projects that have not been switched off in Pages CMS.
    Everything downstream (slide count, dots, arrows, swipe wrap-around) is derived from
@@ -1088,12 +1111,36 @@ function makeGridBubble(p,i){
   if(!p.placeholder){bubble.setAttribute('role','button');bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','Open '+p.title);}
   const mediaHTML=p.placeholder?`<div class="bubble__media placeholder-fill"></div><div class="ph-logo" style="-webkit-mask:url('${SITE.logos.duckMark}') center/contain no-repeat;mask:url('${SITE.logos.duckMark}') center/contain no-repeat"></div><div class="ph-spin"></div>`
     :(p.poster?'<div class="bubble__media poster"></div>':`<img class="bubble__media" src="${p.img}" alt="${p.title}">`);
-  bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${fillVars(GRID_CAPTION_TPL,VARS[p.key])}</div></div>`;
+  /* ===== PROJECTS-PAGE HOVER-PREVIEW REEL =========================================
+     Same behaviour as the home carousel's side cards: a real film (not a placeholder,
+     not a poster-only bubble) that has a reel (p.focusVideo - projects.json "focusVideo",
+     the SAME field the carousel's featured/side videos use) gets a lazy muted preview that
+     crossfades over the still on hover. preload="none" + data-src => zero bytes until first
+     hover (see the mouseenter wiring below, which reuses the shared sideActive/stopSideVid). */
+  const gridVid=(!p.placeholder&&!p.poster&&p.focusVideo)
+    ?`<video class="bubble-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
+  bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}${gridVid}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${fillVars(GRID_CAPTION_TPL,VARS[p.key])}</div></div>`;
   bubble.addEventListener('pointermove',e=>{if(!INTERACTIVE)return;const r=bubble.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){bubble.style.setProperty('--mx',(px*100).toFixed(1)+'%');bubble.style.setProperty('--my',(py*100).toFixed(1)+'%');}const tm=7;bubble.style.setProperty('--tilty',((px-.5)*tm*2).toFixed(2)+'deg');bubble.style.setProperty('--tiltx',((.5-py)*tm*2).toFixed(2)+'deg');});
   bubble.addEventListener('pointerleave',()=>{if(INTERACTIVE){bubble.style.setProperty('--mx','73%');bubble.style.setProperty('--my','26%');bubble.style.setProperty('--tiltx','0deg');bubble.style.setProperty('--tilty','0deg');}});
   if(!p.placeholder){
     const open=()=>openProject(p.key);   // the wipe's origin is measured in bubbleOrigin(), from data-pk
     bubble.addEventListener('click',open);bubble.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
+  }
+  /* Hover-to-preview: crossfade the still to the muted looping reel on hover, back on leave.
+     Reuses the SHARED sideActive/stopSideVid/SIDE_VID_OK primitives, so this preview and the
+     carousel's side reels can never both play at once. RESUME-not-restart (leave only pauses),
+     lazy first-hover src, reduced-motion / Save-Data safe (SIDE_VID_OK => keep the still). */
+  if(!p.placeholder&&!p.poster&&p.focusVideo){
+    bubble.addEventListener('mouseenter',()=>{
+      if(!SIDE_VID_OK)return;
+      const v=bubble.querySelector('.bubble-vid'); if(!v)return;
+      if(sideActive&&sideActive!==v)sideActive.pause();          /* keep only one decoding */
+      if(!v.getAttribute('src'))v.setAttribute('src',v.dataset.src);   /* lazy first-hover load */
+      sideActive=v;
+      const pr=v.play(); if(pr&&pr.catch)pr.catch(()=>{});
+      v.classList.add('on');
+    });
+    bubble.addEventListener('mouseleave',()=>{stopSideVid(bubble.querySelector('.bubble-vid'));});  /* PAUSE, keep currentTime -> resumes */
   }
   return bubble;
 }
@@ -1154,9 +1201,23 @@ if(!N){const __car=document.querySelector('.carousel');if(__car)__car.style.disp
    instead of being silently papered over by a stale hardcoded colour. */
 const accentFor=()=>'#ffffff';
 function focusHTML(p){
-  /* The still is unconditional - it is the fallback, so it must exist even when a video is
-     set. preload="none" on the video means adding one to a film costs nothing until that
-     film is actually the featured card; syncFocusVideo() gives it its src at that point. */
+  /* ===== FEATURED CARD: BACKGROUND VIDEO + FALLBACK STILL - HOW TO SWAP EITHER =======
+     Parity with Jack Carlsen's hero: a background reel that fades in over a still, and the
+     still stays as the fallback whenever the video is absent / slow / errored.
+
+       BACKGROUND VIDEO  = p.focusVideo   (projects.json field "focusVideo";
+                           file lives under /media/projects/<key>/video/*-reel.mp4)
+                           -> painted by .focus-vid, faded in only once it can play.
+       FALLBACK STILL    = p.focusBg      (projects.json field "focusBg";
+                           file lives under /media/projects/<key>/*.jpg - one of the film's
+                           stills, e.g. geri-split.jpg). Falls back to SITE.water if blank.
+                           -> painted by .focus-bg, ALWAYS present, never removed.
+
+     To swap the hero video for a film, change its focusVideo; to swap the fallback still,
+     change its focusBg (both in NocoDB -> exported to projects.json). The still is
+     unconditional (it is the fallback), so it must exist even when a video is set;
+     preload="none" means the video costs nothing until this film is the featured card,
+     where syncFocusVideo() gives it its src. */
   const bg=`<div class="focus-bg" style="background-image:url('${p.focusBg||SITE.water}')"></div>`
     + (p.focusVideo?`<video class="focus-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'');
   /* .focus-content is a SIBLING of .focus-view, not a child. .focus-view has z-index:1,
@@ -1176,11 +1237,9 @@ function focusHTML(p){
      - single active: a new hover pauses the previous side reel, so only the hovered one plays.
      - lazy: preload="none" + no src until first hover.
    Same gates as the featured reel: skipped under reduced-motion or Save-Data (no src, so the
-   still stays). */
-const SIDE_VID_OK = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
-                 && !(navigator.connection && navigator.connection.saveData);
-let sideActive=null;
-function stopSideVid(v){if(!v)return;v.pause();v.classList.remove('on');if(sideActive===v)sideActive=null;}
+   still stays). SIDE_VID_OK / sideActive / stopSideVid are the SHARED primitives defined near
+   the top of this script (also used by the Projects-page grid bubbles), so only one preview
+   reel across the whole site is ever playing at once. */
 const citems=CAROUSEL.map((p,i)=>{
   const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',accentFor(p.key));
   const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" src="${p.img}" alt="${p.title}">`;
@@ -1300,9 +1359,16 @@ function syncFocusVideo(){
        initialised, and reading it there would throw. */
     if(el.dataset.slot!=='feat' || !VID_OK || document.hidden || document.body.classList.contains('locked')){ v.pause(); return; }
     if(!v.getAttribute('src')){
-      v.addEventListener('canplaythrough',()=>v.classList.add('ready'),{once:true});
-      /* Anything at all goes wrong -> take the video out of the document. The still is
-         already underneath it, so this is a silent, complete fallback. */
+      /* Reveal (crossfade the reel in over the .focus-bg still) as soon as the browser is
+         confident it can play. canplaythrough is the primary signal; `playing` is a
+         belt-and-suspenders reveal for browsers that fire canplaythrough unreliably - either
+         one flips .ready. Until one fires, the still is what shows, so the card is never blank. */
+      const reveal=()=>v.classList.add('ready');
+      v.addEventListener('canplaythrough',reveal,{once:true});
+      v.addEventListener('playing',reveal,{once:true});
+      /* Anything at all goes wrong (404, unsupported codec, decode error) -> take the video
+         out of the document. The .focus-bg still is already underneath it, so this is a
+         silent, complete fallback to the still - never a blank/black frame. */
       v.addEventListener('error',()=>v.remove(),{once:true});
       v.setAttribute('src',v.dataset.src);
     }
