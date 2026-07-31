@@ -313,6 +313,15 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .side-view{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;display:block;transition:opacity .45s;z-index:1}
   .side-view.cposter{display:grid;place-items:center;background:radial-gradient(circle at 38% 30%,#2f6bd6,#16306b 70%)}
   .citem.feat .side-view{opacity:0}
+  /* ===== SIDE-CARD HOVER-PREVIEW REEL ===============================================
+     A muted looping reel that crossfades OVER the .side-view still on hover of a NON-featured
+     side card. Deliberately layered at z-index:2 - above the still (z1) but BENEATH the glass
+     rim (crim z5), specular (cspec z6) and rim glow (cedge z7), so the carousel's tuned hover
+     glow keeps sitting on top and is never fought. Lazy (preload=none, src set on first hover),
+     one per side card, and only the hovered one plays (see the pointer wiring). */
+  .side-vid{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;display:block;opacity:0;transition:opacity .45s;z-index:2;pointer-events:none}
+  .side-vid.on{opacity:1}
+  .citem.feat .side-vid{opacity:0!important}   /* never over the featured card (it has its own reel) */
   .focus-view{position:absolute;inset:0;opacity:0;transition:opacity .5s;z-index:1}
   .citem.feat .focus-view{opacity:1}
   .focus-bg{position:absolute;inset:0;background-size:cover;background-position:center}
@@ -1157,10 +1166,37 @@ function focusHTML(p){
   return `<div class="focus-view">${bg}<div class="focus-scrim"></div></div>`
        + `<div class="focus-content"><div class="focus-eyebrow">${fillVars(CARD_EYEBROW_TPL,VARS[p.key])}</div><p class="focus-logline">${fillVars(CARD_LOGLINE_TPL,VARS[p.key])}</p></div>`;
 }
+/* ===== SIDE-CARD HOVER-PREVIEW REEL ================================================
+   The FEATURED card keeps its own .focus-vid autoplay (syncFocusVideo) untouched. This adds
+   a lightweight preview to the NON-featured side cards: hover a side card and its .side-view
+   still crossfades to a muted, looping reel; on leave it fades back. Kept deliberately minimal
+   for the perf-tuned carousel - one lazy video per side card, layered UNDER the glow, and at
+   most one ever decoding.
+     - resume-not-restart: leave PAUSES (never resets currentTime); re-hover continues the reel.
+     - single active: a new hover pauses the previous side reel, so only the hovered one plays.
+     - lazy: preload="none" + no src until first hover.
+   Same gates as the featured reel: skipped under reduced-motion or Save-Data (no src, so the
+   still stays). */
+const SIDE_VID_OK = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
+                 && !(navigator.connection && navigator.connection.saveData);
+let sideActive=null;
+function stopSideVid(v){if(!v)return;v.pause();v.classList.remove('on');if(sideActive===v)sideActive=null;}
 const citems=CAROUSEL.map((p,i)=>{
   const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',accentFor(p.key));
   const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" src="${p.img}" alt="${p.title}">`;
-  el.innerHTML=`<div class="cdrop"></div><div class="cglow"></div><div class="cbub">${side}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
+  /* only films with a reel AND a real still (not the placeholder poster) get a hover video */
+  const sideVid=(!p.poster&&p.focusVideo)?`<video class="side-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
+  el.innerHTML=`<div class="cdrop"></div><div class="cglow"></div><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
+  el.addEventListener('mouseenter',()=>{
+    if(!SIDE_VID_OK||el.classList.contains('feat'))return;   /* featured card uses its own reel */
+    const v=el.querySelector('.side-vid'); if(!v)return;
+    if(sideActive&&sideActive!==v)sideActive.pause();          /* keep only one decoding */
+    if(!v.getAttribute('src'))v.setAttribute('src',v.dataset.src);   /* lazy first-hover load */
+    sideActive=v;
+    const pr=v.play(); if(pr&&pr.catch)pr.catch(()=>{});
+    v.classList.add('on');
+  });
+  el.addEventListener('mouseleave',()=>{stopSideVid(el.querySelector('.side-vid'));});   /* PAUSE, keep currentTime -> resumes */
   el.addEventListener('pointermove',e=>{if(INTERACTIVE&&el.classList.contains('feat')){const r=el.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){el.style.setProperty('--mx',(px*100).toFixed(1)+'%');el.style.setProperty('--my',(py*100).toFixed(1)+'%');}el.style.setProperty('--tilty',((px-.5)*9).toFixed(2)+'deg');el.style.setProperty('--tiltx',((.5-py)*7).toFixed(2)+'deg');}});
   el.addEventListener('pointerleave',()=>{if(INTERACTIVE){el.style.setProperty('--mx','80%');el.style.setProperty('--my','16%');el.style.setProperty('--tiltx','0deg');el.style.setProperty('--tilty','0deg');}});
   el.addEventListener('click',()=>{if(dragFlag)return;if(el.classList.contains('feat'))openProject(p.key);else setActive(i);});
@@ -1217,6 +1253,10 @@ addEventListener('resize',()=>{measureSlots();syncDrops();});
 function layout(){
   citems.forEach((el,i)=>{
     const cls=(i===activeIdx)?'feat':(i===(activeIdx+1)%N)?'sideR':(i===(activeIdx-1+N)%N)?'sideL':'hide';
+    /* a side card that just became featured (e.g. clicked while hovered) must stop its hover
+       reel - the mouse is still over it so no mouseleave fires, and the featured card runs its
+       own .focus-vid. Keeps the "one video decoding" guarantee. */
+    if(cls==='feat')stopSideVid(el.querySelector('.side-vid'));
     const old=el.dataset.slot;
     if(cls===old)return;
     const tok=(el._wt=(el._wt||0)+1);
