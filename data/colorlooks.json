@@ -132,6 +132,136 @@
       "titleGradientFrom": "white",
       "titleGradientTo": "lightBlue",
       "note": "The comedy's electric blue and indigo with a hot-red pop from the key art."
+    },
+    {
+      "key": "revision",
+      "name": "Revision",
+      "kind": "basics",
+      "c1": "#d81f3d",
+      "c2": "#6e6f92",
+      "c3": "#ff9fb1",
+      "taglineItalic": false,
+      "note": "The red pen bleeding into a greyscale world: a glowing crimson ink-red against a cool grey-violet, lifted by a pale red highlight that echoes the pink smudges on skin."
+    },
+    {
+      "key": "lovebug",
+      "name": "LoveBug",
+      "kind": "basics",
+      "c1": "#ff6a52",
+      "c2": "#f2a545",
+      "c3": "#46c2c4",
+      "taglineItalic": false,
+      "note": "Sun-baked retro romance from the poster's golden-hour Hollywood palette: warm coral-orange and amber (the orange VW Beetle, the lips, the vintage film grade) with a retro teal accent pulled from the palms."
+    },
+    {
+      "key": "miss_fortune",
+      "name": "Miss Fortune",
+      "kind": "basics",
+      "c1": "#ff2d95",
+      "c2": "#7b34ec",
+      "c3": "#ffb46a",
+      "taglineItalic": false,
+      "note": "The neon all-seeing-eye sign drives it: hot fortune-teller pink and an electric violet nightclub haze, warmed by the amber glow washing across her face."
+    },
+    {
+      "key": "the_animator",
+      "name": "The Animator",
+      "kind": "basics",
+      "c1": "#ff9f3a",
+      "c2": "#5fb6ec",
+      "c3": "#ffb0d0",
+      "taglineItalic": false,
+      "note": "The hand-drawn storybook world made literal: the little orange clay character, a sunny sky-blue, and a soft paint-splatter pink for a cheerful, luminous pastel gradient."
+    },
+    {
+      "key": "heros_journey",
+      "name": "Hero's Journey",
+      "kind": "basics",
+      "c1": "#e8481f",
+      "c2": "#f5b02e",
+      "c3": "#ffdf9c",
+      "taglineItalic": false,
+      "note": "Pure epic fire: the ember-orange and molten gold of the flames engulfing the bronze warrior helmet, resolving into a bright gold light for a heroic, blazing glow."
+    },
+    {
+      "key": "remember_me",
+      "name": "Remember Me",
+      "kind": "basics",
+      "c1": "#3f6fe0",
+      "c2": "#33b2cb",
+      "c3": "#ffe4bf",
+      "taglineItalic": false,
+      "note": "The film's nocturnal-blue interiors: a deep midnight blue and cool teal night light, warmed by the cream trench coat so the glow reads emotional rather than cold."
+    },
+    {
+      "key": "pity_party",
+      "name": "Pity Party",
+      "kind": "basics",
+      "c1": "#ff5db1",
+      "c2": "#5bb8f0",
+      "c3": "#d6b6ff",
+      "taglineItalic": false,
+      "note": "The dreamy Y2K poster: cotton-candy pink and baby-blue sky with a holographic lilac shimmer straight off the disco ball, for a bittersweet iridescent glow."
+    },
+    {
+      "key": "eddies_order",
+      "name": "Eddie's Order",
+      "kind": "basics",
+      "c1": "#e51d6a",
+      "c2": "#f5a623",
+      "c3": "#ffd98a",
+      "taglineItalic": false,
+      "note": "The magician's stage: his magenta-crimson suit paired with the golden glow of the enchanted hourglass and its warm spark shower, a rich theatrical gold-and-rose burn."
+    },
+    {
+      "key": "the_hearts_that_bleed_and_bloom",
+      "name": "The Hearts That Bleed & Bloom",
+      "kind": "basics",
+      "c1": "#c81e37",
+      "c2": "#ff6f8d",
+      "c3": "#ffd0d6",
+      "taglineItalic": false,
+      "note": "Bleed and bloom in one gradient: a deep arterial crimson opening into a blooming rose-pink and a pale blush, mirroring the crimson shirt and floral title art."
+    },
+    {
+      "key": "synesthesia",
+      "name": "Synesthesia",
+      "kind": "basics",
+      "c1": "#ff3b3b",
+      "c2": "#2f7bff",
+      "c3": "#ffc63d",
+      "taglineItalic": false,
+      "note": "The synesthetic color-glow spelled out in the logo itself: red, electric blue, and gold lens-flare light bleeding across a dark cosmos, the boldest neon gradient of the set."
+    },
+    {
+      "key": "geri_action",
+      "name": "Geri Action",
+      "kind": "basics",
+      "c1": "#9b2fe0",
+      "c2": "#e5345c",
+      "c3": "#ffcf5c",
+      "taglineItalic": false,
+      "note": "Comic-book spy pop: the magenta-purple halftone backdrop and the heroine's red coat, sparked by the gold of her spy medallion for a punchy graphic-novel glow."
+    },
+    {
+      "key": "revelations",
+      "name": "Revelations",
+      "kind": "basics",
+      "c1": "#efac37",
+      "c2": "#7fa9c9",
+      "c3": "#ffeec2",
+      "taglineItalic": false,
+      "note": "The heavenly threshold: divine golden halo-light against the pale blue-grey clouds of the sky, rising to a soft cream radiance for a serene, celestial glow."
+    },
+    {
+      "key": "invalid_opinion",
+      "name": "Invalid Opinion",
+      "kind": "basics",
+      "c1": "#1fb6ff",
+      "c2": "#ff4d2e",
+      "c3": "#9fe4ff",
+      "taglineItalic": false,
+      "note": "The chromatic clash of the poster: the cold electric-blue 3D title and screen glow set against the hot red-orange room light, a high-voltage complementary gradient."
     }
   ]
 }
