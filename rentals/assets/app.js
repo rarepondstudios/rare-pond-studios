@@ -242,7 +242,7 @@ var RP_PKG_CSS=
 ".dpback svg{width:20px;height:20px}"+
 /* fix3: collapsible Packages sub-box (open by default) */
 ".rp-pkgbox{margin:2px 0 6px;border:1.5px solid var(--pc);border-radius:16px;background:linear-gradient(180deg,var(--pcb1),var(--pcb2));box-shadow:0 7px 24px 1px var(--pcg);overflow:hidden}"+
-".rp-pkgbox-h{width:100%;display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 16px;background:transparent;border:0;cursor:pointer;font:800 15px/1 Heebo,sans-serif;letter-spacing:.4px;color:#17233b;text-align:left}"+
+".rp-pkgbox-h{width:100%;display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 16px;background:transparent;border:0;cursor:pointer;font:800 15px/1 Heebo,sans-serif;letter-spacing:.4px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.35);text-align:left}"+
 ".rp-pkgbox-h>svg:first-child{width:19px;height:19px;flex:none}"+
 ".rp-pkgbox-n{background:var(--pc);color:#fff;font:800 12px/1 Heebo,sans-serif;padding:4px 9px;border-radius:20px;min-width:12px;text-align:center}"+
 ".rp-pkgbox-h .rp-chev{margin-left:auto;width:20px;height:20px;flex:none;transition:transform .3s cubic-bezier(.4,.85,.35,1)}"+

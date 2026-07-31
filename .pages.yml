@@ -19,6 +19,15 @@ content:
         type: boolean
         default: true
         description: "ON (normal): visitors see the Projects page as usual. OFF: the page is closed - anyone who goes to rarepond.com/projects gets the 'back soon' cover instead (a random message from MAINTENANCE COVER), while the address, header and menus keep working so no links break and nobody is stranded. Everything returns the moment you switch it back on. Takes effect within about a minute of saving. (This switch used to live under Projects; it moved here because the project list itself is now managed in NocoDB.)"
+      - name: home
+        label: Home / Projects background
+        type: object
+        fields:
+          - name: bgBubbleCount
+            label: "🫧 Background bubble count"
+            type: number
+            default: 28
+            description: "How many ambient floating bubbles drift behind the home and Projects backgrounds. Default 28. RECOMMENDED MAXIMUM ~40 - these bubbles are animated and GPU-composited, so higher counts can hurt rendering performance on weaker phones and laptops. It is CRITICAL the site stays smooth on ALL devices, so raise this gently and only if it still feels light on a mid-range phone. Leave blank to use the default. (Hard-capped at 60 in code as a safety net.) Takes effect on the next page load after saving."
       - name: logos
         label: Logos
         type: object

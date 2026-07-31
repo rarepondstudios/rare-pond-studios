@@ -659,8 +659,9 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .team-head h1{font-size:clamp(30px,4.4vw,52px);margin:.1em 0 .14em;font-weight:800;color:#0b2c55;letter-spacing:-.01em}
   .team-head p{color:#1f4e86;font-size:15px;margin:0 auto;max-width:540px}
   .team-list{position:relative;z-index:1;max-width:960px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(34px,5vh,58px) clamp(30px,5vw,72px);padding:clamp(30px,5vh,60px) 0 40px}
-  .team-crew{position:relative;z-index:1;max-width:680px;margin:0 auto;text-align:center;background:rgba(255,255,255,.55);border:1px solid rgba(15,62,122,.16);border-radius:22px;padding:clamp(24px,4vw,38px);box-shadow:0 18px 44px rgba(12,44,87,.12)}
-  .team-crew .crewq{color:#123a63;font-size:15.5px;line-height:1.6;margin:0 auto;max-width:560px}
+  .team-crew{position:relative;z-index:1;max-width:560px;margin:0 auto;text-align:center;background:rgba(255,255,255,.55);border:1px solid rgba(15,62,122,.16);border-radius:22px;padding:clamp(24px,4vw,34px) clamp(16px,2.4vw,24px);box-shadow:0 18px 44px rgba(12,44,87,.12)}
+  .team-crew .crewq{color:#123a63;font-size:15.5px;line-height:1.6;margin:0 auto;max-width:none}
+  .team-crew .crewq strong{font-weight:800;color:#0f3355}
   .team-crew .learn-btn{margin-top:20px}
   .member{display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px}
   .member.flip .m-photo,.member.flip .m-copy{order:0}
@@ -888,7 +889,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       <div class="team-head"><div class="ey">Who we are</div><h1>Meet Rare Pond</h1><p>The people building these little universes.</p></div>
       <div class="team-list" id="teamList"></div>
       <div class="team-crew">
-        <p class="crewq">Hiring us to crew your shoot? We can fold a basic gear package into our day rate. The exact kit depends on which department you bring us in for.</p>
+        <p class="crewq"><strong>Hiring us to crew your shoot?</strong> We can fold a basic gear package into our day rate. The exact kit depends on which department you bring us in for.</p>
         <button class="learn-btn" id="crewOpenBtn" type="button">Ask about crewing your shoot &rarr;</button>
       </div>
       <footer class="site-footer rp-footer" data-footer></footer>
@@ -1017,7 +1018,12 @@ try{
   if(ch){setTxt(ch.querySelector('.ey'),sh.contactEyebrow);setTxt(ch.querySelector('h2'),sh.contactHeading);setTxt(ch.querySelector('p'),sh.contactSub);}
   /* Team-page crew blurb + button (Site Settings → teamCrew). Fallback = static HTML. */
   const tc=SITE.teamCrew||{};
-  setTxt(document.querySelector('.team-crew .crewq'),tc.blurb);
+  /* Bold the lead question (everything up to and including the first "?") so it pops. Rest stays
+     regular weight. CMS copy is escaped before injection so tags never render literally. */
+  (function(){const q=document.querySelector('.team-crew .crewq');const t=tc.blurb;
+    if(q&&t!=null&&t!==''){const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+      const m=String(t).match(/^([^?]*\?)([\s\S]*)$/);
+      q.innerHTML=m?('<strong>'+esc(m[1])+'</strong>'+esc(m[2])):esc(t);}})();
   setTxt(document.getElementById('crewOpenBtn'),tc.button);
 }catch(e){console.warn('copy',e);}
 
@@ -1165,7 +1171,12 @@ function makeBgBubbles(host,count,fade){
   host.appendChild(c);
 }
 function bgbInto(field,count){for(let i=0;i<count;i++){const b=document.createElement('div');b.className='bgb';const depth=Math.random();const size=Math.round(34+depth*depth*360);b.style.width=b.style.height=size+'px';b.style.left=(Math.random()*98).toFixed(1)+'%';b.style.top=(Math.random()*100).toFixed(1)+'%';b.style.setProperty('--peak',(0.12+depth*0.5).toFixed(2));b.style.setProperty('--ringop',(0.12+depth*0.20).toFixed(2));b.style.setProperty('--dx',(Math.random()*116-58).toFixed(0)+'px');b.style.setProperty('--d',(15+Math.random()*22).toFixed(1)+'s');b.style.animationDelay=(-Math.random()*42).toFixed(1)+'s';field.appendChild(b);}}
-(function buildHomeCanvas(){const vh=document.getElementById('view-home');if(!vh)return;const canvas=document.createElement('div');canvas.className='home-canvas';const field=document.createElement('div');field.className='home-bubbles';canvas.appendChild(field);bgbInto(field,18);vh.insertBefore(canvas,vh.firstChild);
+/* Ambient background bubble count is CMS-driven (Site Settings -> home.bgBubbleCount) so Jack
+   can fine-tune density without touching code. Safe fallback = 28. Hard-capped at 60 in code
+   to protect rendering perf on weaker devices even if the CMS value is set too high. The
+   bubbles are still the same perf-optimized composited/animated elements; this only scales N. */
+const BG_BUBBLES=Math.max(0,Math.min(60,Math.round(Number(SITE.home&&SITE.home.bgBubbleCount))||28));
+(function buildHomeCanvas(){const vh=document.getElementById('view-home');if(!vh)return;const canvas=document.createElement('div');canvas.className='home-canvas';const field=document.createElement('div');field.className='home-bubbles';canvas.appendChild(field);bgbInto(field,BG_BUBBLES);vh.insertBefore(canvas,vh.firstChild);
   /* Size the bubble layer so it ends exactly at the contact section. The OLD version only
      measured at load + 400ms + 1300ms, so ANY later reflow - a web font swapping in, a late
      poster/image, the event banner settling - left the canvas at a stale height. Because the
@@ -1182,7 +1193,7 @@ function bgbInto(field,count){for(let i=0;i<count;i++){const b=document.createEl
   if(window.ResizeObserver){try{new ResizeObserver(fit).observe(vh);}catch(e){}}
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit).catch(()=>{});
   setTimeout(fit,400);setTimeout(fit,1300);})();
-makeBgBubbles(document.getElementById('projects-page'),20,'fade-b');
+makeBgBubbles(document.getElementById('projects-page'),BG_BUBBLES,'fade-b');
 /* About-logo scroll-tied film-still orbit bubbles. Edit ABOUT_ORBS (IMG keys) to swap images. */
 
 const ABOUT_ORB_POS=[[-172,-96,86],[-202,72,76],[-130,166,80],[10,196,72],[126,150,70],[150,-92,72],[-52,-188,72]];
