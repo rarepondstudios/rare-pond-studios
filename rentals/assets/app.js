@@ -101,37 +101,45 @@ function renderCat(){
   +'<span class="count" id="cnt"></span></div>';
  $('stage').innerHTML='<div class="panel" style="border-color:'+hx(col,0.42)+';background:linear-gradient(180deg,'+hx(col,0.22)+','+hx(col,0.13)+');box-shadow:0 6px 40px 2px '+hx(col,0.4)+', inset 0 0 42px '+hx(col,0.12)+'">'+tool+'<div id="results"></div></div>';
  const qi=$('q');qi.oninput=e=>{q=e.target.value.toLowerCase();renderResults();};$('dchip').onclick=openDates;renderResults();}
+/* Within a category: packages live in their OWN collapsible box at the top
+   (open by default), then the individual items follow in their white-divider
+   sections. Search filters both. Package box open/closed state persists per
+   category in pkgOpen. */
 function renderResults(){
  const c=active,col=COL[c];
  const pool=RENTALS.filter(p=>p.cat===c);
- const hasPkg=pool.some(p=>p.kind==='package');
- if(hasPkg)rpEnsureStyles();
- if(!(c in catView))catView[c]='items';
- if(!hasPkg)catView[c]='items';
- const mode=catView[c];
- function _rowsFor(md){return pool.filter(p=>(md==='packages'?p.kind==='package':p.kind!=='package')&&(p.name.toLowerCase().includes(q)||p.sec.toLowerCase().includes(q)||p.contents.some(x=>x.l.toLowerCase().includes(q))));}
- function _gridFor(md){var rr=_rowsFor(md);var ss=[...new Set(rr.map(x=>x.sec))];return ss.map(s=>'<div class="sub">'+esc(s)+'</div><div class="grid">'+rr.filter(x=>x.sec===s).map(p=>card(p,col)).join('')+'</div>').join('')||'<div class="empty">No '+(md==='packages'?'packages':'items')+' match.</div>';}
- function _setCnt(md){var n=_rowsFor(md).length;var cn=$('cnt');if(cn)cn.textContent=n+(md==='packages'?' package':' item')+(n!==1?'s':'');}
+ rpEnsureStyles();
+ function _match(p){return p.name.toLowerCase().includes(q)||p.sec.toLowerCase().includes(q)||(p.contents||[]).some(x=>x.l.toLowerCase().includes(q));}
+ function _sections(rows){var ss=[...new Set(rows.map(x=>x.sec))];return ss.map(s=>'<div class="sub">'+esc(s)+'</div><div class="grid">'+rows.filter(x=>x.sec===s).map(p=>card(p,col)).join('')+'</div>').join('');}
+ var items=pool.filter(p=>p.kind!=='package'&&_match(p));
+ var pkgs=pool.filter(p=>p.kind==='package'&&_match(p));
  const r=$('results');if(!r)return;
- if(!hasPkg){r.innerHTML=_gridFor('items');_setCnt('items');bind();return;}
- var _if=mode!=='packages';
- var _cs='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="'+ICON[c]+'"/></svg>';
- var _bI='<button class="rp-seg2-b'+(_if?' on':'')+'" data-view="items">'+_cs+'Items</button>';
- var _bP='<button class="rp-seg2-b'+(_if?'':' on')+'" data-view="packages">'+rpBoxSvg()+'Packages</button>';
- var _deck='<div class="rp-seg2" style="--pc:'+col+';--pcg:'+hx(col,.5)+';--pcb1:'+hx(col,.22)+';--pcb2:'+hx(col,.13)+';--pci:'+hx(col,.12)+'"><div class="rp-seg2-bar"><span class="rp-seg2-pill" style="transform:translateX('+(_if?'0':'100%')+')"></span>'+_bI+_bP+'</div><div class="rp-seg2-panel"><div class="rp-seg2-pane">'+_gridFor(_if?'items':'packages')+'</div></div></div>';
- r.innerHTML=_deck;_setCnt(mode);bind();
- var dk=r.querySelector('.rp-seg2');
- if(dk)dk.querySelectorAll('.rp-seg2-b[data-view]').forEach(function(el){el.onclick=function(){var v=el.dataset.view;if(catView[c]===v)return;catView[c]=v;var ti=(v!=='packages');dk.querySelector('.rp-seg2-pill').style.transform='translateX('+(ti?'0':'100%')+')';dk.querySelectorAll('.rp-seg2-b').forEach(function(x){x.classList.remove('on');});el.classList.add('on');var pane=dk.querySelector('.rp-seg2-pane');pane.style.transition='none';pane.style.opacity='0';pane.style.transform='translateX('+(ti?'-14px':'14px')+')';pane.innerHTML=_gridFor(v);_setCnt(v);bind();requestAnimationFrame(function(){pane.style.transition='opacity .3s,transform .3s cubic-bezier(.3,.8,.3,1)';pane.style.opacity='1';pane.style.transform='translateX(0)';});};});
+ if(!(c in pkgOpen))pkgOpen[c]=true;
+ var html='';
+ if(pkgs.length){var open=pkgOpen[c];
+  html+='<div class="rp-pkgbox'+(open?'':' closed')+'" id="rppkgbox" style="--pc:'+col+';--pcg:'+hx(col,.42)+';--pcb1:'+hx(col,.16)+';--pcb2:'+hx(col,.07)+'">'
+   +'<button class="rp-pkgbox-h" id="rppkgh" aria-expanded="'+(open?'true':'false')+'" aria-controls="rppkgbody">'+rpBoxSvg()+'<span class="rp-pkgbox-t">Packages</span><span class="rp-pkgbox-n">'+pkgs.length+'</span><svg class="rp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>'
+   +'<div class="rp-pkgbox-body" id="rppkgbody"><div><div class="grid rp-pkgbox-grid">'+pkgs.map(p=>card(p,col)).join('')+'</div></div></div></div>';
  }
+ if(items.length){html+=_sections(items);}
+ else if(!pkgs.length){html+='<div class="empty">'+(q?'Nothing matches your search.':'No items yet.')+'</div>';}
+ else if(q){html+='<div class="empty">No individual items match.</div>';}
+ r.innerHTML=html;
+ var cn=$('cnt');if(cn)cn.textContent=items.length+' item'+(items.length!==1?'s':'')+(pkgs.length?' · '+pkgs.length+' package'+(pkgs.length!==1?'s':''):'');
+ bind();
+ var hb=$('rppkgh');if(hb)hb.onclick=function(){pkgOpen[c]=!pkgOpen[c];var bx=$('rppkgbox');if(bx)bx.classList.toggle('closed',!pkgOpen[c]);hb.setAttribute('aria-expanded',pkgOpen[c]?'true':'false');};
+}
 function card(p,col){
  if(p.kind==='package')return rpPkgCard(p,col);
  const inC=cart[p._id];
  const thumb=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  const avb='<div class="rp-availbanner rp-in" data-avb-def="'+p.qty+' available">'+p.qty+' available</div>';
- const kit=p.contents.length?('<div class="kit" data-k="'+p._id+'" role="button" tabindex="0">View kit contents ('+p.contents.length+')</div><div class="kitlist" id="kl'+p._id+'">'+p.contents.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" alt="" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+'</span></div>').join('')+'</div>'):'';
+ const rv=rvOf(p);
+ const _kc=rpGroupContents(p.contents);
+ const kit=_kc.length?('<div class="kit" data-k="'+p._id+'" role="button" tabindex="0">View kit contents ('+_kc.length+')</div><div class="kitlist" id="kl'+p._id+'">'+_kc.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" alt="" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+rpQx(c.n)+'</span></div>').join('')+'</div>'):'';
  const ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add to cart</button>');
  return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+avb+kit
- +'<div class="row2">'+priceBlk(p,false)+(p.val?'<span class="rv">value '+esc(p.val)+'</span>':'')+'</div>'
+ +'<div class="row2">'+priceBlk(p,false)+(rv?'<span class="rv">value '+esc(rv)+'</span>':'')+'</div>'
  +ctl+'</div></div>';}
 function bind(){
  document.querySelectorAll('[data-open]').forEach(el=>el.onclick=e=>{if(e.target.closest('[data-a],[data-m],[data-pl],[data-k]'))return;openDP(+el.dataset.open);});
@@ -150,13 +158,14 @@ function openDP(id){const p=RENTALS[id];if(!p)return;dpOpen=id;rpEnsureStyles();
  const desc=p.desc?'<p class="dpdesc">'+esc(p.desc)+'</p>':'';
  const eyb='<div class="eyb" style="color:'+dpc+'">'+esc(p.cat)+' · '+esc(p.sec)+(isPkg?' · Package':'')+'</div>';
  let meta,ctl,extra;
- if(isPkg){var mem=rpMembers(p);var price=rpPkgPrice(p);
+ if(isPkg){var grp=rpMemGroups(p);var nmem=grp.length;var price=rpPkgPrice(p);var rvp=rvOf(p);
   ctl=inC?('<div class="qty" style="max-width:220px;margin:0"><button data-dm="'+id+'">−</button><span class="qn">'+inC+' in cart</span><button data-dp="'+id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="dpadd" data-da="'+id+'">Add package</button>');
-  meta='<div class="dpmeta"><div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div>'+(D.s&&D.e?'<div class="tot">'+fmt(price*(days()||1))+'<span style="font-size:.5em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div>':'')+'</div><span class="stat">Bundle of '+mem.length+' item'+(mem.length!==1?'s':'')+'</span></div>';
-  extra='<div class="rp-sec" style="--dpc:'+dpc+'">In this package · '+mem.length+' item'+(mem.length!==1?'s':'')+'</div><div class="rp-mgrid">'+mem.map(function(m){return rpMiniCard(m);}).join('')+'</div>';
+  meta='<div class="dpmeta"><div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div>'+(D.s&&D.e?'<div class="tot">'+fmt(price*(days()||1))+'<span style="font-size:.5em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div>':'')+'</div>'+(rvp?'<div class="rv">Replacement value '+esc(rvp)+'</div>':'')+'<span class="stat">Bundle of '+nmem+' item'+(nmem!==1?'s':'')+'</span></div>';
+  extra='<div class="rp-sec" style="--dpc:'+dpc+'">In this package · '+nmem+' item'+(nmem!==1?'s':'')+'</div><div class="rp-mgrid">'+grp.map(function(g){return rpMiniCard(g.m,null,false,g.n);}).join('')+'</div>';
  }else{
   ctl=inC?('<div class="qty" style="max-width:220px;margin:0"><button data-dm="'+id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-dp="'+id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="dpadd" data-da="'+id+'">Add to cart</button>');
-  meta='<div class="dpmeta">'+priceBlk(p,true)+(p.val?'<div class="rv">Replacement value '+esc(p.val)+'</div>':'')+'<span class="stat">Available'+(p.qty>1?' · '+p.qty+' units':'')+'</span></div>';
+  var rvi=rvOf(p);
+  meta='<div class="dpmeta">'+priceBlk(p,true)+(rvi?'<div class="rv">Replacement value '+esc(rvi)+'</div>':'')+'<span class="stat">Available'+(p.qty>1?' · '+p.qty+' units':'')+'</span></div>';
   var acc=rpAccessories(p);var inc=rpIncludedIn(p);
   extra=rpKitHtml(p)
    +(acc.length?'<div class="rp-sec" style="--dpc:'+dpc+'">Recommended accessories</div><div class="rp-mgrid">'+acc.map(function(m){return rpMiniCard(m,null,true);}).join('')+'</div>':'')
@@ -178,13 +187,33 @@ function openDP(id){const p=RENTALS[id];if(!p)return;dpOpen=id;rpEnsureStyles();
  $('dp').querySelectorAll('[data-qm]').forEach(function(b){b.onclick=function(e){e.stopPropagation();dec(+b.dataset.qm);};});}
 function closeDP(){dpOpen=null;dpStack=[];$('dp').classList.remove('show');document.body.style.overflow='';}
 /* ===== packages + accessories (rp) ===== */
-var RP_DBIDX={},dpStack=[],catView={};
+var RP_DBIDX={},dpStack=[],pkgOpen={};
 function buildDbIdx(){RP_DBIDX={};RENTALS.forEach(function(p){if(p.dbid!=null)RP_DBIDX[p.dbid]=p._id;});}
 function rpItemByDb(db){var i=RP_DBIDX[db];return (i==null)?null:RENTALS[i];}
 function rpMembers(p){return (p.memIds||[]).map(function(d){return rpItemByDb(d);}).filter(Boolean);}
 function rpAccessories(p){return (p.accIds||[]).map(function(d){return rpItemByDb(d);}).filter(Boolean);}
 function rpIncludedIn(p){if(p.dbid==null)return [];return RENTALS.filter(function(x){return x.kind==='package'&&(x.memIds||[]).indexOf(p.dbid)>=0;});}
 function rpPkgPrice(p){return rpMembers(p).reduce(function(s,m){return s+(Number(m.fn)||0);},0);}
+/* ============================================================================
+   Rentals display helpers (render-time; run on BOTH the built-in fallback
+   catalog and the live Supabase catalog, so EVERY current and future item is
+   handled automatically — no per-item data entry needed):
+     rvOf(p)          fix1: replacement value = own val, else SUM of valued
+                            contents (items) / members (packages)
+     rpGroupContents  fix2: collapse duplicate / "#1"/"#2" / "xN" sub-items into
+                            one clean "Name ×N" line
+     rpMemGroups(p)   fix2: package members with per-member counts
+   ==========================================================================*/
+function rpMoney(v){if(v==null)return NaN;if(typeof v==='number')return v;var s=String(v).replace(/[^0-9.\-]/g,'');if(s===''||s==='-'||s==='.')return NaN;var n=parseFloat(s);return isNaN(n)?NaN:n;}
+function rpFmtMoney(n){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+/* Pull a trailing enumerator ("#2") or quantity ("x3","(x3)") off a label. The
+   quantity match is whitespace/paren-guarded so dimensions like "4x5.65" are safe. */
+function rpParseLabel(s){s=String(s||'').trim();var count=1;var mE=s.match(/\s*\(?#\s*(\d+)\)?\s*$/);if(mE)s=s.slice(0,mE.index).trim();var mX=s.match(/(^|[\s(])[x×]\s?(\d+)\)?$/i);if(mX){count=parseInt(mX[2],10)||1;s=s.slice(0,mX.index).trim();}return {base:s,count:count};}
+function rpContentUnits(c){return rpParseLabel(c.l).count*((c.q&&c.q>1)?c.q:1);}
+function rpGroupContents(list){var out=[],idx={};(list||[]).forEach(function(c){var pl=rpParseLabel(c.l);var n=pl.count*((c.q&&c.q>1)?c.q:1);var key=(c.g||'')+''+pl.base.toLowerCase();if(idx[key]!=null){var g=out[idx[key]];g.n+=n;if(!g.v&&c.v)g.v=c.v;if(!g.img&&c.img)g.img=c.img;}else{idx[key]=out.length;out.push({l:pl.base,v:c.v||'',g:c.g||'',img:c.img||'',n:n});}});return out;}
+function rpMemGroups(p){var ids=(p.memIds||[]);var occ={},order=[];ids.forEach(function(d){if(occ[d]==null){occ[d]=0;order.push(d);}occ[d]++;});return order.map(function(d){var m=rpItemByDb(d);if(!m)return null;var n=occ[d]>1?occ[d]:(parseInt(m.qty,10)||1);return {m:m,n:n};}).filter(Boolean);}
+function rvOf(p){if(!p)return '';if(p.val&&String(p.val).trim()!=='')return p.val;var sum=0,any=false;if(p.kind==='package'){rpMemGroups(p).forEach(function(g){var n=rpMoney(rvOf(g.m));if(!isNaN(n)){sum+=n*g.n;any=true;}});}else{(p.contents||[]).forEach(function(c){var n=rpMoney(c.v);if(!isNaN(n)){sum+=n*rpContentUnits(c);any=true;}});}return any?rpFmtMoney(sum):'';}
+function rpQx(n){return (n&&n>1)?(' <span class="rp-qx">×'+n+'</span>'):'';}
 var RP_PKG_CSS=
 ".rp-seg2{position:relative;margin-top:30px}"+".rp-seg2-bar{position:relative;display:flex;height:46px;border:1.5px solid var(--pc);border-bottom:none;border-radius:16px 16px 0 0;background:var(--pcb1);padding:5px}"+".rp-seg2-pill{position:absolute;top:5px;left:5px;height:calc(100% - 10px);width:calc(50% - 5px);background:var(--pc);border-radius:12px;box-shadow:0 0 20px 1px var(--pcg);transition:transform .34s cubic-bezier(.4,.85,.35,1);z-index:0}"+".rp-seg2-b{position:relative;z-index:1;flex:1;background:transparent;border:0;display:flex;align-items:center;justify-content:center;gap:8px;font:800 14px/1 Heebo,sans-serif;letter-spacing:.5px;color:rgba(255,255,255,.62);cursor:pointer;transition:color .25s}"+".rp-seg2-b.on{color:#fff}"+".rp-seg2-b:not(.on):hover{color:rgba(255,255,255,.9)}"+".rp-seg2-b svg{width:16px;height:16px}"+".rp-seg2-panel{position:relative;border:1.5px solid var(--pc);border-top:none;border-radius:0 0 16px 16px;background:linear-gradient(180deg,var(--pcb1),var(--pcb2));-webkit-backdrop-filter:blur(15px) saturate(1.3);backdrop-filter:blur(15px) saturate(1.3);box-shadow:0 10px 30px 1px var(--pcg),inset 0 0 42px var(--pci);padding:14px 12px 12px}"+".rp-seg2-pane{will-change:opacity,transform}"+
 ".rp-badge{position:absolute;top:10px;left:10px;z-index:2;background:var(--cc);color:#fff;font:800 10px/1 Heebo,sans-serif;letter-spacing:1.3px;text-transform:uppercase;padding:5px 9px;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.3)}"+
@@ -210,19 +239,32 @@ var RP_PKG_CSS=
 ".dpdesc{font:400 14px/1.5 Heebo,sans-serif;color:#4a5a76;margin:8px 0 2px}"+
 ".dpback{position:absolute;top:14px;left:14px;z-index:6;width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.92);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#2f57a6;box-shadow:0 2px 10px rgba(0,0,0,.18)}"+
 ".dpback:hover{background:#fff;color:#1c2b46}"+
-".dpback svg{width:20px;height:20px}";
+".dpback svg{width:20px;height:20px}"+
+/* fix3: collapsible Packages sub-box (open by default) */
+".rp-pkgbox{margin:2px 0 6px;border:1.5px solid var(--pc);border-radius:16px;background:linear-gradient(180deg,var(--pcb1),var(--pcb2));box-shadow:0 7px 24px 1px var(--pcg);overflow:hidden}"+
+".rp-pkgbox-h{width:100%;display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 16px;background:transparent;border:0;cursor:pointer;font:800 15px/1 Heebo,sans-serif;letter-spacing:.4px;color:#17233b;text-align:left}"+
+".rp-pkgbox-h>svg:first-child{width:19px;height:19px;flex:none}"+
+".rp-pkgbox-n{background:var(--pc);color:#fff;font:800 12px/1 Heebo,sans-serif;padding:4px 9px;border-radius:20px;min-width:12px;text-align:center}"+
+".rp-pkgbox-h .rp-chev{margin-left:auto;width:20px;height:20px;flex:none;transition:transform .3s cubic-bezier(.4,.85,.35,1)}"+
+".rp-pkgbox.closed .rp-pkgbox-h .rp-chev{transform:rotate(-90deg)}"+
+".rp-pkgbox-body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .34s cubic-bezier(.4,.85,.35,1)}"+
+".rp-pkgbox.closed .rp-pkgbox-body{grid-template-rows:0fr}"+
+".rp-pkgbox-body>div{overflow:hidden;min-height:0}"+
+".rp-pkgbox-grid{padding:2px 14px 16px}"+
+/* fix2: clean quantity badge */
+".rp-qx{display:inline-block;font-weight:800;color:var(--cc,#2f57a6);font-size:.9em;margin-left:1px;white-space:nowrap}";
 function rpEnsureStyles(){if(document.getElementById('rp-pkg-css'))return;var s=document.createElement('style');s.id='rp-pkg-css';s.textContent=RP_PKG_CSS;document.head.appendChild(s);}
 function rpBoxSvg(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v9"/></svg>';}
-function rpPkgCard(p,col){rpEnsureStyles();var mem=rpMembers(p);var price=rpPkgPrice(p);var inC=cart[p._id];var dd=days();
+function rpPkgCard(p,col){rpEnsureStyles();var grp=rpMemGroups(p);var nmem=grp.length;var price=rpPkgPrice(p);var rv=rvOf(p);var inC=cart[p._id];var dd=days();
  var thumb=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  var ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add package</button>');
  return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'<span class="rp-badge">Package</span></div><div class="body"><h3>'+esc(p.name)+'</h3>'
-  +'<div class="rp-incount">'+mem.length+' item'+(mem.length!==1?'s':'')+' included</div>'
+  +'<div class="rp-incount">'+nmem+' item'+(nmem!==1?'s':'')+' included</div>'
   +'<div class="row2">'+(dd?('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day × '+dd+'d</span></div><div class="tot">'+fmt(price*dd)+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div></div>'):('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div></div>'))+'</div>'
-  +'<div class="row2"><span class="stat">Bundle price</span></div>'+ctl+'</div></div>';}
-function rpMiniCard(m,tag,qa){var thumb=m.img?'<img src="'+m.img+'" alt="" loading="lazy" decoding="async">':'<span class="rp-mi">'+catIcon(m.cat,'ic')+'</span>';
+  +'<div class="row2"><span class="stat">Bundle price</span>'+(rv?'<span class="rv">value '+esc(rv)+'</span>':'')+'</div>'+ctl+'</div></div>';}
+function rpMiniCard(m,tag,qa,count){var thumb=m.img?'<img src="'+m.img+'" alt="" loading="lazy" decoding="async">':'<span class="rp-mi">'+catIcon(m.cat,'ic')+'</span>';
  var price=(m.kind==='package')?rpPkgPrice(m):(Number(m.fn)||0);var pl=price>0?(fmt(price)+'/day'):'Included in kit';
- var nav='<div class="rp-mnav" data-nav="'+m._id+'">'+thumb+'<div><div class="rp-mn">'+esc(m.name)+'</div><div class="rp-mp">'+esc(pl)+'</div>'+(tag?'<span class="rp-mtag">'+esc(tag)+'</span>':'')+'</div></div>';
+ var nav='<div class="rp-mnav" data-nav="'+m._id+'">'+thumb+'<div><div class="rp-mn">'+esc(m.name)+rpQx(count)+'</div><div class="rp-mp">'+esc(pl)+'</div>'+(tag?'<span class="rp-mtag">'+esc(tag)+'</span>':'')+'</div></div>';
  /* qa = quick-add control (recommended accessories): white "+" that glows this item's own
     category colour on hover; once in cart it becomes a −/count/+ stepper (dec to 0 removes). */
  var ctrl='';
@@ -230,9 +272,9 @@ function rpMiniCard(m,tag,qa){var thumb=m.img?'<img src="'+m.img+'" alt="" loadi
   ctrl=inC?('<div class="rp-qstep"><button data-qm="'+m._id+'" aria-label="Remove one">−</button><span>'+inC+'</span><button data-qp="'+m._id+'" '+(inC>=m.qty?'disabled':'')+' aria-label="Add one">+</button></div>')
           :('<button class="rp-qa" data-qa="'+m._id+'" style="--qac:'+qac+'" aria-label="Add '+esc(m.name)+' to cart">+</button>');}
  return '<div class="rp-mcard">'+nav+ctrl+'</div>';}
-function rpKitHtml(p){if(!p.contents.length)return '';var grps=[];p.contents.forEach(function(c){if(grps.indexOf(c.g)<0)grps.push(c.g);});var multiG=grps.length>1;
- var kh='<div class="kh">Kit contents · '+p.contents.length+' items</div>';
- grps.forEach(function(g){if(multiG)kh+='<div class="ggrp">'+esc(g)+'</div>';kh+='<div class="kgrid">'+p.contents.filter(function(c){return c.g===g;}).map(function(c){return '<div class="kc">'+(c.img?'<img src="'+c.img+'" alt="" loading="lazy" decoding="async">':catIcon(p.cat,'ic'))+'<div><div class="kl">'+esc(c.l)+'</div>'+(c.v?'<div class="kv">Replacement value '+esc(c.v)+'</div>':'')+'</div></div>';}).join('')+'</div>';});
+function rpKitHtml(p){var _c=rpGroupContents(p.contents);if(!_c.length)return '';var grps=[];_c.forEach(function(c){if(grps.indexOf(c.g)<0)grps.push(c.g);});var multiG=grps.length>1;
+ var kh='<div class="kh">Kit contents · '+_c.length+' item'+(_c.length!==1?'s':'')+'</div>';
+ grps.forEach(function(g){if(multiG)kh+='<div class="ggrp">'+esc(g)+'</div>';kh+='<div class="kgrid">'+_c.filter(function(c){return c.g===g;}).map(function(c){return '<div class="kc">'+(c.img?'<img src="'+c.img+'" alt="" loading="lazy" decoding="async">':catIcon(p.cat,'ic'))+'<div><div class="kl">'+esc(c.l)+rpQx(c.n)+'</div>'+(c.v?'<div class="kv">Replacement value '+esc(c.v)+'</div>':'')+'</div></div>';}).join('')+'</div>';});
  return kh;}
 function dpDateBtn(){return '<button class="chgdate" id="dpchg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>'+(D.s&&D.e?'Change dates ('+fmtRange()+')':'Set rental dates')+'</button>';}
 function dpNavigate(id){if(dpOpen!=null)dpStack.push(dpOpen);openDP(id);}
@@ -429,7 +471,21 @@ document.getElementById('reqpop').onclick=e=>{if(e.target===document.getElementB
 var SB_URL="https://gnifidmyahtzydwvaegj.supabase.co";
 var SB_KEY="sb_publishable_VFAFJq23B8hJAGViL2nDiA_uTAVxe05";
 function sbMoney(v){return (v===null||v===undefined||v==="")?"":"$"+Number(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
-function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={},i,r;for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null){if(r.hidden)continue;var fn=Number(r.price_per_day)||0;var it={cat:r.category,sec:r.section,name:r.name,fn:fn,fee:fn>0?"$"+fn.toFixed(2):"Included",val:sbMoney(r.replacement_value),img:r.photo||"",contents:[],qty:parseInt(r.qty,10)||1,dbid:r.id,kind:r.kind||"item",accIds:Array.isArray(r.accessory_ids)?r.accessory_ids:[],memIds:Array.isArray(r.member_ids)?r.member_ids:[],desc:r.description||""};if(it.kind==='package'&&(!it.memIds||!it.memIds.length)){continue;}byId[r.id]=it;out.push(it);}}for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null)continue;if(r.hidden)continue;var par=byId[r.parent_id];if(par)par.contents.push({l:r.name,v:sbMoney(r.replacement_value),g:(r.sub_group||r.section),img:r.photo||""});}return out.length?out:null;}
+function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={},i,r;for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null){if(r.hidden)continue;var fn=Number(r.price_per_day)||0;var it={cat:r.category,sec:r.section,name:r.name,fn:fn,fee:fn>0?"$"+fn.toFixed(2):"Included",val:sbMoney(r.replacement_value),img:r.photo||"",contents:[],qty:parseInt(r.qty,10)||1,dbid:r.id,kind:r.kind||"item",accIds:Array.isArray(r.accessory_ids)?r.accessory_ids:[],memIds:Array.isArray(r.member_ids)?r.member_ids:[],desc:r.description||""};if(it.kind==='package'&&(!it.memIds||!it.memIds.length)){continue;}byId[r.id]=it;out.push(it);}}for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null)continue;if(r.hidden)continue;
+   /* A sub-item normally belongs to its single parent_id. It MAY also be shared
+      across additional parents via shared_parent_ids ("1020,1376" or an array):
+      it then shows under every listed parent — but only if there are enough units
+      to go round (qty >= number of parents). If not, it stays on its primary
+      parent and a console warning flags the shortfall (so two lenses can't both
+      claim the one ring, but a 2-unit back-lens-cap can serve both). */
+   var _pq=parseInt(r.qty,10)||1;
+   var _parents=[r.parent_id];
+   var _sp=r.shared_parent_ids;
+   if(_sp!=null&&_sp!==""){var _xs=(Array.isArray(_sp)?_sp:String(_sp).split(/[^0-9]+/)).map(function(x){return parseInt(x,10);}).filter(function(x){return x&&x!==r.parent_id;});_xs.forEach(function(x){if(_parents.indexOf(x)<0)_parents.push(x);});}
+   if(_parents.length>1&&_pq<_parents.length){try{console.warn('[RP Rentals] sub-item "'+r.name+'" (id '+r.id+') is shared across '+_parents.length+' parents but only '+_pq+' unit(s) exist — showing on its primary parent only.');}catch(e){}_parents=[r.parent_id];}
+   var _per=_parents.length>1?1:_pq;
+   for(var _pi=0;_pi<_parents.length;_pi++){var par=byId[_parents[_pi]];if(par)par.contents.push({l:r.name,v:sbMoney(r.replacement_value),g:(r.sub_group||r.section),img:r.photo||"",q:_per});}
+  }return out.length?out:null;}
 async function loadCatalog(){var u=SB_URL+"/rest/v1/items?select=*&order=sort_order.asc";var r=await fetch(u,{headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY},cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);return sbToRentals(await r.json());}
 /* Paint immediately with the built-in catalog so the page never waits on the network, then refresh from Supabase in the background. */
 RENTALS.forEach(function(p,i){p._id=i;});render();uc();
