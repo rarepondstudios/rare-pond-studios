@@ -959,7 +959,7 @@ const CARD_EYEBROW_TPL=(TPL.cardEyebrowTemplate||SITE.cardEyebrowTemplate||'{kic
 const CARD_LOGLINE_TPL=(TPL.cardLoglineTemplate||SITE.cardLoglineTemplate||'{blurb}');
 const GRID_CAPTION_TPL=(TPL.gridCaptionTemplate||SITE.gridCaptionTemplate||'{kicker}');
 const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.kicker,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,focusVideo:p.focusVideo||'',characters:[],logline:p.blurb,placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
-const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,logo:p.titleLogo,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,genre:p.genre||[],watch:buildWatch(p),stills:p.stills||[],credits:p.credits,vars:VARS[p.key]}]));
+const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,focusVideo:p.focusVideo||'',logo:p.titleLogo,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:p.pageLogline,genre:p.genre||[],watch:buildWatch(p),stills:p.stills||[],credits:p.credits,vars:VARS[p.key]}]));
 const TEAM=__d[2].team;
 const __pagesData=__d[3]||{pages:[]};
 const BTS=__d[6]||{};  /* per-project behind-the-scenes, auto-synced from the Project Repository BTS folders */
@@ -989,6 +989,13 @@ function stillThumb(src){
 /* Lightbox goes full-bleed: hand it the largest width this still actually has. */
 const stillFull=src=>{const ws=hdWidths(src);return ws?`${hdBase(src)}-${ws[ws.length-1]}.webp`:src;};
 const stillFallback=src=>hdWidths(src)?`${hdBase(src)}-1600.jpg`:src;
+/* ===== FIRST STILL = BACKGROUND (DB-driven) ========================================
+   Parity with the Jack Carlsen site: whenever a still-based hero/universe BACKGROUND is
+   shown (i.e. the project has NO focus video), it uses the FIRST still in the DB `stills`
+   order - rendered via the HD webp variant (stillFull) - so reordering stills in NocoDB
+   automatically changes the background. focusBg/posterImage is only the fallback for
+   projects that have no stills at all (then SITE.water if that too is blank). */
+const bgStillSrc=(stills,fallback)=>(stills&&stills.length)?stillFull(stills[0]):(fallback||SITE.water);
 const SOCIALS=(SITE.socials||[]).map(s=>[s.url,s.label,s.icon]);
 const ABOUT_ORBS=SITE.orbits||[];
 try{
@@ -1229,7 +1236,13 @@ function focusHTML(p){
      unconditional (it is the fallback), so it must exist even when a video is set;
      preload="none" means the video costs nothing until this film is the featured card,
      where syncFocusVideo() gives it its src. */
-  const bg=`<div class="focus-bg" style="background-image:url('${p.focusBg||SITE.water}')"></div>`
+  /* Background SOURCE precedence: focus VIDEO if present (unchanged) -> else the FIRST
+     still (DB stills[0], HD webp) -> else focusBg/water. So a still-based hero uses the
+     film's first still, while a film WITH a focus video is untouched (video still plays
+     over its existing focusBg fallback). stills come from SECTIONS (PROJECTS omits them). */
+  const __stills=(SECTIONS[p.key]&&SECTIONS[p.key].stills)||[];
+  const bgSrc=p.focusVideo?(p.focusBg||SITE.water):bgStillSrc(__stills,p.focusBg);
+  const bg=`<div class="focus-bg" style="background-image:url('${bgSrc}')"></div>`
     + (p.focusVideo?`<video class="focus-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'');
   /* .focus-content is a SIBLING of .focus-view, not a child. .focus-view has z-index:1,
      which makes it a stacking context - anything inside it is trapped below the glass
@@ -1569,7 +1582,11 @@ function buildUniverse(key){
   const watchHTML=renderWatch(s.watch);
   const stillsHTML=(s.stills&&s.stills.length)?`<div class="u-stills"><h3 class="stills-h">Stills</h3><div class="stills-grid">${s.stills.map(src=>`<button class="still" type="button" data-full="${stillFull(src)}" data-fallback="${stillFallback(src)}">${stillThumb(src)}</button>`).join('')}</div></div>`:'';
   const btsHTML=(BTS[key]&&BTS[key].length)?`<div class="u-stills u-bts"><h3 class="stills-h">Behind The Scenes</h3><div class="stills-grid">${BTS[key].map(b=>`<button class="still" type="button" data-full="${b.full}" data-fallback="${b.src}"><img src="${b.src}" loading="lazy" alt=""></button>`).join('')}</div></div>`:'';
-  sec.innerHTML=`<div class="u-bg" style="background-image:url('${s.bg||SITE.water}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p><div class="u-meta">${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${renderCredits(s.credits,s.vars)}</div></div>${stillsHTML}${btsHTML}</div>`;
+  /* Still-based universe background: a film with NO focus video uses its FIRST still
+     (DB stills[0], HD webp) so reordering stills in the DB changes the bg; a film WITH a
+     focus video keeps its existing focusBg, unchanged. */
+  const uBg=s.focusVideo?(s.bg||SITE.water):bgStillSrc(s.stills,s.bg);
+  sec.innerHTML=`<div class="u-bg" style="background-image:url('${uBg}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p><div class="u-meta">${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${renderCredits(s.credits,s.vars)}</div></div>${stillsHTML}${btsHTML}</div>`;
   sec.querySelector('.back').addEventListener('click',()=>history.back());universes.appendChild(sec);return sec;
 }
 const built={};let currentOpen=null;
