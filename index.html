@@ -1104,6 +1104,40 @@ let sideActive=null;
 /* PAUSE (never reset currentTime) + drop the visible class, so a re-hover RESUMES the reel
    from where it left off, showing a new part rather than restarting. */
 function stopSideVid(v){if(!v)return;v.pause();v.classList.remove('on');if(sideActive===v)sideActive=null;}
+/* ROBUST hover-preview starter, shared by the carousel side cards (.side-vid) AND the Projects
+   grid bubbles (.bubble-vid) so there is ONE hardened path (this is the reel that has regressed
+   before). Guarantees, in one place:
+     - lazy: src is set from data-src only on first use (preload="none" => zero bytes until hover);
+     - single active: any other preview is paused, so at most one reel ever decodes;
+     - reveal-WHEN-READY: the .on crossfade is added only once the reel can actually paint a frame
+       (loadeddata/playing/timeupdate). A heavy or slow reel (e.g. a big file, or a throttled/
+       backgrounded tab where readyState sticks at 0) therefore never fades a BLANK video over a
+       good still - the still simply holds until frames arrive. This is the exact failure mode that
+       made Geri's bubble look "broken": src set + play() accepted, but readyState stalled, so the
+       old code crossfaded to nothing;
+     - self-healing play(): a refused play() is retried once on the next frame; an AbortError
+       (play() interrupted by the mouseleave pause) is ignored, never retried;
+     - resume-not-restart is preserved by stopSideVid (leave only pauses; currentTime is kept). */
+function startPreview(v){
+  if(!v||!SIDE_VID_OK)return;
+  if(sideActive&&sideActive!==v)sideActive.pause();
+  sideActive=v;
+  if(!v.getAttribute('src'))v.setAttribute('src',v.dataset.src);
+  if(!v._revWired){
+    v._revWired=1;
+    const reveal=()=>{if(sideActive===v&&!v.paused&&v.readyState>=2)v.classList.add('on');};
+    v.addEventListener('playing',reveal);
+    v.addEventListener('loadeddata',reveal);
+    v.addEventListener('timeupdate',reveal);
+  }
+  const tryPlay=(retry)=>{
+    const pr=v.play();
+    if(pr&&pr.catch)pr.catch(err=>{
+      if(retry&&err&&err.name!=='AbortError')requestAnimationFrame(()=>{if(sideActive===v)tryPlay(false);});
+    });
+  };
+  tryPlay(true);
+}
 
 
 /* The carousel shows real projects that have not been switched off in Pages CMS.
@@ -1145,13 +1179,7 @@ function makeGridBubble(p,i){
      lazy first-hover src, reduced-motion / Save-Data safe (SIDE_VID_OK => keep the still). */
   if(!p.placeholder&&!p.poster&&p.focusVideo){
     bubble.addEventListener('mouseenter',()=>{
-      if(!SIDE_VID_OK)return;
-      const v=bubble.querySelector('.bubble-vid'); if(!v)return;
-      if(sideActive&&sideActive!==v)sideActive.pause();          /* keep only one decoding */
-      if(!v.getAttribute('src'))v.setAttribute('src',v.dataset.src);   /* lazy first-hover load */
-      sideActive=v;
-      const pr=v.play(); if(pr&&pr.catch)pr.catch(()=>{});
-      v.classList.add('on');
+      startPreview(bubble.querySelector('.bubble-vid'));   /* shared hardened path (lazy src, reveal-when-ready, self-healing play) */
     });
     bubble.addEventListener('mouseleave',()=>{stopSideVid(bubble.querySelector('.bubble-vid'));});  /* PAUSE, keep currentTime -> resumes */
   }
@@ -1271,13 +1299,8 @@ const citems=CAROUSEL.map((p,i)=>{
   const sideVid=(!p.poster&&p.focusVideo)?`<video class="side-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
   el.innerHTML=`<div class="cdrop"></div><div class="cglow"></div><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
   el.addEventListener('mouseenter',()=>{
-    if(!SIDE_VID_OK||el.classList.contains('feat'))return;   /* featured card uses its own reel */
-    const v=el.querySelector('.side-vid'); if(!v)return;
-    if(sideActive&&sideActive!==v)sideActive.pause();          /* keep only one decoding */
-    if(!v.getAttribute('src'))v.setAttribute('src',v.dataset.src);   /* lazy first-hover load */
-    sideActive=v;
-    const pr=v.play(); if(pr&&pr.catch)pr.catch(()=>{});
-    v.classList.add('on');
+    if(el.classList.contains('feat'))return;   /* featured card uses its own .focus-vid reel */
+    startPreview(el.querySelector('.side-vid'));   /* shared hardened path */
   });
   el.addEventListener('mouseleave',()=>{stopSideVid(el.querySelector('.side-vid'));});   /* PAUSE, keep currentTime -> resumes */
   el.addEventListener('pointermove',e=>{if(INTERACTIVE&&el.classList.contains('feat')){const r=el.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){el.style.setProperty('--mx',(px*100).toFixed(1)+'%');el.style.setProperty('--my',(py*100).toFixed(1)+'%');}el.style.setProperty('--tilty',((px-.5)*9).toFixed(2)+'deg');el.style.setProperty('--tiltx',((.5-py)*7).toFixed(2)+'deg');}});
@@ -1396,8 +1419,15 @@ function syncFocusVideo(){
       v.addEventListener('error',()=>v.remove(),{once:true});
       v.setAttribute('src',v.dataset.src);
     }
-    const pr=v.play();
-    if(pr&&pr.catch) pr.catch(()=>{});   // autoplay refused -> still stays, no console noise
+    /* self-healing play(): a refused play() is retried once on the next frame (only while this
+       card is still the featured one); AbortError (interrupted by a slot change) is ignored. */
+    const tryPlay=(retry)=>{
+      const pr=v.play();
+      if(pr&&pr.catch) pr.catch(err=>{   // autoplay refused -> still stays, no console noise
+        if(retry&&err&&err.name!=='AbortError'&&el.dataset.slot==='feat')requestAnimationFrame(()=>tryPlay(false));
+      });
+    };
+    tryPlay(true);
   });
 }
 document.addEventListener('visibilitychange',syncFocusVideo);
