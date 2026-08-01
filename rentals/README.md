@@ -108,14 +108,34 @@ kept in sync automatically and should be treated as read-only.
    but is **greyed out for dates where all its units are already booked**. You do
    not manage that by hand.
 
+**Sub-items / package components are unit-tracked too.** Every physical thing
+the studio owns gets a unit row — including the components **inside** a package
+or kit (the sub-items, where `parent_id` points at the parent item). So when you
+build a kit, add **one unit row per physical copy of each component** (e.g. a kit
+that contains two identical straps → give that strap sub-item two units). A
+normal one-of component gets a single unit. This does **not** change what the
+website shows for a package yet — the package-availability RPC is separate and
+still keys off the package, not its component units — but it keeps the units
+table a complete physical inventory and keeps every sub-item's `qty` accurate.
+For a **shared** component (one physical piece listed under several kits via
+`shared_parent_ids`), create units **once** for that row — do not multiply by the
+number of kits it appears in.
+
+> Tip for data entry: the **units** table has a grid view named **"Component
+> units"** grouped by `unit_class` (a computed field), so standalone-item units
+> and package-component units show as two separate groups. The `item_parent_id`
+> and `unit_class` columns are computed helpers — they are read-only and do not
+> change any data.
+
 **How the sync works:** a headless job,
-`~/bts-automation/rentals_units_sync.py`, recomputes each standalone
-non-package item's `qty` = its unit count and PATCHes NocoDB only when it
-changed (packages and sub-items are never touched). It runs on login and every
-few minutes via the launchd agent `com.rarepond.rentalsunitssync`, and logs to
+`~/bts-automation/rentals_units_sync.py`, recomputes each **non-package** item's
+`qty` = its unit count — both standalone items **and** sub-items — and PATCHes
+NocoDB only when it changed (**packages are never touched**, since a bundle has
+no physical unit). It runs on login and every few minutes via the launchd agent
+`com.rarepond.rentalsunitssync`, and logs to
 `~/bts-automation/rentals_units_sync.log`. So there is a short (a couple of
-minutes) delay between adding/removing units and the count updating on the site;
-you can force it immediately by running the script once.
+minutes) delay between adding/removing units and the count updating; you can
+force it immediately by running the script once.
 
 **Packages** (`kind` = `package`) are bundles and are **not** unit-driven — they
 keep showing regardless of unit count, so leave their `qty` alone.
