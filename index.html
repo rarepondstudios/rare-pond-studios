@@ -510,6 +510,17 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     --fg1:var(--g1);--fg2:var(--g2);--fg3:var(--g3);--fgm:rgb(123,108,255)}
   .universe.open{clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%))}
   .u-bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center}
+  /* ===== EXPANDED-PAGE BACKGROUND VIDEO ============================================
+     Parity with the featured card / jackcarlsen's project page: a background reel layered
+     directly OVER the .u-bg still (both z-index:0, video wins by DOM order) and UNDER the
+     .u-scrim (z-index:1), so the scrim and all text legibility are untouched. It starts
+     fully transparent and is faded in by the SHARED startPreview engine, which adds `.on`
+     only once the reel can actually paint a frame. No video / slow / errored / reduced-motion
+     / Save-Data -> it never gets `.on` (or never gets a src at all) and the .u-bg still holds,
+     exactly like a film with no reel. */
+  .u-vid{position:fixed;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;display:block;
+    opacity:0;transition:opacity .8s ease;pointer-events:none}
+  .u-vid.on{opacity:1}
   .u-scrim{position:fixed;inset:0;z-index:1;background:radial-gradient(90% 70% at 50% 0%,var(--scrim-1,#ffffff),transparent 60%),linear-gradient(180deg,rgba(6,8,20,.6),rgba(4,6,16,.92))}
   /* ===== THE ZOOM-IN FLASH ==========================================================
      The burst of light that fires out of the bubble as the film opens. It is the last piece
@@ -1616,7 +1627,11 @@ function buildUniverse(key){
      (DB stills[0], HD webp) so reordering stills in the DB changes the bg; a film WITH a
      focus video keeps its existing focusBg, unchanged. */
   const uBg=s.focusVideo?(s.bg||SITE.water):bgStillSrc(s.stills,s.bg);
-  sec.innerHTML=`<div class="u-bg" style="background-image:url('${uBg}')"></div><div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p><div class="u-meta">${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${renderCredits(s.credits,s.vars)}</div></div>${stillsHTML}${btsHTML}</div>`;
+  /* A film WITH a reel gets a background <video> layered over the still (played by the shared
+     startPreview engine in openUniverse); a film without one just keeps the still. Same lazy
+     data-src / preload="none" contract as .side-vid / .bubble-vid / .focus-vid. */
+  const uVid=s.focusVideo?`<video class="u-vid" data-src="${s.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
+  sec.innerHTML=`<div class="u-bg" style="background-image:url('${uBg}')"></div>${uVid}<div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p><div class="u-meta">${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${renderCredits(s.credits,s.vars)}</div></div>${stillsHTML}${btsHTML}</div>`;
   sec.querySelector('.back').addEventListener('click',()=>history.back());universes.appendChild(sec);return sec;
 }
 const built={};let currentOpen=null;
@@ -1719,6 +1734,10 @@ function openUniverse(key){
   sec.classList.add('flash');
   requestAnimationFrame(()=>sec.classList.add('open'));currentOpen=sec;
   syncFocusVideo();     // the carousel is behind a full-screen film now - stop decoding it
+  /* Play the expanded-page background reel through the SAME hardened engine as the carousel
+     side cards / grid bubbles (lazy src, reveal-when-ready, retry-once play, single active,
+     reduced-motion / Save-Data gate). No reel -> no .u-vid -> the still simply stays. */
+  startPreview(sec.querySelector('.u-vid'));
 }
 function closeUniverse(sec){
   if(!sec)return;
@@ -1741,6 +1760,7 @@ function closeUniverse(sec){
   sec.classList.add('closing','flash-out');sec.classList.remove('flash','open');currentOpen=null;
   const done=(e)=>{if(e.target!==sec||(e.propertyName!=='clip-path'&&e.propertyName!=='-webkit-clip-path'))return;sec.style.visibility='hidden';sec.classList.remove('closing','flash','flash-out');sec.removeEventListener('transitionend',done);};
   sec.addEventListener('transitionend',done);setTimeout(()=>{if(sec.style.visibility!=='hidden'){sec.style.visibility='hidden';sec.classList.remove('closing','flash','flash-out');}},800);
+  stopSideVid(sec.querySelector('.u-vid'));   // PAUSE the background reel (keep currentTime) - stops decoding once the film is closed
   syncFocusVideo();     // back on the carousel - the featured card picks up where it left off
 }
 addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){if(e.key==='Escape')closeLB();else if(e.key==='ArrowRight')lbShow(lbIdx+1);else if(e.key==='ArrowLeft')lbShow(lbIdx-1);return;}if(e.key==='Escape'&&currentOpen)history.back();});
