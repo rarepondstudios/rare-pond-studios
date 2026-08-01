@@ -80,3 +80,42 @@ This folder is a complete static site - no build step.
 4. **The cross‑link is already built in:** the rentals header has a "Studio Site ←" button; on the studio site, the matching "Rental Site →" button should point to this new hostname. (Header logo/duck is bundled locally in `media/` so there's no dependency on the studio site's assets.)
 
 The forms need no server - the Jotform POST + health‑check API call run client‑side. (If you later choose the fully API‑driven form option, that one would add a small Cloudflare Pages Function; the current setup does not.)
+
+---
+
+## Adding new gear (availability is driven by physical UNITS)
+
+Item availability on the website is driven by the **units** table (one row per
+physical copy), **not** by a manually typed quantity. The `items.qty` field is
+kept in sync automatically and should be treated as read-only.
+
+**To add a new rentable item:**
+
+1. **Add the ITEM row** in NocoDB → base **Rare Pond Rentals** → **items**
+   (set name, category, section, price, photo, etc.). Leave `parent_id` empty
+   and `kind` = `item` for a standalone rentable item.
+   → It will **NOT appear on the website yet** — a new item with zero units is
+   hidden on purpose.
+2. **Add one UNIT row per physical copy** in the **units** table, with
+   `item_id` set to the new item's id. The site then shows **"N available"**
+   where N = the number of units you added (2 copies → "2 available").
+3. **If gear is lost, sold or retired**, delete its unit rows (or set the unit's
+   `condition_status` away from `ok` if you only want to pull it temporarily and
+   the availability logic is extended to honor that). With **zero units the item
+   auto-hides** from the catalog.
+4. **Bookings are handled automatically:** the date picker calls the
+   `catalog_availability` RPC, so an item with units still shows in the catalog
+   but is **greyed out for dates where all its units are already booked**. You do
+   not manage that by hand.
+
+**How the sync works:** a headless job,
+`~/bts-automation/rentals_units_sync.py`, recomputes each standalone
+non-package item's `qty` = its unit count and PATCHes NocoDB only when it
+changed (packages and sub-items are never touched). It runs on login and every
+few minutes via the launchd agent `com.rarepond.rentalsunitssync`, and logs to
+`~/bts-automation/rentals_units_sync.log`. So there is a short (a couple of
+minutes) delay between adding/removing units and the count updating on the site;
+you can force it immediately by running the script once.
+
+**Packages** (`kind` = `package`) are bundles and are **not** unit-driven — they
+keep showing regardless of unit count, so leave their `qty` alone.
