@@ -140,6 +140,25 @@
 .uses-x{margin-top:7px;font-size:11px;color:#8ba6c9;font-style:italic}
 .grouphead{grid-column:1/-1;margin:22px 0 2px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:#8ba6c9}
 .grouphead:first-child{margin-top:0}
+/* ---- PLATFORM COLORS reference -------------------------------------------
+   A read-only map of every social + streaming platform the sites brand by colour,
+   mirrored from the code the live sites actually use (assets/socials.js + the
+   per-platform hover colours in index.html for socials; the STREAMERS list +
+   .watch-btn colours from the Jack Carlsen site for streaming). Each platform's
+   icon is shown in its own brand colour so the owner can see the mapping at a glance. */
+.plat{max-width:1120px;margin:30px auto 0;border:1px solid rgba(255,255,255,.16);border-radius:16px;
+  background:rgba(9,16,38,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:18px 18px 22px;box-shadow:0 12px 34px -14px rgba(0,0,0,.6)}
+.plat h2{font-size:16px;font-weight:800;margin:0 0 4px;color:#fff}
+.plat .sub{font-size:12.5px;color:#c3d5ef;line-height:1.5;margin:0 0 8px;max-width:820px}
+.plat-group h3{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8ba6c9;font-weight:800;margin:18px 0 10px}
+.plat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+.plat-card{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03)}
+.plat-badge{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none;color:#fff;
+  border:1px solid rgba(255,255,255,.25);box-shadow:0 4px 12px -4px rgba(0,0,0,.5)}
+.plat-badge svg{width:22px;height:22px;fill:currentColor}
+.plat-tx{min-width:0}
+.plat-name{font-size:13.5px;font-weight:800;color:#fff;line-height:1.2}
+.plat-hex{font-size:10.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#9fb2cc;margin-top:2px;text-transform:lowercase}
 </style>
 </head>
 <body>
@@ -166,6 +185,18 @@
   </div>
   <div id="linkwarn"></div>
 <div class="grid" id="grid"></div>
+  <section class="plat" id="platform-colors">
+    <h2>Platform colors</h2>
+    <p class="sub">Reference only - the brand color + icon the sites use for every social platform and every "Watch on" streaming service. Mirrored from the live code (social icons + hover colors from the studio site; the streaming list + button colors from the Jack Carlsen site), so what you see here is exactly what a visitor sees. Nothing to edit: these are the platforms' own brand colors.</p>
+    <div class="plat-group">
+      <h3>Social platforms</h3>
+      <div class="plat-grid" id="plat-social"></div>
+    </div>
+    <div class="plat-group">
+      <h3>Streaming / "Watch on" services</h3>
+      <div class="plat-grid" id="plat-stream"></div>
+    </div>
+  </section>
   <div class="foot" id="foot"></div>
 
 <script>
@@ -423,6 +454,65 @@
       var h=hexIn?(clampHex(hexIn.value)||hexIn.value):''; if(!h) return;
       try{navigator.clipboard.writeText(h);var o=b.innerHTML;b.innerHTML='✓';setTimeout(function(){b.innerHTML=o;},800);}catch(err){}
     });
+  })();
+
+  /* --- Platform colors reference ---------------------------------------------
+     A static, read-only map of every platform the sites brand by colour, mirrored
+     from the live code:
+       - SOCIAL icons: assets/socials.js (RP_SOCIAL_ICONS)
+       - SOCIAL colours: the .proj-soc[data-net=..]:hover rules in index.html
+       - STREAMING list + colours: the STREAMERS array + .watch-btn.* rules in the
+         Jack Carlsen site's index.html (the more complete "Watch on" set).
+     Streaming services are shown with the play glyph the sites use for their watch
+     buttons (they have no per-service icon), on the button's brand colour. */
+  (function(){
+    var ICON={
+      yt:'<svg viewBox="0 0 24 24"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 5 12 5 12 5s-7 0-8.9.4A3 3 0 0 0 1 7.5 31 31 0 0 0 .6 12 31 31 0 0 0 1 16.5a3 3 0 0 0 2.1 2.1C5 19 12 19 12 19s7 0 8.9-.4a3 3 0 0 0 2.1-2.1A31 31 0 0 0 23.4 12 31 31 0 0 0 23 7.5zM9.8 15.3V8.7l5.7 3.3-5.7 3.3z"/></svg>',
+      ig:'<svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.3 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.1.4.3 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.1-1 .3-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.3-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.1-.4-.3-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.1 1-.3 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7 .1 5.7.1 4.8.3 4.1.6c-.8.3-1.4.7-2.1 1.4C1.3 2.7.9 3.3.6 4.1.3 4.8.1 5.7.1 7 0 8.3 0 8.7 0 12s0 3.7.1 5c.1 1.3.2 2.2.5 2.9.3.8.7 1.4 1.4 2.1.7.7 1.3 1.1 2.1 1.4.7.3 1.6.5 2.9.5 1.3.1 1.7.1 5 .1s3.7 0 5-.1c1.3-.1 2.2-.2 2.9-.5.8-.3 1.4-.7 2.1-1.4.7-.7 1.1-1.3 1.4-2.1.3-.7.5-1.6.5-2.9.1-1.3.1-1.7.1-5s0-3.7-.1-5c-.1-1.3-.2-2.2-.5-2.9-.3-.8-.7-1.4-1.4-2.1-.7-.7-1.3-1.1-2.1-1.4-.7-.3-1.6-.5-2.9-.5C15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4 6.2 6.2 0 0 0 0-12.4zm0 10.2a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-10.4a1.4 1.4 0 1 1-2.9 0 1.4 1.4 0 0 1 2.9 0z"/></svg>',
+      li:'<svg viewBox="0 0 24 24"><path d="M20.4 3H3.6A.6.6 0 0 0 3 3.6v16.8a.6.6 0 0 0 .6.6h16.8a.6.6 0 0 0 .6-.6V3.6a.6.6 0 0 0-.6-.6zM8.3 18.3H5.5V9.4h2.8v8.9zM6.9 8.2a1.6 1.6 0 1 1 0-3.3 1.6 1.6 0 0 1 0 3.3zm11.4 10.1h-2.8v-4.3c0-1 0-2.4-1.4-2.4s-1.6 1.1-1.6 2.3v4.4H9.7V9.4h2.7v1.2h.04c.4-.7 1.3-1.4 2.6-1.4 2.8 0 3.3 1.8 3.3 4.2v5z"/></svg>',
+      fb:'<svg viewBox="0 0 24 24"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07z"/></svg>',
+      tiktok:'<svg viewBox="0 0 24 24"><path d="M16.6 5.8a4.3 4.3 0 0 1-1-2.8h-3.3v13.1a2.3 2.3 0 1 1-2.3-2.3c.2 0 .5 0 .7.1V8.5a5.7 5.7 0 0 0-.7 0 5.6 5.6 0 1 0 5.6 5.6V8.9a7.5 7.5 0 0 0 4.3 1.4V7a4.3 4.3 0 0 1-3.3-1.2z"/></svg>',
+      x:'<svg viewBox="0 0 24 24"><path d="M18.9 2H22l-7.3 8.4L23.3 22h-6.8l-5.3-7-6.1 7H2l7.8-9L1.2 2h7l4.8 6.4L18.9 2zm-2.4 18h1.9L7.6 4H5.6l10.9 16z"/></svg>',
+      threads:'<svg viewBox="0 0 24 24"><path d="M16.5 11.2c-.1 0-.2-.1-.3-.1-.2-3-1.8-4.7-4.5-4.7-1.6 0-3 .7-3.8 2l1.5 1c.6-.9 1.5-1.1 2.3-1.1 1.5 0 2.3.9 2.5 2.3-.6-.1-1.2-.2-1.9-.1-2.2.1-3.6 1.4-3.5 3.2.1 1.7 1.6 2.7 3.3 2.6 1.4-.1 2.9-.9 3.2-3 .3.5.5 1.2.5 1.9 0 2.4-1.8 4.4-5.1 4.4-3.6 0-5.3-2.5-5.3-6.4S8 5.3 11.4 5.3c2.5 0 4.2 1.2 4.8 3.4l1.7-.5C17 5.3 14.7 3.6 11.4 3.6 6.9 3.6 4 6.7 4 12s2.9 8.4 7.5 8.4c3.9 0 6.8-2.5 6.8-6.1 0-1.6-.6-2.9-1.8-3.1zm-4.4 4.2c-.8 0-1.5-.4-1.5-1 0-.6.7-1 1.6-1.1.5 0 1 0 1.6.2-.1 1.4-.9 1.9-1.7 1.9z"/></svg>',
+      vimeo:'<svg viewBox="0 0 24 24"><path d="M23 7.4c-.1 2.2-1.6 5.2-4.6 9-3 4-5.6 6-7.7 6-1.3 0-2.4-1.2-3.3-3.6L5.6 12c-.7-2.4-1.4-3.6-2.2-3.6-.2 0-.7.3-1.6.9L.8 8.1c1-.9 2-1.8 3-2.7 1.3-1.2 2.4-1.8 3-1.9 1.6-.1 2.5 1 2.8 3.3.3 2.5.5 4.1.7 4.7.4 2 1 2.9 1.6 2.9.5 0 1.2-.7 2.1-2.2.9-1.5 1.4-2.6 1.5-3.4.1-1-.3-1.5-1.2-1.5-.4 0-.9.1-1.3.3.9-2.9 2.6-4.3 5.1-4.2 1.8.1 2.7 1.3 2.6 3.6z"/></svg>',
+      web:'<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.9 6h-2.6a15.5 15.5 0 00-1.2-3.5A8 8 0 0118.9 8zM12 4c.8 1 1.5 2.4 1.9 4h-3.8C10.5 6.4 11.2 5 12 4zM5.1 8a8 8 0 013.8-3.5A15.5 15.5 0 007.7 8H5.1zM4.3 14a8 8 0 010-4h3a17.5 17.5 0 000 4h-3zm.8 2h2.6a15.5 15.5 0 001.2 3.5A8 8 0 015.1 16zm4.1 0h4.6c-.4 1.6-1.1 3-1.9 4-.8-1-1.5-2.4-1.9-4H9.7zm-.1-2a15.5 15.5 0 010-4h4.6a15.5 15.5 0 010 4H9.6zm5.5 5.5a15.5 15.5 0 001.2-3.5h2.6a8 8 0 01-3.8 3.5zM16.7 14a17.5 17.5 0 000-4h3a8 8 0 010 4h-3z"/></svg>',
+      play:'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
+    };
+    var SOCIAL=[
+      {name:'YouTube',   icon:'yt',     bg:'#ff0000', hex:'#ff0000'},
+      {name:'Instagram', icon:'ig',     bg:'linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7)', hex:'#f9ce34 → #ee2a7b → #6228d7'},
+      {name:'TikTok',    icon:'tiktok', bg:'#010101', hex:'#000000', glow:'0 0 14px rgba(37,244,238,.5),0 0 10px rgba(254,44,85,.5)'},
+      {name:'X (Twitter)',icon:'x',     bg:'#000000', hex:'#000000'},
+      {name:'Facebook',  icon:'fb',     bg:'#1877f2', hex:'#1877f2'},
+      {name:'Threads',   icon:'threads',bg:'#000000', hex:'#000000'},
+      {name:'Vimeo',     icon:'vimeo',  bg:'#1ab7ea', hex:'#1ab7ea'},
+      {name:'LinkedIn',  icon:'li',     bg:'#0a66c2', hex:'#0a66c2'},
+      {name:'Website / Other', icon:'web', bg:'#9b5cff', hex:'#9b5cff'}
+    ];
+    var STREAM=[
+      {name:'YouTube',      bg:'linear-gradient(135deg,#ff3b30,#d4271d)', hex:'#ff3b30'},
+      {name:'Vimeo',        bg:'linear-gradient(135deg,#1ab7ea,#1281c4)', hex:'#1ab7ea'},
+      {name:'Prime Video',  bg:'linear-gradient(135deg,#00a8e1,#0077a8)', hex:'#00a8e1'},
+      {name:'Netflix',      bg:'linear-gradient(135deg,#e50914,#9e060d)', hex:'#e50914'},
+      {name:'Hulu',         bg:'linear-gradient(135deg,#1ce783,#12a35d)', hex:'#1ce783', fg:'#04220f'},
+      {name:'Disney+',      bg:'linear-gradient(135deg,#2a54d8,#113ccf)', hex:'#2a54d8'},
+      {name:'Max',          bg:'linear-gradient(135deg,#2f55f0,#002be7)', hex:'#2f55f0'},
+      {name:'Apple TV+',    bg:'#f5f4f7', hex:'#f5f4f7', fg:'#101014'},
+      {name:'Peacock',      bg:'linear-gradient(135deg,#fa3c00,#c22e00)', hex:'#fa3c00'},
+      {name:'Paramount+',   bg:'linear-gradient(135deg,#0064ff,#0046b4)', hex:'#0064ff'},
+      {name:'Other (generic)', bg:'linear-gradient(135deg,#5a5470,#3d374f)', hex:'#5a5470'}
+    ];
+    function esc2(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+    function card(p,glyph){
+      var fg=p.fg||'#fff';
+      var style='background:'+p.bg+';color:'+fg+';';
+      if(p.glow) style+='box-shadow:'+p.glow+';';
+      return '<div class="plat-card"><div class="plat-badge" style="'+esc2(style)+'">'+glyph+'</div>'
+        +'<div class="plat-tx"><div class="plat-name">'+esc2(p.name)+'</div><div class="plat-hex">'+esc2(p.hex)+'</div></div></div>';
+    }
+    var soc=document.getElementById('plat-social'), str=document.getElementById('plat-stream');
+    if(soc) soc.innerHTML=SOCIAL.map(function(p){return card(p,ICON[p.icon]||ICON.web);}).join('');
+    if(str) str.innerHTML=STREAM.map(function(p){return card(p,ICON.play);}).join('');
   })();
 </script>
 </body>

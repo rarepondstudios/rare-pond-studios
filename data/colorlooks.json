@@ -1,5 +1,6 @@
 {
   "previewUrl": "https://www.rarepond.com/admin/colorlooks",
+  "platformColorsUrl": "https://www.rarepond.com/admin/colorlooks#platform-colors",
   "previewUser": "rarepond",
   "previewPasswordLocation": "Apple Passwords, shared group \"Rare Pond\", entry \"Rare Pond internal pages\". (Master copy: Cloudflare > Pages > rare-pond-studios > Settings > Variables and secrets > COLORLOOKS_PASSWORD)",
   "looks": [

@@ -133,6 +133,11 @@ content:
         type: string
         readonly: true
         description: "Open this link to see every look as live swatches with hex codes. Edit the colors below, commit, then reload that page to compare."
+      - name: platformColorsUrl
+        label: "🎨 Platform colors reference (social + streaming brand colors)"
+        type: string
+        readonly: true
+        description: "Same login as the preview page. Opens the 'Platform colors' section at the bottom of the Color Looks page: every social platform (YouTube, Instagram, TikTok, X, Facebook, Threads, Vimeo, LinkedIn) and every 'Watch on' streaming service (Prime Video, Netflix, Hulu, Disney+, Max, Apple TV+, Peacock, Paramount+, plus YouTube/Vimeo) shown in its own brand color + icon. Reference only - these are the platforms' own colors and cannot be edited."
       - name: previewUser
         label: "🔒 Username for that page"
         type: string
