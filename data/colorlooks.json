@@ -235,36 +235,6 @@
       "note": "The synesthetic color-glow spelled out in the logo itself: red, electric blue, and gold lens-flare light bleeding across a dark cosmos, the boldest neon gradient of the set."
     },
     {
-      "key": "geri_action",
-      "name": "Geri Action",
-      "kind": "basics",
-      "c1": "#9b2fe0",
-      "c2": "#e5345c",
-      "c3": "#ffcf5c",
-      "taglineItalic": false,
-      "note": "Comic-book spy pop: the magenta-purple halftone backdrop and the heroine's red coat, sparked by the gold of her spy medallion for a punchy graphic-novel glow."
-    },
-    {
-      "key": "revelations",
-      "name": "Revelations",
-      "kind": "basics",
-      "c1": "#efac37",
-      "c2": "#7fa9c9",
-      "c3": "#ffeec2",
-      "taglineItalic": false,
-      "note": "The heavenly threshold: divine golden halo-light against the pale blue-grey clouds of the sky, rising to a soft cream radiance for a serene, celestial glow."
-    },
-    {
-      "key": "invalid_opinion",
-      "name": "Invalid Opinion",
-      "kind": "basics",
-      "c1": "#1fb6ff",
-      "c2": "#ff4d2e",
-      "c3": "#9fe4ff",
-      "taglineItalic": false,
-      "note": "The chromatic clash of the poster: the cold electric-blue 3D title and screen glow set against the hot red-orange room light, a high-voltage complementary gradient."
-    },
-    {
       "key": "parting_piece",
       "name": "Parting Piece",
       "kind": "basics",
