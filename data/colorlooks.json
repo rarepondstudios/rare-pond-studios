@@ -263,6 +263,66 @@
       "c3": "#9fe4ff",
       "taglineItalic": false,
       "note": "The chromatic clash of the poster: the cold electric-blue 3D title and screen glow set against the hot red-orange room light, a high-voltage complementary gradient."
+    },
+    {
+      "key": "parting_piece",
+      "name": "Parting Piece",
+      "kind": "basics",
+      "c1": "#C9873F",
+      "c2": "#33525C",
+      "c3": "#16120E",
+      "taglineItalic": false,
+      "note": "The recital carved out of the dark: a warm tungsten amber key against cool slate-teal negative fill, grounded in the deep near-black of the stage."
+    },
+    {
+      "key": "lights_up",
+      "name": "Lights Up",
+      "kind": "basics",
+      "c1": "#2C55C8",
+      "c2": "#C86A2C",
+      "c3": "#0B0D14",
+      "taglineItalic": false,
+      "note": "The black-box two-hander lit in gels: electric stage blue against a warm footlight amber, carved out of a deep theater blackout."
+    },
+    {
+      "key": "spotlight_abay",
+      "name": "Spotlight: As Bright As You",
+      "kind": "basics",
+      "c1": "#C58A45",
+      "c2": "#6E77AA",
+      "c3": "#171210",
+      "taglineItalic": false,
+      "note": "The follow-spot glow: a warm spotlight amber key and a cool stage periwinkle accent over a deep warm theatrical black."
+    },
+    {
+      "key": "the_duckling",
+      "name": "The Duckling",
+      "kind": "basics",
+      "c1": "#E8B23C",
+      "c2": "#C42A1B",
+      "c3": "#1E1613",
+      "taglineItalic": false,
+      "note": "Cozy comfort curdling into menace: warm duck-gold highlights and the thriller's blood-red wash over a cozy domestic black."
+    },
+    {
+      "key": "vantage_point",
+      "name": "Vantage Point",
+      "kind": "basics",
+      "c1": "#B8814E",
+      "c2": "#C86A56",
+      "c3": "#33453F",
+      "taglineItalic": false,
+      "note": "Phone-shot Americana night: warm tungsten amber and the ember-pink glow of the keepsake against desaturated teal shadow."
+    },
+    {
+      "key": "incoherent",
+      "name": "Incoherent",
+      "kind": "basics",
+      "c1": "#E7A488",
+      "c2": "#9E545C",
+      "c3": "#2E5A56",
+      "taglineItalic": false,
+      "note": "Memory in warm-and-cool interior light: a tungsten peach and a dusty-rose practical glow against the cool teal of the windows."
     }
   ]
 }
