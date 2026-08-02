@@ -552,7 +552,12 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .u-inner{position:relative;z-index:2;min-height:100%;opacity:0;transform:translateY(14px);transition:opacity .5s .18s,transform .5s .18s;padding-top:calc(var(--header-h) + 6px)}
   .universe.open .u-inner{opacity:1;transform:none}.universe.closing .u-inner{opacity:0;transform:translateY(8px);transition:opacity .28s,transform .28s}
   .u-top{display:flex;align-items:center;gap:14px;padding:14px clamp(18px,5vw,54px)}
-  .back{display:inline-flex;align-items:center;gap:9px;cursor:pointer;border-radius:50px;padding:11px 18px;font-weight:700;font-size:14px;color:#fff;background:rgba(10,22,46,.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);transition:.2s}
+  /* Floating back control: position:fixed so it stays put in the top-left while the project
+     page scrolls (the .universe is its own overflow-y:auto scroll container; .u-inner settles
+     to transform:none when open, so fixed anchors to the viewport). Sits just BELOW the fixed
+     site header (--header-h, z-index:300) so it never overlaps the logo/nav. z-index stays
+     under the header but well above universe content, and tap size is unchanged. */
+  .back{position:fixed;top:calc(var(--header-h) + 8px);left:clamp(14px,5vw,54px);z-index:180;display:inline-flex;align-items:center;gap:9px;cursor:pointer;border-radius:50px;padding:11px 18px;font-weight:700;font-size:14px;color:#fff;background:rgba(10,22,46,.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 22px rgba(0,0,0,.35);transition:.2s}
   .back:hover{background:rgba(20,40,80,.7);transform:translateX(-2px)}
   .u-top .u-eyebrow{margin-left:auto;font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.8}
   .u-hero{padding:clamp(10px,3vh,34px) clamp(18px,5vw,54px) 26px;max-width:1100px}
