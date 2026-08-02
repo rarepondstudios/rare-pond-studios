@@ -558,11 +558,11 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .u-hero{padding:clamp(10px,3vh,34px) clamp(18px,5vw,54px) 26px;max-width:1100px}
   .u-logo{height:clamp(88px,15vh,164px);width:auto;max-width:min(86vw,540px);object-fit:contain;margin:0 0 10px;filter:drop-shadow(0 10px 30px rgba(0,0,0,.5))}
   .u-kicker{font-size:13px;text-transform:uppercase;font-weight:700;margin-bottom:12px;color:var(--kicker-color,var(--accent));letter-spacing:var(--kicker-tracking,.24em)}
-  /* Kicker row: year·production·status stays left; the project TYPE chip floats right,
-     aligned to the right edge of the logline column below it (same max-width:680px). */
-  .u-kicker-row{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:680px;margin-bottom:12px}
-  .u-kicker-row .u-kicker{margin-bottom:0}
-  .type-chip{flex:none;white-space:nowrap;font-size:11.5px;padding:6px 13px;border-radius:50px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.11);color:#eef4ff;font-weight:700;text-transform:uppercase;letter-spacing:.14em}
+  /* Project TYPE pill: rendered as the FIRST pill in the genre list (.u-meta), tinted with
+     the film's per-look accent (--accent - the same colour that drives Where-to-Watch /
+     kicker / accent text) so it reads as a category label, distinct from the plain genre
+     pills. Falls back to a neutral white wash when the film has no colour look assigned. */
+  .u-meta .type-chip{flex:none;white-space:nowrap;text-transform:uppercase;font-weight:700;letter-spacing:.1em;color:#fff;background:color-mix(in srgb,var(--accent) 24%,transparent);border-color:color-mix(in srgb,var(--accent) 60%,transparent)}
   .u-title{line-height:.92;margin:0 0 14px;font-weight:800}
   .u-tagline{font-size:clamp(17px,2.4vw,26px);font-weight:600;margin:0 0 22px;opacity:.95;color:var(--tagline-color,#ffffff);font-style:var(--tagline-style,normal)}
   .u-logline{font-size:clamp(15px,1.7vw,19px);line-height:1.6;max-width:680px;color:#e7eefb}
@@ -1636,7 +1636,7 @@ function buildUniverse(key){
      startPreview engine in openUniverse); a film without one just keeps the still. Same lazy
      data-src / preload="none" contract as .side-vid / .bubble-vid / .focus-vid. */
   const uVid=s.focusVideo?`<video class="u-vid" data-src="${s.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
-  sec.innerHTML=`<div class="u-bg" style="background-image:url('${uBg}')"></div>${uVid}<div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker-row"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${(s.type&&String(s.type).trim())?`<span class="chip type-chip">${String(s.type).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</span>`:''}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p><div class="u-meta">${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${renderCredits(s.credits,s.vars)}</div></div>${stillsHTML}${btsHTML}</div>`;
+  sec.innerHTML=`<div class="u-bg" style="background-image:url('${uBg}')"></div>${uVid}<div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><button class="back">‹ Back</button><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p><div class="u-meta">${(s.type&&String(s.type).trim())?`<span class="chip type-chip">${String(s.type).trim().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</span>`:''}${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${renderCredits(s.credits,s.vars)}</div></div>${stillsHTML}${btsHTML}</div>`;
   sec.querySelector('.back').addEventListener('click',()=>history.back());universes.appendChild(sec);return sec;
 }
 const built={};let currentOpen=null;
