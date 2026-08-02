@@ -23,6 +23,10 @@
         "Action"
       ],
       "socialLinks": "https://www.instagram.com/geri_action_film/",
+      "type": "Short Film",
+      "socials": [
+        "https://www.instagram.com/geri_action_film/"
+      ],
       "stills": [
         "/media/projects/geri_action/stills/geri-splitscreen-still.jpg",
         "/media/projects/geri_action/stills/geri-anim-1.jpg",
@@ -54,6 +58,10 @@
         "Surreal Fantasy"
       ],
       "socialLinks": "https://www.instagram.com/revelations_film/",
+      "type": "Short Film",
+      "socials": [
+        "https://www.instagram.com/revelations_film/"
+      ],
       "stills": [
         "/media/projects/revelations/stills/rev-earth-1.jpg",
         "/media/projects/revelations/stills/rev-earth-2.jpg",
@@ -86,6 +94,8 @@
         "Comedy"
       ],
       "watch": "https://www.youtube.com/watch?v=XGYQv3h3-y4",
+      "type": "Skit",
+      "socials": [],
       "stills": [
         "/media/projects/invalid_opinion/stills/invalid-1.jpg",
         "/media/projects/invalid_opinion/stills/invalid-2.jpg",
@@ -104,6 +114,8 @@
       "title": "More to come...",
       "placeholder": true,
       "focusBg": "/media/site/water.jpg",
+      "type": "",
+      "socials": [],
       "blurb": "New worlds are in the works."
     }
   ]
