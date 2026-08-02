@@ -187,7 +187,7 @@
 <div class="grid" id="grid"></div>
   <section class="plat" id="platform-colors">
     <h2>Platform colors</h2>
-    <p class="sub">Reference only - the brand color + icon the sites use for every social platform and every "Watch on" streaming service. Mirrored from the live code (social icons + hover colors from the studio site; the streaming list + button colors from the Jack Carlsen site), so what you see here is exactly what a visitor sees. Nothing to edit: these are the platforms' own brand colors.</p>
+    <p class="sub">Reference only - the real brand logo + colour the sites use for every social platform and every "Watch on" streaming service. Read live from the shared <b>data/platforms.json</b> (the single source both sites consume), so what you see here is exactly what a visitor sees. Nothing to edit: these are the platforms' own brand colours.</p>
     <div class="plat-group">
       <h3>Social platforms</h3>
       <div class="plat-grid" id="plat-social"></div>
@@ -511,8 +511,31 @@
         +'<div class="plat-tx"><div class="plat-name">'+esc2(p.name)+'</div><div class="plat-hex">'+esc2(p.hex)+'</div></div></div>';
     }
     var soc=document.getElementById('plat-social'), str=document.getElementById('plat-stream');
-    if(soc) soc.innerHTML=SOCIAL.map(function(p){return card(p,ICON[p.icon]||ICON.web);}).join('');
-    if(str) str.innerHTML=STREAM.map(function(p){return card(p,ICON.play);}).join('');
+    function renderFallback(){
+      if(soc) soc.innerHTML=SOCIAL.map(function(p){return card(p,ICON[p.icon]||ICON.web);}).join('');
+      if(str) str.innerHTML=STREAM.map(function(p){return card(p,ICON.play);}).join('');
+    }
+    /* SINGLE SOURCE OF TRUTH: read the shared data/platforms.json — the very same file both live
+       sites consume — so every platform's real logo + brand colour shown here is exactly what a
+       visitor sees. The inline SOCIAL/STREAM/ICON arrays above are kept ONLY as an offline
+       fallback if the fetch fails. Duals (YouTube, Vimeo) carry contexts ['social','watch'] and so
+       correctly appear in BOTH groups. */
+    fetch('/data/platforms.json?cb='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(j){
+        var list=(j&&j.platforms)||null;
+        if(!list||!list.length){renderFallback();return;}
+        function pcard(p,ctx){
+          var name=(ctx==='watch'?(p.watchLabel||p.label):(p.socialLabel||p.label))||p.key;
+          return card({name:name,bg:p.brandColor||'#5a5470',fg:p.fg||'#fff',hex:p.brandColor||''},p.icon||ICON.play);
+        }
+        var socList=list.filter(function(p){return p&&(p.contexts||[]).indexOf('social')>-1;});
+        var strList=list.filter(function(p){return p&&(p.contexts||[]).indexOf('watch')>-1;});
+        if(soc) soc.innerHTML=socList.map(function(p){return pcard(p,'social');}).join('');
+        if(str) str.innerHTML=strList.map(function(p){return pcard(p,'watch');}).join('')
+          + card({name:'Other (generic)',bg:'linear-gradient(135deg,#5a5470,#3d374f)',fg:'#fff',hex:'#5a5470'},ICON.play);
+      })
+      .catch(renderFallback);
   })();
 </script>
 </body>

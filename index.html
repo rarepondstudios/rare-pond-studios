@@ -607,6 +607,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .watch-status{display:inline-flex;align-items:center;gap:11px;padding:12px 22px;border-radius:50px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);font-weight:700;font-size:15px;color:#eef4ff}
   .watch-status::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
   .watch-btn{display:inline-flex;align-items:center;gap:10px;padding:13px 24px;border-radius:50px;background:linear-gradient(135deg,#ff3b30,#d4271d);color:#fff;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 10px 26px rgba(220,30,20,.45);transition:.18s}
+  .watch-btn svg{width:18px;height:18px;fill:currentColor;flex:none}
   .watch-btn:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(220,30,20,.6)}
   .u-embed{margin:18px 0 0;width:100%;max-width:720px;aspect-ratio:16/9;border-radius:16px;overflow:hidden;box-shadow:0 22px 54px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14)}
   .u-embed iframe{width:100%;height:100%;border:0;display:block}
@@ -943,7 +944,8 @@ const __d=await Promise.all([
   fetch('/data/pages.json').then(r=>r.json()).catch(()=>({pages:[]})),
   fetch('/data/stills-hd.json').then(r=>r.json()).catch(()=>({hd:[]})),
   fetch('/data/section-templates.json').then(r=>r.json()).catch(()=>({})),
-  fetch('/data/bts.json').then(r=>r.json()).catch(()=>({}))
+  fetch('/data/bts.json').then(r=>r.json()).catch(()=>({})),
+  fetch('/data/platforms.json').then(r=>r.json()).catch(()=>({platforms:[]}))
 ]);
 const SITE=__d[0];
 const __projects=__d[1].projects;
@@ -1057,9 +1059,34 @@ try{
 
 
 
-/* Icon artwork comes from assets/socials.js (loaded in <head>), which is the ONLY place it
-   is defined. Add a network there and every page picks it up. */
-const SOCIAL_SVG = window.RP_SOCIAL_ICONS || {};
+/* ===== SHARED PLATFORM MAP — single source: data/platforms.json =====================
+   platforms.json (exported from the shared backend) is now the ONE place every platform's real
+   brand logo + colour lives — previously duplicated across both sites' index.html, this file's
+   socials.js and admin/colorlooks.html. We start from assets/socials.js (RP_SOCIAL_ICONS, the
+   offline fallback set) and OVERLAY the real logos from platforms.json on top, so the runtime
+   artwork comes from the single shared source but the site still renders if the fetch fails.
+   Duals (YouTube, Vimeo) are ONE platforms.json record with contexts ['social','watch'] — the
+   same record feeds the header social icon AND the Where-to-Watch button. */
+const SOCIAL_SVG = Object.assign({}, window.RP_SOCIAL_ICONS || {});
+const PLAT=(__d[7]&&Array.isArray(__d[7].platforms))?__d[7].platforms:[];
+const PLAT_BY_KEY={};PLAT.forEach(p=>{if(p&&p.key)PLAT_BY_KEY[p.key]=p;});
+/* platforms.json uses full keys (youtube/instagram/…); the site's data-net hooks + site.json
+   socials[].icon use short aliases. Map full→short so existing CSS hover rules keep matching. */
+const PLAT_ALIAS={youtube:'yt',instagram:'ig',linkedin:'li',facebook:'fb'};
+const platShort=k=>PLAT_ALIAS[k]||k;
+PLAT.forEach(p=>{ if(p&&p.icon&&(p.contexts||[]).indexOf('social')>-1){ SOCIAL_SVG[platShort(p.key)]=p.icon; SOCIAL_SVG[p.key]=p.icon; } });
+const _dnHost=u=>{try{return new URL(u).hostname.toLowerCase();}catch(e){return String(u||'').toLowerCase();}};
+/* Find the platforms.json 'watch' record whose hosts match a URL (null if none). */
+function watchMatch(u){
+  const host=_dnHost(u);
+  for(const p of PLAT){
+    if(!p||(p.contexts||[]).indexOf('watch')<0)continue;
+    for(const h of ((p.match&&p.match.hosts)||[])){ if(h&&(host===h||host.endsWith('.'+h)))return p; }
+  }
+  return null;
+}
+/* generic play glyph — unknown-host watch fallback only (real services use their logo) */
+const PLAY_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
 
 function socialHTML(){return SOCIALS.map(([u,n,k])=>`<a href="${u}" target="_blank" rel="noopener" aria-label="${n}" data-net="${k}">${SOCIAL_SVG[k]}</a>`).join('');}
 document.getElementById('hdrDuck').src=SITE.logos.duckMark;
@@ -1552,8 +1579,17 @@ function _wUrl(u){return /^https?:\/\//i.test(String(u||''))?String(u):'';}
 function ytId(u){const m=String(u||'').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/);return m?m[1]:'';}
 function vimeoId(u){const m=String(u||'').match(/vimeo\.com\/(?:video\/|channels\/[^\/]+\/|groups\/[^\/]+\/videos\/)?(\d{6,})/);return m?m[1]:'';}
 function detectNet(u){
+  /* Prefer the shared platforms.json (host match → short alias icon + label); fall back to the
+     inline table if platforms.json didn't load. */
+  const host=_dnHost(u);
+  for(const p of PLAT){
+    if(!p||(p.contexts||[]).indexOf('social')<0)continue;
+    for(const h of ((p.match&&p.match.hosts)||[])){
+      if(h&&(host===h||host.endsWith('.'+h))) return {icon:platShort(p.key),label:p.socialLabel||p.label||platShort(p.key)};
+    }
+  }
   u=String(u||'');
-  const map=[[/instagram\.com/i,'ig','Instagram'],[/tiktok\.com/i,'tiktok','TikTok'],[/(?:youtube\.com|youtu\.be)/i,'yt','YouTube'],[/(?:twitter\.com|x\.com)/i,'x','X'],[/(?:facebook\.com|fb\.com|fb\.me)/i,'fb','Facebook'],[/threads\.(?:net|com)/i,'threads','Threads'],[/vimeo\.com/i,'vimeo','Vimeo'],[/linkedin\.com/i,'li','LinkedIn']];
+  const map=[[/instagram\.com/i,'ig','Instagram'],[/tiktok\.com/i,'tiktok','TikTok'],[/(?:youtube\.com|youtu\.be)/i,'yt','YouTube'],[/(?:twitter\.com|x\.com)/i,'x','X'],[/(?:facebook\.com|fb\.com|fb\.me)/i,'fb','Facebook'],[/threads\.(?:net|com)/i,'threads','Threads'],[/vimeo\.com/i,'vimeo','Vimeo'],[/linkedin\.com/i,'li','LinkedIn'],[/imdb\.com/i,'imdb','IMDb']];
   for(const t of map){ if(t[0].test(u)) return {icon:t[1],label:t[2]}; }
   return {icon:'web',label:'Website'};
 }
@@ -1571,9 +1607,11 @@ function buildWatch(p){
 function parseWatchLinks(raw){
   const urls=String(raw||'').split(/[\r\n]+/).map(s=>s.trim()).filter(s=>_wUrl(s));
   return urls.map(u=>{
-    const y=ytId(u); if(y) return {net:'youtube',id:y,url:u};
-    const v=vimeoId(u); if(v) return {net:'vimeo',id:v,url:u};
-    return {net:'link',id:'',url:u};
+    /* pf = the shared platforms.json record, so each button can show the REAL brand logo */
+    const y=ytId(u); if(y) return {net:'youtube',id:y,url:u,pf:PLAT_BY_KEY['youtube']||null};
+    const v=vimeoId(u); if(v) return {net:'vimeo',id:v,url:u,pf:PLAT_BY_KEY['vimeo']||null};
+    const pf=watchMatch(u); if(pf) return {net:'svc',id:'',url:u,pf:pf};
+    return {net:'link',id:'',url:u,pf:null};
   });
 }
 function renderSocials(raw){
@@ -1587,9 +1625,16 @@ function renderWatch(w){
   const links=parseWatchLinks(w.watch);
   let btns='';
   links.forEach(L=>{
-    if(L.net==='youtube') btns+=`<a class="watch-btn" href="${_wEsc(L.url)}" target="_blank" rel="noopener">▶ Watch on YouTube</a>`;
-    else if(L.net==='vimeo') btns+=`<a class="watch-btn vimeo" href="${_wEsc(L.url)}" target="_blank" rel="noopener">▶ Watch on Vimeo</a>`;
-    else btns+=`<a class="watch-btn generic" href="${_wEsc(L.url)}" target="_blank" rel="noopener">▶ Watch</a>`;
+    /* the leading ▶ character has been replaced by the platform's REAL brand logo (from the shared
+       platforms.json); YouTube/Vimeo keep their existing red/blue buttons, the glyph just swaps. */
+    const glyph=(L.pf&&L.pf.icon)?L.pf.icon:PLAY_SVG;
+    if(L.net==='youtube') btns+=`<a class="watch-btn" href="${_wEsc(L.url)}" target="_blank" rel="noopener">${glyph}Watch on YouTube</a>`;
+    else if(L.net==='vimeo') btns+=`<a class="watch-btn vimeo" href="${_wEsc(L.url)}" target="_blank" rel="noopener">${glyph}Watch on Vimeo</a>`;
+    else if(L.net==='svc'){
+      const st=`background:${L.pf.brandColor||'#3f4d69'};${L.pf.fg?`color:${L.pf.fg};`:''}box-shadow:0 10px 26px rgba(40,55,90,.45)`;
+      btns+=`<a class="watch-btn generic" style="${_wEsc(st)}" href="${_wEsc(L.url)}" target="_blank" rel="noopener">${glyph}Watch on ${_wEsc(L.pf.watchLabel||L.pf.label||'')}</a>`;
+    }
+    else btns+=`<a class="watch-btn generic" href="${_wEsc(L.url)}" target="_blank" rel="noopener">${glyph}Watch</a>`;
   });
   const yt=links.find(L=>L.net==='youtube'), vim=links.find(L=>L.net==='vimeo');
   let embed='';
