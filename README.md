@@ -19,10 +19,10 @@ index.html            Studio site (HTML + CSS + JS). Reads the data files below 
 rentals/index.html    Rentals site. Shares the header/footer/socials data.
 data/
   site.json           Logos, hero, About, SOCIAL LINKS, HubSpot form ids, event banner
-  projects.json       One entry per project → drives its home bubble AND its project page
+  projects.json       One entry per project (home bubble + project page). GENERATED from NocoDB — never hand-edit.
   team.json           Team members
   rentals.json        Rentals page copy + logos
-  colorlooks.json     Single source of truth for every gradient on both sites
+  colorlooks.json     Every colour look. GENERATED from the NocoDB color_looks table — never hand-edit.
   pages.json          Custom pages (see CUSTOM_PAGES.md)
   stills-hd.json      Which stills have high-res versions, and at which widths (see STILLS.md)
   form-fields.json    Input type per form field (text/email/number/tel/url)
@@ -59,22 +59,29 @@ All social icons on **both** sites, in **both** the header and footer, come from
 `data/site.json → socials`. Edit it once, everything updates.
 
 In the CMS: **Site Settings → Social links**. Each entry has a **Label**, a **URL**, and an
-**Icon**: `yt` YouTube · `ig` Instagram · `li` LinkedIn · `fb` Facebook. Add, remove and
-reorder freely. On hover each icon fills with that network's brand gradient.
+**Icon** chosen from the shared platform set: `yt` YouTube · `vimeo` Vimeo · `ig` Instagram ·
+`li` LinkedIn · `x` X · `fb` Facebook · `tiktok` TikTok · `threads` Threads · `web` website ·
+`imdb` IMDb. Add, remove and reorder freely. On hover each icon fills with that network's brand
+gradient.
 
-**Adding a network that isn't in the list above needs a code change** - an SVG path plus a
-hover gradient, in three places: `index.html` (`SOCIAL_SVG` + the `.socials a[data-net=…]:hover`
-rule), `rentals/index.html` (`SOCIAL_SVG`), and `rentals/assets/styles.css` (the hover rule).
-Then add the new key to the `icon` options in `.pages.yml`.
+The logos + brand colours all come from the **shared `data/platforms.json`** (see *The shared
+cross-site backend* below) — ONE source for both sites, feeding both the header/footer social
+icons AND the project-page "Watch on" buttons (YouTube and Vimeo are a single dual record).
+Enabling an icon already defined there needs no code change; adding a brand-new platform means
+adding it to the shared platform source, which then exports to every repo.
 
-## Adding a project
+## Adding or editing a project
 
-Projects → **＋ Add** → unique `key`, title, theme, images, loglines, where-to-watch, stills,
-credits → Save. A bubble appears on the home carousel and the Projects grid, with its own page.
+The film list lives in **NocoDB**, not in Pages CMS — see *The shared cross-site backend* below.
+Add a row (or edit one), tick `on_rarepond` (and/or `on_jackcarlsen`), set its colour look, order
+and per-film text, and the background sync rebuilds `data/projects.json` and redeploys. A bubble
+appears on the home carousel and the Projects grid, with its own page. Never hand-edit
+`data/projects.json`. (Pages CMS → Projects only holds the shared text templates + a pointer to
+NocoDB.)
 
-Note: stills uploaded here are served **exactly as uploaded**. The high-resolution responsive
-versions are generated from the film master by the stills pipeline - see
-**[`STILLS.md`](STILLS.md)**.
+Note: stills are managed through the per-project media folders (see the folder schema below) and
+served responsively. The high-resolution versions are generated from the film master by the
+stills pipeline - see **[`STILLS.md`](STILLS.md)**.
 
 ## Changing a form field's input type
 
@@ -90,3 +97,103 @@ The site loads JSON at runtime, so open it through a server, not `file://`:
 python3 -m http.server 8080
 # http://localhost:8080
 ```
+
+---
+
+## The shared cross-site backend (rarepond.com ↔ jackcarlsen.com)
+
+rarepond.com and **jackcarlsen.com** are two static sites that **share one backend**. The film
+catalogue and the colour looks are not stored in either repo by hand — they flow from a single
+database, through per-site exporters, into each repo's `data/*.json`, which the site reads at
+load. Both READMEs describe this same system; the authoritative map is
+`bts-automation/SYSTEM_MAP_AND_PLAN.md` (local, not public).
+
+### 1. NocoDB = the single source of truth
+On the Mac Mini, **NocoDB** (a spreadsheet-style UI over a Supabase Postgres database) holds the
+two tables both sites depend on:
+- **`projects`** — one row per film. Per-film site membership is the **`on_rarepond` /
+  `on_jackcarlsen`** checkboxes.
+- **`color_looks`** — one row per colour look (palettes that theme film pages + glow the bubbles).
+NocoDB is **local-only** (loopback + Tailscale, `http://localhost:8080`) — never exposed
+publicly, so it is described here, not linked.
+
+### 2. Per-site exporters + the sites registry
+Headless scripts in `~/bts-automation`, run on a schedule by macOS **launchd**, read the database
+and **regenerate each site's `data/*.json`, then commit + push** so Cloudflare Pages redeploys:
+- **rarepond `projects.json`** ← the **n8n** workflow "Projects: DB to site (rarepond)".
+- **jackcarlsen `projects.json`** ← **`jc_projects_sync.py`** (launchd `com.rarepond.jcprojsync`).
+  *(The old JC GitHub-Action export has been retired — ONE pipeline per site.)*
+- **`colorlooks_sync.py`** → every repo's `data/colorlooks.json` from `color_looks` (JC keeps its
+  own purple `signature` via `data/colorlooks-overrides.json`; rarepond is the colour-look owner).
+- **`platforms_export.py`** → every repo's `data/platforms.json` from the shared platform source.
+- BTS syncs → `data/bts.json` + the NocoDB `bts` field.
+Every exporter loops the **connected-sites registry** `bts-automation/sites.json` (one entry per
+site: repo path, git identity/askpass, per-site column names). **Adding a third site = one new
+entry there, not a code fork.**
+
+### 3. The media folder schema (folder = source of truth)
+Media lives in the Synology `Project Repository (Web)/<Project>/` folders. Selection is by
+**FOLDER, never by filename**. Each project folder has six subfolders:
+
+| Folder | Fills | Rule |
+|---|---|---|
+| `Project Stills/` | the film's still gallery | every image, in order = gallery order |
+| `Project Video/` | the background / hover reel | the `*-web.mp4` |
+| `BTS/` | the behind-the-scenes gallery | every image, in order |
+| `Bubble Image/` | the home-bubble image | **first file wins** |
+| `Logo/` | the title logo | **first file wins** |
+| `Focus Image/` | the page-background image (optional override) | **first file wins** |
+
+The **Focus Image is ALWAYS the FIRST still** on every project page (both sites), then the
+Project Stills in order; the `Focus Image/` folder only overrides that. Drop a file in a folder
+and it appears with that folder's role next sync; move it and it re-homes cleanly. **Unsorted /
+general BTS:** the `Unsorted Photo and Video` folder is split into `jackcarlsen.com/` and
+`rarepond.com/` subfolders — a file's enclosing subfolder decides which site's general BTS scroll
+it shows on.
+
+### 4. Shared platform map, 5. colour-look flow, 6. cache-busting
+- **Platforms:** all social + "watch on" branding (real logos + brand colours) lives in one
+  shared source → `data/platforms.json` in every repo. **YouTube and Vimeo are dual** — one
+  record with `contexts: ["social","watch"]` feeds both the header icon and the watch button.
+  IMDb is defined once (enabled on JC's header; can be turned on for RP with no code change).
+- **Colour looks:** a look holds `c1/c2/c3` and, for a `film` look, tokens saying which colour
+  drives accent / washes / kicker / tagline / title. A film points at a look by key
+  (`color_look`), gated per-site by `rp_use_look` / `jc_use_look`. The
+  **[preview page](https://www.rarepond.com/admin/colorlooks)** (password-protected) renders each
+  look exactly as the site does, so **preview == live**.
+- **Cache-busting:** exporters append `?h=<short sha1 of the file bytes>` to changed media paths,
+  so a replaced file always gets a fresh URL and never serves stale; unchanged files stay cached.
+
+### ⚠️ The one structural rule (D7 — no frontend bandaids)
+**Every change to films, colour looks, platforms, or media is made at the DATABASE / SYNC SOURCE
+layer, and BOTH sites are regenerated from it.** Never hand-edit a rendered value in one site's
+`data/*.json`, `index.html`, or `colorlooks.json` to "fix" what shows on screen — fix the NocoDB
+row / the shared source file / the sync, then let the exporter rewrite every repo. This keeps the
+two sites (and any future third) identical-by-construction. If something looks wrong on only one
+site, the bug is in the source or the sync, not the frontend.
+
+| Concern | Single source | Published to every repo by |
+|---|---|---|
+| Films | NocoDB `projects` | n8n (RP) / `jc_projects_sync.py` (JC), via `sites.json` |
+| Colour looks | NocoDB `color_looks` | `colorlooks_sync.py` → `data/colorlooks.json` |
+| Platforms / socials | shared `platforms.json` source | `platforms_export.py` → `data/platforms.json` |
+| Media | Synology project folders | the media + BTS syncs (folder = source of truth) |
+| Site copy | Pages CMS `data/*.json` | committed directly |
+
+### Field schema (the fields future edits touch)
+**`projects`** (NocoDB): `key`, `title`, `year`, `kicker`, `tagline`, `blurb`, `page_logline`,
+`credits`, `genre`, `production`, `status`, `social_links`, `watch`; media path fields
+`bubble_image`, `title_logo`, `focus_bg`, `focus_video`, `stills`, `bts`; per-site toggles
+`on_rarepond` / `on_jackcarlsen`, `rp_use_look` / `jc_use_look`, `rp_in_carousel` /
+`jc_in_carousel`, `jc_in_workwall`, `rp_sort_order` / `jc_sort_order`; and the shared
+`color_look`. Multi-value fields (genre, stills, bts, credits) are plain text, **one entry per
+line**.
+**`color_looks`** (NocoDB): `key`, `name`, `kind` (`basics` / `special` / `category` / `film`),
+`c1` `c2` `c3`; and — for a `film` look only — `accent`, `main` + `main_alpha`, `tint` +
+`tint_alpha`, `kicker_color`, `kicker_tracking`, `tagline_color`, `tagline_italic`,
+`title_style`, `title_gradient_from` / `title_gradient_to`, plus `note`.
+
+### See also
+The **jackcarlsen-website** repo `README.md` documents this same shared system from the portfolio
+side. Studio-specific operations (rentals pipeline, n8n, Supabase, alerting) are in
+[`OPERATIONS.md`](OPERATIONS.md); the stills pipeline in [`STILLS.md`](STILLS.md).

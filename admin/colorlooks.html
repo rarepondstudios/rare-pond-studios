@@ -140,6 +140,43 @@
 .uses-x{margin-top:7px;font-size:11px;color:#8ba6c9;font-style:italic}
 .grouphead{grid-column:1/-1;margin:22px 0 2px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:#8ba6c9}
 .grouphead:first-child{margin-top:0}
+/* ---- FILM-PAGE MOCK (render-parity) ---------------------------------------
+   A compact mock of a film page's hero, driven by the SAME CSS variables and the
+   SAME fallbacks the live film page uses (assets/looks.js -> .u-scrim / .u-kicker /
+   .u-tagline / .u-title / --accent). The variables are only set for a FILM look, so
+   a Basics/Special look renders here exactly as unthemed as it does on the site. */
+.mock{position:relative;height:186px;overflow:hidden;background:#05101f}
+.mock-scrim{position:absolute;inset:0;background:
+   radial-gradient(90% 70% at 50% 0%,var(--scrim-1,#ffffff),transparent 60%),
+   radial-gradient(70% 60% at 88% 92%,var(--scrim-2,transparent),transparent 60%),
+   linear-gradient(180deg,rgba(6,8,20,.6),rgba(4,6,16,.92))}
+.mock-body{position:absolute;inset:0;z-index:2;padding:16px 18px 15px;display:flex;flex-direction:column;justify-content:flex-end}
+.mock-kicker{font-size:10px;font-weight:700;text-transform:uppercase;line-height:1;margin-bottom:9px;
+   color:var(--kicker-color,var(--accent,#ffffff));letter-spacing:var(--kicker-tracking,.24em)}
+.mock-title{font-weight:800;font-size:30px;line-height:.9;margin:0 0 8px;color:#ffffff}
+.mock-title.grad{background:linear-gradient(180deg,var(--title-from,#ffffff),var(--title-to,#ffffff));
+   -webkit-background-clip:text;background-clip:text;color:transparent}
+.mock-tagline{font-size:13px;font-weight:600;line-height:1.25;margin:0 0 11px;opacity:.95;
+   color:var(--tagline-color,#ffffff);font-style:var(--tagline-style,normal)}
+.mock-watch{display:inline-flex;align-items:center;gap:9px;font-size:9.5px;font-weight:700;
+   letter-spacing:.2em;text-transform:uppercase;color:var(--accent,#ffffff);opacity:.95}
+.mock-watch::before{content:"";width:8px;height:8px;border-radius:50%;
+   background:var(--accent,#ffffff);box-shadow:0 0 9px var(--accent,#ffffff)}
+/* the film's glowing bubble, top-right, same pinwheel glow assets/looks.js drives */
+.mock-bubble{position:absolute;top:14px;right:16px;width:58px;height:58px;border-radius:50%;z-index:3;
+   overflow:hidden;border:1px solid rgba(255,255,255,.22);box-shadow:0 6px 20px -6px rgba(0,0,0,.6)}
+.mock-bubble .blay{position:absolute;inset:-35%;filter:blur(7px);
+   background:conic-gradient(from var(--a),var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));animation:spin 9s linear infinite}
+.mock-bubble.rainbow .blay{background:conic-gradient(from var(--a),#ff5d5d,#ffac5d,#ffe65d,#86ff7a,#5dffe0,#5da8ff,#b15dff,#ff5dd0,#ff5d5d)}
+.mock-bubble .bcore{position:absolute;inset:24%;border-radius:50%;background:rgba(6,10,24,.55)}
+.mock-kindtag{position:absolute;left:10px;top:9px;z-index:4;font-size:9px;font-weight:800;letter-spacing:.08em;
+   text-transform:uppercase;color:#fff;background:rgba(0,0,0,.34);padding:2px 8px;border-radius:6px}
+@media(prefers-reduced-motion:reduce){.mock-bubble .blay{animation:none}}
+/* Rentals category = one flat colour (Color 1 is the one the site uses). */
+.flatsw{position:relative;height:186px;display:flex;align-items:flex-end;padding:14px}
+.flatsw .fs-hex{font:800 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff;
+   text-shadow:0 1px 8px rgba(0,0,0,.6);background:rgba(0,0,0,.28);padding:5px 9px;border-radius:7px}
+.flatsw .mock-kindtag{background:rgba(0,0,0,.28)}
 /* ---- PLATFORM COLORS reference -------------------------------------------
    A read-only map of every social + streaming platform the sites brand by colour,
    mirrored from the code the live sites actually use (assets/socials.js + the
@@ -165,14 +202,14 @@
   <div class="head">
     <div class="bn-rare">Rare Pond</div>
     <h1>Color Looks</h1>
-    <p class="lead">Live preview of every color look in <b>colorlooks.json</b>.
-       Each look can render two ways: <b>Pinwheel</b> (rotating conic used for bubbles) or <b>Stream</b> (a wide horizontal sweep used for long headers).
-       <b>Try colors live:</b> click a swatch to pick, or edit its hex, and the gradients above update instantly. Click the <b>&#10697;</b> to copy a hex, then paste it into the matching color in <b>Pages CMS &rarr; Color Looks</b> to make it permanent. Hit <b>Reload</b> to reset to what's saved.</p>
+    <p class="lead">A live, read-only preview of every color look, rendered <b>exactly as the two sites render it</b> from the shared <b>data/colorlooks.json</b>.
+       Each look is shown the way the site actually applies it for its <b>kind</b>: a <b>Film</b> look shows the full themed film-page treatment (accent, background washes, kicker, tagline and title) that the film page applies; <b>Basics</b> and <b>Special</b> looks show the bubble / banner glow they drive (Pinwheel for bubbles, Stream for wide headers); a <b>Rentals category</b> shows its single flat colour. So what you see here is what a visitor sees.
+       <b>Color looks are now edited in NocoDB</b> (the <code>color_looks</code> table) &mdash; changes publish to both sites automatically. This page is view-only. Hit <b>Reload</b> to pull the latest published values.</p>
     <button class="reload" onclick="load()">&#8635; Reload</button>
   </div>
   <div class="picker">
     <h2>Color Picker</h2>
-    <p class="sub">Pick a color, fine-tune the hex, and click <b>Copy hex</b> - then paste it straight into a color (c1/c2/c3) in <b>Pages CMS &rarr; Color Looks</b>. The row of tints/shades gives you lighter and darker variants; click any one to copy it.</p>
+    <p class="sub">A handy utility for choosing a hex. Pick a color, fine-tune the hex, and click <b>Copy hex</b> - then paste it into a colour field (c1/c2/c3) on the look's row in <b>NocoDB &rarr; color_looks</b>. The row of tints/shades gives you lighter and darker variants; click any one to copy it.</p>
     <div class="pk-row">
       <!-- One box: it is both the preview AND the button that opens the palette. -->
       <input type="color" class="pk-native" id="pkNative" value="#3f6bff" title="Click to open the color palette" aria-label="Current color - click to pick a new one">
@@ -201,14 +238,16 @@
 
 <script>
   var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
-  function chip(role,hex,idx,slot){
+  /* Read-only colour reference. Looks are edited in NocoDB now, so these are static
+     swatches with a copy-to-clipboard button (handy for pasting into NocoDB). */
+  function chip(role,hex){
     hex=(hex||'').trim();
     var safe=/^#[0-9a-f]{6}$/i.test(hex)?hex:'#000000';
     return '<div class="c">'
-      +'<div class="chip"><input type="color" value="'+safe+'" data-idx="'+idx+'" data-slot="'+slot+'" aria-label="'+esc(role)+'"></div>'
+      +'<div class="chip"><div style="position:absolute;inset:0;background:'+esc(safe)+'"></div></div>'
       +'<div class="lab"><div class="role">'+esc(role)+'</div>'
-      +'<div class="hexrow"><input class="hex" value="'+esc(hex)+'" data-idx="'+idx+'" data-slot="'+slot+'" maxlength="7" spellcheck="false" aria-label="'+esc(role)+' hex">'
-      +'<button class="cpy" title="Copy hex" data-idx="'+idx+'" data-slot="'+slot+'">&#10697;</button></div>'
+      +'<div class="hexrow"><span class="hex" style="display:inline-block">'+esc(hex||'—')+'</span>'
+      +'<button class="cpy" title="Copy hex" data-hex="'+esc(hex)+'">&#10697;</button></div>'
       +'</div></div>';
   }
   /* ---- WHO USES WHAT --------------------------------------------------------
@@ -298,6 +337,66 @@
     if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(t)) return t;
     return '';
   }
+  /* #rrggbb + 0..1 alpha -> rgba(). Byte-for-byte the same as assets/looks.js rgba(),
+     so the film-page washes shown here equal the ones the live scrim paints. */
+  function rgba(hex, alpha){
+    if(!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(hex||'').trim())) return '';
+    var h=hex.trim().replace('#','');
+    if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    var a=Number(alpha); if(!isFinite(a)) a=1; a=Math.max(0,Math.min(1,a));
+    return 'rgba('+parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16)+','+a+')';
+  }
+  /* Compute the SAME CSS custom properties assets/looks.js filmCss() emits for a FILM
+     look. Set on the look card's root so the mock hero inside inherits them exactly as
+     the live .theme-<key> block feeds the live film page. Only FILM looks get these,
+     which is precisely why a Basics/Special look renders unthemed here, just like live. */
+  function themeVars(L){
+    var d=[];
+    var accent=pick(L,L.accent); if(accent) d.push('--accent:'+accent);
+    var s1=rgba(pick(L,L.main),L.mainAlpha); if(s1) d.push('--scrim-1:'+s1);
+    var s2=rgba(pick(L,L.tint),L.tintAlpha); if(s2) d.push('--scrim-2:'+s2);
+    var kick=pick(L,L.kickerColor); if(kick) d.push('--kicker-color:'+kick);
+    if(L.kickerTracking) d.push('--kicker-tracking:'+String(L.kickerTracking).replace(/[^0-9a-z.%-]/gi,''));
+    var tag=pick(L,L.taglineColor); if(tag) d.push('--tagline-color:'+tag);
+    d.push('--tagline-style:'+(L.taglineItalic?'italic':'normal'));
+    var tf=pick(L,L.titleGradientFrom); if(tf) d.push('--title-from:'+tf);
+    var tt=pick(L,L.titleGradientTo); if(tt) d.push('--title-to:'+tt);
+    return d.join(';');
+  }
+  /* The per-kind top visual, mirroring how each kind is actually consumed on the sites:
+       film      -> a mock film-page hero, themed by the inherited film vars (or unthemed
+                    white if the look carries no tokens - the live "no fallback = white" rule)
+       category  -> the single flat colour the rentals page uses (Color 1)
+       basics    -> the bubble / banner glow it drives (Pinwheel + Stream), from c1/c2/c3
+       special   -> the same glow strip, painted by the code-defined special (e.g. rainbow) */
+  function renderVisual(L){
+    if(L.kind==='film'){
+      var gradCls=(L.titleStyle==='gradient')?' grad':'';
+      return '<div class="mock">'
+        +'<span class="mock-kindtag">Film page</span>'
+        +'<div class="mock-scrim"></div>'
+        +'<div class="mock-body">'
+          +'<div class="mock-kicker">Kicker</div>'
+          +'<div class="mock-title'+gradCls+'">'+esc(L.name||L.key)+'</div>'
+          +'<div class="mock-tagline">A themed film-page tagline.</div>'
+          +'<div class="mock-watch">Where to watch</div>'
+        +'</div>'
+        +'<div class="mock-bubble"><div class="blay"></div><div class="bcore"></div></div>'
+      +'</div>';
+    }
+    if(L.kind==='category'){
+      var col=/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(L.c1||''))?L.c1:'#333333';
+      return '<div class="flatsw" style="background:'+esc(col)+'">'
+        +'<span class="mock-kindtag">Rentals colour</span>'
+        +'<span class="fs-hex">'+esc(L.c1||'')+'</span>'
+      +'</div>';
+    }
+    var sp=(L.kind==='special')?(' '+esc(L.key)):'';   // e.g. .lay.rainbow
+    return '<div class="glowbar">'
+      +'<div class="gb pin"><div class="lay'+sp+'"></div><span class="tag">Pinwheel</span></div>'
+      +'<div class="gb str"><div class="lay'+sp+'"></div><span class="tag">Stream</span></div>'
+    +'</div>';
+  }
   function tokenName(t){
     if(t==='color1') return 'Color 1'; if(t==='color2') return 'Color 2'; if(t==='color3') return 'Color 3';
     if(t==='white') return 'White'; if(t==='black') return 'Black';
@@ -323,23 +422,21 @@
   }
 
   function card(L,idx){
-    var locked = L.kind==='special';   // specials are code-defined; nothing to edit
     var c1=L.c1||'', c2=L.c2||'', c3=L.c3||'';
     var kindTag = L.kind==='film' ? 'Film'
               : L.kind==='category' ? 'Rentals category'
-              : locked ? 'Special (locked)' : 'Basics';
-    /* the preview layer gets a class named after the special's ID, e.g. .lay.rainbow,
-       so adding a special = adding one CSS rule, not editing this function. */
-    var bars = locked
-      ? '<div class="gb pin"><div class="lay '+esc(L.key)+'"></div><span class="tag">Pinwheel</span></div>'
-        +'<div class="gb str"><div class="lay '+esc(L.key)+'"></div><span class="tag">Stream</span></div>'
-      : '<div class="gb pin"><div class="lay"></div><span class="tag">Pinwheel</span></div>'
-        +'<div class="gb str"><div class="lay"></div><span class="tag">Stream</span></div>';
-    var swatches = locked
-      ? ''   // a special's explanation comes from its note in the CMS
-      : '<div class="sw">'+chip('Color 1',c1,idx,'c1')+chip('Color 2',c2,idx,'c2')+chip('Color 3',c3,idx,'c3')+'</div>';
-    return '<div class="look'+(locked?' locked':'')+'" data-idx="'+idx+'" style="--c1:'+esc(c1)+';--c2:'+esc(c2||c1)+';--c3:'+esc(c3||c2||c1)+'">'
-      +'<div class="glowbar">'+bars+'</div>'
+              : L.kind==='special' ? 'Special (locked)' : 'Basics';
+    /* Root carries c1/c2/c3 (the bubble glow) AND, for a FILM look, the film-page theme
+       vars, so the mock hero inside inherits EXACTLY what assets/looks.js feeds the live
+       .theme-<key> block. Non-film looks get no theme vars -> the site's unthemed white. */
+    var rootStyle='--c1:'+esc(c1)+';--c2:'+esc(c2||c1)+';--c3:'+esc(c3||c2||c1);
+    if(L.kind==='film'){ var tv=themeVars(L); if(tv) rootStyle+=';'+tv; }
+    var swatches =
+        L.kind==='special'  ? ''                       // a special's note explains it
+      : L.kind==='category' ? '<div class="sw">'+chip('Color 1 (used)',c1)+'</div>'
+      :                       '<div class="sw">'+chip('Color 1',c1)+chip('Color 2',c2)+chip('Color 3',c3)+'</div>';
+    return '<div class="look'+(L.kind==='special'?' locked':'')+'" data-idx="'+idx+'" style="'+rootStyle+'">'
+      +renderVisual(L)
       +'<div class="lk-body">'
         +'<div class="lk-key">'+esc(L.key)+'</div>'
         +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
@@ -381,12 +478,12 @@
               return '&nbsp;&nbsp;<b>'+esc(b.where)+'</b> is asking for <code>'+esc(b.typed)+'</code>';
             }).join('<br>')
           + '<br><br>The looks that actually exist are: <code>'+esc(LOOKKEYS.join('</code>, <code>'))+'</code>'
-          + '<br>Fix the <i>Linked color look</i> field on that Project / Rentals category / Event banner in Pages CMS.';
+          + '<br>Fix the <i>color look</i> value on that Project (in NocoDB) / Rentals category / Event banner.';
       } else if (warn) { warn.style.display='none'; }
 
       document.getElementById('foot').innerHTML=looks.length+' looks · '
         +(BROKEN.length?('<b style="color:#ff6b6b">'+BROKEN.length+' broken link'+(BROKEN.length>1?'s':'')+'</b>'):'<span style="color:#5ddc9a">every link valid</span>')
-        +' · source: <a href="https://app.pagescms.org/rarepondstudios/rare-pond-studios/main/file/colorlooks" target="_blank" rel="noopener">Pages CMS → Color Looks</a>';
+        +' · source of truth: <b>NocoDB → color_looks</b> table (publishes data/colorlooks.json to both sites)';
     }).catch(function(){g.innerHTML='<div class="empty">Could not load colorlooks.json.</div>';});
   }
   load();
@@ -423,35 +520,13 @@
     render('#3f6bff');
   })();
 
-  /* --- Live in-card editor: pick / type a colour and the look's gradients update instantly --- */
+  /* --- Copy a look's hex to the clipboard (view-only page; looks are edited in NocoDB) --- */
   (function(){
     var grid=document.getElementById('grid');
     if(!grid) return;
-    function clampHex(h){h=(h||'').trim();if(h&&h[0]!=='#')h='#'+h;
-      if(/^#[0-9a-f]{3}$/i.test(h))h='#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3];
-      return /^#[0-9a-f]{6}$/i.test(h)?h.toLowerCase():null;}
-    function apply(idx,slot,h){var el=grid.querySelector('.look[data-idx="'+idx+'"]');if(el)el.style.setProperty('--'+slot,h);}
-    function syncPair(idx,slot,h,from){
-      grid.querySelectorAll('[data-idx="'+idx+'"][data-slot="'+slot+'"]').forEach(function(n){
-        if(n===from)return;
-        if(n.tagName==='INPUT'&&(n.type==='color'||n.classList.contains('hex')))n.value=h;
-      });
-    }
-    grid.addEventListener('input',function(e){
-      var t=e.target; if(!t.getAttribute) return;
-      var idx=t.getAttribute('data-idx'), slot=t.getAttribute('data-slot');
-      if(idx==null||!slot) return;
-      if(t.type==='color'){apply(idx,slot,t.value);syncPair(idx,slot,t.value,t);}
-      else if(t.classList.contains('hex')){var h=clampHex(t.value);if(h){apply(idx,slot,h);syncPair(idx,slot,h,t);}}
-    });
-    grid.addEventListener('blur',function(e){
-      var t=e.target; if(t.classList&&t.classList.contains('hex')){var h=clampHex(t.value);if(h)t.value=h;}
-    },true);
     grid.addEventListener('click',function(e){
       var b=e.target.closest&&e.target.closest('.cpy'); if(!b) return;
-      var idx=b.getAttribute('data-idx'), slot=b.getAttribute('data-slot');
-      var hexIn=grid.querySelector('.hex[data-idx="'+idx+'"][data-slot="'+slot+'"]');
-      var h=hexIn?(clampHex(hexIn.value)||hexIn.value):''; if(!h) return;
+      var h=b.getAttribute('data-hex')||''; if(!h) return;
       try{navigator.clipboard.writeText(h);var o=b.innerHTML;b.innerHTML='✓';setTimeout(function(){b.innerHTML=o;},800);}catch(err){}
     });
   })();

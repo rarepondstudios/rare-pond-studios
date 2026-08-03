@@ -58,7 +58,7 @@ content:
         fields:
           - { name: label, label: Label, type: string }
           - { name: url, label: URL, type: string }
-          - { name: icon, label: Icon, type: select, description: "Which logo to draw. yt = YouTube, ig = Instagram, li = LinkedIn, fb = Facebook. Adding a NEW network needs a code change (an SVG + a hover colour) - ask your developer/AI.", options: { values: [yt, ig, li, fb] } }
+          - { name: icon, label: Icon, type: select, options: { values: [yt, vimeo, ig, li, x, fb, tiktok, threads, web, imdb] }, description: "Which logo to draw: yt = YouTube, vimeo = Vimeo, ig = Instagram, li = LinkedIn, x = X/Twitter, fb = Facebook, tiktok = TikTok, threads = Threads, web = generic website, imdb = IMDb. Logos + brand colours come from the shared platforms.json (ONE source, both sites), so enabling any icon already defined there needs no code change." }
       - { name: orbits, label: About-logo floating images, type: image, list: true, description: "The little film-still bubbles that orbit the logo. SPECS: square, 600x600 px, JPG, under 200 KB each. They are masked into circles, so keep the subject centred. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
       - name: header
         label: Header (shared - studio + rentals)
@@ -132,7 +132,7 @@ content:
         label: "▶ Live color preview page (open this URL in a new browser tab)"
         type: string
         readonly: true
-        description: "One page, two things. TOP: every color look shown as live swatches with hex codes — edit the colors below, commit, then reload that page to compare. BOTTOM (scroll down, or add #platform-colors): the read-only 'Platform colors' reference — the brand color + real logo for every social platform (YouTube, Instagram, TikTok, X, Facebook, Threads, Vimeo, LinkedIn, IMDb) and every 'Watch on' streaming service (Prime Video, Netflix, Hulu, Disney+, Max, Apple TV+, Peacock, Paramount+, plus YouTube/Vimeo). Same login for both. The platform colors are the brands' own and are not editable."
+        description: "One page, two things. TOP: every colour look rendered EXACTLY as the two sites render it — a film look shows the full themed film-page treatment (accent, background washes, kicker, tagline, title); a basics/special look shows the bubble/banner glow it drives; a rentals category shows its one flat colour. BOTTOM (scroll down, or add #platform-colors): the read-only 'Platform colours' reference — the brand colour + real logo for every social platform (YouTube, Instagram, TikTok, X, Facebook, Threads, Vimeo, LinkedIn, IMDb) and every 'Watch on' streaming service (Prime Video, Netflix, Hulu, Disney+, Max, Apple TV+, Peacock, Paramount+, plus YouTube/Vimeo). Same login for both. This preview is VIEW-ONLY: colour looks are edited in NocoDB (the color_looks table), not here."
       - name: previewUser
         label: "🔒 Username for that page"
         type: string
@@ -143,53 +143,11 @@ content:
         type: string
         readonly: true
         description: "On Mac/iPhone/iPad, Safari will autofill the login box for you. Not written down here on purpose: this repo is PUBLIC, so anything typed into Pages CMS is visible to the world. Never put a password, key or token in this CMS."
-      - name: looks
-        label: Color looks
-        type: object
-        list: true
-        description: >-
-          Each look holds THREE colors (Color 1, Color 2, Color 3) and then says which of
-          them to use where. A look does not decide where it is used - you point at a look
-          from the place you want it (Projects -> Linked color look, Rentals -> Categories,
-          Site Settings -> Event Banner). Change Color 2 once and everything pointing at
-          Color 2 follows.
-        fields:
-          # ---- WHAT IT IS ------------------------------------------------------
-          - { name: key, label: "ID (type this to link to it - do not change)", type: string,
-              description: "The name other screens use to point at this look. Changing it breaks anything already linked to it." }
-          - { name: name, label: Name, type: string }
-          - { name: kind, label: Kind, type: select, options: { values: [basics, special, category, film] },
-              description: "What this look is for. Looks are always GROUPED in this order on the Color Looks page: Basics, then Specials, then Rentals categories, then Films - so a new film you add here will appear with the other films even though it lands at the bottom of the list. basics = the site-wide signature gradient. special = a colorway that cannot be built from three hex boxes (an animation, a multi-stop ramp). Defined in code and locked here; Color 1/2/3 are ignored. Rainbow is the first one. category = a rentals category color (Color 1 is the one used). film = a movie's page and bubble; the use-case dropdowns below apply." }
-
-          # ---- THE THREE COLORS ------------------------------------------------
-          - { name: c1, label: "Color 1 (hex)", type: string, description: "e.g. #e0455f. For a rentals category, Color 1 is the color it uses." }
-          - { name: c2, label: "Color 2 (hex)", type: string }
-          - { name: c3, label: "Color 3 (hex)", type: string }
-
-          # ---- WHERE EACH COLOR IS USED (film only) ----------------------------
-          - { name: accent, label: "Accent - kicker text, Where-to-Watch label, carousel glow", type: select,
-              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] }, description: "Pick which color to use here. Color 1/2/3 are this look's own colors (above) - change one of those and everything pointing at it updates. white / black / lightBlue / darkBlue are fixed site colors (lightBlue #eaf2ff and darkBlue #0b2c55 are the blues the site's text uses)." }
-          - { name: main, label: "Main background wash", type: select,
-              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] }, description: "The big colored wash over the film's page." }
-          - { name: mainAlpha, label: "Main wash strength (0 to 1)", type: number }
-          - { name: tint, label: "Secondary background wash", type: select,
-              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] }, description: "A softer second wash. Leave blank for none." }
-          - { name: tintAlpha, label: "Secondary wash strength (0 to 1)", type: number }
-          - { name: kickerColor, label: "Kicker text color", type: select,
-              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] } }
-          - { name: kickerTracking, label: "Kicker letter-spacing (e.g. .3em)", type: string,
-              description: "Spacing between letters, not a color. Blank uses the site default (.24em)." }
-          - { name: taglineColor, label: "Tagline color", type: select,
-              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] } }
-          - { name: taglineItalic, label: "Tagline in italics", type: boolean }
-          - { name: titleStyle, label: "Title style", type: select, options: { values: [solid, gradient] },
-              description: "Only applies to a film with NO title logo (it falls back to text). Every current film has a logo, so this does nothing for them yet." }
-          - { name: titleGradientFrom, label: "Title gradient - top color", type: select,
-              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] } }
-          - { name: titleGradientTo, label: "Title gradient - bottom color", type: select,
-              options: { values: [color1, color2, color3, white, black, lightBlue, darkBlue] } }
-
-          - { name: note, label: Note, type: text }
+      - name: nocodbNote
+        label: "🎨 Color looks are edited in NocoDB (this page is view-only + the live preview)"
+        type: string
+        readonly: true
+        description: "Colour looks now live in the shared database: NocoDB → the color_looks table (http://localhost:8080). A background sync publishes data/colorlooks.json to BOTH sites automatically, so there is nothing to edit here — this screen only keeps the preview link + login above. To change a look's colours, edit its row in NocoDB (each field has a description), then reload the preview page to check it. (The per-look colour fields used to live here; they moved to NocoDB so the two sites and the preview can never drift — see D7 in the system plan.)"
 
   - name: projects
     label: "Projects"
