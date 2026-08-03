@@ -16,8 +16,10 @@
       "production": "Rare Pond Studios",
       "status": "Coming To Festivals",
       "year": 2026,
-      "pageLogline": "Once the world's greatest superspy, <b>Agent M</b> is now old and decades past her prime. Now she takes on a new mission: using her old skills to escape her elderly nursing home, at any cost.",
+      "pageLogline": "Once the world's greatest super spy, <b>Agent M</b> is now old and decades past her prime. Now she has a new mission: using her old skills to escape her elderly nursing home, <b>by any means necessary</b>.",
       "genre": [
+        "Live-Action",
+        "Animation",
         "Mixed Media",
         "Comedy",
         "Action"
@@ -36,7 +38,7 @@
         "/media/projects/geri_action/stills/geri-madeline.jpg"
       ],
       "credits": "Writer & Director : Jack Carlsen\nStarring: Cameron Quinn - Rachael DeBoer - Kennedy Porter - Adam Kezele",
-      "blurb": "The world's greatest superspy is now old and decades past her prime, and she'll break out of her nursing home at any cost."
+      "blurb": "The world's greatest super spy is now old and decades past her prime, and she'll break out of her nursing home at any cost."
     },
     {
       "key": "revelations",
