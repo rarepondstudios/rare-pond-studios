@@ -225,7 +225,9 @@ Two automation runtimes, one clear division of labour:
   workflow was retired 2026-08-03) **and no longer processes website forms.**
 - **Website forms run natively through Jotform.** The rental-quote and crew-inquiry forms submit
   directly via Jotform's own integrations (**Jotform → HubSpot + Calendar**); n8n does NOT handle
-  form intake. The legacy n8n form workflows are deactivated (duplicating them in n8n previously
+  form intake. The legacy n8n form workflows were **removed** (deleted 2026-08-03 after a live test through each form proved
+native delivery end-to-end — HubSpot contact + deal, Calendar event(s), and for the rental form
+the downstream Supabase order + booking, all via Jotform's native integrations; duplicating them in n8n previously
   caused duplicate deals + duplicate calendar events).
 
 **Automation inventory — ONE monitor, ONE doc.** A single host-side monitor
