@@ -11,15 +11,13 @@
       "c1": "#3f6bff",
       "c2": "#9b5cff",
       "c3": "#56c8ff",
-      "taglineItalic": false,
-      "note": "The site-wide gradient: bubble glows and shared gradients. Color 1/2/3 are the three gradient stops."
+      "taglineItalic": false
     },
     {
       "key": "rainbow",
       "name": "Rainbow",
       "kind": "special",
-      "taglineItalic": false,
-      "note": "A SPECIAL colorway: not three colors, so there is nothing to edit here. It is the animated rainbow gradient built into the site (the \"More to come\" bubble uses it). Specials are defined in code because the editor cannot express them. Point anything at it by using this ID."
+      "taglineItalic": false
     },
     {
       "key": "red",
@@ -28,8 +26,7 @@
       "c1": "#ea4335",
       "c2": "#ea4335",
       "c3": "#ea4335",
-      "taglineItalic": false,
-      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
+      "taglineItalic": false
     },
     {
       "key": "amber",
@@ -38,8 +35,7 @@
       "c1": "#ff9900",
       "c2": "#ff9900",
       "c3": "#ff9900",
-      "taglineItalic": false,
-      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
+      "taglineItalic": false
     },
     {
       "key": "violet",
@@ -48,8 +44,7 @@
       "c1": "#8b5cf6",
       "c2": "#8b5cf6",
       "c3": "#8b5cf6",
-      "taglineItalic": false,
-      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
+      "taglineItalic": false
     },
     {
       "key": "yellow",
@@ -58,8 +53,7 @@
       "c1": "#fbbc04",
       "c2": "#fbbc04",
       "c3": "#fbbc04",
-      "taglineItalic": false,
-      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
+      "taglineItalic": false
     },
     {
       "key": "green",
@@ -68,8 +62,7 @@
       "c1": "#34a853",
       "c2": "#34a853",
       "c3": "#34a853",
-      "taglineItalic": false,
-      "note": "A named color. Assign it to a rentals category on the Rentals page. Color 1 is the one used."
+      "taglineItalic": false
     },
     {
       "key": "geri",
@@ -89,8 +82,7 @@
       "taglineItalic": false,
       "titleStyle": "solid",
       "titleGradientFrom": "white",
-      "titleGradientTo": "color1",
-      "note": "Pulled from the Geri-Action key art: magenta-reds, blues and purples."
+      "titleGradientTo": "color1"
     },
     {
       "key": "rev",
@@ -110,8 +102,7 @@
       "taglineItalic": true,
       "titleStyle": "solid",
       "titleGradientFrom": "white",
-      "titleGradientTo": "color2",
-      "note": "Heaven's cool steel against Earth's warm gold, with the project's ember tones."
+      "titleGradientTo": "color2"
     },
     {
       "key": "invalid",
@@ -131,8 +122,7 @@
       "taglineItalic": false,
       "titleStyle": "gradient",
       "titleGradientFrom": "white",
-      "titleGradientTo": "lightBlue",
-      "note": "The comedy's electric blue and indigo with a hot-red pop from the key art."
+      "titleGradientTo": "lightBlue"
     },
     {
       "key": "revision",
@@ -141,8 +131,18 @@
       "c1": "#d81f3d",
       "c2": "#6e6f92",
       "c3": "#ff9fb1",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "The red pen bleeding into a greyscale world: a glowing crimson ink-red against a cool grey-violet, lifted by a pale red highlight that echoes the pink smudges on skin."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "lovebug",
@@ -151,8 +151,18 @@
       "c1": "#ff6a52",
       "c2": "#f2a545",
       "c3": "#46c2c4",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "Sun-baked retro romance from the poster's golden-hour Hollywood palette: warm coral-orange and amber (the orange VW Beetle, the lips, the vintage film grade) with a retro teal accent pulled from the palms."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "miss_fortune",
@@ -161,8 +171,18 @@
       "c1": "#ff2d95",
       "c2": "#7b34ec",
       "c3": "#ffb46a",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "The neon all-seeing-eye sign drives it: hot fortune-teller pink and an electric violet nightclub haze, warmed by the amber glow washing across her face."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "the_animator",
@@ -171,8 +191,18 @@
       "c1": "#ff9f3a",
       "c2": "#5fb6ec",
       "c3": "#ffb0d0",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "The hand-drawn storybook world made literal: the little orange clay character, a sunny sky-blue, and a soft paint-splatter pink for a cheerful, luminous pastel gradient."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "heros_journey",
@@ -181,118 +211,238 @@
       "c1": "#e8481f",
       "c2": "#f5b02e",
       "c3": "#ffdf9c",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "Pure epic fire: the ember-orange and molten gold of the flames engulfing the bronze warrior helmet, resolving into a bright gold light for a heroic, blazing glow."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "remember_me",
       "name": "Remember Me",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#3f6fe0",
       "c2": "#33b2cb",
       "c3": "#ffe4bf",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "The film's nocturnal-blue interiors: a deep midnight blue and cool teal night light, warmed by the cream trench coat so the glow reads emotional rather than cold."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "pity_party",
       "name": "Pity Party",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#ff5db1",
       "c2": "#5bb8f0",
       "c3": "#d6b6ff",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "The dreamy Y2K poster: cotton-candy pink and baby-blue sky with a holographic lilac shimmer straight off the disco ball, for a bittersweet iridescent glow."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "eddies_order",
       "name": "Eddie's Order",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#e51d6a",
       "c2": "#f5a623",
       "c3": "#ffd98a",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "The magician's stage: his magenta-crimson suit paired with the golden glow of the enchanted hourglass and its warm spark shower, a rich theatrical gold-and-rose burn."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "the_hearts_that_bleed_and_bloom",
       "name": "The Hearts That Bleed & Bloom",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#c81e37",
       "c2": "#ff6f8d",
       "c3": "#ffd0d6",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "Bleed and bloom in one gradient: a deep arterial crimson opening into a blooming rose-pink and a pale blush, mirroring the crimson shirt and floral title art."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "synesthesia",
       "name": "Synesthesia",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#ff3b3b",
       "c2": "#2f7bff",
       "c3": "#ffc63d",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "The synesthetic color-glow spelled out in the logo itself: red, electric blue, and gold lens-flare light bleeding across a dark cosmos, the boldest neon gradient of the set."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "parting_piece",
       "name": "Parting Piece",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#C9873F",
       "c2": "#33525C",
       "c3": "#16120E",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "The recital carved out of the dark: a warm tungsten amber key against cool slate-teal negative fill, grounded in the deep near-black of the stage."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "lights_up",
       "name": "Lights Up",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#2C55C8",
       "c2": "#C86A2C",
       "c3": "#0B0D14",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "The black-box two-hander lit in gels: electric stage blue against a warm footlight amber, carved out of a deep theater blackout."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "spotlight_abay",
       "name": "Spotlight: As Bright As You",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#C58A45",
       "c2": "#6E77AA",
       "c3": "#171210",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "The follow-spot glow: a warm spotlight amber key and a cool stage periwinkle accent over a deep warm theatrical black."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "the_duckling",
       "name": "The Duckling",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#E8B23C",
       "c2": "#C42A1B",
       "c3": "#1E1613",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "Cozy comfort curdling into menace: warm duck-gold highlights and the thriller's blood-red wash over a cozy domestic black."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "vantage_point",
       "name": "Vantage Point",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#B8814E",
       "c2": "#C86A56",
       "c3": "#33453F",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "Phone-shot Americana night: warm tungsten amber and the ember-pink glow of the keepsake against desaturated teal shadow."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     },
     {
       "key": "incoherent",
       "name": "Incoherent",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#E7A488",
       "c2": "#9E545C",
       "c3": "#2E5A56",
+      "accent": "color1",
+      "main": "color2",
+      "mainAlpha": 0.3,
+      "tint": "color3",
+      "tintAlpha": 0.18,
+      "kickerColor": "color1",
+      "kickerTracking": ".24em",
+      "taglineColor": "white",
       "taglineItalic": false,
-      "note": "Memory in warm-and-cool interior light: a tungsten peach and a dusty-rose practical glow against the cool teal of the windows."
+      "titleStyle": "solid",
+      "titleGradientFrom": "white",
+      "titleGradientTo": "color1"
     }
   ]
 }
