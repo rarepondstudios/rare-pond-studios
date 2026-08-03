@@ -185,12 +185,18 @@ site, the bug is in the source or the sync, not the frontend.
 
 ### Field schema (the fields future edits touch)
 **`projects`** (NocoDB): `key`, `title`, `year`, `kicker`, `tagline`, `blurb`, `page_logline`,
-`credits`, `genre`, `production`, `status`, `social_links`, `watch`; media path fields
+`credits`, `genre`, `type`, `medium`, `production`, `status`, `social_links`, `watch`; media path fields
 `bubble_image`, `title_logo`, `focus_bg`, `focus_video`, `stills`, `bts`; per-site toggles
 `on_rarepond` / `on_jackcarlsen`, `rp_use_look` / `jc_use_look`, `rp_in_carousel` /
 `jc_in_carousel`, `jc_in_workwall`, `rp_sort_order` / `jc_sort_order`; and the shared
 `color_look`. Multi-value fields (genre, stills, bts, credits) are plain text, **one entry per
 line**.
+**`medium`** (SingleSelect: **Live Action / Animation / Mixed Media**) categorises each film's
+production medium. It renders as a highlighted chip on the project page immediately **after** the
+`type` chip and **before** the genre pills (order `[type][medium][genres]`, type + medium both in
+the secondary accent colour), and is the sort key the jackcarlsen portfolios will use later. It
+was **migrated out of `genre`** (2026-08): the medium tokens (`Live Action` / `Live-Action` /
+`Animation` / `Mixed Media`) were stripped from `genre`, which now holds **story genre only**.
 **`color_looks`** (NocoDB): `key`, `name`, `kind` (`basics` / `special` / `category` / `film`),
 `c1` `c2` `c3`; and — for a `film` look only — `accent`, `main` + `main_alpha`, `tint` +
 `tint_alpha`, `kicker_color`, `kicker_tracking`, `tagline_color`, `tagline_italic`,
