@@ -36,6 +36,13 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@600;800&family=Heebo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
+<style>
+/* page-load veil - masks first-load asset pop-in; self-removing, never blocks interaction */
+#pageveil{position:fixed;inset:0;z-index:2147483000;background:#06122b;pointer-events:none;opacity:1}
+#pageveil.pv-hide{opacity:0;transition:opacity .55s ease}
+#pageveil.pv-gone{display:none}
+@media (prefers-reduced-motion:reduce){#pageveil.pv-hide{transition:none}}
+</style>
 <!-- Social icons + footer: one shared stylesheet, so the studio, rentals and the
      maintenance cover cannot drift apart. See assets/chrome.css. -->
 <link rel="stylesheet" href="/assets/chrome.css">
@@ -851,6 +858,28 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 </style>
 </head>
 <body>
+  <div id="pageveil" aria-hidden="true"></div>
+  <script>
+  /* Page-load veil controller. Holds a brand-colour cover over the page until fonts +
+     assets are ready, then fades it out. Multiple independent triggers + a hard timeout
+     guarantee it ALWAYS clears, so it can never trap the page (pointer-events:none too). */
+  (function(){
+    var v=document.getElementById('pageveil');
+    if(!v){window.__revealPage=function(){};return;}
+    var done=false;
+    function gone(){v.classList.add('pv-gone');}
+    function hide(){ if(done)return; done=true; v.classList.add('pv-hide');
+      var t=setTimeout(gone,900);
+      v.addEventListener('transitionend',function(){clearTimeout(t);gone();},{once:true});
+    }
+    window.__revealPage=hide;
+    var fonts=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
+    var loaded=new Promise(function(r){document.readyState==='complete'?r():addEventListener('load',r,{once:true});});
+    Promise.all([fonts,loaded]).then(function(){requestAnimationFrame(function(){requestAnimationFrame(hide);});});
+    setTimeout(hide,3500);                 /* absolute safety cap */
+    addEventListener('error',function(){setTimeout(hide,60);},{once:true});  /* never mask on a script error */
+  })();
+  </script>
   <header class="site-header">
     <div class="hdr-bg"></div>
     <a class="hdr-logo" href="/" data-go="home"><img class="hdr-duck" id="hdrDuck" src="/media/logos/duck-mark.png" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
