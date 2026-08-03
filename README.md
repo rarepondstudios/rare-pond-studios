@@ -137,8 +137,8 @@ Media lives in the Synology `Project Repository (Web)/<Project>/` folders. Selec
 
 | Folder | Fills | Rule |
 |---|---|---|
-| `Project Stills/` | the film's still gallery | every image, in order = gallery order |
-| `Project Video/` | the background / hover reel | the `*-web.mp4` |
+| `Project Stills/` | the film's still gallery + NocoDB `stills` list | every image, in order = gallery order |
+| `Project Video/` | the background / hover reel + NocoDB `focus_video` | **first reel wins** (name order): `*-reel-web.mp4`, else `*-web.mp4`, else a loose `*.mp4`; `High Resolution Versions/` ignored |
 | `BTS/` | the behind-the-scenes gallery | every image, in order |
 | `Bubble Image/` | the home-bubble image | **first file wins** |
 | `Logo/` | the title logo | **first file wins** |
@@ -146,7 +146,10 @@ Media lives in the Synology `Project Repository (Web)/<Project>/` folders. Selec
 
 The **Focus Image is ALWAYS the FIRST still** on every project page (both sites), then the
 Project Stills in order; the `Focus Image/` folder only overrides that. Drop a file in a folder
-and it appears with that folder's role next sync; move it and it re-homes cleanly. **Unsorted /
+and it appears with that folder's role next sync; move it and it re-homes cleanly. **The `stills`
+list and the `focus_video` reel path are written into NocoDB automatically from the folder**
+(auto-fill on drop, clear on removal, idempotent) — so a new film's reel goes live from the
+folder alone, with no path typed into the database. **Unsorted /
 general BTS:** the `Unsorted Photo and Video` folder is split into `jackcarlsen.com/` and
 `rarepond.com/` subfolders — a file's enclosing subfolder decides which site's general BTS scroll
 it shows on.
