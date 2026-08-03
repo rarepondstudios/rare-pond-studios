@@ -139,7 +139,7 @@
       "kickerColor": "color1",
       "kickerTracking": ".24em",
       "taglineColor": "white",
-      "taglineItalic": false,
+      "taglineItalic": true,
       "titleStyle": "solid",
       "titleGradientFrom": "white",
       "titleGradientTo": "color1"
@@ -219,7 +219,7 @@
       "kickerColor": "color1",
       "kickerTracking": ".24em",
       "taglineColor": "white",
-      "taglineItalic": false,
+      "taglineItalic": true,
       "titleStyle": "solid",
       "titleGradientFrom": "white",
       "titleGradientTo": "color1"
@@ -299,7 +299,7 @@
       "kickerColor": "color1",
       "kickerTracking": ".24em",
       "taglineColor": "white",
-      "taglineItalic": false,
+      "taglineItalic": true,
       "titleStyle": "solid",
       "titleGradientFrom": "white",
       "titleGradientTo": "color1"
@@ -339,7 +339,7 @@
       "kickerColor": "color1",
       "kickerTracking": ".24em",
       "taglineColor": "white",
-      "taglineItalic": false,
+      "taglineItalic": true,
       "titleStyle": "solid",
       "titleGradientFrom": "white",
       "titleGradientTo": "color1"
