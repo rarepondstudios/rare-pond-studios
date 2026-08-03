@@ -60,7 +60,6 @@
   .lk-name{font-size:16px;font-weight:800;color:#fff;line-height:1.25}
   .lk-meta{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9fc2ff;margin:5px 0 2px}
   .lk-key{font-size:11px;color:#8fa9cf;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-  .lk-note{font-size:12.5px;color:#c3d5ef;line-height:1.5;margin:9px 0 12px}
   .sw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .sw .c{border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04)}
   .sw .chip{height:46px;position:relative;padding:0;cursor:pointer}
@@ -110,7 +109,6 @@
   .pk-shade{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.16);cursor:copy}
   .pk-shade:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.4)}
 /* Locked (rainbow) look: previewable, not editable. */
-.look.locked .lk-note{border-left:3px solid #9b5cff;padding-left:10px}
 /* RAINBOW previews. These MUST be scoped per style: an earlier version applied the
    conic gradient to both, which made the Stream preview just drag the centre of the
    pinwheel sideways instead of cycling through the spectrum.
@@ -432,7 +430,7 @@
     var rootStyle='--c1:'+esc(c1)+';--c2:'+esc(c2||c1)+';--c3:'+esc(c3||c2||c1);
     if(L.kind==='film'){ var tv=themeVars(L); if(tv) rootStyle+=';'+tv; }
     var swatches =
-        L.kind==='special'  ? ''                       // a special's note explains it
+        L.kind==='special'  ? ''                       // a special has no flat colour swatches
       : L.kind==='category' ? '<div class="sw">'+chip('Color 1 (used)',c1)+'</div>'
       :                       '<div class="sw">'+chip('Color 1',c1)+chip('Color 2',c2)+chip('Color 3',c3)+'</div>';
     return '<div class="look'+(L.kind==='special'?' locked':'')+'" data-idx="'+idx+'" style="'+rootStyle+'">'
@@ -441,7 +439,6 @@
         +'<div class="lk-key">'+esc(L.key)+'</div>'
         +'<div class="lk-name">'+esc(L.name||L.key)+'</div>'
         +'<div class="lk-meta">'+kindTag+usedBadge(L)+'</div>'
-        +(L.note?'<div class="lk-note">'+esc(L.note)+'</div>':'')
         +swatches
         +usesTable(L)
         +usedList(L)
