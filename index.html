@@ -883,6 +883,15 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       </div>
     </section>
 
+    <!-- General (project-less) BTS pool (D3): photos in the Synology
+         "Unsorted Photo and Video/rarepond.com/" folder publish here. Hidden when empty. -->
+    <section id="home-bts" style="display:none">
+      <div class="u-stills u-bts" style="max-width:1200px;margin:0 auto;padding:48px 20px">
+        <h3 class="stills-h">Behind The Scenes</h3>
+        <div class="stills-grid" id="homeBtsGrid"></div>
+      </div>
+    </section>
+
     <section id="contact">
       <div class="deepwater rpWater"></div>
       <div class="contact-wrap">
@@ -986,6 +995,20 @@ const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p
 const TEAM=__d[2].team;
 const __pagesData=__d[3]||{pages:[]};
 const BTS=__d[6]||{};  /* per-project behind-the-scenes, auto-synced from the Project Repository BTS folders */
+/* General (project-less) BTS pool (D3): photos dropped into the Synology
+   "Unsorted Photo and Video/rarepond.com/" folder publish under the reserved "_general"
+   key and render as a site-wide Behind-The-Scenes collage on the home page (clickable via
+   the shared .still lightbox). Hidden entirely when the pool is empty, so no layout change
+   until Jack drops files in. Moving a file to the jackcarlsen.com/ subfolder re-routes it. */
+(function(){
+  var g=(BTS&&BTS._general)||[];
+  var sec=document.getElementById('home-bts'),grid=document.getElementById('homeBtsGrid');
+  if(!sec||!grid||!g.length)return;
+  grid.innerHTML=g.map(function(b){
+    return '<button class="still" type="button" data-full="'+b.full+'" data-fallback="'+b.src+'"><img src="'+b.src+'" loading="lazy" alt=""></button>';
+  }).join('');
+  sec.style.display='';
+})();
 
 /* ===== HIGH-RES STILLS =====
    Stills listed in data/stills-hd.json were re-pulled from the ProRes masters and have
