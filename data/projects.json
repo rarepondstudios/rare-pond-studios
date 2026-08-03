@@ -9,7 +9,7 @@
       "placeholder": false,
       "bubbleImage": "/media/projects/geri_action/geri-bubble.jpg",
       "titleLogo": "/media/projects/geri_action/geri-logo.png",
-      "focusBg": "/media/projects/geri_action/geri-split.jpg",
+      "focusBg": "/media/projects/geri_action/stills/geri_action-focus-1600.jpg",
       "focusVideo": "/media/projects/geri_action/video/geri-action-reel.mp4",
       "kicker": "Mixed Media Series Proof Of Concept",
       "tagline": "Old Spy. New Mission.",
@@ -28,7 +28,7 @@
         "https://www.instagram.com/geri_action_film/"
       ],
       "stills": [
-        "/media/projects/geri_action/stills/geri-splitscreen-still.jpg",
+        "/media/projects/geri_action/stills/geri_action-focus.jpg",
         "/media/projects/geri_action/stills/geri-anim-1.jpg",
         "/media/projects/geri_action/stills/geri-anim-2.jpg",
         "/media/projects/geri_action/stills/geri-anim-3.jpg",
@@ -47,7 +47,7 @@
       "placeholder": false,
       "bubbleImage": "/media/projects/revelations/revelations-bubble.jpg",
       "titleLogo": "/media/projects/revelations/revelations-logo.png",
-      "focusBg": "/media/projects/revelations/revelations-earth.jpg",
+      "focusBg": "/media/projects/revelations/stills/revelations-focus-1600.jpg",
       "kicker": "Surrealist Short Film",
       "tagline": "Even angels answer to management.",
       "production": "Rare Pond Studios",
@@ -63,7 +63,7 @@
         "https://www.instagram.com/revelations_film/"
       ],
       "stills": [
-        "/media/projects/revelations/stills/rev-earth-1.jpg",
+        "/media/projects/revelations/stills/revelations-focus.jpg",
         "/media/projects/revelations/stills/rev-earth-2.jpg",
         "/media/projects/revelations/stills/rev-michael-bar.jpg",
         "/media/projects/revelations/stills/rev-heaven-1.jpg",
@@ -81,7 +81,7 @@
       "placeholder": false,
       "bubbleImage": "/media/projects/invalid_opinion/invalid-bubble.jpg",
       "titleLogo": "/media/projects/invalid_opinion/invalid-logo.png",
-      "focusBg": "/media/projects/invalid_opinion/invalid-focus.jpg",
+      "focusBg": "/media/projects/invalid_opinion/stills/invalid_opinion-focus-1600.jpg",
       "focusVideo": "/media/projects/invalid_opinion/video/invalid-opinion-reel.mp4",
       "kicker": "Comedy Sketch",
       "tagline": "Everybody's a critic.",
@@ -97,6 +97,7 @@
       "type": "Skit",
       "socials": [],
       "stills": [
+        "/media/projects/invalid_opinion/stills/invalid_opinion-focus.jpg",
         "/media/projects/invalid_opinion/stills/invalid-1.jpg",
         "/media/projects/invalid_opinion/stills/invalid-2.jpg",
         "/media/projects/invalid_opinion/stills/invalid-3.jpg",
