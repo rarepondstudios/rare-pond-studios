@@ -219,15 +219,24 @@ Two automation runtimes, one clear division of labour:
 - **Python (macOS `launchd`) BUILDS SITE CONTENT** — it turns the database / source layer into
   each repo's `data/*.json` + media (`projects_sync.py`, `jc_projects_sync.py`, `colorlooks_sync.py`,
   `platforms_export.py`, the media + BTS syncs, `projects_folder_sync.py`, `rentals_units_sync.py`).
-- **n8n is EVENT-DRIVEN GLUE ONLY** — forms intake, the rentals HubSpot↔DB sync, third-party
-  integrations, failure alerts + watchdog, weekly backups, and the health monitor. **n8n no longer
-  builds any site content** (the "Projects: DB to site (rarepond)" workflow was retired 2026-08-03).
+- **n8n is EVENT-DRIVEN GLUE ONLY** — the rentals HubSpot↔DB sync (both directions), third-party
+  integrations (Apple / ClickUp / HubSpot / iMessage / Gemini), failure alerts + watchdog, and
+  weekly backups. **n8n no longer builds any site content** (the "Projects: DB to site (rarepond)"
+  workflow was retired 2026-08-03) **and no longer processes website forms.**
+- **Website forms run natively through Jotform.** The rental-quote and crew-inquiry forms submit
+  directly via Jotform's own integrations (**Jotform → HubSpot + Calendar**); n8n does NOT handle
+  form intake. The legacy n8n form workflows are deactivated (duplicating them in n8n previously
+  caused duplicate deals + duplicate calendar events).
 
-**Automation inventory:** the ClickUp doc **"[Monitor] Automation Health"** now covers BOTH — the
-n8n workflows (page "Automation Health", written from inside the container) and the Python launchd
-jobs (page "Automation Health — Python Jobs (launchd)", written by the host-side
-`automation_health_launchd.py`, launchd `com.rarepond.pyhealthmon`). Each entry shows purpose,
-schedule, and last-run status.
+**Automation inventory — ONE monitor, ONE doc.** A single host-side monitor
+(`bts-automation/automation_health_launchd.py`, launchd `com.rarepond.pyhealthmon`, every 15 min)
+inventories EVERYTHING and writes the one ClickUp doc **"[Monitor] Automation Health"**: one page
+lists every **n8n workflow** (enabled + last-run status, read from the n8n DB) and a companion page
+lists every **Python launchd job** (purpose, schedule, last-run exit status). The three older
+overlapping monitors — the n8n "Automation Health" workflow, the standalone
+`automation-health-monitor.js`, and its duplicate ClickUp doc — were consolidated into this one on
+2026-08-03. The two `[Alerts]` workflows (failure email + silence watchdog) are the safety net and
+remain. Each entry shows purpose, schedule, and last-run status.
 
 ### Field schema (the fields future edits touch)
 **`projects`** (NocoDB): `key`, `title`, `year`, `kicker`, `tagline`, `blurb`, `page_logline`,
