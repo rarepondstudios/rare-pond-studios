@@ -16,7 +16,7 @@
       "production": "Rare Pond Studios",
       "status": "Coming To Festivals",
       "year": 2026,
-      "pageLogline": "Once the world's greatest super spy, <b>Agent M</b> is now old and decades past her prime. Now she has a new mission: using her old skills to escape her elderly nursing home, <b>by any means necessary</b>.",
+      "logline": "Once the world's greatest super spy, <b>Agent M</b> is now old and decades past her prime. Now she has a new mission: using her old skills to escape her elderly nursing home, <b>by any means necessary</b>.",
       "genre": [
         "Comedy",
         "Action"
@@ -36,7 +36,7 @@
         "/media/projects/geri_action/stills/geri-madeline.jpg"
       ],
       "credits": "Writer & Director : Jack Carlsen\nVisual Effects: Jack Carlsen\nStarring: Cameron Quinn - Rachael DeBoer - Kennedy Porter - Adam Kezele",
-      "blurb": "The world's greatest super spy is now old and decades past her prime, and she'll break out of her nursing home at any cost."
+      "rpThoughts": ""
     },
     {
       "key": "revelations",
@@ -53,7 +53,7 @@
       "production": "Rare Pond Studios",
       "status": "In Post-Production",
       "year": 2027,
-      "pageLogline": "A surreal vision of Heaven and Earth, where angels work a vast office space and keep themselves quarantined from the sinful humans below. When the angel <b>Emmanuel</b> goes missing, his angelic manager <b>Michael</b> must descend to Earth to bring him back before they are both corrupted by the world they find there.",
+      "logline": "A surreal vision of Heaven and Earth, where angels work a vast office space and keep themselves quarantined from the sinful humans below. When the angel <b>Emmanuel</b> goes missing, his angelic manager <b>Michael</b> must descend to Earth to bring him back before they are both corrupted by the world they find there.",
       "genre": [
         "Surreal Fantasy"
       ],
@@ -71,7 +71,7 @@
         "/media/projects/revelations/stills/rev-heaven-2.jpg"
       ],
       "credits": "Writer & Director : Jack Carlsen\nStarring: Lawrence Lacey - Jesse Shafroth - John Klenk - Trinity Medina",
-      "blurb": "Angels work a vast Heaven office, quarantined from the sinful world below. When the angel Emmanuel goes missing, his manager Michael must descend to Earth to bring him back."
+      "rpThoughts": ""
     },
     {
       "key": "invalid_opinion",
@@ -89,7 +89,7 @@
       "production": "Rare Pond Studios",
       "status": "Released",
       "year": 2022,
-      "pageLogline": "When a self-proclaimed <b>expert Redditor</b> stumbles on a distasteful meme, he does what any genius would: fires up his most advanced AI tech to engineer the <i>perfect</i> witty comeback. A fast, funny send-up of online self-importance, where <b>Tony Stonk</b> is never in doubt and never more wrong.",
+      "logline": "When a self-proclaimed <b>expert Redditor</b> stumbles on a distasteful meme, he does what any genius would: fires up his most advanced AI tech to engineer the <i>perfect</i> witty comeback. A fast, funny send-up of online self-importance, where <b>Tony Stonk</b> is never in doubt and never more wrong.",
       "genre": [
         "Science Fiction",
         "Comedy"
@@ -107,7 +107,7 @@
         "/media/projects/invalid_opinion/stills/invalid-5.jpg"
       ],
       "credits": "Writer & Director : Jack Carlsen\nStarring: Iago Lashua - Nick Wittcoff\nCinematographer : Jash Shah\nMusic & Sound : Jacob Gensheimer",
-      "blurb": "Everybody's a critic... A fast, funny short about a guy who's always right, even when he's gloriously, and completely wrong."
+      "rpThoughts": ""
     },
     {
       "key": "more_to_come",
@@ -120,7 +120,7 @@
       "type": "",
       "medium": "",
       "socials": [],
-      "blurb": "New worlds are in the works."
+      "rpThoughts": ""
     }
   ]
 }

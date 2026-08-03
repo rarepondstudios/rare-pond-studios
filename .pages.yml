@@ -167,7 +167,7 @@ content:
         label: "✏️ EDIT HERE — shared text templates for every film"
         type: string
         readonly: true
-        description: "The four boxes below are the SHARED templates for the lines of text the site builds around every film. Write each one ONCE and it applies to EVERY project - the site fills in each film's own values (from NocoDB) wherever you put a {variable} in curly braces. Change the wording of the LINE here; change each film's actual CONTENT (kicker, tagline, blurb, page logline, credits) in NocoDB. AVAILABLE VARIABLES: {title}, {year}, {production}, {status}, {released} (smart: year if set, otherwise status), {kicker}, {tagline}, {genre}, {blurb}. Empty variables - and any separator left dangling next to them, like a stray ' · ' - are dropped automatically. TIP: see any template rendered live against a real film at rarepond.com/admin/preview before you save."
+        description: "The four boxes below are the SHARED templates for the lines of text the site builds around every film. Write each one ONCE and it applies to EVERY project - the site fills in each film's own values (from NocoDB) wherever you put a {variable} in curly braces. Change the wording of the LINE here; change each film's actual CONTENT (kicker, tagline, logline, credits) in NocoDB. AVAILABLE VARIABLES: {title}, {year}, {production}, {status}, {released} (smart: year if set, otherwise status), {kicker}, {tagline}, {genre}, {logline}. Empty variables - and any separator left dangling next to them, like a stray ' · ' - are dropped automatically. TIP: see any template rendered live against a real film at rarepond.com/admin/preview before you save."
       - name: eyebrowTemplate
         label: "🏷️ Project page — eyebrow (top-right label)"
         type: string
@@ -181,8 +181,8 @@ content:
       - name: cardLoglineTemplate
         label: "🏷️ Home featured card — one-liner under the title"
         type: string
-        default: "{blurb}"
-        description: "The sentence on the FEATURED (center) card of the home carousel. Default '{blurb}' shows each film's short blurb. You can combine text and variables, e.g. '{genre} — {blurb}'."
+        default: "{logline}"
+        description: "The sentence on the FEATURED (center) card of the home carousel. Default '{logline}' shows each film's logline. You can combine text and variables, e.g. '{genre} — {logline}'."
       - name: gridCaptionTemplate
         label: "🏷️ Projects grid — caption under each tile"
         type: string
@@ -192,7 +192,7 @@ content:
         label: "📋 The project list itself is edited in NocoDB (read-only here)"
         type: string
         readonly: true
-        description: "The films themselves - their names, images, which sites show each one, colour look, carousel and glow toggles, per-film text (kicker, tagline, blurb, page logline, credits), and order - all live in the shared database and are edited in NocoDB at http://localhost:8080, where you can also see each project by name with its bubble thumbnail. A background sync rebuilds the site from there automatically, so there is nothing to edit for the list itself on this screen. To OPEN or CLOSE the whole Projects page to the public, use SITE SETTINGS → 'Projects page is OPEN to the public'. Colour palettes live in COLOR LOOKS. The boxes ABOVE are the only editable things here - they control the shared wording, not the individual films."
+        description: "The films themselves - their names, images, which sites show each one, colour look, carousel and glow toggles, per-film text (kicker, tagline, logline, credits), and order - all live in the shared database and are edited in NocoDB at http://localhost:8080, where you can also see each project by name with its bubble thumbnail. A background sync rebuilds the site from there automatically, so there is nothing to edit for the list itself on this screen. To OPEN or CLOSE the whole Projects page to the public, use SITE SETTINGS → 'Projects page is OPEN to the public'. Colour palettes live in COLOR LOOKS. The boxes ABOVE are the only editable things here - they control the shared wording, not the individual films."
 
   - name: team
     label: Team
