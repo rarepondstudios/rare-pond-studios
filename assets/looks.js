@@ -179,7 +179,9 @@
       if (!p || !p.key || !SAFE_KEY.test(p.key)) return;
       var els = document.querySelectorAll('[data-pk="' + p.key + '"]');
       if (!els.length) return;
-      var L  = p.bubbleGlow ? byKey[p.colorLook] : null;
+      // Missing-look guard: an unknown/bogus colorLook key falls back to the signature
+      // look, so a glow-on bubble never loses its glow (or errors) over a broken reference.
+      var L  = p.bubbleGlow ? (byKey[p.colorLook] || byKey.signature) : null;
       var sp = specialOf(L);
       Array.prototype.forEach.call(els, function (el) {
         el.classList.remove("rp-glow-special", "rp-hover-look");
@@ -211,7 +213,10 @@
     var byProj = {};
     (projects || []).forEach(function (p) {
       if (!p || !p.key) return;
-      var L = byKey[p.colorLook];
+      // Missing-look guard: an unknown/bogus colorLook key falls back to signature
+      // (never lose the glow / never error). signature is kind:"basics", so the page
+      // theme below still applies only for real film looks, but the glow is preserved.
+      var L = byKey[p.colorLook] || byKey.signature;
       if (L && L.kind === "film") byProj[p.key] = L;
     });
 
