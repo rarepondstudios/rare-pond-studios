@@ -23,6 +23,7 @@
       ],
       "socialLinks": "https://www.instagram.com/geri_action_film/",
       "type": "Short Film",
+      "medium": "Mixed Media",
       "socials": [
         "https://www.instagram.com/geri_action_film/"
       ],
@@ -58,6 +59,7 @@
       ],
       "socialLinks": "https://www.instagram.com/revelations_film/",
       "type": "Short Film",
+      "medium": "Live Action",
       "socials": [
         "https://www.instagram.com/revelations_film/"
       ],
@@ -94,6 +96,7 @@
       ],
       "watch": "https://www.youtube.com/watch?v=XGYQv3h3-y4",
       "type": "Skit",
+      "medium": "Live Action",
       "socials": [],
       "stills": [
         "/media/projects/invalid_opinion/stills/invalid_opinion-focus.jpg",
@@ -115,6 +118,7 @@
       "placeholder": true,
       "focusBg": "/media/site/water.jpg",
       "type": "",
+      "medium": "",
       "socials": [],
       "blurb": "New worlds are in the works."
     }
