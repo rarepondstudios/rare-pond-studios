@@ -131,9 +131,13 @@ publicly, so it is described here, not linked.
 ### 2. Per-site exporters + the sites registry
 Headless scripts in `~/bts-automation`, run on a schedule by macOS **launchd**, read the database
 and **regenerate each site's `data/*.json`, then commit + push** so Cloudflare Pages redeploys:
-- **rarepond `projects.json`** ← the **n8n** workflow "Projects: DB to site (rarepond)".
-- **jackcarlsen `projects.json`** ← **`jc_projects_sync.py`** (launchd `com.rarepond.jcprojsync`).
-  *(The old JC GitHub-Action export has been retired — ONE pipeline per site.)*
+- **`projects.json` (BOTH sites)** ← one shared Python exporter **`projects_sync.py`** on
+  launchd. It loops `sites.json` and emits each site's exact shape. rarepond runs it via
+  `com.rarepond.rpprojsync` (every 5 min). *(This **replaced the n8n** workflow "Projects: DB to
+  site (rarepond)", now retired — n8n no longer builds site content.)* jackcarlsen currently still
+  publishes via the equivalent **`jc_projects_sync.py`** (launchd `com.rarepond.jcprojsync`);
+  `projects_sync.py` reproduces its output byte-for-byte and can subsume it by flipping that job.
+  The old JC GitHub-Action export is retired — ONE pipeline per site.
 - **`colorlooks_sync.py`** → every repo's `data/colorlooks.json` from `color_looks` (JC keeps its
   own purple `signature` via `data/colorlooks-overrides.json`; rarepond is the colour-look owner).
 - **`platforms_export.py`** → every repo's `data/platforms.json` from the shared platform source.
@@ -204,11 +208,26 @@ site, the bug is in the source or the sync, not the frontend.
 
 | Concern | Single source | Published to every repo by |
 |---|---|---|
-| Films | NocoDB `projects` | n8n (RP) / `jc_projects_sync.py` (JC), via `sites.json` |
+| Films | NocoDB `projects` | Python `projects_sync.py` (RP, launchd) / `jc_projects_sync.py` (JC), via `sites.json` |
 | Colour looks | NocoDB `color_looks` | `colorlooks_sync.py` → `data/colorlooks.json` |
 | Platforms / socials | shared `platforms.json` source | `platforms_export.py` → `data/platforms.json` |
 | Media | Synology project folders | the media + BTS syncs (folder = source of truth) |
 | Site copy | Pages CMS `data/*.json` | committed directly |
+
+### n8n vs Python (the split)
+Two automation runtimes, one clear division of labour:
+- **Python (macOS `launchd`) BUILDS SITE CONTENT** — it turns the database / source layer into
+  each repo's `data/*.json` + media (`projects_sync.py`, `jc_projects_sync.py`, `colorlooks_sync.py`,
+  `platforms_export.py`, the media + BTS syncs, `projects_folder_sync.py`, `rentals_units_sync.py`).
+- **n8n is EVENT-DRIVEN GLUE ONLY** — forms intake, the rentals HubSpot↔DB sync, third-party
+  integrations, failure alerts + watchdog, weekly backups, and the health monitor. **n8n no longer
+  builds any site content** (the "Projects: DB to site (rarepond)" workflow was retired 2026-08-03).
+
+**Automation inventory:** the ClickUp doc **"[Monitor] Automation Health"** now covers BOTH — the
+n8n workflows (page "Automation Health", written from inside the container) and the Python launchd
+jobs (page "Automation Health — Python Jobs (launchd)", written by the host-side
+`automation_health_launchd.py`, launchd `com.rarepond.pyhealthmon`). Each entry shows purpose,
+schedule, and last-run status.
 
 ### Field schema (the fields future edits touch)
 **`projects`** (NocoDB): `key`, `title`, `year`, `kicker`, `tagline`, `blurb`, `page_logline`,
