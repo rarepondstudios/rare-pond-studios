@@ -34,6 +34,7 @@ content:
         description: "The brand-colour cover that fades the site in on load (and masks images/video popping in). Pick which COLOUR LOOK drives its gradient, or turn it off."
         fields:
           - { name: colorLook, label: "Colour look (type a look's name or key)", type: string, description: "Which colour look colours the fade. Type a look's NAME or key exactly as it appears in the Color Looks list (e.g. \"signature\", \"Geri-Action\", \"invalid\", \"violet\"). Its colours are muted onto a dark base for a subtle gradient. Leave BLANK for the site's plain dark background. Colour looks are shared + edited in NocoDB." }
+          - { name: style, label: "Fade colour style", type: select, default: full, options: { values: [muted, full] }, description: "FULL shows the look's colours vividly (matches the Rare Pond transport splash). MUTED tones them onto a dark base for a subtler cover." }
           - { name: enabled, label: "Fade enabled", type: boolean, default: true, description: "ON: the branded fade-in plays on load. OFF: the page appears immediately with no cover." }
 
       - name: logos

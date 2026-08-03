@@ -39,7 +39,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 <style>
 /* page-load veil - masks first-load asset pop-in; self-removing, never blocks interaction.
    Colour = a colour-look (data/site.json -> veil.colorLook) muted onto a dark base. */
-#pageveil{position:fixed;inset:0;z-index:2147483000;background:var(--veil-grad,radial-gradient(120% 130% at 15% 5%,#1b2c65 0%,transparent 58%),radial-gradient(125% 125% at 90% 100%,#34235c 0%,transparent 60%),#080b16);pointer-events:none;opacity:1}
+#pageveil{position:fixed;inset:0;z-index:2147483000;background:radial-gradient(circle at 50% 42%,#56c8ff,#3f6bff 46%,#9b5cff 100%);pointer-events:none;opacity:1}
 #pageveil.pv-hide{opacity:0;transition:opacity .55s ease}
 #pageveil.pv-gone{display:none}
 @keyframes pvRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -886,7 +886,8 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     /* colour: resolve the chosen colour-look into a muted gradient (Golden-Rule-safe - colours come from the looks) */
     (function(){try{
       var mix=function(hex,base,t){var p=function(h){h=(h||'').replace('#','');if(h.length===3)h=h.replace(/(.)/g,'$1$1');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];};var A=p(hex),B=p(base);return '#'+A.map(function(a,i){return Math.round(a*t+B[i]*(1-t));}).map(function(x){return ('0'+x.toString(16)).slice(-2);}).join('');};
-      var grad=function(c1,c2){var b='#080b16';return 'radial-gradient(120% 130% at 15% 5%,'+mix(c1,b,.34)+' 0%,transparent 58%),radial-gradient(125% 125% at 90% 100%,'+mix(c2||c1,b,.30)+' 0%,transparent 60%),'+b;};
+      var mutedGrad=function(c1,c2){var b='#080b16';return 'radial-gradient(120% 130% at 15% 5%,'+mix(c1,b,.34)+' 0%,transparent 58%),radial-gradient(125% 125% at 90% 100%,'+mix(c2||c1,b,.30)+' 0%,transparent 60%),'+b;};
+      var fullGrad=function(c1,c2,c3){return 'radial-gradient(circle at 50% 42%,'+(c3||c1)+','+c1+' 46%,'+(c2||c1)+' 100%)';};
       Promise.all([fetch('/data/site.json').then(function(r){return r.json();}).catch(function(){return{};}),fetch('/data/colorlooks.json').then(function(r){return r.json();}).catch(function(){return{};})]).then(function(res){
         var cfg=(res[0]||{}).veil||{};
         if(cfg.enabled===false){hide();return;}
@@ -896,7 +897,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
         var lc=name.toLowerCase(),slug=lc.replace(/[^a-z0-9]+/g,''),look=null;
         for(var i=0;i<list.length;i++){var o=list[i]||{},kk=String(o.key||'').toLowerCase(),nn=String(o.name||'').toLowerCase();
           if(kk===lc||nn===lc||kk.replace(/[^a-z0-9]+/g,'')===slug||nn.replace(/[^a-z0-9]+/g,'')===slug){look=o;break;}}
-        if(look&&look.c1)document.documentElement.style.setProperty('--veil-grad',grad(look.c1,look.c2));
+        if(look&&look.c1){var st=((cfg.style||'')+'').toLowerCase();v.style.background=st==='full'?fullGrad(look.c1,look.c2,look.c3):mutedGrad(look.c1,look.c2);}
       });
     }catch(e){}})();
   })();
