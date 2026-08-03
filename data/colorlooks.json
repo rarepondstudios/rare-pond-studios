@@ -137,7 +137,7 @@
     {
       "key": "revision",
       "name": "Revision",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#d81f3d",
       "c2": "#6e6f92",
       "c3": "#ff9fb1",
@@ -147,7 +147,7 @@
     {
       "key": "lovebug",
       "name": "LoveBug",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#ff6a52",
       "c2": "#f2a545",
       "c3": "#46c2c4",
@@ -157,7 +157,7 @@
     {
       "key": "miss_fortune",
       "name": "Miss Fortune",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#ff2d95",
       "c2": "#7b34ec",
       "c3": "#ffb46a",
@@ -167,7 +167,7 @@
     {
       "key": "the_animator",
       "name": "The Animator",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#ff9f3a",
       "c2": "#5fb6ec",
       "c3": "#ffb0d0",
@@ -177,7 +177,7 @@
     {
       "key": "heros_journey",
       "name": "Hero's Journey",
-      "kind": "basics",
+      "kind": "film",
       "c1": "#e8481f",
       "c2": "#f5b02e",
       "c3": "#ffdf9c",
