@@ -2082,7 +2082,30 @@ document.body.addEventListener('click', e => {
 function nav(path){if(location.pathname+location.search!==path)history.pushState({},'',path);renderRoute();}
 /* open a project from a bubble/card click - keeps the zoom-from-bubble animation */
 function openProject(key){const sl='/'+KEY2SLUG[key];if(location.pathname!==sl)history.pushState({},'',sl);openUniverse(key);}
-document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();const d=a.getAttribute('data-go');if(d==='contact'||d==='about'){nav('/');showView('home','#'+d);}else nav(pathForDest(d));});
+/* Page-transition fade: reuse the load veil to cover a page/view swap so navigating between
+   pages fades like the initial load. Project open/close keep their zoom-from-bubble animation.
+   Self-clearing (transitionend + hard timeout) so it can never trap the page. */
+function __pageFade(swap){
+  var v=document.getElementById('pageveil');
+  var reduced=(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);
+  if(!v||reduced){swap();return;}
+  v.classList.remove('pv-gone','pv-hide');
+  v.style.transition='none';v.style.opacity='0';void v.offsetWidth;
+  v.style.transition='opacity .18s ease';v.style.opacity='1';
+  var did=false;
+  function go(){ if(did)return;did=true; try{swap();}catch(e){}
+    /* schedule the reveal via setTimeout (not rAF) so a suspended-rAF background tab can never leave the veil covering */
+    setTimeout(function(){
+      v.style.transition='opacity .34s ease';v.style.opacity='0';
+      var fin=function(){v.classList.add('pv-gone');v.style.transition='';v.style.opacity='';};
+      v.addEventListener('transitionend',function oe(e){if(e.propertyName&&e.propertyName!=='opacity')return;v.removeEventListener('transitionend',oe);fin();});
+      setTimeout(fin,650);
+    },32);
+  }
+  var t=setTimeout(go,240);
+  v.addEventListener('transitionend',function h(e){if(e.propertyName&&e.propertyName!=='opacity')return;v.removeEventListener('transitionend',h);clearTimeout(t);go();});
+}
+document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();const d=a.getAttribute('data-go');if(d==='contact'||d==='about'){nav('/');showView('home','#'+d);}else __pageFade(function(){nav(pathForDest(d));});});
 /* browser back / forward drives the view (this is how the universe closes on Back) */
 addEventListener('popstate',()=>renderRoute());
 /* hash links from other pages (rentals): /#team /#projects /#contact /#about */
