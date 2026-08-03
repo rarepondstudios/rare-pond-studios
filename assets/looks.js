@@ -117,6 +117,15 @@
     return "";
   }
 
+  /* CONVENTION (shared by rarepond + jackcarlsen — do not break):
+     FOREGROUND look colours (kicker, date/meta, section label, chip, accent text,
+     accent borders/hovers) MUST read a SEMANTIC token — var(--kicker-color) for
+     kickers, var(--accent) for everything else — which this filmCss() sets per
+     project on the .theme-<key> scope (and looks.js also sets --accent inline on
+     each .citem carousel card). --g1/--g2/--g3 are the BUBBLE GLOW colours ONLY
+     (signature stops on :root; per-project bubble hover uses --h1/--h2/--h3). Never
+     paint foreground text with a raw var(--g1/2/3). Any NEW view that shows a project
+     must go through this resolver / .theme-<key> so it inherits the right accent. */
   /* Build the CSS for one FILM look, applied to a given project.
      DIRECTION OF THE LINK: a look does not know who uses it. The consumer points
      at the look. projects.json says colorLook:"geri"; we look that up here. Every

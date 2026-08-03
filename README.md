@@ -43,6 +43,17 @@ Saving commits to GitHub, which auto-redeploys Cloudflare Pages - live in about 
 Sections: **Site Settings · Color Looks · Projects · Team · Rentals page · Form input types ·
 Custom Pages.**
 
+### Colour convention (foreground vs. glow) — for anyone editing `index.html` / `looks.js`
+`--g1/--g2/--g3` are the **bubble-glow colours ONLY** (signature stops on `:root`; a project's
+opt-in bubble hover uses `--h1/--h2/--h3`). Every **foreground** look colour — carousel/project
+kicker, date/meta, section label, type/genre chip, accent text, accent borders/hovers — must read
+a **semantic token**: `var(--kicker-color)` for kickers, `var(--accent)` for everything else. The
+shared resolver `assets/looks.js` `filmCss()` sets those per project on the `.theme-<key>` scope
+(and sets `--accent` inline on every `.citem` carousel card), so each film's own accent is
+inherited automatically. **Never** paint foreground text with a raw `var(--g1/2/3)`, and any new
+view that shows a project must go through `filmCss()` / `.theme-<key>`. (jackcarlsen.com follows
+the identical convention with its inline `applyLook` / `lookVarCss` resolver.)
+
 ### Image specs - they're built into the CMS
 Every image upload field in the CMS shows its own **SPECS** line (size, format, file-size cap,
 colour space) right under the field. There is also a pinned **"📐 READ ME - image specs"** note
