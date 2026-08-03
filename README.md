@@ -1,5 +1,11 @@
 # Rare Pond Studios - Cloudflare Pages site
 
+> **📌 THE source of truth for the whole cross-site system is the master handoff doc:**
+> **`~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md`** (local, non-public — full internal detail,
+> no secrets). Read it first for architecture, the sources of truth, the golden rule, the pipeline,
+> the colour-look/media models, safe-change procedures, automations, and open flags. This public
+> README is a repo-side summary of that same system.
+
 Two static sites (studio + rentals), no build step. All content lives in editable JSON,
 so projects, photos, logos and whole new pages can be changed from a no-code admin.
 
@@ -116,8 +122,9 @@ python3 -m http.server 8080
 rarepond.com and **jackcarlsen.com** are two static sites that **share one backend**. The film
 catalogue and the colour looks are not stored in either repo by hand — they flow from a single
 database, through per-site exporters, into each repo's `data/*.json`, which the site reads at
-load. Both READMEs describe this same system; the authoritative map is
-`bts-automation/SYSTEM_MAP_AND_PLAN.md` (local, not public).
+load. Both READMEs describe this same system; the authoritative master doc is
+`~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md` (local, not public). *(The former
+`bts-automation/SYSTEM_MAP_AND_PLAN.md` is now just a pointer to it.)*
 
 ### 1. NocoDB = the single source of truth
 On the Mac Mini, **NocoDB** (a spreadsheet-style UI over a Supabase Postgres database) holds the
