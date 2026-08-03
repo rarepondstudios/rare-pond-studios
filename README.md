@@ -154,6 +154,22 @@ general BTS:** the `Unsorted Photo and Video` folder is split into `jackcarlsen.
 `rarepond.com/` subfolders — a file's enclosing subfolder decides which site's general BTS scroll
 it shows on.
 
+### 3a. Folder auto-provision & #recycling (adding / removing a film)
+Project folders stay **1:1** with the NocoDB projects table automatically — never hand-make or
+hand-delete one. `projects_folder_sync.py` (launchd `com.rarepond.projfoldersync`, every 5 min):
+- **New row → new folder.** A project row with no matching folder gets a folder named by its
+  **title** (fallback `key`), pre-built with the six D1 subfolders above (+ `Logo/.noletterbox`).
+  Then drop media in and the media syncs take over — the row flows to both sites via the exports.
+- **Deleted row → recycled folder.** When a row is deleted, its previously-linked folder is
+  **moved to `Project Repository (Web)/#recycling/`** (never deleted; restore by moving it back).
+- **Matching:** `slug(folder) == slug(title)` or `slug(key)` (`slug` = lowercase, strip
+  non-alphanumerics) — the same rule the media syncs use.
+- **Safety:** aborts if NocoDB is unreachable or returns 0 rows; only recycles folders that were
+  linked in its state file (`bts-automation/projects_folder_state.json`), so pre-existing unmapped
+  folders (e.g. `Stolen Heart`) and the BTS pool are never touched; placeholder rows get no folder.
+  (`color_look` blank ⇒ each site still exports `"signature"` — that default is applied at export,
+  unchanged.)
+
 ### 4. Shared platform map, 5. colour-look flow, 6. cache-busting
 - **Platforms:** all social + "watch on" branding (real logos + brand colours) lives in one
   shared source → `data/platforms.json` in every repo. **YouTube and Vimeo are dual** — one
