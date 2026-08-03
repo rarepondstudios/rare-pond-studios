@@ -37,11 +37,14 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@600;800&family=Heebo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
 <style>
-/* page-load veil - masks first-load asset pop-in; self-removing, never blocks interaction */
-#pageveil{position:fixed;inset:0;z-index:2147483000;background:#06122b;pointer-events:none;opacity:1}
+/* page-load veil - masks first-load asset pop-in; self-removing, never blocks interaction.
+   Colour = a colour-look (data/site.json -> veil.colorLook) muted onto a dark base. */
+#pageveil{position:fixed;inset:0;z-index:2147483000;background:var(--veil-grad,radial-gradient(120% 130% at 15% 5%,#1b2c65 0%,transparent 58%),radial-gradient(125% 125% at 90% 100%,#34235c 0%,transparent 60%),#080b16);pointer-events:none;opacity:1}
 #pageveil.pv-hide{opacity:0;transition:opacity .55s ease}
 #pageveil.pv-gone{display:none}
-@media (prefers-reduced-motion:reduce){#pageveil.pv-hide{transition:none}}
+@keyframes pvRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.view.pv-rise{animation:pvRise .6s cubic-bezier(.2,.7,.2,1) both}
+@media (prefers-reduced-motion:reduce){#pageveil.pv-hide{transition:none}.view.pv-rise{animation:none}}
 </style>
 <!-- Social icons + footer: one shared stylesheet, so the studio, rentals and the
      maintenance cover cannot drift apart. See assets/chrome.css. -->
@@ -861,14 +864,16 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   <div id="pageveil" aria-hidden="true"></div>
   <script>
   /* Page-load veil controller. Holds a brand-colour cover over the page until fonts +
-     assets are ready, then fades it out. Multiple independent triggers + a hard timeout
-     guarantee it ALWAYS clears, so it can never trap the page (pointer-events:none too). */
+     assets are ready, then fades it out with a gentle content-rise. Multiple independent
+     triggers + a hard timeout guarantee it ALWAYS clears (pointer-events:none too), so it
+     can never trap the page. Colour = a colour-look from data/site.json (veil.colorLook). */
   (function(){
     var v=document.getElementById('pageveil');
     if(!v){window.__revealPage=function(){};return;}
     var done=false;
     function gone(){v.classList.add('pv-gone');}
-    function hide(){ if(done)return; done=true; v.classList.add('pv-hide');
+    function rise(){ try{var vs=document.querySelectorAll('.view');for(var i=0;i<vs.length;i++){if(getComputedStyle(vs[i]).display!=='none')vs[i].classList.add('pv-rise');}}catch(e){} }
+    function hide(){ if(done)return; done=true; rise(); v.classList.add('pv-hide');
       var t=setTimeout(gone,900);
       v.addEventListener('transitionend',function(){clearTimeout(t);gone();},{once:true});
     }
@@ -878,6 +883,22 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     Promise.all([fonts,loaded]).then(function(){requestAnimationFrame(function(){requestAnimationFrame(hide);});});
     setTimeout(hide,3500);                 /* absolute safety cap */
     addEventListener('error',function(){setTimeout(hide,60);},{once:true});  /* never mask on a script error */
+    /* colour: resolve the chosen colour-look into a muted gradient (Golden-Rule-safe - colours come from the looks) */
+    (function(){try{
+      var mix=function(hex,base,t){var p=function(h){h=(h||'').replace('#','');if(h.length===3)h=h.replace(/(.)/g,'$1$1');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];};var A=p(hex),B=p(base);return '#'+A.map(function(a,i){return Math.round(a*t+B[i]*(1-t));}).map(function(x){return ('0'+x.toString(16)).slice(-2);}).join('');};
+      var grad=function(c1,c2){var b='#080b16';return 'radial-gradient(120% 130% at 15% 5%,'+mix(c1,b,.34)+' 0%,transparent 58%),radial-gradient(125% 125% at 90% 100%,'+mix(c2||c1,b,.30)+' 0%,transparent 60%),'+b;};
+      Promise.all([fetch('/data/site.json').then(function(r){return r.json();}).catch(function(){return{};}),fetch('/data/colorlooks.json').then(function(r){return r.json();}).catch(function(){return{};})]).then(function(res){
+        var cfg=(res[0]||{}).veil||{};
+        if(cfg.enabled===false){hide();return;}
+        var name=(cfg.colorLook||'').trim();if(!name)return;
+        var raw=(res[1]||{}).looks||(res[1]||{});
+        var list=Array.isArray(raw)?raw:Object.keys(raw).map(function(k){var o=raw[k]||{};return (o&&typeof o==='object')?(o.key?o:Object.assign({key:k},o)):{};});
+        var lc=name.toLowerCase(),slug=lc.replace(/[^a-z0-9]+/g,''),look=null;
+        for(var i=0;i<list.length;i++){var o=list[i]||{},kk=String(o.key||'').toLowerCase(),nn=String(o.name||'').toLowerCase();
+          if(kk===lc||nn===lc||kk.replace(/[^a-z0-9]+/g,'')===slug||nn.replace(/[^a-z0-9]+/g,'')===slug){look=o;break;}}
+        if(look&&look.c1)document.documentElement.style.setProperty('--veil-grad',grad(look.c1,look.c2));
+      });
+    }catch(e){}})();
   })();
   </script>
   <header class="site-header">

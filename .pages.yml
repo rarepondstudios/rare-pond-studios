@@ -28,6 +28,14 @@ content:
             type: number
             default: 28
             description: "How many ambient floating bubbles drift behind the home and Projects backgrounds. Default 28. RECOMMENDED MAXIMUM ~40 - these bubbles are animated and GPU-composited, so higher counts can hurt rendering performance on weaker phones and laptops. It is CRITICAL the site stays smooth on ALL devices, so raise this gently and only if it still feels light on a mid-range phone. Leave blank to use the default. (Hard-capped at 60 in code as a safety net.) Takes effect on the next page load after saving."
+      - name: veil
+        label: "✨ Page-load fade"
+        type: object
+        description: "The brand-colour cover that fades the site in on load (and masks images/video popping in). Pick which COLOUR LOOK drives its gradient, or turn it off."
+        fields:
+          - { name: colorLook, label: "Colour look (type a look's name or key)", type: string, description: "Which colour look colours the fade. Type a look's NAME or key exactly as it appears in the Color Looks list (e.g. \"signature\", \"Geri-Action\", \"invalid\", \"violet\"). Its colours are muted onto a dark base for a subtle gradient. Leave BLANK for the site's plain dark background. Colour looks are shared + edited in NocoDB." }
+          - { name: enabled, label: "Fade enabled", type: boolean, default: true, description: "ON: the branded fade-in plays on load. OFF: the page appears immediately with no cover." }
+
       - name: logos
         label: Logos
         type: object
