@@ -248,7 +248,7 @@ overlapping monitors — the n8n "Automation Health" workflow, the standalone
 remain. Each entry shows purpose, schedule, and last-run status.
 
 ### Field schema (the fields future edits touch)
-**`projects`** (NocoDB): `key`, `title`, `year`, `kicker`, `tagline`, `blurb`, `page_logline`,
+**`projects`** (NocoDB): `key`, `title`, `year`, `kicker`, `tagline`, `logline`, `jc_thoughts`, `rp_thoughts`,
 `credits`, `genre`, `type`, `medium`, `production`, `status`, `social_links`, `watch`; media path fields
 `bubble_image`, `title_logo`, `focus_bg`, `focus_video`, `stills`, `bts`; per-site toggles
 `on_rarepond` / `on_jackcarlsen`, `rp_use_look` / `jc_use_look`, `rp_in_carousel` /
