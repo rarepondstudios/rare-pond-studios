@@ -164,7 +164,7 @@ content:
         label: Cinematic showcase (grid of stills)
         type: object
         list: true
-        description: "The grid of cinematic stills under the statement. Five reads best (2 large + 3 smaller). Drag to reorder. Defaults to existing film stills."
+        description: "The five cinematic stills under the statement (2 large + 3 smaller). Replace any of them, and reorder by reordering this list — the five slots on the page fill in this order. Defaults to existing film stills. (Adding a sixth or removing one is a quick code tweak — ask to wire it up.)"
         fields:
           - { name: image, label: Still, type: image, description: "SPECS: 16:9, JPG/WebP, sRGB 8-bit, under 600 KB." }
           - { name: alt, label: Alt text (describes the image for accessibility), type: string }
@@ -172,7 +172,7 @@ content:
         label: Story sections (image + text)
         type: object
         list: true
-        description: "The alternating image/text blocks down the page — drag to reorder, add or remove freely. They alternate image-side automatically. Defaults are the 'Why us / Collaboration / We're Human' copy."
+        description: "The three alternating image/text blocks ('Why us / Collaboration / We're Human'). Edit any of them, and reorder by reordering this list — the three slots fill in this order and alternate image-side automatically. (Adding a fourth or removing one is a quick code tweak — ask to wire it up.)"
         fields:
           - { name: badge, label: Badge (small pill label), type: string }
           - { name: heading, label: Heading, type: string }
