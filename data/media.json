@@ -1,4 +1,5 @@
 {
+  "navBlurb": "Business Videography",
   "_note": "Rare Pond Media (/media) content. Edited in Pages CMS under 'Rare Pond Media'. The page ships with these same values baked into rp_media/index.html as a fallback, so it always renders even if this file is missing; when present, these values override. Each heading's 'accent' is the word shown in the signature gradient (must appear in the heading text).",
   "seo": {
     "title": "Rare Pond Media — Cinematic video for business",

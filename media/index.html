@@ -176,9 +176,9 @@ html.xw-active{overflow:hidden}
   </a>
   <div class="mhright">
     <div class="xnav xnav-dark">
-      <span class="xchip xcur">Media</span>
-      <a class="xchip" href="/" data-wipe="L" data-dir="r" title="Go to Rare Pond Studios">Studio<span class="xar">&rarr;</span></a>
-      <a class="xchip" href="/rentals" data-wipe="L" data-dir="r" title="Go to Rare Pond Rentals">Rentals<span class="xar">&rarr;</span></a>
+      <span class="xchip xcur" data-site="media">Media</span>
+      <a class="xchip" href="/" data-wipe="L" data-dir="r" data-site="studio" title="Go to Rare Pond Studios">Studio<span class="xar">&rarr;</span></a>
+      <a class="xchip" href="/rentals" data-wipe="L" data-dir="r" data-site="rentals" title="Go to Rare Pond Rentals">Rentals<span class="xar">&rarr;</span></a>
     </div>
     <div class="hsoc rp-soc" id="mSoc"></div>
   </div>
@@ -309,6 +309,7 @@ html.xw-active{overflow:hidden}
 })();
 </script>
 <script src="/assets/xwipe.js" defer></script>
+<script src="/assets/xnav.js" defer></script>
 <script src="/assets/social_ui.js" defer></script>
 <script>
 /* Header social icons — same source (data/socials.json) + artwork (assets/socials.js) as the studio. */

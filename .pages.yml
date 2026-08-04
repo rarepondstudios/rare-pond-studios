@@ -9,6 +9,10 @@ content:
     type: file
     path: data/site.json
     fields:
+      - name: navBlurb
+        label: "🏷️ Header hover blurb (what Studio is)"
+        type: string
+        description: "The one-line description that pops up under the STUDIO button when someone hovers it in the header of the other two sites. Keep it to 2-3 words (currently 'Narrative Films')."
       - name: imageSpecs
         label: "📐 READ ME - image specs for every upload on this site"
         type: text
@@ -137,6 +141,10 @@ content:
         type: string
         readonly: true
         description: "Everything on rarepond.com/media. Edit the text and swap the main images here. The cinematic showcase + on-set photos default to existing project stills/BTS, but you can replace any of them. Images you upload go to the shared media library and are referenced as /media/... . In each heading, the 'accent' field is the word shown in the signature gradient — it must appear (spelled + cased) exactly within that heading, or nothing is highlighted. Leaving a text box blank keeps the page's built-in default for that item. IMAGE SPECS: export sRGB, 8-bit (never Display P3 / Adobe RGB). Backgrounds + stills 2560x1440 (16:9); on-set photos 16:9 or 4:3; keep every file under 600 KB; never upscale."
+      - name: navBlurb
+        label: "🏷️ Header hover blurb (what Rare Pond Media is)"
+        type: string
+        description: "The one-line description that pops up under the MEDIA button when someone hovers it in the header of the other two sites. Keep it to 2-3 words (currently 'Business Videography')."
       - name: seo
         label: Search / browser tab
         type: object
@@ -285,6 +293,10 @@ content:
     type: file
     path: data/rentals.json
     fields:
+      - name: navBlurb
+        label: "🏷️ Header hover blurb (what Rentals is)"
+        type: string
+        description: "The one-line description that pops up under the RENTALS button when someone hovers it in the header of the other two sites. Keep it to 2-3 words (currently 'Rent Our Gear')."
       - name: publicAccess
         label: "🚧 Rentals page is OPEN to the public"
         type: boolean

@@ -218,7 +218,7 @@ html.xw-active{overflow:hidden}
   .hmenu-links a:hover,.hmenu-links a:active{background:rgba(40,95,180,.12);color:#0b59c4}
   .hmenu-links .hmenu-rentals{color:#0b59c4}
   .hmenu .hmenu-soc{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px;padding:12px 6px 2px;border-top:1px solid rgba(40,95,180,.16)}
-  @media(max-width:720px){.site-header .nav{display:none}.hright2 .socials,.hright2 .xnav{display:none}.hmenu-btn{display:inline-flex}}
+  @media(max-width:860px){.site-header .nav{display:none}.hright2 .socials,.hright2 .xnav{display:none}.hmenu-btn{display:inline-flex}}
 
   /* ===== depth sections ===== */
   #home-projects{position:relative;background:transparent}
@@ -1006,7 +1006,7 @@ html.xw-active{overflow:hidden}
     <div class="hdr-bg"></div>
     <a class="hdr-logo" href="/" data-go="home"><img class="hdr-duck" id="hdrDuck" src="/media/logos/duck-mark.webp" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
     <nav class="nav"><a href="/team" data-go="team">Our&nbsp;Team</a><a href="/projects" data-go="projects" id="navProjects">Projects</a><a href="/#contact" data-go="contact">Contact</a></nav>
-    <div class="hright2"><div class="xnav"><a class="xchip" href="/media" data-wipe="R" data-dir="l" title="Go to Rare Pond Media"><span class="xar">&larr;</span>Media</a><span class="xchip xcur">Studio</span><a class="xchip" href="/rentals" data-wipe="L" data-dir="r" title="Go to the Rare Pond Rentals site">Rentals<span class="xar">&rarr;</span></a></div><div class="socials rp-soc" id="socialsHost"></div><button class="hmenu-btn" id="hmenuBtn" aria-label="Menu" aria-controls="hmenu" aria-expanded="false"><span></span></button></div>
+    <div class="hright2"><div class="xnav"><a class="xchip" href="/media" data-wipe="R" data-dir="l" data-site="media" title="Go to Rare Pond Media"><span class="xar">&larr;</span>Media</a><span class="xchip xcur" data-site="studio">Studio</span><a class="xchip" href="/rentals" data-wipe="L" data-dir="r" data-site="rentals" title="Go to the Rare Pond Rentals site">Rentals<span class="xar">&rarr;</span></a></div><div class="socials rp-soc" id="socialsHost"></div><button class="hmenu-btn" id="hmenuBtn" aria-label="Menu" aria-controls="hmenu" aria-expanded="false"><span></span></button></div>
   </header>
   <!-- mobile menu: nav + socials, opened from the header hamburger (right of Rentals) -->
   <div class="hmenu" id="hmenu" aria-hidden="true">
@@ -2352,5 +2352,6 @@ __main().catch(e=>console.error("init error",e));</script>
      published by social_ui_sync.py). Contact-bubble hover-glow + social-link transport wipe. -->
 <script src="/assets/social_ui.js" defer></script>
 <script src="/assets/xwipe.js" defer></script>
+<script src="/assets/xnav.js" defer></script>
 </body>
 </html>
