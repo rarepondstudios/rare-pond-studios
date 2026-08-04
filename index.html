@@ -23,6 +23,27 @@
   meta().setAttribute('content',"#3f6bff");
 })();
 </script>
+<!-- Dev perf HUD — dormant unless ?fps is in the URL or Ctrl+` toggles it (choice persists for the
+     tab). Live FPS, worst frame in the window, frame time, jank% (frames slower than 50fps),
+     long-task count and viewport@DPR, so real device performance is visible during scroll and
+     transitions on desktop AND mobile. pointer-events:none; a single cheap check when off. -->
+<script>
+(function(){
+  var running=false,box=null,last=0,frames=0,acc=0,worst=1e9,lt=0,ltObs=false,disp=0,samp=[];
+  function enabled(){try{if(sessionStorage.__fps==="0")return false;if(sessionStorage.__fps==="1")return true;}catch(e){}return /[?&#]fps(\b|=)/.test(location.href);}
+  function makeBox(){box=document.createElement("div");box.setAttribute("aria-hidden","true");box.style.cssText="position:fixed;z-index:2147483647;left:8px;bottom:8px;font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;background:rgba(6,8,16,.86);color:#8fffcf;padding:6px 9px;border-radius:8px;pointer-events:none;white-space:pre;box-shadow:0 4px 14px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12)";(document.body||document.documentElement).appendChild(box);}
+  function loop(t){if(!running)return;if(!last)last=t;var dt=t-last;last=t;frames++;acc+=dt;if(dt>0){var f=1000/dt;if(f<worst)worst=f;}samp.push(dt);if(samp.length>120)samp.shift();
+    if(t-disp>=250){var fps=acc>0?Math.round(frames*1000/acc):0;frames=0;acc=0;disp=t;var jank=Math.round(samp.filter(function(x){return x>20;}).length*100/samp.length);
+      box.style.color=fps>=55?"#8fffcf":(fps>=30?"#ffe08a":"#ff9a9a");
+      box.textContent="FPS "+fps+"   low "+(worst<1e6?Math.round(worst):fps)+"\n"+(Math.round(1000/Math.max(fps,1)*10)/10)+"ms   jank "+jank+"%\nlongtasks "+lt+"\n"+innerWidth+"x"+innerHeight+" @"+(devicePixelRatio||1);worst=1e9;}
+    requestAnimationFrame(loop);}
+  function start(){if(running)return;running=true;try{sessionStorage.__fps="1"}catch(e){}makeBox();if(!ltObs){try{new PerformanceObserver(function(l){lt+=l.getEntries().length;}).observe({entryTypes:["longtask"]});ltObs=true;}catch(e){}}last=0;frames=0;acc=0;worst=1e9;disp=performance.now();requestAnimationFrame(loop);}
+  function stop(){running=false;try{sessionStorage.__fps="0"}catch(e){}if(box&&box.parentNode)box.parentNode.removeChild(box);box=null;}
+  function boot(){if(enabled())start();}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+  addEventListener("keydown",function(e){if(e.ctrlKey&&(e.code==="Backquote"||e.key==="`"||e.key==="~")){e.preventDefault();running?stop():start();}});
+})();
+</script>
 <title>Rare Pond Studios</title>
 <meta name="description" content="Rare Pond Studios makes escapist short films that transport you somewhere new - hybrid animation, comedy and drama. Countless worlds, one pond.">
 <link rel="canonical" href="https://www.rarepond.com/">
