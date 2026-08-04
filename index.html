@@ -35,7 +35,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@600;800&family=Heebo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
 <style>
 /* page-load veil - masks first-load asset pop-in; self-removing, never blocks interaction.
    Colour = a colour-look (data/site.json -> veil.colorLook) muted onto a dark base. */
@@ -928,7 +928,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
     <section id="about">
       <div class="about-wrap">
-        <div class="about-logo"><div class="about-bubble"><img class="rpColor" alt="Rare Pond Studios"></div></div>
+        <div class="about-logo"><div class="about-bubble"><img class="rpColor" loading="lazy" decoding="async" alt="Rare Pond Studios"></div></div>
         <div class="about-copy">
           <div class="ey">What we do</div><h2>Worlds worth escaping into.</h2>
           <p>Rare Pond Studios is an independent film studio crafting escapist stories that feel like peering into an alternate world. We work across live-action and 2D / 3D animation, blending mediums to build immersive little universes, from a retired superspy breaking out of her nursing home to a surreal vision of Heaven and Earth.</p>
@@ -990,7 +990,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   </div>
 
   <template id="footerTpl">
-    <div class="footer-logo"><img class="rpColor" alt="Rare Pond Studios"></div>
+    <div class="footer-logo"><img class="rpColor" loading="lazy" decoding="async" alt="Rare Pond Studios"></div>
     <div class="tag">Let's Make Something Amazing...</div>
     <div class="fsoc" data-socials></div>
     <div class="flinks"><a href="/team" data-go="team">Our Team</a><a href="/projects" data-go="projects">Projects</a><a href="/rentals">Rentals</a><a href="/#contact" data-go="contact">Contact</a></div>
@@ -1271,7 +1271,7 @@ function startPreview(v){
    CAROUSEL.length, so hiding a project needs no other change. If every project is
    switched off, the carousel hides itself entirely rather than rendering an empty stage. */
 const CAROUSEL=PROJECTS.filter(p=>!p.placeholder&&p.inCarousel);
-function logoHTML(p){return p.logo?`<img src="${p.logo}" alt="${p.title} logo">`:`<div class="txt">${p.title}</div>`;}
+function logoHTML(p){return p.logo?`<img decoding="async" src="${p.logo}" alt="${p.title} logo">`:`<div class="txt">${p.title}</div>`;}
 
 /* grid bubbles (Projects page) */
 const grid=document.getElementById('grid');
@@ -1283,7 +1283,7 @@ function makeGridBubble(p,i){
   bubble.dataset.pk=p.key;
   if(!p.placeholder){bubble.setAttribute('role','button');bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','Open '+p.title);}
   const mediaHTML=p.placeholder?`<div class="bubble__media placeholder-fill"></div><div class="ph-logo" style="-webkit-mask:url('${SITE.logos.duckMark}') center/contain no-repeat;mask:url('${SITE.logos.duckMark}') center/contain no-repeat"></div><div class="ph-spin"></div>`
-    :(p.poster?'<div class="bubble__media poster"></div>':`<img class="bubble__media" src="${p.img}" alt="${p.title}">`);
+    :(p.poster?'<div class="bubble__media poster"></div>':`<img class="bubble__media" decoding="async" src="${p.img}" alt="${p.title}">`);
   /* ===== PROJECTS-PAGE HOVER-PREVIEW REEL =========================================
      Same behaviour as the home carousel's side cards: a real film (not a placeholder,
      not a poster-only bubble) that has a reel (p.focusVideo - projects.json "focusVideo",
@@ -1420,7 +1420,7 @@ function focusHTML(p){
    reel across the whole site is ever playing at once. */
 const citems=CAROUSEL.map((p,i)=>{
   const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',accentFor(p.key));
-  const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" src="${p.img}" alt="${p.title}">`;
+  const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" decoding="async" src="${p.img}" alt="${p.title}">`;
   /* only films with a reel AND a real still (not the placeholder poster) get a hover video */
   const sideVid=(!p.poster&&p.focusVideo)?`<video class="side-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
   el.innerHTML=`<div class="cdrop"></div><div class="cglow"></div><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
@@ -1615,7 +1615,7 @@ requestAnimationFrame(function(){requestAnimationFrame(function(){stage.classLis
 const teamList=document.getElementById('teamList');
 if(teamList){TEAM.forEach((m,i)=>{
   const row=document.createElement('div');row.className='member'+(i%2?' flip':'');row.style.setProperty('--i',i);
-  const ph=m.photo?`<img src="${m.photo}" alt="${m.name}">`:`<div class="m-initials">${m.initials||m.name[0]}</div>`;
+  const ph=m.photo?`<img decoding="async" src="${m.photo}" alt="${m.name}">`:`<div class="m-initials">${m.initials||m.name[0]}</div>`;
   /* Per-person portfolio links. FIXED order; only the ones that are filled render, so a
      blank field leaves NO gap - the row re-flows to close it. Reuses the shared social-icon
      component (.rp-soc + RP_SOCIAL_ICONS) so a team member's links look and hover exactly
@@ -1752,7 +1752,7 @@ function renderCredits(raw,vars){
 }
 function buildUniverse(key){
   const s=SECTIONS[key];const sec=document.createElement('section');sec.className='universe '+s.theme;sec.id='u-'+key;sec.style.scrollMarginTop='0';
-  const titleEl=s.logo?`<img class="u-logo" src="${s.logo}" alt="${String(s.title||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}">`:`<h2 class="u-title">${s.title}</h2>`;
+  const titleEl=s.logo?`<img class="u-logo" decoding="async" src="${s.logo}" alt="${String(s.title||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}">`:`<h2 class="u-title">${s.title}</h2>`;
   const watchHTML=renderWatch(s.watch);
   const stillsHTML=(s.stills&&s.stills.length)?`<div class="u-stills"><h3 class="stills-h">Stills</h3><div class="stills-grid">${s.stills.map(src=>`<button class="still" type="button" data-full="${stillFull(src)}" data-fallback="${stillFallback(src)}">${stillThumb(src)}</button>`).join('')}</div></div>`:'';
   const btsHTML=(BTS[key]&&BTS[key].length)?`<div class="u-stills u-bts"><h3 class="stills-h">Behind The Scenes</h3><div class="stills-grid">${BTS[key].map(b=>`<button class="still" type="button" data-full="${b.full}" data-fallback="${b.src}"><img src="${b.src}" loading="lazy" alt=""></button>`).join('')}</div></div>`:'';
