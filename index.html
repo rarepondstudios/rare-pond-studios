@@ -515,7 +515,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .contact-grid .form-card{max-width:none;margin:0}
   .contact-socials{display:flex;flex-direction:column;gap:12px}
   .contact-bubble{display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:18px;text-decoration:none;color:var(--fg,#fff);
-    background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 10px 26px rgba(0,8,30,.34);
+    background:linear-gradient(135deg,var(--c1),var(--c2),var(--c3,var(--c2)));box-shadow:0 10px 26px rgba(0,8,30,.34);
     transition:transform .18s ease,box-shadow .18s ease}
   .contact-bubble:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(0,8,30,.46)}
   .contact-bubble:focus-visible{outline:2px solid #fff;outline-offset:3px}
@@ -1207,14 +1207,17 @@ function socialIconMarkup(s){
 function socialHTML(){return SOCIALS_DATA.map(s=>`<a href="${s.url}" target="_blank" rel="noopener" aria-label="${s.label}" data-net="${s.icon}">${socialIconMarkup(s)}</a>`).join('');}
 /* Contact-page bubbles: a brand-coloured rounded box per social (logo + descriptive blurb),
    coloured from the entry's colour-look (c1->c2 gradient). Same swappable logo file, filled white. */
-/* readable foreground (white/dark) for a given bubble colour - handles light brands like IMDb yellow */
-function bubbleFg(hex){try{var h=hex.replace('#','');if(h.length===3)h=h.replace(/(.)/g,'$1$1');var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return (0.2126*r+0.7152*g+0.0722*b)>180?'#141414':'#ffffff';}catch(e){return '#ffffff';}}
+/* readable foreground (white/dark) averaged across the bubble's gradient stops - so a light START
+   (e.g. Instagram's yellow) that ends dark still gets white text, while a solid light brand (IMDb
+   yellow) gets dark text. */
+function _lum(hex){var h=String(hex||'').replace('#','');if(h.length===3)h=h.replace(/(.)/g,'$1$1');var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return isNaN(r)?0:(0.2126*r+0.7152*g+0.0722*b);}
+function bubbleFg(){var xs=[].slice.call(arguments).filter(Boolean);if(!xs.length)return '#ffffff';var avg=xs.reduce(function(a,h){return a+_lum(h);},0)/xs.length;return avg>180?'#141414':'#ffffff';}
 function socialBubblesHTML(){
   return SOCIALS_DATA.map(s=>{
     const look=socialLook(s);
-    const c1=look.c1||'#1f6fd0',c2=look.c2||c1,fg=bubbleFg(c1);
+    const c1=look.c1||'#1f6fd0',c2=look.c2||c1,c3=look.c3||c2,fg=bubbleFg(c1,c2,c3);
     const ico=look&&look.icon?`<span class="cbub-ico" style="--m:url('${look.icon}')" aria-hidden="true"></span>`:(SOCIAL_SVG[s.icon]||'');
-    return `<a class="contact-bubble" href="${s.url}" target="_blank" rel="noopener" aria-label="${s.label}" data-net="${s.icon}" style="--c1:${c1};--c2:${c2};--fg:${fg}"><span class="cbub-badge">${ico}</span><span class="cbub-label">${s.blurb||s.label}</span><span class="cbub-arrow" aria-hidden="true">&rarr;</span></a>`;
+    return `<a class="contact-bubble" href="${s.url}" target="_blank" rel="noopener" aria-label="${s.label}" data-net="${s.icon}" style="--c1:${c1};--c2:${c2};--c3:${c3};--fg:${fg}"><span class="cbub-badge">${ico}</span><span class="cbub-label">${s.blurb||s.label}</span><span class="cbub-arrow" aria-hidden="true">&rarr;</span></a>`;
   }).join('');
 }
 document.getElementById('hdrDuck').src=SITE.logos.duckMark;
