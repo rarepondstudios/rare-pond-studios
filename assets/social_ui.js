@@ -71,7 +71,7 @@
       "background:radial-gradient(circle at 50% 44%,var(--sc1,#3f6bff),var(--sc2,#3f6bff) 52%,var(--sc3,#9b5cff) 100%);" +
       "clip-path:circle(0px at var(--scx,50%) var(--scy,50%));-webkit-clip-path:circle(0px at var(--scx,50%) var(--scy,50%));" +
       "transition:clip-path .5s cubic-bezier(.66,0,.34,1),-webkit-clip-path .5s cubic-bezier(.66,0,.34,1),opacity .35s ease}" +
-      ".rp-soctransport.go{clip-path:circle(160vmax at var(--scx,50%) var(--scy,50%));-webkit-clip-path:circle(160vmax at var(--scx,50%) var(--scy,50%))}" +
+      ".rp-soctransport.go{clip-path:circle(220vmax at var(--scx,50%) var(--scy,50%));-webkit-clip-path:circle(220vmax at var(--scx,50%) var(--scy,50%))}" +
       ".rp-soctransport.done{opacity:0}";
     var s = document.createElement("style");
     s.id = "rp-social-ui-css";
@@ -136,14 +136,30 @@
       if (window.__resetThemeColor) window.__resetThemeColor(0);   // restore chrome as the wipe retracts (desktop)
       setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); busy = false; }, 420);
     };
-    // grow -> when covered, open the new tab, then retract + remove
+    // grow -> when fully covered, open the link
     requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.add("go"); }); });
     var grew = false;
     d.addEventListener("transitionend", function (e) {
       if (e.propertyName.indexOf("clip-path") < 0) return;
-      if (!grew) { grew = true; doOpen(); if (!IS_TOUCH) d.classList.remove("go"); }  // covered -> open; desktop retracts, touch keeps covering through the same-tab hand-off
-      else cleanup();                                                    // retracted -> remove
+      if (!grew) {
+        grew = true; doOpen();
+        // Desktop opens a NEW TAB, which backgrounds this one; a clip-path RETRACT would then
+        // freeze part-way and leave the circle's edge stuck in the far corners. So on desktop we
+        // hold the FULL cover and fade it out by opacity (cleanup) instead of retracting. Touch
+        // navigates in the same tab and keeps covering through the hand-off.
+        if (!IS_TOUCH) cleanup();
+      } else cleanup();
     });
+    // If the new tab foregrounds (this tab becomes hidden), drop the cover immediately so coming
+    // back to this tab never shows a half-finished wipe.
+    var onHide = function () {
+      if (!document.hidden) return;
+      document.removeEventListener("visibilitychange", onHide);
+      if (d.parentNode) d.parentNode.removeChild(d);
+      if (window.__resetThemeColor) window.__resetThemeColor(0);
+      busy = false;
+    };
+    document.addEventListener("visibilitychange", onHide);
     // safety net if transitionend is missed (background tab / interrupted)
     setTimeout(function () { doOpen(); }, 560);
     setTimeout(function () { cleanup(); }, 1500);

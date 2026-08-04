@@ -47,11 +47,11 @@ a{color:inherit}
 @keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(4vw,3vh,0) scale(1.14)}}
 .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.06;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 /* ---- wordmark (typed "Rare Pond Media" — reuses the duck mark + header type treatment) ---- */
-.wm{display:flex;align-items:center;gap:11px;text-decoration:none;line-height:1}
-.wm img{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
-.wm .wm-txt{display:flex;flex-direction:column}
-.wm .wm-rare{font-family:var(--disp);font-weight:800;font-size:19px;letter-spacing:.2px;color:#fff}
-.wm .wm-sub{font-family:var(--disp);font-weight:700;font-size:12.5px;letter-spacing:3.5px;text-transform:uppercase;margin-top:2px}
+.wm{display:flex;align-items:center;gap:12px;text-decoration:none;line-height:1}
+.wm img{width:50px;height:50px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
+.wm .wm-txt{display:flex;flex-direction:column;justify-content:center;line-height:.9}
+.wm .wm-rare{font-family:"Kaushan Script",cursive;font-weight:400;font-size:32px;letter-spacing:.2px;color:#eaf2ff;margin-bottom:2px}
+.wm .wm-sub{font-family:"Heebo",sans-serif;font-weight:700;font-size:13.5px;letter-spacing:.36em;text-transform:uppercase;padding-left:2px}
 /* ---- fixed header ---- */
 /* Header matches the studio/rentals logo size + font, and carries the gradient-semicircle
    header — here in DARK BLUE (the media page's own aesthetic) instead of white. */
@@ -143,11 +143,15 @@ main{position:relative;z-index:2}
 .btn-sig:hover{transform:translateY(-2px);box-shadow:0 20px 52px -12px rgba(80,110,255,.9)}
 .btn-sig .ar{transition:transform .2s}.btn-sig:hover .ar{transform:translateX(4px)}
 /* footer */
-.mfoot{position:relative;z-index:2;border-top:1px solid rgba(120,170,255,.12);padding:44px clamp(16px,4vw,40px);text-align:center;color:#8fa6cf}
-.mfoot .wm{justify-content:center;margin:0 auto 16px}
-.mfoot .fl{font-size:13.5px;line-height:1.7}
+.mfoot{position:relative;z-index:2;overflow:hidden;border-top:1px solid rgba(120,170,255,.12);padding:54px clamp(16px,4vw,40px) 46px;text-align:center;color:#8fa6cf}
+/* caustic water that fades in toward the bottom, matching the studio + rentals footers */
+.mfoot-water{position:absolute;left:0;right:0;top:0;bottom:0;z-index:0;pointer-events:none;opacity:.34;
+  background:url('/media/site/water.jpg') center bottom/cover no-repeat;
+  -webkit-mask:linear-gradient(180deg,transparent 0%,#000 74%);mask:linear-gradient(180deg,transparent 0%,#000 74%)}
+.mfoot .wm{position:relative;z-index:1;justify-content:center;margin:0 auto 16px}
+.mfoot .fl{position:relative;z-index:1;font-size:13.5px;line-height:1.7}
 .mfoot a{color:#bcd2ff;text-decoration:none}.mfoot a:hover{text-decoration:underline}
-.mfoot .cp{margin-top:12px;font-size:12px;color:#6f86ad}
+.mfoot .cp{position:relative;z-index:1;margin-top:12px;font-size:12px;color:#6f86ad}
 /* directional wipe panel (shared engine: /assets/xwipe.js) */
 #xwipe{position:fixed;top:0;bottom:0;left:-20vw;width:140vw;z-index:2147483600;background:linear-gradient(90deg,#56c8ff 0%,#3f6bff 50%,#9b5cff 100%);-webkit-mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);transform:translateX(0);pointer-events:none;will-change:transform;display:none}
 html.xw-cover #xwipe,html.xw-active #xwipe{display:block}
@@ -280,6 +284,7 @@ html.xw-active{overflow:hidden}
 </main>
 
 <footer class="mfoot">
+  <div class="mfoot-water" aria-hidden="true"></div>
   <a class="wm" href="/media" aria-label="Rare Pond Media home">
     <img src="/media/logos/duck-white.webp" alt="">
     <span class="wm-txt"><span class="wm-rare">Rare Pond</span><span class="wm-sub grad">Media</span></span>
