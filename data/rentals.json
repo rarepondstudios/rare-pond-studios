@@ -32,10 +32,10 @@
     }
   ],
   "logos": {
-    "headerMark": "/media/logos/duck-mark.png",
-    "footerColor": "/media/RP_V3_Simple-Logo-White_FULL-CANVAS-1.png",
+    "headerMark": "/media/logos/duck-mark.webp",
+    "footerColor": "/media/logos/duck-white.webp",
     "footerWater": "/media/site/water.jpg",
-    "homeLogo": "/media/logos/rare-pond-color.png"
+    "homeLogo": "/media/logos/rare-pond-color.webp"
   },
   "home": {
     "heroTitle": "Reserve your gear.",

@@ -67,7 +67,7 @@
     /* The footer logo. The studio footer uses logos.footer when set, else logos.color -
        same precedence, so the cover cannot show a different mark from the real footer. */
     var logo = document.getElementById('mFootLogo');
-    var src = (s.logos && (s.logos.footer || s.logos.color)) || '/media/logos/rare-pond-color.png';
+    var src = (s.logos && (s.logos.footer || s.logos.color)) || '/media/logos/rare-pond-color.webp';
     if (logo) logo.src = src;
 
     var tag = document.getElementById('mFootTag');
