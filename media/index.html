@@ -149,10 +149,11 @@ main{position:relative;z-index:2}
 .mfoot-water{position:absolute;left:0;right:0;top:0;bottom:0;z-index:0;pointer-events:none;opacity:.46;
   background:url('/media/site/water.jpg') center bottom/cover no-repeat;
   -webkit-mask:linear-gradient(180deg,transparent 0%,#000 58%);mask:linear-gradient(180deg,transparent 0%,#000 58%)}
-.mfoot .wm{position:relative;z-index:1;justify-content:center;margin:0 auto 16px}
-.mfoot .fl{position:relative;z-index:1;font-size:13.5px;line-height:1.7}
-.mfoot a{color:#bcd2ff;text-decoration:none}.mfoot a:hover{text-decoration:underline}
-.mfoot .cp{position:relative;z-index:1;margin-top:12px;font-size:12px;color:#6f86ad}
+.mfoot .wm{position:relative;z-index:1;justify-content:center;margin:0 auto 12px}
+/* shared footer bits (tagline, socials, links, copy) come from chrome.css .rp-footer;
+   just lift them above the caustic water layer and give the copy its media-specific line */
+.mfoot .tag,.mfoot .fsoc,.mfoot .flinks,.mfoot .copy{position:relative;z-index:1}
+.mfoot .copy{margin-top:12px}
 /* directional wipe panel (shared engine: /assets/xwipe.js) */
 #xwipe{position:fixed;top:0;bottom:0;left:-20vw;width:140vw;z-index:2147483600;background:linear-gradient(90deg,#56c8ff 0%,#3f6bff 50%,#9b5cff 100%);-webkit-mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);transform:translateX(0);pointer-events:none;will-change:transform;display:none}
 html.xw-cover #xwipe,html.xw-active #xwipe{display:block}
@@ -284,14 +285,16 @@ html.xw-active{overflow:hidden}
   </section>
 </main>
 
-<footer class="mfoot">
+<footer class="mfoot rp-footer">
   <div class="mfoot-water" aria-hidden="true"></div>
   <a class="wm" href="/media" aria-label="Rare Pond Media home">
     <img src="/media/logos/duck-white.webp" alt="">
     <span class="wm-txt"><span class="wm-rare">Rare Pond</span><span class="wm-sub grad">Media</span></span>
   </a>
-  <div class="fl"><a href="/" data-wipe="L">Rare Pond Studios</a> &nbsp;·&nbsp; <a href="/media">Media</a> &nbsp;·&nbsp; <a href="/rentals">Rentals</a> &nbsp;·&nbsp; <a href="#" data-contact>Contact</a></div>
-  <div class="cp">A branch of Rare Pond Studios · © Rare Pond 2026</div>
+  <div class="tag">Let's Make Something Amazing...</div>
+  <div class="fsoc" id="mFootSoc"></div>
+  <div class="flinks"><a href="/">Rare Pond Studios</a><a href="/media">Media</a><a href="/rentals">Rentals</a><a href="#" data-contact>Contact</a></div>
+  <div class="copy">A branch of Rare Pond Studios · © Rare Pond 2026</div>
 </footer>
 
 <script>
@@ -324,15 +327,37 @@ html.xw-active{overflow:hidden}
 <script src="/assets/contact.js" defer></script>
 <script src="/assets/social_ui.js" defer></script>
 <script>
-/* Header social icons — same source (data/socials.json) + artwork (assets/socials.js) as the studio. */
+/* Header + footer social icons — same source (data/socials.json) + artwork (assets/socials.js)
+   as the studio, so all three sites' socials stay in lockstep. */
 (function(){
-  var host=document.getElementById('mSoc'); if(!host)return;
-  fetch('/data/socials.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
-    var ic=window.RP_SOCIAL_ICONS||{}, list=(d&&d.socials)||[];
-    host.innerHTML=list.filter(function(s){return s&&ic[s.icon];}).map(function(s){
-      var u=/^https?:\/\//i.test(s.url||'')?s.url:'#';
-      return '<a href="'+u+'" target="_blank" rel="noopener" data-net="'+s.icon+'" aria-label="'+(s.label||s.icon)+'" title="'+(s.label||s.icon)+'">'+ic[s.icon]+'</a>';
-    }).join('');
+  var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+  var hosts=[document.getElementById('mSoc'),document.getElementById('mFootSoc')].filter(Boolean);
+  if(hosts.length){
+    fetch('/data/socials.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
+      var ic=window.RP_SOCIAL_ICONS||{}, list=(d&&d.socials)||[];
+      var html=list.filter(function(s){return s&&ic[s.icon];}).map(function(s){
+        var u=/^https?:\/\//i.test(s.url||'')?s.url:'#';
+        return '<a href="'+u+'" target="_blank" rel="noopener" data-net="'+esc(s.icon)+'" aria-label="'+esc(s.label||s.icon)+'" title="'+esc(s.label||s.icon)+'">'+ic[s.icon]+'</a>';
+      }).join('');
+      hosts.forEach(function(h){h.innerHTML=html;});
+    }).catch(function(){});
+  }
+  /* Footer tagline + page links from the shared Site Settings (site.json → footer): the SAME
+     source that drives the studio and rentals footers, so the footer link set is edited in one
+     place and matches the header's pages across every site. */
+  fetch('/data/site.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
+    var ft=(d&&d.footer)||{};
+    var tag=document.querySelector('.mfoot .tag');
+    if(tag&&ft.tagline)tag.textContent=ft.tagline;
+    var fl=document.querySelector('.mfoot .flinks');
+    if(fl&&Array.isArray(ft.links)&&ft.links.length){
+      fl.innerHTML=ft.links.map(function(l){
+        var label=esc(l.label||'');
+        if(l.go==='contact')return '<a href="#" data-contact>'+label+'</a>';
+        var href=l.href?l.href:(l.go?('/#'+l.go):'#');
+        return '<a href="'+esc(href)+'">'+label+'</a>';
+      }).join('');
+    }
   }).catch(function(){});
 })();
 </script>

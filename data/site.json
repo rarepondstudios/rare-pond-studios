@@ -72,6 +72,10 @@
         "go": "projects"
       },
       {
+        "label": "Studio",
+        "href": "/"
+      },
+      {
         "label": "Media",
         "href": "/media"
       },
