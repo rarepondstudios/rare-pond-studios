@@ -14,6 +14,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/media/site/favicon-32.png">
 <link rel="apple-touch-icon" href="/media/site/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/chrome.css">
+<script src="/assets/socials.js"></script>
 <style>
 /* ============ Rare Pond Media — DRAFT scroll-storytelling layout ============
    Reuses the Rare Pond signature language (gradient, Inter/Heebo/Kaushan, dark base).
@@ -52,14 +53,20 @@ a{color:inherit}
 .wm .wm-rare{font-family:var(--disp);font-weight:800;font-size:19px;letter-spacing:.2px;color:#fff}
 .wm .wm-sub{font-family:var(--disp);font-weight:700;font-size:12.5px;letter-spacing:3.5px;text-transform:uppercase;margin-top:2px}
 /* ---- fixed header ---- */
-.mhdr{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;justify-content:space-between;
-  padding:16px clamp(16px,4vw,40px);transition:background .3s,backdrop-filter .3s,box-shadow .3s}
-.mhdr.scrolled{background:rgba(6,14,32,.72);backdrop-filter:blur(14px) saturate(1.2);box-shadow:0 1px 0 rgba(120,170,255,.12)}
-.back{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:50px;font-weight:700;font-size:13.5px;
-  color:#dfe9ff;text-decoration:none;border:1px solid rgba(140,180,255,.3);background:rgba(255,255,255,.06);transition:.18s;white-space:nowrap;cursor:pointer}
-.back .ar{font-size:18px;line-height:1;transition:transform .2s}
-.back:hover{background:rgba(255,255,255,.13);border-color:rgba(140,180,255,.55)}
-.back:hover .ar{transform:translateX(-4px)}
+/* Header matches the studio/rentals logo size + font, and carries the gradient-semicircle
+   header — here in DARK BLUE (the media page's own aesthetic) instead of white. */
+.mhdr{position:fixed;top:0;left:0;right:0;z-index:60;height:86px;display:flex;align-items:center;gap:18px;padding:0 clamp(16px,4vw,40px)}
+.mhdr .hdr-bg{position:absolute;left:0;right:0;top:0;height:170px;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,#0b2545 0%,#0b2545 52%,rgba(11,37,69,0) 100%);
+  -webkit-mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%);mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%)}
+.mhdr .hdr-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.mhdr .hdr-duck{height:60px;width:auto;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}
+.mhdr .brandname{display:flex;flex-direction:column;justify-content:center;line-height:.9}
+.mhdr .bn-rare{font-family:"Kaushan Script",cursive;font-size:38px;color:#eaf2ff;margin-bottom:2px}
+.mhdr .bn-sub{font-family:"Heebo",sans-serif;font-weight:700;font-size:15px;letter-spacing:.38em;text-transform:uppercase;padding-left:3px;background:linear-gradient(100deg,#56c8ff,#9b5cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.mhright{margin-left:auto;display:flex;align-items:center;gap:14px}
+@media(max-width:780px){.mhdr{height:78px}.mhdr .bn-rare{font-size:32px}.mhdr .hdr-duck{height:50px}}
+@media(max-width:520px){.mhdr .brandname{display:none}.mhright .hsoc{display:none}}
 /* ---- hero ---- */
 .mhero{position:relative;min-height:100svh;display:flex;align-items:center;z-index:2;overflow:hidden}
 .mhero .bgimg{position:absolute;inset:0;z-index:0}
@@ -138,7 +145,7 @@ main{position:relative;z-index:2}
 .mfoot a{color:#bcd2ff;text-decoration:none}.mfoot a:hover{text-decoration:underline}
 .mfoot .cp{margin-top:12px;font-size:12px;color:#6f86ad}
 /* directional wipe panel (shared engine: /assets/xwipe.js) */
-#xwipe{position:fixed;inset:0;z-index:2147483600;background:var(--sig);transform:translateX(0);pointer-events:none;will-change:transform;display:none}
+#xwipe{position:fixed;top:0;bottom:0;left:-20vw;width:140vw;z-index:2147483600;background:linear-gradient(90deg,#56c8ff 0%,#3f6bff 50%,#9b5cff 100%);-webkit-mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);transform:translateX(0);pointer-events:none;will-change:transform;display:none}
 html.xw-cover #xwipe,html.xw-active #xwipe{display:block}
 html.xw-active{overflow:hidden}
 #pageveil{position:fixed;inset:0;z-index:2147483000;background:var(--sig);pointer-events:none;opacity:1}
@@ -162,11 +169,19 @@ html.xw-active{overflow:hidden}
 <div class="grain" aria-hidden="true"></div>
 
 <header class="mhdr" id="mhdr">
-  <a class="wm" href="/media" aria-label="Rare Pond Media home">
-    <img src="/media/logos/duck-white.webp" alt="">
-    <span class="wm-txt"><span class="wm-rare">Rare Pond</span><span class="wm-sub grad">Media</span></span>
+  <div class="hdr-bg" aria-hidden="true"></div>
+  <a class="hdr-logo" href="/media" aria-label="Rare Pond Media home">
+    <img class="hdr-duck" src="/media/logos/duck-white.webp" alt="Rare Pond Media">
+    <span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-sub">Media</span></span>
   </a>
-  <a class="back" href="/" data-wipe="L" title="Back to Rare Pond Studios"><span class="ar" aria-hidden="true">&larr;</span>&nbsp;Studio&nbsp;Site</a>
+  <div class="mhright">
+    <div class="xnav xnav-dark">
+      <span class="xchip xcur">Media</span>
+      <a class="xchip" href="/" data-wipe="L" data-dir="r" title="Go to Rare Pond Studios">Studio<span class="xar">&rarr;</span></a>
+      <a class="xchip" href="/rentals" data-wipe="L" data-dir="r" title="Go to Rare Pond Rentals">Rentals<span class="xar">&rarr;</span></a>
+    </div>
+    <div class="hsoc rp-soc" id="mSoc"></div>
+  </div>
 </header>
 
 <main>
@@ -294,6 +309,20 @@ html.xw-active{overflow:hidden}
 })();
 </script>
 <script src="/assets/xwipe.js" defer></script>
+<script src="/assets/social_ui.js" defer></script>
+<script>
+/* Header social icons — same source (data/socials.json) + artwork (assets/socials.js) as the studio. */
+(function(){
+  var host=document.getElementById('mSoc'); if(!host)return;
+  fetch('/data/socials.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
+    var ic=window.RP_SOCIAL_ICONS||{}, list=(d&&d.socials)||[];
+    host.innerHTML=list.filter(function(s){return s&&ic[s.icon];}).map(function(s){
+      var u=/^https?:\/\//i.test(s.url||'')?s.url:'#';
+      return '<a href="'+u+'" target="_blank" rel="noopener" data-net="'+s.icon+'" aria-label="'+(s.label||s.icon)+'" title="'+(s.label||s.icon)+'">'+ic[s.icon]+'</a>';
+    }).join('');
+  }).catch(function(){});
+})();
+</script>
 <script>
 /* page-load veil: masks first-load image pop-in; self-removing, never blocks interaction */
 (function(){var v=document.getElementById('pageveil');if(!v)return;var done=false;

@@ -22,7 +22,9 @@
     if(RM || !w){ clearAll(w); return; }
     var pv = document.getElementById('pageveil'); if(pv) pv.classList.add('pv-gone');   // the panel is the cover now
     var outX = (dir==='L') ? '-100%' : '100%';
+    var slid=false;
     function slide(){
+      if(slid)return; slid=true;                 // run once: the load-ready path AND the safety timer both call this
       docEl.classList.add('xw-active'); docEl.classList.remove('xw-cover');
       w.style.transition='none'; w.style.transform='translateX(0)'; void w.offsetWidth;
       w.style.transition='transform .6s cubic-bezier(.65,0,.35,1)';

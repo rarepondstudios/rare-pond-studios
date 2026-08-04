@@ -41,6 +41,26 @@
 @media(max-width:640px){.rp-soc a{width:33px;height:33px}}
 @media(max-width:430px){.rp-soc a{width:30px;height:30px}.rp-soc svg,.rp-soc .soc-ico{width:16px;height:16px}}
 
+/* ---------- cross-site nav: Media · Studio · Rentals, in the SAME slots on every site ----------
+ * Fixed order + fixed slots so the button to reach any site never moves between the three sites
+ * (the current site shows as a non-clickable "you are here" chip in its slot). Arrows point the
+ * way the wipe travels. Shared here so studio, rentals and media can never drift. */
+.xnav{display:flex;align-items:center;gap:8px}
+.xnav .xchip{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:50px;font-weight:700;font-size:13.5px;line-height:1;text-decoration:none;white-space:nowrap;border:1px solid rgba(40,95,180,.32);background:rgba(255,255,255,.55);color:#13325e;transition:background .18s,box-shadow .18s,color .18s}
+.xnav a.xchip:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
+.xnav .xar{font-size:17px;line-height:1;color:#2f6cb0;transition:transform .2s,color .2s,filter .2s}
+.xnav a.xchip:hover .xar{color:#0b59c4;filter:drop-shadow(0 0 6px rgba(31,111,208,.9))}
+.xnav a.xchip[data-dir="r"]:hover .xar{transform:translateX(3px)}
+.xnav a.xchip[data-dir="l"]:hover .xar{transform:translateX(-3px)}
+.xnav .xcur{background:rgba(40,95,180,.12);border-color:transparent;color:#2f57a6;cursor:default;pointer-events:none}
+/* dark-header variant (Rare Pond Media) */
+.xnav.xnav-dark .xchip{border-color:rgba(140,180,255,.28);background:rgba(255,255,255,.06);color:#dfe9ff}
+.xnav.xnav-dark a.xchip:hover{background:rgba(255,255,255,.14);box-shadow:none}
+.xnav.xnav-dark .xar{color:#9fc0ff}
+.xnav.xnav-dark .xcur{background:rgba(120,160,255,.16);border-color:transparent;color:#cfe3ff}
+@media(max-width:640px){.xnav{gap:6px}.xnav .xchip{padding:7px 11px;font-size:12.5px}}
+@media(max-width:430px){.xnav .xchip{padding:6px 9px;font-size:12px}}
+
 /* ---------- social icons in a FOOTER (ghost pills on the dark water) ---------- */
 .rp-footer .fsoc{display:flex;gap:12px;justify-content:center;margin-bottom:18px}
 .rp-footer .fsoc a{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;

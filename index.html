@@ -87,7 +87,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 .view.pv-rise{animation:pvRise .6s cubic-bezier(.2,.7,.2,1) both}
 @media (prefers-reduced-motion:reduce){#pageveil.pv-hide{transition:none}.view.pv-rise{animation:none}}
 /* Directional gradient wipe (Studio <-> Rentals / Media). Signature gradient panel; slides across the page-load boundary. */
-#xwipe{position:fixed;inset:0;z-index:2147483600;background:radial-gradient(circle at 50% 42%,#56c8ff,#3f6bff 46%,#9b5cff 100%);transform:translateX(0);pointer-events:none;will-change:transform;display:none}
+#xwipe{position:fixed;top:0;bottom:0;left:-20vw;width:140vw;z-index:2147483600;background:linear-gradient(90deg,#56c8ff 0%,#3f6bff 50%,#9b5cff 100%);-webkit-mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);transform:translateX(0);pointer-events:none;will-change:transform;display:none}
 html.xw-cover #xwipe,html.xw-active #xwipe{display:block}
 html.xw-active{overflow:hidden}
 @media (prefers-reduced-motion:reduce){#xwipe{display:none!important}}
@@ -218,7 +218,7 @@ html.xw-active{overflow:hidden}
   .hmenu-links a:hover,.hmenu-links a:active{background:rgba(40,95,180,.12);color:#0b59c4}
   .hmenu-links .hmenu-rentals{color:#0b59c4}
   .hmenu .hmenu-soc{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px;padding:12px 6px 2px;border-top:1px solid rgba(40,95,180,.16)}
-  @media(max-width:720px){.site-header .nav{display:none}.hright2 .socials{display:none}.hmenu-btn{display:inline-flex}}
+  @media(max-width:720px){.site-header .nav{display:none}.hright2 .socials,.hright2 .xnav{display:none}.hmenu-btn{display:inline-flex}}
 
   /* ===== depth sections ===== */
   #home-projects{position:relative;background:transparent}
@@ -1006,7 +1006,7 @@ html.xw-active{overflow:hidden}
     <div class="hdr-bg"></div>
     <a class="hdr-logo" href="/" data-go="home"><img class="hdr-duck" id="hdrDuck" src="/media/logos/duck-mark.webp" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
     <nav class="nav"><a href="/team" data-go="team">Our&nbsp;Team</a><a href="/projects" data-go="projects" id="navProjects">Projects</a><a href="/#contact" data-go="contact">Contact</a></nav>
-    <div class="hright2"><a class="xsite xsite-media" href="/media" data-wipe="R" title="Go to Rare Pond Media"><span class="xarrow">&larr;</span>&nbsp;Media</a><a class="xsite" href="/rentals" data-wipe="L" title="Go to the Rare Pond Rentals site">Rentals&nbsp;<span class="xarrow">&rarr;</span></a><div class="socials rp-soc" id="socialsHost"></div><button class="hmenu-btn" id="hmenuBtn" aria-label="Menu" aria-controls="hmenu" aria-expanded="false"><span></span></button></div>
+    <div class="hright2"><div class="xnav"><a class="xchip" href="/media" data-wipe="R" data-dir="l" title="Go to Rare Pond Media"><span class="xar">&larr;</span>Media</a><span class="xchip xcur">Studio</span><a class="xchip" href="/rentals" data-wipe="L" data-dir="r" title="Go to the Rare Pond Rentals site">Rentals<span class="xar">&rarr;</span></a></div><div class="socials rp-soc" id="socialsHost"></div><button class="hmenu-btn" id="hmenuBtn" aria-label="Menu" aria-controls="hmenu" aria-expanded="false"><span></span></button></div>
   </header>
   <!-- mobile menu: nav + socials, opened from the header hamburger (right of Rentals) -->
   <div class="hmenu" id="hmenu" aria-hidden="true">
