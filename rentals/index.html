@@ -91,6 +91,7 @@
     if(fl&&Array.isArray(ft.links)&&ft.links.length){
       fl.innerHTML=ft.links.map(l=>{
         const label=esc(l.label||'');
+        if(l.go==='contact')return `<a href="/#contact" data-contact>${label}</a>`;
         const href=l.href?l.href:(l.go?('/#'+l.go):'#');
         return `<a href="${esc(href)}">${label}</a>`;
       }).join('');

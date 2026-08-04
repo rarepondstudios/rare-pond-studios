@@ -1341,6 +1341,7 @@ try{
         const label=esc2(l.label||'');
         const fallback=KNOWN_PATHS[String(l.label||'').trim().toLowerCase()];
         const href=l.href||(!l.go&&fallback?fallback:'');
+        if(l.go==='contact')return '<a href="/#contact" data-contact>'+label+'</a>';
         if(href)return '<a href="'+esc2(href)+'">'+label+'</a>';
         if(l.go)return '<a data-go="'+esc2(l.go)+'">'+label+'</a>';
         return '<a>'+label+'</a>';

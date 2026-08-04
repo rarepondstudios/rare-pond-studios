@@ -72,6 +72,10 @@
         "go": "projects"
       },
       {
+        "label": "Media",
+        "href": "/media"
+      },
+      {
         "label": "Rentals",
         "href": "/rentals"
       },
