@@ -281,7 +281,7 @@ html.xw-active{overflow:hidden}
   var txt=function(el,v){if(el&&v!=null&&v!=='')el.textContent=v;};
   var html=function(el,v){if(el&&v!=null)el.innerHTML=v;};
   var img=function(el,src){if(el&&src){el.removeAttribute('srcset');el.setAttribute('src',norm(src));}};
-  fetch('/rp_media/data/media.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
+  fetch('/data/media.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
     if(!d)return;
     if(d.seo&&d.seo.title)document.title=d.seo.title;
     if(d.seo&&d.seo.description){var m=qs('meta[name="description"]');if(m)m.setAttribute('content',d.seo.description);}

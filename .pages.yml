@@ -130,7 +130,7 @@ content:
   - name: mediasite
     label: "Rare Pond Media (/media)"
     type: file
-    path: rp_media/data/media.json
+    path: data/media.json
     fields:
       - name: cmsNote
         label: "✏️ Rare Pond Media — the /media pitch site"

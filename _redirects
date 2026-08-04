@@ -10,10 +10,8 @@ https://rarepond.com/*    https://www.rarepond.com/:splat    301
 
 # Rentals is its own static section - serve its files directly.
 /rentals/*    /rentals/index.html    200
-# Rare Pond Media - its own static section. Files live in /rp_media/ so the route does NOT
-# collide with the /media/ ASSETS folder (real asset files are served static-first, exactly
-# like /rentals/media/* is; these two exact-path rules never touch the /media/* asset namespace).
-/media        /rp_media/index.html    200
-/media/       /rp_media/index.html    200
+# Rare Pond Media is served from media/index.html at /media/ (Cloudflare serves the directory
+# index just like rentals/index.html at /rentals/). Real asset files under /media/* keep serving
+# static-first, so the page index and the asset library coexist. No custom rule needed here.
 # Studio SPA: any other unknown path renders the app (which reads the path and routes).
 /*    /index.html    200
