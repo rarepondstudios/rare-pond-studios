@@ -127,6 +127,69 @@ content:
               description: "The name (ID) of a look in COLOR LOOKS. That look's colors are applied here. Type it exactly as the look's ID (e.g. signature, rainbow, red, geri). If it does not match a real look, nothing is applied and the built-in colors are used - open the Color Looks preview page, it flags any broken link in red." }
           - { name: gradientStyle, label: "Gradient style - Stream (wide horizontal sweep, best for this banner) or Pinwheel (rotating conic, best for round bubbles)", type: select, options: { values: [stream, pinwheel] } }
 
+  - name: mediasite
+    label: "Rare Pond Media (/media)"
+    type: file
+    path: rp_media/data/media.json
+    fields:
+      - name: cmsNote
+        label: "✏️ Rare Pond Media — the /media pitch site"
+        type: string
+        readonly: true
+        description: "Everything on rarepond.com/media. Edit the text and swap the main images here. The cinematic showcase + on-set photos default to existing project stills/BTS, but you can replace any of them. Images you upload go to the shared media library and are referenced as /media/... . In each heading, the 'accent' field is the word shown in the signature gradient — it must appear (spelled + cased) exactly within that heading, or nothing is highlighted. Leaving a text box blank keeps the page's built-in default for that item. IMAGE SPECS: export sRGB, 8-bit (never Display P3 / Adobe RGB). Backgrounds + stills 2560x1440 (16:9); on-set photos 16:9 or 4:3; keep every file under 600 KB; never upscale."
+      - name: seo
+        label: Search / browser tab
+        type: object
+        fields:
+          - { name: title, label: Browser tab title, type: string }
+          - { name: description, label: Search-result description, type: text }
+      - name: hero
+        label: Hero (top of page)
+        type: object
+        fields:
+          - { name: eyebrow, label: Eyebrow (small label above the headline), type: string }
+          - { name: headline, label: Headline, type: string }
+          - { name: accent, label: "Headline — gradient-highlighted word (must appear in the headline)", type: string }
+          - { name: subtitle, label: Subtitle, type: text }
+          - { name: image, label: Hero background image, type: image, description: "SPECS: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. A darker image reads best — the white headline sits on top of it." }
+      - name: statement
+        label: Statement (big centered line)
+        type: object
+        fields:
+          - { name: kicker, label: Kicker (small label above), type: string }
+          - { name: heading, label: Heading, type: string }
+          - { name: accent, label: "Heading — gradient-highlighted word", type: string }
+          - { name: body, label: Body, type: text }
+      - name: showcase
+        label: Cinematic showcase (grid of stills)
+        type: object
+        list: true
+        description: "The grid of cinematic stills under the statement. Five reads best (2 large + 3 smaller). Drag to reorder. Defaults to existing film stills."
+        fields:
+          - { name: image, label: Still, type: image, description: "SPECS: 16:9, JPG/WebP, sRGB 8-bit, under 600 KB." }
+          - { name: alt, label: Alt text (describes the image for accessibility), type: string }
+      - name: sections
+        label: Story sections (image + text)
+        type: object
+        list: true
+        description: "The alternating image/text blocks down the page — drag to reorder, add or remove freely. They alternate image-side automatically. Defaults are the 'Why us / Collaboration / We're Human' copy."
+        fields:
+          - { name: badge, label: Badge (small pill label), type: string }
+          - { name: heading, label: Heading, type: string }
+          - { name: accent, label: "Heading — gradient-highlighted word", type: string }
+          - { name: body, label: Body, type: text }
+          - { name: image, label: Photo, type: image, description: "On-set / behind-the-scenes photos read best here. SPECS: 4:3 or 16:9, JPG/WebP, sRGB 8-bit, under 600 KB." }
+      - name: cta
+        label: Call to action (bottom)
+        type: object
+        fields:
+          - { name: heading, label: Heading, type: string }
+          - { name: accent, label: "Heading — gradient-highlighted word", type: string }
+          - { name: body, label: Body, type: text }
+          - { name: buttonLabel, label: Button label, type: string }
+          - { name: buttonHref, label: "Button link (e.g. /#contact, a /path, or a full https:// URL)", type: string }
+          - { name: image, label: Background image, type: image, description: "SPECS: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. Darker reads best." }
+
   - name: colorlooks
     label: Color Looks
     type: file

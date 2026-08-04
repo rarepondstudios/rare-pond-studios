@@ -1,0 +1,58 @@
+{
+  "_note": "Rare Pond Media (/media) content. Edited in Pages CMS under 'Rare Pond Media'. The page ships with these same values baked into rp_media/index.html as a fallback, so it always renders even if this file is missing; when present, these values override. Each heading's 'accent' is the word shown in the signature gradient (must appear in the heading text).",
+  "seo": {
+    "title": "Rare Pond Media — Cinematic video for business",
+    "description": "Rare Pond Media brings narrative-film craft to corporate and commissioned video — telling your business's story in cinematic quality."
+  },
+  "hero": {
+    "eyebrow": "Rare Pond Media",
+    "headline": "Your business has a story to tell",
+    "accent": "story",
+    "subtitle": "And we would love to be the ones to help you share it.",
+    "image": "/media/projects/revelations/stills/rev-heaven-1-1600.webp"
+  },
+  "statement": {
+    "kicker": "Cinematic video, built for business",
+    "heading": "Rare Pond is all about creating narratives.",
+    "accent": "narratives",
+    "body": "Using the same gear and expertise from our narrative film branch, we are ready and equipped to showcase your group, business, or artwork in cinematic quality."
+  },
+  "showcase": [
+    { "image": "/media/projects/invalid_opinion/stills/invalid-1-1600.webp", "alt": "Cinematic still — Invalid Opinion" },
+    { "image": "/media/projects/revelations/stills/rev-michael-bar-1600.webp", "alt": "Cinematic still — Revelations" },
+    { "image": "/media/projects/geri_action/stills/geri-madeline-800.webp", "alt": "Cinematic still — Geri Action" },
+    { "image": "/media/projects/invalid_opinion/stills/invalid-sourpatch-800.webp", "alt": "Cinematic still — Invalid Opinion" },
+    { "image": "/media/projects/revelations/stills/rev-earth-2-800.webp", "alt": "Cinematic still — Revelations" }
+  ],
+  "sections": [
+    {
+      "badge": "Why us?",
+      "heading": "Filmmaking is what we love doing.",
+      "accent": "love",
+      "body": "This isn't just a business to us, this is how we spend our free time, and we enjoy the process. We aren't in this to just get the job done, we're here to have fun doing it, and we believe your audience will be able to see that through our work.",
+      "image": "/media/projects/geri_action/bts/dsc_7966-full.jpg"
+    },
+    {
+      "badge": "How we work",
+      "heading": "Collaboration is Key.",
+      "accent": "Key",
+      "body": "In order to tell your story, we want to understand your story. We're willing to take the time to get to know you and what you're really looking for, rather than leave you in the dark.",
+      "image": "/media/projects/revelations/bts/img_3108-full.jpg"
+    },
+    {
+      "badge": "What sets us apart",
+      "heading": "We're Human.",
+      "accent": "Human",
+      "body": "In a time where businesses are embracing a corner cutting approach to content, people are starving for a HUMAN message. Now more than ever, businesses that put people first stand out in the market, and we know our work has a unique personality people are looking for.",
+      "image": "/media/projects/geri_action/bts/img_6240-full.jpg"
+    }
+  ],
+  "cta": {
+    "heading": "Let's tell your story.",
+    "accent": "story",
+    "body": "Have a project in mind, or just want to talk it through? We'd love to hear from you.",
+    "buttonLabel": "Start a conversation",
+    "buttonHref": "/#contact",
+    "image": "/media/projects/revelations/stills/rev-earth-2-1600.webp"
+  }
+}

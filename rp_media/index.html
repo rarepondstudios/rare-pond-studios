@@ -268,6 +268,31 @@ html.xw-active{overflow:hidden}
   <div class="cp">A branch of Rare Pond Studios · © Rare Pond 2026</div>
 </footer>
 
+<script>
+/* Rare Pond Media — overlay CMS-editable content (rp_media/data/media.json) onto the built-in
+   defaults, so edits made in Pages CMS ("Rare Pond Media") show on the live page. The page still
+   renders fully if this file is missing or JS is off (the HTML carries the same defaults). Uses
+   stable structural selectors so no per-node markup is required. */
+(function(){
+  var esc=function(s){return (s==null?'':String(s)).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});};
+  var grad=function(t,a){t=t||'';if(!a)return esc(t);var i=t.indexOf(a);return i<0?esc(t):esc(t.slice(0,i))+'<span class="grad">'+esc(a)+'</span>'+esc(t.slice(i+a.length));};
+  var qs=function(s,r){return (r||document).querySelector(s);},qsa=function(s,r){return [].slice.call((r||document).querySelectorAll(s));};
+  var norm=function(u){return (u&&!/^(https?:)?\/\//.test(u)&&u[0]!=='/')?'/'+u:u;};
+  var txt=function(el,v){if(el&&v!=null&&v!=='')el.textContent=v;};
+  var html=function(el,v){if(el&&v!=null)el.innerHTML=v;};
+  var img=function(el,src){if(el&&src){el.removeAttribute('srcset');el.setAttribute('src',norm(src));}};
+  fetch('/rp_media/data/media.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
+    if(!d)return;
+    if(d.seo&&d.seo.title)document.title=d.seo.title;
+    if(d.seo&&d.seo.description){var m=qs('meta[name="description"]');if(m)m.setAttribute('content',d.seo.description);}
+    if(d.hero){txt(qs('.mhero .eyebrow'),d.hero.eyebrow);html(qs('.mhero h1'),grad(d.hero.headline,d.hero.accent));txt(qs('.mhero .sub'),d.hero.subtitle);img(qs('.mhero .bgimg img'),d.hero.image);}
+    if(d.statement){txt(qs('.statement .kicker'),d.statement.kicker);html(qs('.statement h2'),grad(d.statement.heading,d.statement.accent));txt(qs('.statement .lead'),d.statement.body);}
+    if(d.showcase){var figs=qsa('.showgrid figure img');d.showcase.forEach(function(s,i){if(figs[i]){img(figs[i],s.image);if(s.alt!=null)figs[i].setAttribute('alt',s.alt);}});}
+    if(d.sections){var sp=qsa('.blk .split');d.sections.forEach(function(s,i){var b=sp[i];if(!b)return;var bd=qs('.tag-badge',b);if(bd&&s.badge!=null)bd.innerHTML='<span class="dot"></span>'+esc(s.badge);html(qs('h2',b),grad(s.heading,s.accent));txt(qs('.lead',b),s.body);img(qs('.shot img',b),s.image);});}
+    if(d.cta){html(qs('.cta h2'),grad(d.cta.heading,d.cta.accent));txt(qs('.cta p'),d.cta.body);var bt=qs('.cta .btn-sig');if(bt&&d.cta.buttonLabel!=null)bt.innerHTML=esc(d.cta.buttonLabel)+' <span class="ar" aria-hidden="true">&rarr;</span>';if(bt&&d.cta.buttonHref)bt.setAttribute('href',d.cta.buttonHref);img(qs('.cta .bgimg img'),d.cta.image);}
+  }).catch(function(){});
+})();
+</script>
 <script src="/assets/xwipe.js" defer></script>
 <script>
 /* page-load veil: masks first-load image pop-in; self-removing, never blocks interaction */
