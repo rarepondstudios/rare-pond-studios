@@ -448,6 +448,60 @@
       "titleStyle": "solid",
       "titleGradientFrom": "white",
       "titleGradientTo": "color1"
+    },
+    {
+      "key": "youtube",
+      "name": "YouTube",
+      "kind": "social",
+      "c1": "#FF0000",
+      "c2": "#c70000",
+      "c3": "#ff2424",
+      "taglineItalic": false
+    },
+    {
+      "key": "vimeo",
+      "name": "Vimeo",
+      "kind": "social",
+      "c1": "#1AB7EA",
+      "c2": "#148fb7",
+      "c3": "#3ac1ed",
+      "taglineItalic": false
+    },
+    {
+      "key": "instagram",
+      "name": "Instagram",
+      "kind": "social",
+      "c1": "#E4405F",
+      "c2": "#b2324a",
+      "c3": "#e85b75",
+      "taglineItalic": false
+    },
+    {
+      "key": "linkedin",
+      "name": "LinkedIn",
+      "kind": "social",
+      "c1": "#0A66C2",
+      "c2": "#085097",
+      "c3": "#2c7bcb",
+      "taglineItalic": false
+    },
+    {
+      "key": "facebook",
+      "name": "Facebook",
+      "kind": "social",
+      "c1": "#1877F2",
+      "c2": "#135dbd",
+      "c3": "#388af4",
+      "taglineItalic": false
+    },
+    {
+      "key": "imdb",
+      "name": "IMDb",
+      "kind": "social",
+      "c1": "#F5C518",
+      "c2": "#bf9a13",
+      "c3": "#f6cd38",
+      "taglineItalic": false
     }
   ]
 }
