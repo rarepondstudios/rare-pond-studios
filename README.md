@@ -72,14 +72,16 @@ beats a soft fake 2560.
 
 ## Social links (one list, both sites, header + footer)
 
-All social icons on **both** sites, in **both** the header and footer, come from a single list:
-`data/site.json → socials`. Edit it once, everything updates.
+Social accounts now live in the **NocoDB `socials` table** (id `ma4lkbfxa7xa6ot`), NOT in
+`site.json`. Each row: `name`, `on_rarepond`/`on_jackcarlsen` (per-site membership), `blurb` (the
+contact-bubble label, e.g. "See our YouTube films"), `color_look` (a shared per-platform look —
+`youtube`/`vimeo`/`instagram`/`linkedin`/`facebook`/`imdb`), and `link`. `socials_sync.py` writes
+`data/socials.json` for both sites; the header, footer AND the new contact-page bubbles all read it.
 
-In the CMS: **Site Settings → Social links**. Each entry has a **Label**, a **URL**, and an
-**Icon** chosen from the shared platform set: `yt` YouTube · `vimeo` Vimeo · `ig` Instagram ·
-`li` LinkedIn · `x` X · `fb` Facebook · `tiktok` TikTok · `threads` Threads · `web` website ·
-`imdb` IMDb. Add, remove and reorder freely. On hover each icon fills with that network's brand
-gradient.
+Logos come from the look's **`icon`** (a swappable 1080×1080 PNG at `/media/brand/social/<key>.png`,
+mastered in `Website Repository/Color Looks (Web)/<key>/logo.png`) rendered as a CSS mask — replace
+that one file to change a logo everywhere. Header/footer icons stay monochrome (brand-on-hover); the
+contact bubbles use the platform's colour. Edit accounts in NocoDB; the Pages CMS no longer lists them.
 
 The logos + brand colours all come from the **shared `data/platforms.json`** (see *The shared
 cross-site backend* below) — ONE source for both sites, feeding both the header/footer social
@@ -154,7 +156,7 @@ site: repo path, git identity/askpass, per-site column names). **Adding a third 
 entry there, not a code fork.**
 
 ### 3. The media folder schema (folder = source of truth)
-Media lives in the Synology `Project Repository (Web)/<Project>/` folders. Selection is by
+Media lives in the Synology `Website Repository/Projects (Web)/<Project>/` folders. Selection is by
 **FOLDER, never by filename**. Each project folder has six subfolders:
 
 | Folder | Fills | Rule |
@@ -183,7 +185,7 @@ hand-delete one. `projects_folder_sync.py` (launchd `com.rarepond.projfoldersync
   **title** (fallback `key`), pre-built with the six D1 subfolders above (+ `Logo/.noletterbox`).
   Then drop media in and the media syncs take over — the row flows to both sites via the exports.
 - **Deleted row → recycled folder.** When a row is deleted, its previously-linked folder is
-  **moved to `Project Repository (Web)/#recycling/`** (never deleted; restore by moving it back).
+  **moved to `Website Repository/Projects (Web)/#recycling/`** (never deleted; restore by moving it back).
 - **Matching:** `slug(folder) == slug(title)` or `slug(key)` (`slug` = lowercase, strip
   non-alphanumerics) — the same rule the media syncs use.
 - **Safety:** aborts if NocoDB is unreachable or returns 0 rows; only recycles folders that were
