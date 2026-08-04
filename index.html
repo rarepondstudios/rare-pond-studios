@@ -3,6 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Chrome-tint: iOS Safari paints its status bar + toolbar with theme-color. Kept dark to
+     match the page at rest, and swapped to the wipe colour while a full-screen transition
+     covers the screen, so the browser chrome blends INTO the transition instead of showing
+     as ugly dark top/bottom bars. Controlled by window.__setThemeColor / __resetThemeColor. -->
+<meta name="theme-color" content="#06122b">
+<script>
+(function(){
+  var BASE="#06122b";
+  function meta(){var m=document.querySelector('meta[name="theme-color"]');
+    if(!m){m=document.createElement('meta');m.setAttribute('name','theme-color');document.head.appendChild(m);}return m;}
+  meta().setAttribute('content',BASE);
+  var t=null;
+  window.__setThemeColor=function(c){try{clearTimeout(t);t=null;meta().setAttribute('content',c||BASE);}catch(e){}};
+  window.__resetThemeColor=function(delay){try{clearTimeout(t);t=setTimeout(function(){meta().setAttribute('content',BASE);t=null;},delay||0);}catch(e){}};
+  /* The bright load veil is covering at first paint, so start the chrome tinted to it and let
+     __revealPage reset to dark when the veil lifts — otherwise an incoming page (e.g. the second
+     half of a cross-page cross-fade) would flash dark bars around the bright veil. */
+  meta().setAttribute('content',"#3f6bff");
+})();
+</script>
 <title>Rare Pond Studios</title>
 <meta name="description" content="Rare Pond Studios makes escapist short films that transport you somewhere new - hybrid animation, comedy and drama. Countless worlds, one pond.">
 <link rel="canonical" href="https://www.rarepond.com/">
@@ -146,8 +166,25 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .xsite:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
   .xsite:hover .xarrow{color:#0b59c4;filter:drop-shadow(0 0 6px rgba(31,111,208,.95));transform:translateX(4px)}
   @media(max-width:780px){.xsite{padding:7px 11px;font-size:13px}}
-  @media(max-width:560px){.hright2 .socials{display:none}}
   @media(max-width:780px){.nav a{padding:8px 10px;font-size:13px}.brandname{display:none}}   /* icon sizes: /assets/chrome.css */
+  /* ===== mobile hamburger menu (nav + socials) — shown <=720px in place of the inline nav/socials ===== */
+  .hmenu-btn{display:none;flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:12px;border:1px solid rgba(40,95,180,.32);background:rgba(255,255,255,.6);cursor:pointer;align-items:center;justify-content:center;transition:.18s}
+  .hmenu-btn:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
+  .hmenu-btn>span,.hmenu-btn>span::before,.hmenu-btn>span::after{content:"";display:block;width:20px;height:2px;border-radius:2px;background:#13325e;transition:transform .25s,opacity .2s}
+  .hmenu-btn>span{position:relative}
+  .hmenu-btn>span::before{position:absolute;left:0;top:-6px}
+  .hmenu-btn>span::after{position:absolute;left:0;top:6px}
+  .hmenu-btn.open>span{background:transparent}
+  .hmenu-btn.open>span::before{transform:translateY(6px) rotate(45deg)}
+  .hmenu-btn.open>span::after{transform:translateY(-6px) rotate(-45deg)}
+  .hmenu{position:fixed;top:calc(var(--header-h) - 4px);right:clamp(10px,4vw,46px);z-index:295;min-width:220px;max-width:min(86vw,300px);padding:10px;border-radius:16px;background:rgba(255,255,255,.97);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(40,95,180,.2);box-shadow:0 22px 54px rgba(10,30,70,.3);display:flex;flex-direction:column;opacity:0;visibility:hidden;transform:translateY(-8px) scale(.98);transform-origin:top right;transition:opacity .2s ease,transform .2s ease,visibility 0s linear .2s}
+  .hmenu.open{opacity:1;visibility:visible;transform:none;transition:opacity .2s ease,transform .2s ease}
+  .hmenu-links{display:flex;flex-direction:column;gap:2px}
+  .hmenu-links a{padding:11px 14px;border-radius:10px;color:#13325e;text-decoration:none;font-weight:700;font-size:15.5px;transition:.15s;white-space:nowrap}
+  .hmenu-links a:hover,.hmenu-links a:active{background:rgba(40,95,180,.12);color:#0b59c4}
+  .hmenu-links .hmenu-rentals{color:#0b59c4}
+  .hmenu .hmenu-soc{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px;padding:12px 6px 2px;border-top:1px solid rgba(40,95,180,.16)}
+  @media(max-width:720px){.site-header .nav{display:none}.hright2 .socials{display:none}.hmenu-btn{display:inline-flex}}
 
   /* ===== depth sections ===== */
   #home-projects{position:relative;background:transparent}
@@ -897,6 +934,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     function gone(){v.classList.add('pv-gone');}
     function rise(){ try{var vs=document.querySelectorAll('.view');for(var i=0;i<vs.length;i++){if(getComputedStyle(vs[i]).display!=='none')vs[i].classList.add('pv-rise');}}catch(e){} }
     function hide(){ if(done)return; done=true; rise(); v.classList.add('pv-hide');
+      if(window.__resetThemeColor)window.__resetThemeColor(0);   // veil lifting -> chrome back to dark
       var t=setTimeout(gone,900);
       v.addEventListener('transitionend',function(){clearTimeout(t);gone();},{once:true});
     }
@@ -929,8 +967,18 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     <div class="hdr-bg"></div>
     <a class="hdr-logo" href="/" data-go="home"><img class="hdr-duck" id="hdrDuck" src="/media/logos/duck-mark.webp" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
     <nav class="nav"><a href="/team" data-go="team">Our&nbsp;Team</a><a href="/projects" data-go="projects" id="navProjects">Projects</a><a href="/#contact" data-go="contact">Contact</a></nav>
-    <div class="hright2"><a class="xsite" href="/rentals" title="Go to the Rare Pond Rentals site">Rentals&nbsp;<span class="xarrow">&rarr;</span></a><div class="socials rp-soc" id="socialsHost"></div></div>
+    <div class="hright2"><a class="xsite" href="/rentals" title="Go to the Rare Pond Rentals site">Rentals&nbsp;<span class="xarrow">&rarr;</span></a><div class="socials rp-soc" id="socialsHost"></div><button class="hmenu-btn" id="hmenuBtn" aria-label="Menu" aria-controls="hmenu" aria-expanded="false"><span></span></button></div>
   </header>
+  <!-- mobile menu: nav + socials, opened from the header hamburger (right of Rentals) -->
+  <div class="hmenu" id="hmenu" aria-hidden="true">
+    <nav class="hmenu-links">
+      <a href="/team" data-go="team">Our&nbsp;Team</a>
+      <a href="/projects" data-go="projects">Projects</a>
+      <a href="/#contact" data-go="contact">Contact</a>
+      <a href="/rentals" class="hmenu-rentals">Rentals&nbsp;<span aria-hidden="true">&rarr;</span></a>
+    </nav>
+    <div class="hmenu-soc socials rp-soc" id="hmenuSoc" aria-label="Follow Rare Pond"></div>
+  </div>
 
   <div id="view-home" class="view">
     <section id="home-projects">
@@ -2151,6 +2199,7 @@ function __pageFade(swap){
   var reduced=(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);
   if(!v||reduced){swap();return;}
   v.classList.remove('pv-gone','pv-hide');
+  if(window.__setThemeColor)window.__setThemeColor('#3f6bff');   // chrome matches the veil while it covers
   v.style.transition='none';v.style.opacity='0';void v.offsetWidth;
   v.style.transition='opacity .18s ease';v.style.opacity='1';
   var did=false;
@@ -2158,6 +2207,7 @@ function __pageFade(swap){
     /* schedule the reveal via setTimeout (not rAF) so a suspended-rAF background tab can never leave the veil covering */
     setTimeout(function(){
       v.style.transition='opacity .34s ease';v.style.opacity='0';
+      if(window.__resetThemeColor)window.__resetThemeColor(340);   // restore chrome as the veil fades out
       var fin=function(){v.classList.add('pv-gone');v.style.transition='';v.style.opacity='';};
       v.addEventListener('transitionend',function oe(e){if(e.propertyName&&e.propertyName!=='opacity')return;v.removeEventListener('transitionend',oe);fin();});
       setTimeout(fin,650);
@@ -2197,6 +2247,66 @@ __main().catch(e=>console.error("init error",e));</script>
 <script src="/assets/date-picker.js" defer></script>
 <script src="/assets/crew-form.js" defer></script>
 <script src="/assets/looks.js"></script>
+<script>
+/* Mobile hamburger menu: nav + socials, opened from the header button (right of Rentals).
+   Socials are cloned from #socialsHost on each open (so it works no matter when they render).
+   The cloned <a data-net> links go through the shared social_ui.js transport like any social link. */
+(function(){
+  var btn=document.getElementById('hmenuBtn'), menu=document.getElementById('hmenu'), soc=document.getElementById('hmenuSoc');
+  if(!btn||!menu) return;
+  var open=false;
+  function fillSoc(){ var src=document.getElementById('socialsHost'); if(src&&soc&&src.innerHTML.trim()) soc.innerHTML=src.innerHTML; }
+  function set(o){ open=o; menu.classList.toggle('open',o); btn.classList.toggle('open',o);
+    btn.setAttribute('aria-expanded',o?'true':'false'); menu.setAttribute('aria-hidden',o?'false':'true'); if(o) fillSoc(); }
+  btn.addEventListener('click',function(e){ e.stopPropagation(); set(!open); });
+  menu.addEventListener('click',function(e){ var a=e.target.closest('a'); if(a) set(false); });   /* nav or social tap closes the menu */
+  document.addEventListener('click',function(e){ if(open && !menu.contains(e.target) && !btn.contains(e.target)) set(false); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&open) set(false); });
+  addEventListener('resize',function(){ if(open && innerWidth>720) set(false); });
+})();
+</script>
+<!-- Cross-page fade: leaving this document for another page on the site (Studio <-> Rentals,
+     Studio <-> Maintenance) used to be a hard cut - the page just vanished and the next one
+     popped in. In-page view swaps already fade via __pageFade; this gives the true cross-doc
+     hops the same treatment by fading the load veil back IN before navigating. The destination
+     paints its own veil (opacity 1) and fades it out, so the two fades meet as one clean
+     colour cross-fade. Reuses the existing #pageveil, tints the mobile browser chrome to match,
+     and only ever touches genuine cross-document links (never data-go / data-page / hash / same-doc). -->
+<script>
+(function(){
+  var VEIL="#3f6bff";
+  function outgoingFade(url){
+    var v=document.getElementById('pageveil');
+    var reduced=(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);
+    if(!v||reduced){location.href=url;return;}
+    if(window.__setThemeColor)window.__setThemeColor(VEIL);
+    v.classList.remove('pv-gone','pv-hide');
+    v.style.transition='none';v.style.opacity='0';void v.offsetWidth;
+    v.style.transition='opacity .28s ease';v.style.opacity='1';
+    var did=false,go=function(){if(did)return;did=true;location.href=url;};
+    v.addEventListener('transitionend',function h(e){if(e.propertyName&&e.propertyName!=='opacity')return;v.removeEventListener('transitionend',h);go();});
+    setTimeout(go,340);
+  }
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a[href]');
+    if(!a)return;
+    if(a.hasAttribute('data-go')||a.hasAttribute('data-page'))return;   // in-page SPA routes fade themselves
+    if(e.defaultPrevented||e.button===1||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+    if(a.target&&a.target!=='_self')return;
+    var href=a.getAttribute('href')||'';
+    /* Whitelist ONLY the genuine cross-document hops so a stray in-app link can never be
+       hijacked into a full reload: the .xsite Studio<->Rentals button, the hamburger's
+       Rentals item, and any /rentals path (header/footer). */
+    var isCross=a.classList.contains('xsite')||a.classList.contains('hmenu-rentals')||/^\/rentals(\/|$|#|\?)/.test(href);
+    if(!isCross)return;
+    var url;try{url=new URL(href,location.href);}catch(_){return;}
+    if(url.origin!==location.origin)return;
+    if(url.pathname===location.pathname)return;                          // same document -> let it be
+    e.preventDefault();
+    outgoingFade(url.href);
+  },true);
+})();
+</script>
 <!-- Shared across rarepond.com + jackcarlsen.com (single source: bts-automation/social_ui.js,
      published by social_ui_sync.py). Contact-bubble hover-glow + social-link transport wipe. -->
 <script src="/assets/social_ui.js" defer></script>

@@ -126,11 +126,14 @@
     d.style.setProperty("--sc2", col.c2);
     d.style.setProperty("--sc3", col.c3);
     document.body.appendChild(d);
+    // tint the browser chrome to the wipe colour so iOS Safari's bars blend into it
+    if (window.__setThemeColor) window.__setThemeColor(col.c1);
     var opened = false, cleaned = false;
     var doOpen = function () { if (opened) return; opened = true; open(); };
     var cleanup = function () {
       if (cleaned) return; cleaned = true;
       d.classList.add("done");
+      if (window.__resetThemeColor) window.__resetThemeColor(0);   // restore chrome as the wipe retracts (desktop)
       setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); busy = false; }, 420);
     };
     // grow -> when covered, open the new tab, then retract + remove
