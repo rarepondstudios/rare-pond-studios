@@ -456,7 +456,8 @@
       "c1": "#FF0000",
       "c2": "#c70000",
       "c3": "#ff2424",
-      "taglineItalic": false
+      "taglineItalic": false,
+      "icon": "/media/brand/social/youtube.png"
     },
     {
       "key": "vimeo",
@@ -465,7 +466,8 @@
       "c1": "#1AB7EA",
       "c2": "#148fb7",
       "c3": "#3ac1ed",
-      "taglineItalic": false
+      "taglineItalic": false,
+      "icon": "/media/brand/social/vimeo.png"
     },
     {
       "key": "instagram",
@@ -474,7 +476,8 @@
       "c1": "#E4405F",
       "c2": "#b2324a",
       "c3": "#e85b75",
-      "taglineItalic": false
+      "taglineItalic": false,
+      "icon": "/media/brand/social/instagram.png"
     },
     {
       "key": "linkedin",
@@ -483,7 +486,8 @@
       "c1": "#0A66C2",
       "c2": "#085097",
       "c3": "#2c7bcb",
-      "taglineItalic": false
+      "taglineItalic": false,
+      "icon": "/media/brand/social/linkedin.png"
     },
     {
       "key": "facebook",
@@ -492,7 +496,8 @@
       "c1": "#1877F2",
       "c2": "#135dbd",
       "c3": "#388af4",
-      "taglineItalic": false
+      "taglineItalic": false,
+      "icon": "/media/brand/social/facebook.png"
     },
     {
       "key": "imdb",
@@ -501,7 +506,8 @@
       "c1": "#F5C518",
       "c2": "#bf9a13",
       "c3": "#f6cd38",
-      "taglineItalic": false
+      "taglineItalic": false,
+      "icon": "/media/brand/social/imdb.png"
     }
   ]
 }

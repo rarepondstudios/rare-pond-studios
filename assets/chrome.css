@@ -29,13 +29,17 @@
 /* keyboard focus ring - the hover styles gave no visible focus state */
 .rp-soc a:focus-visible,.rp-footer .fsoc a:focus-visible{outline:2px solid #7fc4ff;outline-offset:3px}
 .rp-soc svg{width:18px;height:18px;fill:currentColor}
+/* file-mask social icon (swappable 1080 PNG from the colour-look). background:currentColor keeps the
+   monochrome-at-rest / brand-on-hover behaviour identical to the inline-SVG icons. */
+.soc-ico{display:inline-block;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+.rp-soc .soc-ico{width:18px;height:18px}
 /* ONE ladder of sizes for every site. The studio ran 39/19 and shrank at 780/640; rentals ran
    38/18 and shrank at 900. Nothing depended on the difference - it was just drift between two
    files. 38/18 is now THE size, and these are THE breakpoints, set once, here, so a change to
    the icons lands on the studio, the rentals site and the maintenance cover together. */
 @media(max-width:900px){.rp-soc a{width:34px;height:34px}}
 @media(max-width:640px){.rp-soc a{width:33px;height:33px}}
-@media(max-width:430px){.rp-soc a{width:30px;height:30px}.rp-soc svg{width:16px;height:16px}}
+@media(max-width:430px){.rp-soc a{width:30px;height:30px}.rp-soc svg,.rp-soc .soc-ico{width:16px;height:16px}}
 
 /* ---------- social icons in a FOOTER (ghost pills on the dark water) ---------- */
 .rp-footer .fsoc{display:flex;gap:12px;justify-content:center;margin-bottom:18px}
@@ -43,6 +47,7 @@
   background:rgba(255,255,255,.1);color:#cfe3ff;border:1px solid rgba(255,255,255,.18);transition:.18s}
 .rp-footer .fsoc a:hover{background:#1f6fd0;color:#fff;transform:translateY(-2px)}
 .rp-footer .fsoc svg{width:20px;height:20px;fill:currentColor}
+.rp-footer .fsoc .soc-ico{width:20px;height:20px}
 
 /* ---------- brand colours on hover, shared by both placements ---------- */
 .rp-soc a[data-net="yt"]:hover,.rp-footer .fsoc a[data-net="yt"]:hover{background:linear-gradient(135deg,#ff3b30,#d4271d);color:#fff}

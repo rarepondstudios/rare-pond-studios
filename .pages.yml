@@ -60,14 +60,9 @@ content:
           - { name: heading, label: Heading, type: string }
           - { name: paragraphs, label: Paragraphs, type: text, list: true }
           - { name: button, label: Button text, type: string }
-      - name: socials
-        label: Social links
-        type: object
-        list: true
-        fields:
-          - { name: label, label: Label, type: string }
-          - { name: url, label: URL, type: string }
-          - { name: icon, label: Icon, type: select, options: { values: [yt, vimeo, ig, li, x, fb, tiktok, threads, web, imdb] }, description: "Which logo to draw: yt = YouTube, vimeo = Vimeo, ig = Instagram, li = LinkedIn, x = X/Twitter, fb = Facebook, tiktok = TikTok, threads = Threads, web = generic website, imdb = IMDb. Logos + brand colours come from the shared platforms.json (ONE source, both sites), so enabling any icon already defined there needs no code change." }
+      # Social links moved to NocoDB (the `socials` table) 2026-08-04 - edit accounts, links,
+      # bubble blurbs and colours there; socials_sync.py writes data/socials.json for BOTH sites.
+      # (No longer edited here or in site.json.)
       - { name: orbits, label: About-logo floating images, type: image, list: true, description: "The little film-still bubbles that orbit the logo. SPECS: square, 600x600 px, JPG, under 200 KB each. They are masked into circles, so keep the subject centred. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
       - name: header
         label: Header (shared - studio + rentals)

@@ -510,6 +510,22 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .contact-head h2{font-size:clamp(28px,4vw,46px);margin:.18em 0 .1em;font-weight:800}
   .contact-head p{color:#bcd6f3;font-size:15px;margin:0}
   .form-card{background:rgba(9,24,52,.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#eaf2ff;border:1px solid rgba(150,190,255,.22);border-radius:22px;padding:clamp(22px,3vw,36px);max-width:640px;margin:0 auto;box-shadow:0 30px 70px rgba(0,8,30,.5);min-height:120px}
+  /* contact: HubSpot form + brand social bubbles side by side (stacks on mobile) */
+  .contact-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(230px,.85fr);gap:24px;align-items:start;max-width:1000px;margin:0 auto}
+  .contact-grid .form-card{max-width:none;margin:0}
+  .contact-socials{display:flex;flex-direction:column;gap:12px}
+  .contact-bubble{display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:18px;text-decoration:none;color:var(--fg,#fff);
+    background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 10px 26px rgba(0,8,30,.34);
+    transition:transform .18s ease,box-shadow .18s ease}
+  .contact-bubble:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(0,8,30,.46)}
+  .contact-bubble:focus-visible{outline:2px solid #fff;outline-offset:3px}
+  .cbub-badge{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.18)}
+  .cbub-ico{width:26px;height:26px;background:var(--fg,#fff);-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+  .cbub-badge svg{width:24px;height:24px;fill:var(--fg,#fff)}
+  .cbub-label{flex:1 1 auto;font-weight:700;font-size:14.5px;line-height:1.25}
+  .cbub-arrow{flex:0 0 auto;opacity:.85;font-size:18px;transition:transform .18s ease}
+  .contact-bubble:hover .cbub-arrow{transform:translateX(3px)}
+  @media(max-width:820px){.contact-grid{grid-template-columns:1fr;gap:18px}.contact-grid .form-card,.contact-socials{max-width:640px;margin:0 auto;width:100%}}
   footer.site-footer{position:relative;z-index:1;margin-top:clamp(56px,9vh,110px);padding:46px clamp(18px,5vw,60px) 34px;text-align:center}
   /* Footer on a light-background page: reverse text to dark for legibility (dark pages keep the styles above). */
 
@@ -951,9 +967,12 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       <div class="deepwater rpWater"></div>
       <div class="contact-wrap">
         <div class="contact-head"><div class="ey">Get in touch</div><h2>Let's make something amazing.</h2><p>Tell us about your project and we'll be in touch.</p></div>
-        <div class="form-card">
-          <script src="https://js-na2.hsforms.net/forms/embed/245995240.js" defer></script>
-          <div class="hs-form-frame" data-region="na2" data-form-id="2f174b0e-b67d-4ca2-b12c-bd877ac8cab3" data-portal-id="245995240"></div>
+        <div class="contact-grid">
+          <div class="form-card">
+            <script src="https://js-na2.hsforms.net/forms/embed/245995240.js" defer></script>
+            <div class="hs-form-frame" data-region="na2" data-form-id="2f174b0e-b67d-4ca2-b12c-bd877ac8cab3" data-portal-id="245995240"></div>
+          </div>
+          <div class="contact-socials" id="contactSocials" aria-label="Follow Rare Pond"></div>
         </div>
       </div>
       <footer class="site-footer rp-footer" data-footer></footer>
@@ -1009,7 +1028,9 @@ const __d=await Promise.all([
   fetch('/data/stills-hd.json').then(r=>r.json()).catch(()=>({hd:[]})),
   fetch('/data/section-templates.json').then(r=>r.json()).catch(()=>({})),
   fetch('/data/bts.json').then(r=>r.json()).catch(()=>({})),
-  fetch('/data/platforms.json').then(r=>r.json()).catch(()=>({platforms:[]}))
+  fetch('/data/platforms.json').then(r=>r.json()).catch(()=>({platforms:[]})),
+  fetch('/data/socials.json').then(r=>r.json()).catch(()=>({socials:[]})),
+  fetch('/data/colorlooks.json').then(r=>r.json()).catch(()=>({looks:[]}))
 ]);
 const SITE=__d[0];
 const __projects=__d[1].projects;
@@ -1097,7 +1118,16 @@ const stillFallback=src=>hdWidths(src)?`${hdBase(src)}-1600.jpg`:src;
    automatically changes the background. focusBg/posterImage is only the fallback for
    projects that have no stills at all (then SITE.water if that too is blank). */
 const bgStillSrc=(stills,fallback)=>(stills&&stills.length)?stillFull(stills[0]):(fallback||SITE.water);
-const SOCIALS=(SITE.socials||[]).map(s=>[s.url,s.label,s.icon]);
+/* Socials are now sourced from data/socials.json (NocoDB `socials` table), NOT site.json.
+   Each entry: {label,url,icon(code),colorLook,blurb}. The platform logo + colours come from the
+   entry's colour-look in data/colorlooks.json (look.icon = swappable 1080 PNG, look.c1/c2/c3). */
+const SOCIALS_DATA=((__d[8]&&__d[8].socials)||[]);
+const __looksRaw=(__d[9]&&__d[9].looks)||(__d[9]||{});
+const LOOKS_BY_KEY={};
+(Array.isArray(__looksRaw)?__looksRaw:Object.keys(__looksRaw).map(k=>Object.assign({key:k},__looksRaw[k]||{}))).forEach(l=>{if(l&&l.key)LOOKS_BY_KEY[l.key]=l;});
+/* resolve an icon-code alias OR colour-look key to the look; returns {icon,c1,c2,c3} */
+function socialLook(s){return LOOKS_BY_KEY[s&&s.colorLook]||{};}
+const SOCIALS=SOCIALS_DATA.map(s=>[s.url,s.label,s.icon]);
 const ABOUT_ORBS=SITE.orbits||[];
 try{
   const hero=SITE.hero||{},ab=SITE.about||{};
@@ -1166,10 +1196,31 @@ function watchMatch(u){
 /* generic play glyph — unknown-host watch fallback only (real services use their logo) */
 const PLAY_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
 
-function socialHTML(){return SOCIALS.map(([u,n,k])=>`<a href="${u}" target="_blank" rel="noopener" aria-label="${n}" data-net="${k}">${SOCIAL_SVG[k]}</a>`).join('');}
+/* Header/footer social icon: prefer the colour-look's swappable logo file rendered as a MASK
+   (background:currentColor keeps today's monochrome-at-rest, brand-on-hover behaviour), and fall
+   back to the inline platforms.json SVG if the look/icon is missing. */
+function socialIconMarkup(s){
+  const look=socialLook(s);
+  if(look&&look.icon)return `<span class="soc-ico" style="--m:url('${look.icon}')" aria-hidden="true"></span>`;
+  return SOCIAL_SVG[s.icon]||SOCIAL_SVG.web||'';
+}
+function socialHTML(){return SOCIALS_DATA.map(s=>`<a href="${s.url}" target="_blank" rel="noopener" aria-label="${s.label}" data-net="${s.icon}">${socialIconMarkup(s)}</a>`).join('');}
+/* Contact-page bubbles: a brand-coloured rounded box per social (logo + descriptive blurb),
+   coloured from the entry's colour-look (c1->c2 gradient). Same swappable logo file, filled white. */
+/* readable foreground (white/dark) for a given bubble colour - handles light brands like IMDb yellow */
+function bubbleFg(hex){try{var h=hex.replace('#','');if(h.length===3)h=h.replace(/(.)/g,'$1$1');var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return (0.2126*r+0.7152*g+0.0722*b)>180?'#141414':'#ffffff';}catch(e){return '#ffffff';}}
+function socialBubblesHTML(){
+  return SOCIALS_DATA.map(s=>{
+    const look=socialLook(s);
+    const c1=look.c1||'#1f6fd0',c2=look.c2||c1,fg=bubbleFg(c1);
+    const ico=look&&look.icon?`<span class="cbub-ico" style="--m:url('${look.icon}')" aria-hidden="true"></span>`:(SOCIAL_SVG[s.icon]||'');
+    return `<a class="contact-bubble" href="${s.url}" target="_blank" rel="noopener" aria-label="${s.label}" data-net="${s.icon}" style="--c1:${c1};--c2:${c2};--fg:${fg}"><span class="cbub-badge">${ico}</span><span class="cbub-label">${s.blurb||s.label}</span><span class="cbub-arrow" aria-hidden="true">&rarr;</span></a>`;
+  }).join('');
+}
 document.getElementById('hdrDuck').src=SITE.logos.duckMark;
 document.querySelectorAll('.rpWater').forEach(d=>d.style.backgroundImage=`url("${SITE.water}")`);
 document.getElementById('socialsHost').innerHTML=socialHTML();
+(function(){var cs=document.getElementById('contactSocials');if(cs)cs.innerHTML=socialBubblesHTML();})();
 document.querySelectorAll('[data-footer]').forEach(f=>f.appendChild(document.getElementById('footerTpl').content.cloneNode(true)));
 /* Footer copy from Site Settings (site.json → footer), driving every footer instance.
    Defensive: any missing value leaves the static footerTpl markup untouched. */

@@ -25,28 +25,6 @@
     ],
     "button": "Learn who we are →"
   },
-  "socials": [
-    {
-      "label": "YouTube",
-      "url": "https://www.youtube.com/@zytopian",
-      "icon": "yt"
-    },
-    {
-      "label": "Instagram",
-      "url": "https://www.instagram.com/rarepond",
-      "icon": "ig"
-    },
-    {
-      "label": "LinkedIn",
-      "url": "https://www.linkedin.com/company/rare-pond-studios/",
-      "icon": "li"
-    },
-    {
-      "label": "Facebook",
-      "url": "https://www.facebook.com/profile.php?id=61589642040296",
-      "icon": "fb"
-    }
-  ],
   "orbits": [
     "/media/projects/geri_action/stills/geri-anim-1.jpg",
     "/media/projects/geri_action/stills/geri-anim-2.jpg",

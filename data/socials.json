@@ -1,0 +1,33 @@
+{
+  "_source": "NocoDB socials table (id ma4lkbfxa7xa6ot) via socials_sync.py",
+  "socials": [
+    {
+      "label": "YouTube",
+      "url": "https://www.youtube.com/@zytopian",
+      "icon": "yt",
+      "colorLook": "youtube",
+      "blurb": "See our YouTube films"
+    },
+    {
+      "label": "Instagram",
+      "url": "https://www.instagram.com/rarepond",
+      "icon": "ig",
+      "colorLook": "instagram",
+      "blurb": "Join our Instagram community"
+    },
+    {
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/company/rare-pond-studios/",
+      "icon": "li",
+      "colorLook": "linkedin",
+      "blurb": "Connect with our LinkedIn"
+    },
+    {
+      "label": "Facebook",
+      "url": "https://www.facebook.com/profile.php?id=61589642040296",
+      "icon": "fb",
+      "colorLook": "facebook",
+      "blurb": "Engage with our Facebook"
+    }
+  ]
+}
