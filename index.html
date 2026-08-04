@@ -86,7 +86,13 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 @keyframes pvRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .view.pv-rise{animation:pvRise .6s cubic-bezier(.2,.7,.2,1) both}
 @media (prefers-reduced-motion:reduce){#pageveil.pv-hide{transition:none}.view.pv-rise{animation:none}}
+/* Directional gradient wipe (Studio <-> Rentals / Media). Signature gradient panel; slides across the page-load boundary. */
+#xwipe{position:fixed;inset:0;z-index:2147483600;background:radial-gradient(circle at 50% 42%,#56c8ff,#3f6bff 46%,#9b5cff 100%);transform:translateX(0);pointer-events:none;will-change:transform;display:none}
+html.xw-cover #xwipe,html.xw-active #xwipe{display:block}
+html.xw-active{overflow:hidden}
+@media (prefers-reduced-motion:reduce){#xwipe{display:none!important}}
 </style>
+<script>/* pre-paint: if we arrived via a directional wipe, cover before first paint (no flash) */(function(){try{var d=sessionStorage.getItem('__xw');if(d==='L'||d==='R'){document.documentElement.classList.add('xw-cover');window.__XW_IN=d;if(window.__setThemeColor)window.__setThemeColor('#3f6bff');}}catch(e){}})();</script>
 <!-- Social icons + footer: one shared stylesheet, so the studio, rentals and the
      maintenance cover cannot drift apart. See assets/chrome.css. -->
 <link rel="stylesheet" href="/assets/chrome.css">
@@ -191,7 +197,9 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   .xsite .xarrow{font-size:19px;line-height:1;transition:.2s;color:#2f6cb0}
   .xsite:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
   .xsite:hover .xarrow{color:#0b59c4;filter:drop-shadow(0 0 6px rgba(31,111,208,.95));transform:translateX(4px)}
+  .xsite-media:hover .xarrow{transform:translateX(-4px)}
   @media(max-width:780px){.xsite{padding:7px 11px;font-size:13px}}
+  @media(max-width:600px){.hright2 .xsite{display:none}}
   @media(max-width:780px){.nav a{padding:8px 10px;font-size:13px}.brandname{display:none}}   /* icon sizes: /assets/chrome.css */
   /* ===== mobile hamburger menu (nav + socials) — shown <=720px in place of the inline nav/socials ===== */
   .hmenu-btn{display:none;flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:12px;border:1px solid rgba(40,95,180,.32);background:rgba(255,255,255,.6);cursor:pointer;align-items:center;justify-content:center;transition:.18s}
@@ -952,6 +960,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 </head>
 <body>
   <div id="pageveil" aria-hidden="true"></div>
+  <div id="xwipe" aria-hidden="true"></div>
   <script>
   /* Page-load veil controller. Holds a brand-colour cover over the page until fonts +
      assets are ready, then fades it out with a gentle content-rise. Multiple independent
@@ -997,7 +1006,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     <div class="hdr-bg"></div>
     <a class="hdr-logo" href="/" data-go="home"><img class="hdr-duck" id="hdrDuck" src="/media/logos/duck-mark.webp" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
     <nav class="nav"><a href="/team" data-go="team">Our&nbsp;Team</a><a href="/projects" data-go="projects" id="navProjects">Projects</a><a href="/#contact" data-go="contact">Contact</a></nav>
-    <div class="hright2"><a class="xsite" href="/rentals" title="Go to the Rare Pond Rentals site">Rentals&nbsp;<span class="xarrow">&rarr;</span></a><div class="socials rp-soc" id="socialsHost"></div><button class="hmenu-btn" id="hmenuBtn" aria-label="Menu" aria-controls="hmenu" aria-expanded="false"><span></span></button></div>
+    <div class="hright2"><a class="xsite xsite-media" href="/media" data-wipe="R" title="Go to Rare Pond Media"><span class="xarrow">&larr;</span>&nbsp;Media</a><a class="xsite" href="/rentals" data-wipe="L" title="Go to the Rare Pond Rentals site">Rentals&nbsp;<span class="xarrow">&rarr;</span></a><div class="socials rp-soc" id="socialsHost"></div><button class="hmenu-btn" id="hmenuBtn" aria-label="Menu" aria-controls="hmenu" aria-expanded="false"><span></span></button></div>
   </header>
   <!-- mobile menu: nav + socials, opened from the header hamburger (right of Rentals) -->
   <div class="hmenu" id="hmenu" aria-hidden="true">
@@ -1005,7 +1014,8 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       <a href="/team" data-go="team">Our&nbsp;Team</a>
       <a href="/projects" data-go="projects">Projects</a>
       <a href="/#contact" data-go="contact">Contact</a>
-      <a href="/rentals" class="hmenu-rentals">Rentals&nbsp;<span aria-hidden="true">&rarr;</span></a>
+      <a href="/media" class="hmenu-rentals hmenu-media" data-wipe="R"><span aria-hidden="true">&larr;</span>&nbsp;Media</a>
+      <a href="/rentals" class="hmenu-rentals" data-wipe="L">Rentals&nbsp;<span aria-hidden="true">&rarr;</span></a>
     </nav>
     <div class="hmenu-soc socials rp-soc" id="hmenuSoc" aria-label="Follow Rare Pond"></div>
   </div>
@@ -2321,6 +2331,7 @@ __main().catch(e=>console.error("init error",e));</script>
     var a=e.target.closest&&e.target.closest('a[href]');
     if(!a)return;
     if(a.hasAttribute('data-go')||a.hasAttribute('data-page'))return;   // in-page SPA routes fade themselves
+    if(a.hasAttribute('data-wipe'))return;                              // directional gradient wipe (xwipe.js) owns these
     if(e.defaultPrevented||e.button===1||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
     if(a.target&&a.target!=='_self')return;
     var href=a.getAttribute('href')||'';
@@ -2340,5 +2351,6 @@ __main().catch(e=>console.error("init error",e));</script>
 <!-- Shared across rarepond.com + jackcarlsen.com (single source: bts-automation/social_ui.js,
      published by social_ui_sync.py). Contact-bubble hover-glow + social-link transport wipe. -->
 <script src="/assets/social_ui.js" defer></script>
+<script src="/assets/xwipe.js" defer></script>
 </body>
 </html>
