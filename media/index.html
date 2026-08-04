@@ -349,9 +349,16 @@ html.xw-active{overflow:hidden}
     var ft=(d&&d.footer)||{};
     var tag=document.querySelector('.mfoot .tag');
     if(tag&&ft.tagline)tag.textContent=ft.tagline;
+    var NAV=(d&&Array.isArray(d.nav)&&d.nav.length)?d.nav:(ft.links||[]);
+    /* Header nav labels come from the same shared list, matched in order to the header items
+       (team / projects / contact) — one list drives header and footer, like the studio. */
+    var headerItems=NAV.filter(function(l){return l&&l.header;});
+    var mn=document.querySelectorAll('.mnav a');
+    headerItems.forEach(function(l,i){ if(mn[i]&&l.label) mn[i].innerHTML=esc(l.label).replace(/ /g,'&nbsp;'); });
+    var fnav=NAV.filter(function(l){return l&&l.footer!==false;});
     var fl=document.querySelector('.mfoot .flinks');
-    if(fl&&Array.isArray(ft.links)&&ft.links.length){
-      fl.innerHTML=ft.links.map(function(l){
+    if(fl&&fnav.length){
+      fl.innerHTML=fnav.map(function(l){
         var label=esc(l.label||'');
         if(l.go==='contact')return '<a href="#" data-contact>'+label+'</a>';
         var href=l.href?l.href:(l.go?('/#'+l.go):'#');

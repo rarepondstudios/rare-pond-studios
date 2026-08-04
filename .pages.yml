@@ -74,9 +74,16 @@ content:
         fields:
           - { name: brandLine1, label: Brand - line 1, type: string }
           - { name: brandLine2, label: Brand - line 2 (studio), type: string }
-          - { name: navTeam, label: Nav - Team label, type: string }
-          - { name: navProjects, label: Nav - Projects label, type: string }
-          - { name: navContact, label: Nav - Contact label, type: string }
+      - name: nav
+        label: Navigation (shared - drives header + footer on ALL sites)
+        description: "The single list of page links. Header shows the items marked 'Show in header' (Our Team / Projects / Contact); every footer shows the whole list. Edit a label here once and it updates the header and footer on the studio, media and rentals sites together."
+        type: object
+        list: true
+        fields:
+          - { name: label, label: Label, type: string }
+          - { name: go, label: In-site target (home/team/projects/contact - blank if it's a link to another site), type: string }
+          - { name: href, label: "Site/URL link (e.g. / , /media , /rentals) - blank if in-site", type: string }
+          - { name: header, label: Show in header nav, type: boolean }
       - name: sectionHeadings
         label: Section headings (studio)
         type: object
@@ -104,14 +111,8 @@ content:
           - { name: copyrightUrl, label: Copyright link URL, type: string }
           - { name: copyrightUrlText, label: Copyright link text, type: string }
           - { name: copyright, label: Copyright line, type: string }
-          - name: links
-            label: Footer links
-            type: object
-            list: true
-            fields:
-              - { name: label, label: Label, type: string }
-              - { name: go, label: In-site target (home/team/projects/contact - blank if external), type: string }
-              - { name: href, label: External href (optional), type: string, hidden: true }
+          # Footer links are now the shared "Navigation" list above (site.json → nav),
+          # the same list that drives the header. Edit page links there, once, for all sites.
       - name: hubspot
         label: Contact form (HubSpot)
         type: object

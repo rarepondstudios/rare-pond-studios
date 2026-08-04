@@ -87,9 +87,17 @@
       const link=ut?`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(ut)}</a>`:'';
       cp.innerHTML=(link&&c)?(link+' · '+esc(c)):(link||esc(c));
     }
+    /* Header nav labels + footer links both come from the ONE shared list (site.json → nav),
+       the same list the studio uses. Header anchors are matched in order to the header items
+       (team / projects / contact); the footer renders the full list. */
+    const NAV=(Array.isArray(site.nav)&&site.nav.length)?site.nav:(ft.links||[]);
+    const headerItems=NAV.filter(l=>l&&l.header);
+    const hn=document.querySelectorAll('.hnav a');
+    headerItems.forEach((l,i)=>{ if(hn[i]&&l.label) hn[i].innerHTML=esc(l.label).replace(/ /g,'&nbsp;'); });
+    const fnav=NAV.filter(l=>l&&l.footer!==false);
     const fl=document.querySelector('.rfoot .flinks');
-    if(fl&&Array.isArray(ft.links)&&ft.links.length){
-      fl.innerHTML=ft.links.map(l=>{
+    if(fl&&fnav.length){
+      fl.innerHTML=fnav.map(l=>{
         const label=esc(l.label||'');
         if(l.go==='contact')return `<a href="/#contact" data-contact>${label}</a>`;
         const href=l.href?l.href:(l.go?('/#'+l.go):'#');

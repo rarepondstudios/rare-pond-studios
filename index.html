@@ -1232,10 +1232,17 @@ try{
   const setTxt=(el,v)=>{if(el&&v!=null&&v!=='')el.textContent=v;};
   setTxt(document.querySelector('.hdr-logo .bn-rare'),hd.brandLine1);
   setTxt(document.querySelector('.hdr-logo .bn-studios'),hd.brandLine2);
-  const navA=document.querySelectorAll('.site-header .nav a');
-  if(navA[0])setTxt(navA[0],(hd.navTeam||'').replace(/ /g,' '));
-  if(navA[1])setTxt(navA[1],hd.navProjects);
-  if(navA[2])setTxt(navA[2],hd.navContact);
+  /* Header + hamburger nav labels come from the single shared list (site.json -> nav), the
+     SAME list the footer renders from, so a label is edited in exactly one place. Matched to
+     the existing markup by its data-go key (team/projects) and data-contact (contact). */
+  const NAVLIST=Array.isArray(SITE.nav)?SITE.nav:[];
+  const navLabelByGo=g=>{const it=NAVLIST.find(n=>n&&n.go===g);return it?it.label:null;};
+  document.querySelectorAll('.site-header .nav a[data-go],.hmenu-links a[data-go]').forEach(function(a){
+    var L=navLabelByGo(a.getAttribute('data-go')); if(L)setTxt(a,L.replace(/ /g,'\u00a0'));
+  });
+  document.querySelectorAll('.site-header .nav a[data-contact],.hmenu-links a[data-contact]').forEach(function(a){
+    var L=navLabelByGo('contact'); if(L)setTxt(a,L);
+  });
   /* Section headings (Site Settings → sectionHeadings). Fallback = static HTML. */
   const sh=SITE.sectionHeadings||{};
   const pp=document.querySelector('#projects-page .pp-head');
@@ -1329,7 +1336,8 @@ try{
       copy.innerHTML=(link&&cp)?(link+' · '+esc2(cp)):(link||esc2(cp));
     }
     const links=f.querySelector('.flinks');
-    if(links&&Array.isArray(ft.links)&&ft.links.length){
+    const fnav=(Array.isArray(SITE.nav)&&SITE.nav.length?SITE.nav:(ft.links||[])).filter(l=>l&&l.footer!==false);
+    if(links&&fnav.length){
       /* A footer link is either an in-site target (go -> SPA router) or a plain
          href. "Rentals" is a real path, not an SPA view, so it must stay an href.
          KNOWN_PATHS is a safety net: the External href field is hidden in Pages
@@ -1337,7 +1345,7 @@ try{
          render a dead <a> with no destination. This keeps the link working from
          the label alone. */
       const KNOWN_PATHS={rentals:'/rentals'};
-      links.innerHTML=ft.links.map(l=>{
+      links.innerHTML=fnav.map(l=>{
         const label=esc2(l.label||'');
         const fallback=KNOWN_PATHS[String(l.label||'').trim().toLowerCase()];
         const href=l.href||(!l.go&&fallback?fallback:'');

@@ -37,11 +37,16 @@
   ],
   "header": {
     "brandLine1": "Rare Pond",
-    "brandLine2": "Studios",
-    "navTeam": "Our Team",
-    "navProjects": "Projects",
-    "navContact": "Contact"
+    "brandLine2": "Studios"
   },
+  "nav": [
+    { "label": "Our Team", "go": "team", "header": true },
+    { "label": "Projects", "go": "projects", "header": true },
+    { "label": "Studio", "href": "/" },
+    { "label": "Media", "href": "/media" },
+    { "label": "Rentals", "href": "/rentals" },
+    { "label": "Contact", "go": "contact", "header": true }
+  ],
   "sectionHeadings": {
     "projectsEyebrow": "The catalogue",
     "projectsHeading": "All Projects",
@@ -61,33 +66,7 @@
     "tagline": "Let's Make Something Amazing...",
     "copyrightUrl": "https://rarepond.com",
     "copyrightUrlText": "rarepond.com",
-    "copyright": "© Rare Pond Studios 2026",
-    "links": [
-      {
-        "label": "Our Team",
-        "go": "team"
-      },
-      {
-        "label": "Projects",
-        "go": "projects"
-      },
-      {
-        "label": "Studio",
-        "href": "/"
-      },
-      {
-        "label": "Media",
-        "href": "/media"
-      },
-      {
-        "label": "Rentals",
-        "href": "/rentals"
-      },
-      {
-        "label": "Contact",
-        "go": "contact"
-      }
-    ]
+    "copyright": "© Rare Pond Studios 2026"
   },
   "hubspot": {
     "portalId": "245995240",
