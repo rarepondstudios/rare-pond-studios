@@ -65,7 +65,9 @@
       ".contact-bubble:hover .cbub-label,.contact-bubble:focus-visible .cbub-label," +
       ".contact-bubble:hover .cbub-arrow,.contact-bubble:focus-visible .cbub-arrow{color:var(--fg,#fff)}" +
       /* ===== #3 social transport wipe ===== */
-      ".rp-soctransport{position:fixed;inset:0;z-index:2147483000;pointer-events:none;opacity:1;" +
+      /* height:100lvh (large-viewport) + inset:0 cover the FULL mobile screen, extending behind
+         iOS Safari's dynamic top/bottom bars so the wipe never leaves an uncovered band. */
+      ".rp-soctransport{position:fixed;inset:0;height:100vh;height:100lvh;z-index:2147483000;pointer-events:none;opacity:1;" +
       "background:radial-gradient(circle at 50% 44%,var(--sc1,#3f6bff),var(--sc2,#3f6bff) 52%,var(--sc3,#9b5cff) 100%);" +
       "clip-path:circle(0px at var(--scx,50%) var(--scy,50%));-webkit-clip-path:circle(0px at var(--scx,50%) var(--scy,50%));" +
       "transition:clip-path .5s cubic-bezier(.66,0,.34,1),-webkit-clip-path .5s cubic-bezier(.66,0,.34,1),opacity .35s ease}" +
@@ -97,10 +99,19 @@
   }
 
   /* ---- the wipe ---------------------------------------------------------- */
+  /* Touch devices block window.open() when it's called AFTER the wipe (outside the tap gesture),
+     so the social bubbles did nothing on mobile. On touch we navigate the SAME tab once the wipe
+     has covered the screen (always works, and the wipe stays covering during the hand-off); on
+     desktop we keep the new-tab behaviour. */
+  var IS_TOUCH = false;
+  try { IS_TOUCH = (window.matchMedia && matchMedia("(pointer:coarse)").matches) || ("ontouchstart" in window) || navigator.maxTouchPoints > 0; } catch (e) {}
   var busy = false;
   function transport(a) {
     var href = a.getAttribute("href");
-    var open = function () { try { window.open(href, "_blank", "noopener"); } catch (e) { location.href = href; } };
+    var open = function () {
+      if (IS_TOUCH) { location.href = href; return; }           // reliable on mobile (no popup block)
+      try { window.open(href, "_blank", "noopener"); } catch (e) { location.href = href; }
+    };
     if (REDUCED) { open(); return; }
     if (busy) { open(); return; }
     busy = true;
@@ -127,7 +138,7 @@
     var grew = false;
     d.addEventListener("transitionend", function (e) {
       if (e.propertyName.indexOf("clip-path") < 0) return;
-      if (!grew) { grew = true; doOpen(); d.classList.remove("go"); }   // covered -> open + start retract
+      if (!grew) { grew = true; doOpen(); if (!IS_TOUCH) d.classList.remove("go"); }  // covered -> open; desktop retracts, touch keeps covering through the same-tab hand-off
       else cleanup();                                                    // retracted -> remove
     });
     // safety net if transitionend is missed (background tab / interrupted)
