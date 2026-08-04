@@ -6,9 +6,9 @@
     "bgBubbleCount": 28
   },
   "logos": {
-    "color": "/media/logos/rare-pond-color.png",
-    "footer": "/media/RP_V3_Simple-Logo-White_FULL-CANVAS.png",
-    "duckMark": "/media/logos/duck-mark.png"
+    "color": "/media/logos/rare-pond-color.webp",
+    "footer": "/media/logos/duck-white.webp",
+    "duckMark": "/media/logos/duck-mark.webp"
   },
   "water": "/media/site/water.jpg",
   "hero": {
