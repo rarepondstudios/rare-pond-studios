@@ -41,6 +41,12 @@
     modal=backdrop.querySelector('.rpc-modal');
     backdrop.addEventListener('click',function(e){ if(e.target===backdrop) closeM(); });
     backdrop.querySelector('.rpc-close').addEventListener('click',closeM);
+    var frame=backdrop.querySelector('.hs-form-frame');
+    if(frame){
+      var ready=function(){ frame.classList.add('rpc-ready'); };
+      try{ var mo=new MutationObserver(function(){ if(frame.querySelector('iframe,form')){ ready(); mo.disconnect(); } }); mo.observe(frame,{childList:true,subtree:true}); }catch(e){}
+      setTimeout(ready,2800);   // fallback so the form always appears even if detection misses
+    }
     Promise.all([
       fetch('/data/socials.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
       fetch('/data/colorlooks.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
@@ -73,6 +79,17 @@
   }
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&backdrop&&!backdrop.hasAttribute('hidden')) closeM(); });
   window.RP_openContact=openM; window.RP_closeContact=closeM;
+
+  /* Pre-warm the form so it's already built + loaded before the user clicks (removes the render
+     delay). Triggers on the first hover/focus/touch of any Contact trigger, and on idle after
+     load as a fallback. build()/loadHubspot() are idempotent. */
+  var warmed=false;
+  function warm(){ if(warmed)return; warmed=true; build(); loadHubspot(); }
+  ['pointerenter','focusin','touchstart'].forEach(function(ev){
+    document.addEventListener(ev,function(e){ if(e.target&&e.target.closest&&e.target.closest('[data-contact]')) warm(); }, {capture:true,passive:true});
+  });
+  (function(){ var go=function(){ (window.requestIdleCallback||function(f){return setTimeout(f,1400);})(warm); };
+    if(document.readyState==='complete')go(); else addEventListener('load',go,{once:true}); })();
 
   document.addEventListener('click',function(e){
     var t=e.target.closest&&e.target.closest('[data-contact]');

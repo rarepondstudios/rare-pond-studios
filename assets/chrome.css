@@ -96,6 +96,9 @@ a.xchip:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
 .xnav-pop-dark .xnav-pop-link{color:#dfe9ff}
 .xnav-pop-dark .xnav-pop-link:hover{background:rgba(255,255,255,.1);color:#fff}
 .xnav-pop-dark .xnav-pop-div{background:rgba(140,180,255,.18)}
+/* social-link transport wipe (social_ui.js) must sit ABOVE the contact popup (z 2147483200)
+   so, when a bubble is clicked inside the popup, the wipe plays over it — not behind it. */
+.rp-soctransport{z-index:2147483400!important}
 
 /* ---------- social icons in a FOOTER (ghost pills on the dark water) ---------- */
 .rp-footer .fsoc{display:flex;gap:12px;justify-content:center;margin-bottom:18px}
