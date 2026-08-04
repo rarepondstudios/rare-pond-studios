@@ -580,6 +580,7 @@ html.xw-active{overflow:hidden}
   .contact-head .ey{font-size:12.5px;letter-spacing:.24em;text-transform:uppercase;color:#7fc4ff;font-weight:700}
   .contact-head h2{font-size:clamp(28px,4vw,46px);margin:.18em 0 .1em;font-weight:800}
   .contact-head p{color:#bcd6f3;font-size:15px;margin:0}
+  .contact-cta{text-align:center;margin-top:12px}
   /* less top/bottom padding (was symmetric ~36px) so the box hugs the form instead of leaving a
      wide empty band above and below it; horizontal padding kept for the field side margins */
   .form-card{background:rgba(9,24,52,.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#eaf2ff;border:1px solid rgba(150,190,255,.22);border-radius:22px;padding:clamp(10px,1.4vw,15px) clamp(22px,3vw,36px);max-width:640px;margin:0 auto;box-shadow:0 30px 70px rgba(0,8,30,.5);min-height:0}
@@ -1005,7 +1006,7 @@ html.xw-active{overflow:hidden}
   <header class="site-header">
     <div class="hdr-bg"></div>
     <a class="hdr-logo" href="/" data-go="home"><img class="hdr-duck" id="hdrDuck" src="/media/logos/duck-mark.webp" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
-    <nav class="nav"><a href="/team" data-go="team">Our&nbsp;Team</a><a href="/projects" data-go="projects" id="navProjects">Projects</a><a href="/#contact" data-go="contact">Contact</a></nav>
+    <nav class="nav"><a href="/team" data-go="team">Our&nbsp;Team</a><a href="/projects" data-go="projects" id="navProjects">Projects</a><a href="/#contact" data-contact>Contact</a></nav>
     <div class="hright2"><div class="xnav"><a class="xchip" href="/media" data-wipe="R" data-dir="l" data-site="media" title="Go to Rare Pond Media"><span class="xar">&larr;</span>Media</a><span class="xchip xcur" data-site="studio">Studio</span><a class="xchip" href="/rentals" data-wipe="L" data-dir="r" data-site="rentals" title="Go to the Rare Pond Rentals site">Rentals<span class="xar">&rarr;</span></a></div><div class="socials rp-soc" id="socialsHost"></div><button class="hmenu-btn" id="hmenuBtn" aria-label="Menu" aria-controls="hmenu" aria-expanded="false"><span></span></button></div>
   </header>
   <!-- mobile menu: nav + socials, opened from the header hamburger (right of Rentals) -->
@@ -1013,7 +1014,7 @@ html.xw-active{overflow:hidden}
     <nav class="hmenu-links">
       <a href="/team" data-go="team">Our&nbsp;Team</a>
       <a href="/projects" data-go="projects">Projects</a>
-      <a href="/#contact" data-go="contact">Contact</a>
+      <a href="/#contact" data-contact>Contact</a>
       <a href="/media" class="hmenu-rentals hmenu-media" data-wipe="R"><span aria-hidden="true">&larr;</span>&nbsp;Media</a>
       <a href="/rentals" class="hmenu-rentals" data-wipe="L">Rentals&nbsp;<span aria-hidden="true">&rarr;</span></a>
     </nav>
@@ -1062,13 +1063,7 @@ html.xw-active{overflow:hidden}
       <div class="deepwater rpWater"></div>
       <div class="contact-wrap">
         <div class="contact-head"><div class="ey">Get in touch</div><h2>Let's make something amazing.</h2><p>Tell us about your project and we'll be in touch.</p></div>
-        <div class="contact-grid">
-          <div class="form-card">
-            <script src="https://js-na2.hsforms.net/forms/embed/245995240.js" defer></script>
-            <div class="hs-form-frame" data-region="na2" data-form-id="2f174b0e-b67d-4ca2-b12c-bd877ac8cab3" data-portal-id="245995240"></div>
-          </div>
-          <div class="contact-socials" id="contactSocials" aria-label="Follow Rare Pond"></div>
-        </div>
+        <div class="contact-cta"><button class="rpc-cta" type="button" data-contact>Get in touch <span class="ar" aria-hidden="true">&rarr;</span></button></div>
       </div>
       <footer class="site-footer rp-footer" data-footer></footer>
     </section>
@@ -1107,7 +1102,7 @@ html.xw-active{overflow:hidden}
     <div class="footer-logo"><img class="rpColor" loading="lazy" decoding="async" alt="Rare Pond Studios"></div>
     <div class="tag">Let's Make Something Amazing...</div>
     <div class="fsoc" data-socials></div>
-    <div class="flinks"><a href="/team" data-go="team">Our Team</a><a href="/projects" data-go="projects">Projects</a><a href="/rentals">Rentals</a><a href="/#contact" data-go="contact">Contact</a></div>
+    <div class="flinks"><a href="/team" data-go="team">Our Team</a><a href="/projects" data-go="projects">Projects</a><a href="/rentals">Rentals</a><a href="/#contact" data-contact>Contact</a></div>
     <div class="copy"><a href="https://rarepond.com" target="_blank" rel="noopener">rarepond.com</a> · © Rare Pond Studios 2026</div>
   </template>
 
@@ -2260,7 +2255,7 @@ document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]')
 /* browser back / forward drives the view (this is how the universe closes on Back) */
 addEventListener('popstate',()=>renderRoute());
 /* hash links from other pages (rentals): /#team /#projects /#contact /#about */
-function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if(currentOpen)closeUniverse(currentOpen);if(h==='team')showView('team');else if(h==='projects')showView('projects');else if(h==='contact')showView('home','#contact');else if(h==='about')showView('home','#about');}
+function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if(currentOpen)closeUniverse(currentOpen);if(h==='team')showView('team');else if(h==='projects')showView('projects');else if(h==='contact'){if(window.RP_openContact)RP_openContact();}else if(h==='about')showView('home','#about');}
 addEventListener('hashchange',routeHash);
 /* initial route */
 (function initRoute(){const __l=cpLegacySlug();if(__l&&PAGE_BY_SLUG[__l])history.replaceState({},'',cpUrl(__l));const __s=cpSlugFromUrl();if(__s){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
@@ -2331,7 +2326,7 @@ __main().catch(e=>console.error("init error",e));</script>
     var a=e.target.closest&&e.target.closest('a[href]');
     if(!a)return;
     if(a.hasAttribute('data-go')||a.hasAttribute('data-page'))return;   // in-page SPA routes fade themselves
-    if(a.hasAttribute('data-wipe'))return;                              // directional gradient wipe (xwipe.js) owns these
+    if(a.hasAttribute('data-wipe')||a.hasAttribute('data-contact'))return;   // wipe (xwipe.js) / contact popup (contact.js) own these
     if(e.defaultPrevented||e.button===1||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
     if(a.target&&a.target!=='_self')return;
     var href=a.getAttribute('href')||'';
@@ -2353,5 +2348,6 @@ __main().catch(e=>console.error("init error",e));</script>
 <script src="/assets/social_ui.js" defer></script>
 <script src="/assets/xwipe.js" defer></script>
 <script src="/assets/xnav.js" defer></script>
+<script src="/assets/contact.js" defer></script>
 </body>
 </html>

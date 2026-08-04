@@ -90,6 +90,12 @@ a.xchip:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
 .xnav-pop-dark{background:rgba(10,22,44,.97);border-color:rgba(140,180,255,.2)}
 .xnav-pop-dark .xchip{border-color:rgba(140,180,255,.28);background:rgba(255,255,255,.06);color:#dfe9ff}
 .xnav-pop-dark .xnav-pop-soc{border-top-color:rgba(140,180,255,.16)}
+.xnav-pop .xnav-pop-link{display:block;padding:10px 14px;border-radius:10px;color:#13325e;text-decoration:none;font-weight:700;font-size:14.5px;white-space:nowrap;cursor:pointer}
+.xnav-pop .xnav-pop-link:hover{background:rgba(40,95,180,.12);color:#0b59c4}
+.xnav-pop-div{height:1px;background:rgba(40,95,180,.16);margin:5px 2px}
+.xnav-pop-dark .xnav-pop-link{color:#dfe9ff}
+.xnav-pop-dark .xnav-pop-link:hover{background:rgba(255,255,255,.1);color:#fff}
+.xnav-pop-dark .xnav-pop-div{background:rgba(140,180,255,.18)}
 
 /* ---------- social icons in a FOOTER (ghost pills on the dark water) ---------- */
 .rp-footer .fsoc{display:flex;gap:12px;justify-content:center;margin-bottom:18px}

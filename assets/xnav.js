@@ -34,6 +34,12 @@
     var soc=cluster.querySelector('.rp-soc');
     function fill(){
       pop.innerHTML='';
+      var header=cluster.closest('header');
+      var pnav=header&&header.querySelector('.hnav,.mnav');     // page nav (Team / Projects / Contact)
+      if(pnav){
+        [].slice.call(pnav.querySelectorAll('a')).forEach(function(a){ var cl=a.cloneNode(true); cl.classList.add('xnav-pop-link'); pop.appendChild(cl); });
+        var hr=document.createElement('div'); hr.className='xnav-pop-div'; pop.appendChild(hr);
+      }
       [].slice.call(nav.querySelectorAll('.xchip')).forEach(function(ch){
         var cl=ch.cloneNode(true); var tip=cl.querySelector('.xnav-tip'); if(tip)tip.remove(); pop.appendChild(cl);
       });

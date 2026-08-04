@@ -198,6 +198,29 @@ content:
           - { name: buttonHref, label: "Button link (e.g. /#contact, a /path, or a full https:// URL)", type: string }
           - { name: image, label: Background image, type: image, description: "SPECS: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. Darker reads best." }
 
+  - name: contact
+    label: "Contact popup (all sites)"
+    type: file
+    path: data/contact.json
+    fields:
+      - name: cmsNote
+        label: "✉️ The Contact popup — shared by Studio, Rentals + Media"
+        type: string
+        readonly: true
+        description: "The 'Get in touch' popup that opens from the Contact button in the header (and the Get in touch buttons on the home pages) on all three sites. It's the SAME form everywhere, edited here once. The social bubbles beside the form + their blurbs come from the socials table in NocoDB. Below you control the heading text and the HubSpot form it embeds."
+      - { name: eyebrow, label: Eyebrow (small label above the heading), type: string }
+      - { name: heading, label: Heading, type: string }
+      - { name: sub, label: Sub-line under the heading, type: text }
+      - { name: buttonLabel, label: "\"Get in touch\" button label", type: string }
+      - name: hubspot
+        label: HubSpot form
+        type: object
+        description: "The embedded HubSpot form. Find these in HubSpot → your form → Share → Embed (they're in the embed snippet)."
+        fields:
+          - { name: region, label: "Region (e.g. na2)", type: string }
+          - { name: portalId, label: Portal ID, type: string }
+          - { name: formId, label: Form ID, type: string }
+
   - name: colorlooks
     label: Color Looks
     type: file

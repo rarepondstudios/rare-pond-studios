@@ -1,0 +1,37 @@
+/* Shared Contact popup — one implementation for studio, rentals and media (built by
+   /assets/contact.js from data/contact.json + the NocoDB socials table). Opens as a modal over
+   the page; click the backdrop or the X to close; the form keeps whatever was typed. */
+html.rpc-open{overflow:hidden}
+.rpc-backdrop{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;padding:clamp(14px,4vw,40px);
+  background:rgba(4,10,26,.72);opacity:0;transition:opacity .22s ease}
+.rpc-backdrop.rpc-show{opacity:1}
+.rpc-backdrop[hidden]{display:none}
+.rpc-modal{position:relative;width:100%;max-width:1000px;max-height:calc(100dvh - 40px);overflow-y:auto;
+  background:linear-gradient(180deg,#123a6b 0%,#0c2c57 55%,#081d3f 100%);border:1px solid rgba(150,190,255,.22);border-radius:24px;
+  padding:clamp(22px,3vw,42px);box-shadow:0 40px 100px rgba(0,8,30,.7);color:#eaf2ff;transform:translateY(14px) scale(.985);transition:transform .24s cubic-bezier(.2,.7,.2,1)}
+.rpc-backdrop.rpc-show .rpc-modal{transform:none}
+.rpc-close{position:absolute;top:12px;right:12px;z-index:2;width:40px;height:40px;border-radius:50%;border:1px solid rgba(150,190,255,.25);
+  background:rgba(255,255,255,.08);color:#eaf2ff;font-size:22px;line-height:1;cursor:pointer;transition:.18s;display:grid;place-items:center}
+.rpc-close:hover{background:rgba(255,255,255,.18)}
+/* ported contact styles so the popup matches the old inline contact section exactly */
+.rpc-modal .contact-head{text-align:center;margin:0 0 26px;padding-right:34px;padding-left:34px}
+.rpc-modal .contact-head .ey{font-size:12.5px;letter-spacing:.24em;text-transform:uppercase;color:#7fc4ff;font-weight:700}
+.rpc-modal .contact-head h2{font-size:clamp(25px,3.4vw,40px);margin:.18em 0 .1em;font-weight:800}
+.rpc-modal .contact-head p{color:#bcd6f3;font-size:15px;margin:0}
+.rpc-modal .contact-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(230px,.85fr);gap:24px;align-items:start}
+.rpc-modal .form-card{background:rgba(9,24,52,.55);border:1px solid rgba(150,190,255,.22);border-radius:22px;padding:clamp(10px,1.4vw,15px) clamp(18px,3vw,30px);min-height:0}
+.rpc-modal .contact-socials{display:flex;flex-direction:column;gap:12px}
+.rpc-modal .contact-bubble{display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:18px;text-decoration:none;color:var(--fg,#fff);background:linear-gradient(135deg,var(--c1),var(--c2),var(--c3,var(--c2)));box-shadow:0 10px 26px rgba(0,8,30,.34);transition:transform .18s ease,box-shadow .18s ease}
+.rpc-modal .contact-bubble:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(0,8,30,.46)}
+.rpc-modal .cbub-badge{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.18)}
+.rpc-modal .cbub-ico{width:26px;height:26px;background:var(--fg,#fff);-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+.rpc-modal .cbub-badge svg{width:24px;height:24px;fill:var(--fg,#fff)}
+.rpc-modal .cbub-label{flex:1 1 auto;font-weight:700;font-size:14.5px;line-height:1.25}
+.rpc-modal .cbub-arrow{flex:0 0 auto;opacity:.85;font-size:18px}
+@media(max-width:820px){.rpc-modal .contact-grid{grid-template-columns:1fr;gap:18px}.rpc-modal .contact-socials{order:-1}}
+/* the "Get in touch" CTA button used on the home pages */
+.rpc-cta{display:inline-flex;align-items:center;gap:9px;font-family:inherit;font-weight:800;font-size:16px;text-decoration:none;cursor:pointer;
+  padding:14px 28px;border-radius:50px;color:#fff;border:0;background:linear-gradient(100deg,#3f6bff,#7d5cff 55%,#9b5cff);box-shadow:0 14px 40px -12px rgba(80,110,255,.75);transition:transform .2s,box-shadow .2s}
+.rpc-cta:hover{transform:translateY(-2px);box-shadow:0 20px 52px -12px rgba(80,110,255,.9)}
+.rpc-cta .ar{transition:transform .2s}.rpc-cta:hover .ar{transform:translateX(4px)}
+@media(prefers-reduced-motion:reduce){.rpc-backdrop,.rpc-modal,.rpc-cta,.rpc-cta .ar{transition:none}}
