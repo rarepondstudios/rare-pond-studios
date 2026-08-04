@@ -105,6 +105,11 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
      as it re-centres - which is why the wipe's origin is measured AFTER the lock, so it is
      measured against the layout the viewer actually sees. */
   body.locked{overflow:hidden}
+  /* Scroll lock while a still lightbox is open: the lightbox owns the screen, so the project page
+     (.universe is its own overflow-y:auto scroll container) must not scroll behind it. Released on
+     close. overscroll-behavior stops the scroll-chain leaking to the page on trackpad/touch. */
+  body.lb-lock .universe{overflow:hidden!important;overscroll-behavior:none}
+  body.lb-lock{overscroll-behavior:none;touch-action:none}
   section{scroll-margin-top:100px;position:relative}
   a{color:inherit}
   /* THE VIEWS. showView() decides which one is up, but showView only runs once __main()
@@ -1753,8 +1758,8 @@ function lbShow(i){if(!lbList.length)return;lbIdx=((i%lbList.length)+lbList.leng
 let lbFallbacks=[];
 /* If a WebP fails to load (very old browser), silently drop back to the JPEG. */
 lbImg.addEventListener('error',()=>{const fb=lbFallbacks[lbIdx];if(fb&&lbImg.src!==location.origin+fb&&!lbImg.src.endsWith(fb)){lbImg.src=fb;}});
-function openLB(btn){const grid=btn.closest('.stills-grid');const btns=[...(grid?grid.querySelectorAll('.still'):[btn])];lbList=btns.map(b=>b.dataset.full);lbFallbacks=btns.map(b=>b.dataset.fallback||b.dataset.full);lbIdx=Math.max(0,lbList.indexOf(btn.dataset.full));lightbox.classList.toggle('single',lbList.length<2);lbImg.src=lbList[lbIdx];lightbox.classList.add('open');}
-function closeLB(){lightbox.classList.remove('open');lbImg.removeAttribute('src');lbList=[];}
+function openLB(btn){const grid=btn.closest('.stills-grid');const btns=[...(grid?grid.querySelectorAll('.still'):[btn])];lbList=btns.map(b=>b.dataset.full);lbFallbacks=btns.map(b=>b.dataset.fallback||b.dataset.full);lbIdx=Math.max(0,lbList.indexOf(btn.dataset.full));lightbox.classList.toggle('single',lbList.length<2);lbImg.src=lbList[lbIdx];lightbox.classList.add('open');document.body.classList.add('lb-lock');}
+function closeLB(){lightbox.classList.remove('open');document.body.classList.remove('lb-lock');lbImg.removeAttribute('src');lbList=[];}
 lightbox.addEventListener('click',e=>{const nav=e.target.closest('.lb-nav');if(nav){e.stopPropagation();lbShow(lbIdx+(nav.classList.contains('lb-next')?1:-1));return;}if(e.target===lightbox||e.target.classList.contains('lb-close'))closeLB();});
 document.addEventListener('click',e=>{const b=e.target.closest('.still');if(b)openLB(b);});
 document.addEventListener('click',e=>{const f=e.target.closest('.yt-facade');if(f){const id=f.dataset.id;const ifr=document.createElement('iframe');ifr.src='https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0&playsinline=1';ifr.title='Watch on YouTube';ifr.setAttribute('allow','accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share');ifr.setAttribute('allowfullscreen','');ifr.setAttribute('referrerpolicy','strict-origin-when-cross-origin');f.replaceWith(ifr);}});
