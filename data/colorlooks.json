@@ -473,9 +473,9 @@
       "key": "instagram",
       "name": "Instagram",
       "kind": "social",
-      "c1": "#E4405F",
-      "c2": "#b2324a",
-      "c3": "#e85b75",
+      "c1": "#f9ce34",
+      "c2": "#ee2a7b",
+      "c3": "#6228d7",
       "taglineItalic": false,
       "icon": "/media/brand/social/instagram.png"
     },
