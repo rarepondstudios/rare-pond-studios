@@ -6,10 +6,12 @@
    (launchd com.rarepond.socialuisync). Edit the master, both sites update.
 
    WHAT IT IS
-   A soft-edged gradient circle that replaces the mouse (desktop / fine pointers
+   A glowing gradient RING that replaces the mouse (desktop / fine pointers
    only), with a small dot that tracks the real pointer position 1:1:
-     - FREE: the circle trails the dot with smoothing and stretches subtly along
-       the direction of fast movement (relaxes to a circle at rest).
+     - FREE: a 44px open ring (clear gap between the centre dot and the band,
+       same silhouette as the loading orbit but solid) trails the dot with
+       smoothing and squashes/stretches into an oval along the direction of
+       fast movement — relaxing back to a circle at rest.
      - HOVER (iPadOS-style): over ANY interactive element it morphs to hug that
        element's border box + border-radius, and returns to a circle on leave.
      - LOADING: while a long transition covers the page (cross-site wipe, social
@@ -96,24 +98,31 @@
       /* display:contents: the wrapper must NOT create a stacking context, so the dot's
          mix-blend-mode can blend against the PAGE (auto black/white contrast). */
       "#rp-cursor{display:contents}" +
-      ".rpc-ring{position:fixed;left:0;top:0;width:34px;height:34px;border-radius:50%;z-index:2147483644;pointer-events:none;opacity:0;will-change:transform;" +
+      ".rpc-ring{position:fixed;left:0;top:0;width:44px;height:44px;border-radius:50%;z-index:2147483644;pointer-events:none;opacity:0;will-change:transform;" +
       "-webkit-backdrop-filter:blur(2px) saturate(1.25);backdrop-filter:blur(2px) saturate(1.25);" +   /* liquid-glass: subtle distortion under the orb */
+      "box-shadow:0 0 14px -3px " + rgba(COL.c1, .55) + ",inset 0 0 9px -3px " + rgba(COL.c2, .40) + ";" +   /* the ring band GLOWS both outward and inward */
       "transition:width .22s cubic-bezier(.3,.9,.3,1),height .22s cubic-bezier(.3,.9,.3,1),border-radius .22s cubic-bezier(.3,.9,.3,1),opacity .16s ease}" +
       "#rp-cursor.on .rpc-ring{opacity:1}" +
-      ".rpc-ring.hover,.rpc-ring.glowmode{-webkit-backdrop-filter:none;backdrop-filter:none}" +   /* no blur once snapped to an element */
-      /* two stacked skins that crossfade: soft gradient orb (free) vs hug-fill (hover) */
+      ".rpc-ring.hover,.rpc-ring.glowmode{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}" +   /* no blur / free-ring glow once snapped to an element */
+      /* two stacked skins that crossfade: glowing open ring (free) vs hug-fill (hover) */
       ".rpc-glow,.rpc-fill{position:absolute;inset:0;border-radius:inherit;transition:opacity .18s ease}" +
-      ".rpc-glow{background:radial-gradient(circle," + rgba(COL.c1, .34) + " 0%," + rgba(COL.c2, .20) + " 46%," + rgba(COL.c3, .10) + " 66%,rgba(0,0,0,0) 74%)}" +
+      /* FREE state: an OPEN RING — solid gradient band at the rim (loader silhouette, not animated),
+         clear empty gap between the band and the centre dot. Band = feathered radial mask. */
+      ".rpc-glow{background:conic-gradient(from 210deg," + rgba(COL.c1, .95) + "," + rgba(COL.c2, .95) + "," + rgba(COL.c3, .95) + "," + rgba(COL.c1, .95) + ");" +
+      "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px));" +
+      "mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px))}" +
       ".rpc-fill{opacity:0;background:" + rgba(COL.c1, .10) + ";box-shadow:0 0 0 1.5px " + rgba(COL.c1, .55) + ",0 0 16px -4px " + rgba(COL.c2, .5) + "}" +
       ".rpc-ring.hover .rpc-glow{opacity:0}.rpc-ring.hover .rpc-fill{opacity:1}" +
       /* glow mode (logos / irregular objects): a soft ellipse HALO instead of a box — glow skin
          stays, no outline fill, gentle brightening so it never veils the artwork. */
-      ".rpc-ring.glowmode .rpc-fill{opacity:0}.rpc-ring.glowmode .rpc-glow{opacity:.95}" +   /* plain alpha halo: visible on light AND dark backdrops */
+      ".rpc-ring.glowmode .rpc-fill{opacity:0}" +
+      ".rpc-ring.glowmode .rpc-glow{opacity:.95;-webkit-mask:none;mask:none;" +   /* glowmode keeps the SOFT halo (not the open ring) so logos glow, never get boxed */
+      "background:radial-gradient(circle," + rgba(COL.c1, .34) + " 0%," + rgba(COL.c2, .20) + " 46%," + rgba(COL.c3, .10) + " 66%,rgba(0,0,0,0) 74%)}" +
       "#rp-cursor.on .rpc-ring.textish{opacity:.3}" +
       ".rpc-dot{position:fixed;left:0;top:0;width:5px;height:5px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
       "background:#fff;mix-blend-mode:difference;transition:opacity .15s ease}" +   /* difference vs the page = always contrasts (white on dark, black on light) */
       "#rp-cursor.on .rpc-dot{opacity:1}" +
-      ".rpc-loader{position:fixed;left:0;top:0;width:30px;height:30px;border-radius:50%;z-index:2147483645;pointer-events:none;opacity:0;will-change:transform;" +
+      ".rpc-loader{position:fixed;left:0;top:0;width:38px;height:38px;border-radius:50%;z-index:2147483645;pointer-events:none;opacity:0;will-change:transform;" +
       "background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,.14) 200deg,rgba(255,255,255,.95) 345deg,rgba(255,255,255,0) 350deg);" +
       "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
       "mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
@@ -323,10 +332,12 @@
       var dxm = mx - pmx, dym = my - pmy;
       pmx = mx; pmy = my;
       var sp = Math.sqrt(dxm * dxm + dym * dym);
-      var k = Math.min(sp * .022, .5);
-      kV += (k - kS) * .28;              /* spring toward target stretch */
+      /* v3: much more pronounced — fast mouse pulls the ring into a clear OVAL,
+         the spring relaxes it back to a perfect circle when the mouse stops */
+      var k = Math.min(sp * .034, .72);
+      kV += (k - kS) * .3;               /* spring toward target stretch */
       kV *= .78;                          /* damping = a little overshoot/bounce */
-      kS = Math.max(0, Math.min(.5, kS + kV));
+      kS = Math.max(0, Math.min(.72, kS + kV));
       if (sp > .5) { var a = Math.atan2(dym, dxm); angS += (a - angS) * .3; }
 
       /* ring target */
@@ -334,7 +345,7 @@
       if (hoverEl) {
         var r;
         try { r = hoverEl.getBoundingClientRect(); } catch (_) { r = null; }
-        if (!r || !r.width) { applyHover(null, false); tx = mx; ty = my; tw = 34; th = 34; tr = "50%"; }
+        if (!r || !r.width) { applyHover(null, false); tx = mx; ty = my; tw = 44; th = 44; tr = "50%"; }
         else {
           var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
           tx = cx + (mx - cx) * .12;   /* slight magnetic follow */
@@ -357,7 +368,7 @@
               "perspective(700px) rotateX(" + (-ny * 4).toFixed(2) + "deg) rotateY(" + (nx * 5).toFixed(2) + "deg)";
           }
         }
-      } else { tx = mx; ty = my; tw = 34; th = 34; tr = "50%"; }
+      } else { tx = mx; ty = my; tw = 44; th = 44; tr = "50%"; }
 
       rx += (tx - rx) * (hoverEl ? .3 : .22);
       ry += (ty - ry) * (hoverEl ? .3 : .22);
