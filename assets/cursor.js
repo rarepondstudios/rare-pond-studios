@@ -12,8 +12,14 @@
        same silhouette as the loading orbit but solid) trails the dot with
        smoothing and squashes/stretches into an oval along the direction of
        fast movement — relaxing back to a circle at rest.
-     - HOVER (iPadOS-style): over ANY interactive element it morphs to hug that
-       element's border box + border-radius, and returns to a circle on leave.
+     - HOVER (iPadOS-style): over ordinary interactive elements (buttons, links,
+       cards) the ring snaps DIRECTLY onto the element's border box + radius (no
+       offset drift — the outline is attached to the edges) while the element
+       itself warps in perspective toward the mouse. SPECIAL objects — project
+       bubbles / large circular instances, plus wordmarks tagged
+       data-cursor="glow"/"special" — never get the ring outline: the ring stays
+       a free ring and the OBJECT reacts instead (its own native glow/tilt if it
+       has one, else cursor-driven perspective tilt + slight scale-up).
      - LOADING: while a long transition covers the page (cross-site wipe, social
        transport, JC transport, the initial load veil) the circle is replaced by
        a WHITE orbiting arc with a trail around the dot; it restores after.
@@ -103,7 +109,7 @@
       "box-shadow:0 0 14px -3px " + rgba(COL.c1, .55) + ",inset 0 0 9px -3px " + rgba(COL.c2, .40) + ";" +   /* the ring band GLOWS both outward and inward */
       "transition:width .22s cubic-bezier(.3,.9,.3,1),height .22s cubic-bezier(.3,.9,.3,1),border-radius .22s cubic-bezier(.3,.9,.3,1),opacity .16s ease}" +
       "#rp-cursor.on .rpc-ring{opacity:1}" +
-      ".rpc-ring.hover,.rpc-ring.glowmode{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}" +   /* no blur / free-ring glow once snapped to an element */
+      ".rpc-ring.hover{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}" +   /* no blur / free-ring glow once snapped to an element */
       /* two stacked skins that crossfade: glowing open ring (free) vs hug-fill (hover) */
       ".rpc-glow,.rpc-fill{position:absolute;inset:0;border-radius:inherit;transition:opacity .18s ease}" +
       /* FREE state: an OPEN RING — solid gradient band at the rim (loader silhouette, not animated),
@@ -113,11 +119,8 @@
       "mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px))}" +
       ".rpc-fill{opacity:0;background:" + rgba(COL.c1, .10) + ";box-shadow:0 0 0 1.5px " + rgba(COL.c1, .55) + ",0 0 16px -4px " + rgba(COL.c2, .5) + "}" +
       ".rpc-ring.hover .rpc-glow{opacity:0}.rpc-ring.hover .rpc-fill{opacity:1}" +
-      /* glow mode (logos / irregular objects): a soft ellipse HALO instead of a box — glow skin
-         stays, no outline fill, gentle brightening so it never veils the artwork. */
-      ".rpc-ring.glowmode .rpc-fill{opacity:0}" +
-      ".rpc-ring.glowmode .rpc-glow{opacity:.95;-webkit-mask:none;mask:none;" +   /* glowmode keeps the SOFT halo (not the open ring) so logos glow, never get boxed */
-      "background:radial-gradient(circle," + rgba(COL.c1, .34) + " 0%," + rgba(COL.c2, .20) + " 46%," + rgba(COL.c3, .10) + " 66%,rgba(0,0,0,0) 74%)}" +
+      /* special objects (bubbles / wordmarks): NO skin change — the ring stays the free open
+         ring and the ELEMENT reacts (native glow/tilt, or cursor-driven tilt + scale). */
       "#rp-cursor.on .rpc-ring.textish{opacity:.3}" +
       ".rpc-dot{position:fixed;left:0;top:0;width:5px;height:5px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
       "background:#fff;mix-blend-mode:difference;transition:opacity .15s ease}" +   /* difference vs the page = always contrasts (white on dark, black on light) */
@@ -150,8 +153,8 @@
     var rx = -100, ry = -100;          // smoothed ring centre
     var pmx = -100, pmy = -100;        // previous pointer (velocity)
     var kS = 0, kV = 0, angS = 0;      // springy stretch (value + velocity) + angle
-    var hoverEl = null, hoverRad = 14, hoverPct = false, hoverGlow = false, textish = false;
-    var tiltEl = null, tiltOrig = "";  // element receiving the perspective tilt + its original inline transform
+    var hoverEl = null, hoverRad = 14, hoverPct = false, hoverSpecial = false, textish = false;
+    var tiltEl = null, tiltOrig = "", tiltBase = "", tiltScale = 1;  // tilted element, its original inline transform, its computed base matrix, extra scale
     var clearT = null;                 // hover-out grace timer (kills the between-buttons flash)
     var shown = false, loading = false, loadSince = 0, down = false;
     var idleFrames = 0, running = false, frame = 0;
@@ -204,13 +207,14 @@
       if (el && el.getAttribute && el.getAttribute("data-cursor") === "off") el = null;
       var txt = false;
       if (el && isTextField(el)) { txt = true; el = null; }
-      var glow = false;
+      var attrSp = false;
       if (el) {
-        glow = el.getAttribute("data-cursor") === "glow";
+        var dc = el.getAttribute("data-cursor");
+        attrSp = dc === "glow" || dc === "special";           /* "glow" kept for back-compat markup */
         var r = el.getBoundingClientRect();
-        if (r.width < 4 || r.height < 4 || (!glow && (r.width > innerWidth * .62 || r.height > innerHeight * .62))) el = null;
+        if (r.width < 4 || r.height < 4 || (!attrSp && (r.width > innerWidth * .62 || r.height > innerHeight * .62))) el = null;
       }
-      if (el) applyHover(el, txt, glow); else queueClear(txt);
+      if (el) applyHover(el, txt, attrSp); else queueClear(txt);
       wake();
     }, true);
 
@@ -223,7 +227,7 @@
       if (!hoverEl || clearT) return;
       clearT = setTimeout(function () { clearT = null; applyHover(null, textish); }, 120);
     }
-    function applyHover(el, txt, glow) {
+    function applyHover(el, txt, attrSp) {
       if (clearT) { clearTimeout(clearT); clearT = null; }
       textish = !!txt;
       ring.classList.toggle("textish", textish);
@@ -231,7 +235,7 @@
       /* release any tilted element back to its own styling */
       if (tiltEl) { try { tiltEl.style.transform = tiltOrig; } catch (_) {} tiltEl = null; }
       hoverEl = el;
-      hoverGlow = !!glow;
+      hoverSpecial = false;
       if (el) {
         /* The visible rounding often lives on an INNER child (card wrapper > circular image —
            e.g. the project bubbles), so scan the element and its near-full-size descendants
@@ -262,16 +266,32 @@
         }
         hoverRad = best.px;
         hoverPct = best.pct;
-        ring.classList.add("hover");
-        ring.classList.toggle("glowmode", hoverGlow);
-        /* perspective tilt (like the home-page bubbles): only if the element isn't already
-           transform-driven inline (JS animations keep ownership). Opt out: data-cursor="notilt". */
+        /* SPECIAL objects never get the ring outline — the object reacts instead.
+           Auto: any large circular target (project bubbles / carousel side circles / JC hbubs;
+           % radius ≥45 and ≥64px). Explicit: data-cursor="glow" (wordmarks) or "special".
+           Force the outline back on a big circle if ever needed: data-cursor="link" + a
+           non-% radius, or ask — small circles (social icons) keep the outline. */
+        hoverSpecial = !!attrSp || (best.pct && best.px >= 45 && rr && rr.width >= 64 && rr.height >= 64);
+        ring.classList.toggle("hover", !hoverSpecial);
+        /* ELEMENT REACTION (like the home-page bubbles): perspective tilt toward the mouse.
+           Ownership rules: if the element natively drives its own tilt (defines --tiltx —
+           the RP bubbles do, in CSS or via their pointermove handlers), the cursor stays
+           hands-off so the two never fight. If it's inline-transform-driven by other JS,
+           also hands-off. Otherwise the cursor tilts it, COMPOSITING on top of the element's
+           computed base transform (so transform-positioned elements never jump), and specials
+           additionally scale up slightly. Opt out: data-cursor="notilt". */
         if (el.getAttribute("data-cursor") !== "notilt" && !(el.style.transform || "").length) {
-          tiltEl = el; tiltOrig = el.style.transform || "";
+          var native = "";
+          try { native = (getComputedStyle(el).getPropertyValue("--tiltx") || "").trim(); } catch (_) {}
+          if (!native) {
+            tiltEl = el; tiltOrig = el.style.transform || "";
+            tiltBase = "";
+            try { var bm = getComputedStyle(el).transform; if (bm && bm !== "none") tiltBase = bm; } catch (_) {}
+            tiltScale = hoverSpecial ? (attrSp ? 1.08 : 1.05) : 1;
+          }
         }
       } else {
         ring.classList.remove("hover");
-        ring.classList.remove("glowmode");
       }
     }
     function setHover(el, txt) { applyHover(el, txt, false); }   /* back-compat internal alias */
@@ -328,17 +348,25 @@
         } catch (_) {}
       }
 
-      /* springy velocity stretch (from real pointer deltas) — bouncy, liquid */
+      /* springy velocity stretch (from real pointer deltas) — bouncy, liquid.
+         Fast mouse pulls the ring into a clear OVAL along the travel direction; the spring
+         relaxes it back to a perfect circle when the mouse stops. */
       var dxm = mx - pmx, dym = my - pmy;
       pmx = mx; pmy = my;
-      var sp = Math.sqrt(dxm * dxm + dym * dym);
-      /* v3: much more pronounced — fast mouse pulls the ring into a clear OVAL,
-         the spring relaxes it back to a perfect circle when the mouse stops */
+      var sp = Math.min(Math.sqrt(dxm * dxm + dym * dym), 70);  /* clamp: an OS pointer teleport can't detonate the oval */
       var k = Math.min(sp * .034, .72);
       kV += (k - kS) * .3;               /* spring toward target stretch */
       kV *= .78;                          /* damping = a little overshoot/bounce */
       kS = Math.max(0, Math.min(.72, kS + kV));
-      if (sp > .5) { var a = Math.atan2(dym, dxm); angS += (a - angS) * .3; }
+      /* orientation: an ellipse is 180°-symmetric, so take the SHORTEST path modulo π.
+         (The old raw-atan2 smoothing spun the long way around on direction reversals —
+         that was the "pops in unnatural directions" glitch.) Ignore micro-jitter (<2px). */
+      if (sp > 2) {
+        var a = Math.atan2(dym, dxm), dA = a - angS;
+        while (dA > 1.5707963) dA -= 3.14159265;
+        while (dA < -1.5707963) dA += 3.14159265;
+        angS += dA * .28;
+      }
 
       /* ring target */
       var tx, ty, tw, th, tr;
@@ -348,36 +376,40 @@
         if (!r || !r.width) { applyHover(null, false); tx = mx; ty = my; tw = 44; th = 44; tr = "50%"; }
         else {
           var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-          tx = cx + (mx - cx) * .12;   /* slight magnetic follow */
-          ty = cy + (my - cy) * .12;
-          if (hoverGlow) {
-            /* logo/irregular targets: a soft halo slightly larger than the artwork */
-            tw = r.width * 1.18 + 14; th = r.height * 1.3 + 14; tr = "50%";
+          if (hoverSpecial) {
+            /* special objects: the ring never outlines them — it stays the free ring
+               following the pointer; the OBJECT is what reacts (below). */
+            tx = mx; ty = my; tw = 44; th = 44; tr = "50%";
           } else {
-            tw = r.width + 4; th = r.height + 4;                 /* hugs the element tightly */
-            /* circular/elliptical elements (border-radius in %): the ring ENCOMPASSES the
-               shape itself — a circle around a bubble, never a square box. */
+            /* the outline is ATTACHED to the element's edges: exact box, exact radius,
+               zero magnetic drift — moving inside the button moves the BUTTON (tilt),
+               never the outline. */
+            tx = cx; ty = cy;
+            tw = r.width; th = r.height;
             if (hoverPct) tr = hoverRad >= 45 ? "50%" : (hoverRad + "%");
-            else tr = (hoverRad > 0 ? hoverRad + 2 : Math.min(th / 2, 14)) + "px";
+            else tr = (hoverRad > 0 ? hoverRad : Math.min(th / 2, 12)) + "px";
           }
-          /* perspective tilt of the hovered element itself (like the home bubbles) */
+          /* perspective warp of the hovered element itself (like the home bubbles),
+             composited on its base transform; specials also scale up slightly */
           if (tiltEl) {
             var nx = Math.max(-1, Math.min(1, (mx - cx) / (r.width / 2 || 1)));
             var ny = Math.max(-1, Math.min(1, (my - cy) / (r.height / 2 || 1)));
-            tiltEl.style.transform = (tiltOrig ? tiltOrig + " " : "") +
-              "perspective(700px) rotateX(" + (-ny * 4).toFixed(2) + "deg) rotateY(" + (nx * 5).toFixed(2) + "deg)";
+            tiltEl.style.transform = (tiltBase ? tiltBase + " " : "") +
+              "perspective(700px) rotateX(" + (-ny * 6).toFixed(2) + "deg) rotateY(" + (nx * 7).toFixed(2) + "deg)" +
+              (tiltScale > 1 ? " scale(" + tiltScale + ")" : "");
           }
         }
       } else { tx = mx; ty = my; tw = 44; th = 44; tr = "50%"; }
 
-      rx += (tx - rx) * (hoverEl ? .3 : .22);
-      ry += (ty - ry) * (hoverEl ? .3 : .22);
+      var free = !hoverEl || hoverSpecial;    /* over a special object the ring behaves exactly like free */
+      rx += (tx - rx) * (free ? .22 : .35);
+      ry += (ty - ry) * (free ? .22 : .35);
 
       /* writes (transform-only per frame; width/height only when the target size changes) */
       var moved = Math.abs(tx - rx) + Math.abs(ty - ry) + Math.abs(kS);
       var tf = "translate(" + rx.toFixed(2) + "px," + ry.toFixed(2) + "px) translate(-50%,-50%)";
       var sc = down ? " scale(.9)" : "";
-      if (!hoverEl && kS > .012) {
+      if (free && kS > .012) {
         ring.style.transform = tf + " rotate(" + angS.toFixed(3) + "rad) scale(" + (1 + kS).toFixed(3) + "," + (1 - kS * .62).toFixed(3) + ")" + sc;
       } else {
         ring.style.transform = tf + sc;
@@ -395,6 +427,9 @@
     }
     function wake() {
       if (running) return;
+      /* the loop may have slept for seconds — a stale previous-pointer would read as one
+         giant instantaneous delta and detonate the stretch ("pops"). Resync first. */
+      pmx = mx; pmy = my;
       running = true;
       requestAnimationFrame(tick);
     }
