@@ -15,7 +15,106 @@
 > it, but it is **not committed/pushed** (the GitHub repo is PUBLIC — don't push internal
 > notes like this). Move it or delete it whenever you like.
 >
-> Last updated: 2026-07-16.
+> Last updated: 2026-08-05.
+
+---
+
+## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
+
+This session touched the **three-site chrome** (studio `/`, rentals `/rentals`, media `/media`)
+— header, footer, cross-site nav, and the event banner. Everything below is **live on
+`www.rarepond.com`** and verified in-browser. Four things were worked on; three are fully done,
+one (the apex redirect) needs a manual DNS action nobody in a code session can perform.
+
+### 0.1 Single source of truth for header + footer links (`site.json → nav`)
+- There used to be **two** places that defined page links: `site.json → header.navTeam/navProjects/navContact`
+  (header) and `site.json → footer.links` (footer). They could drift. **Both are gone.**
+- There is now ONE list: **`data/site.json → nav`** (array of `{label, go?, href?, header?}`).
+  - Items with `header:true` (Our Team, Projects, Contact) render in each site's **header nav**.
+  - Every item renders in each site's **footer**.
+  - `go` = in-site SPA target (team/projects/contact); `href` = link to another site (`/`, `/media`, `/rentals`).
+- Consumers (all read the same list):
+  - **Studio** `index.html`: header/hamburger labels set by matching `data-go`/`data-contact` to `nav`
+    (search `NAVLIST` / `navLabelByGo`); footer rendered from `SITE.nav` (search `fnav`).
+  - **Rentals** `rentals/index.html`: header `.hnav` labels + footer `.rfoot .flinks` both from `site.nav`
+    (search `const NAV=`).
+  - **Media** `media/index.html`: header `.mnav` labels + footer `.mfoot .flinks` both from `site.json → nav`
+    (search `var NAV=`).
+- CMS: `.pages.yml` now exposes ONE **"Navigation"** list (with a "Show in header" checkbox). The old
+  `navTeam/navProjects/navContact` fields and the footer-links editor were removed.
+- **Rule for the next bot:** never re-hardcode a nav label in the HTML. Edit `site.json → nav`.
+
+### 0.2 Media footer brought to full parity
+- The media footer previously lacked the tagline + social icons the other two footers have.
+- Fixed by adding the shared **`rp-footer`** class (styles live in `assets/chrome.css`) plus a `.tag`,
+  a `.fsoc` socials row (`#mFootSoc`, filled from `socials.json`), and switching its links to `site.json → nav`.
+- Media footer now matches studio/rentals: wordmark → tagline → socials → link row → copyright.
+
+### 0.3 Media footer "harsh line" — FIXED (but see 0.5 about why the user may still see it)
+- The line was **not inside the footer**. It was the boundary between the media **`.cta`** section
+  (which has a full-bleed photo background, "Start a conversation") and the footer below it. The photo
+  ended in a hard edge against the footer water.
+- Fix (in `media/index.html` inline CSS):
+  1. `.cta .scrim` now fades the photo down to a **solid `#06122b` band** across its bottom ~20%.
+  2. `.mfoot` background top is a **solid `#06122b`** block (0→40%), matching the CTA bottom, with the blue
+     tint + caustics only starting well below the join. `.mfoot-water` mask holds fully transparent for the
+     top ~22%.
+  3. `.mfoot { margin-top:-80px; padding-top:270px }` — the footer is pulled up so its **opaque dark top
+     paints OVER** the section boundary; there is no adjacent element edge left to render a hairline.
+- Verified at 5× zoom on www: the join is uniform dark → caustics, **no line**.
+- `--base` on media = `#06122b` = the page/body background. Keep any future dark values consistent with it.
+
+### 0.4 Media event-banner parity (was completely missing)
+- The event banner is a **shared engine**: `assets/looks.js` renders `data/site.json → eventBanner`
+  (`{enabled,title,buttonText,buttonLink,colorLook,gradientStyle}`) into a `#rp-eventbanner-mount` div.
+  `assets/banner-reserve.js` (in `<head>`, no defer) reserves its height before first paint. The banner
+  CSS is injected by `looks.js` (`bannerCssOnce`), colour comes from a `colorlooks.json` look.
+- Media had **none** of this. Added to `media/index.html`: the `#rp-eventbanner-mount` div (right after
+  `</header>`), `banner-reserve.js` in `<head>`, `looks.js` before `</body>`, `--header-h:86px` on `:root`
+  (78px at ≤780px), and **bumped `.mhdr` z-index 60 → 100** so the dark header sits ABOVE the banner
+  (`z-index:90`) and the banner peeks out below it, exactly like studio/rentals.
+- The banner is driven entirely by `site.json → eventBanner` (same source for all three sites), so toggling
+  it in Pages CMS now affects media too. It is currently `enabled:false` (its normal state); verified it
+  renders correctly on media by temporarily flipping it true during this session, then reverted.
+- `.pages.yml` banner group label updated to "(all sites - studio + rentals + media)".
+
+### 0.5 Apex redirect `rarepond.com/media` → 404  (NOT fixed — needs a manual DNS change)
+- **Symptom:** `www.rarepond.com/media` = 200 (correct, current). Bare `rarepond.com/media` = **404**.
+  `rarepond.com/` (root only) 301s to www.
+- **Root cause:** DNS for `rarepond.com` is at **GoDaddy** (nameservers `ns61/62.domaincontrol.com`).
+  The apex A records point at GoDaddy's **domain-forwarding** IPs (`3.33.251.168`, `15.197.225.128`),
+  which 301 the root to www but **404 every deep path**. `www` is a CNAME to `rare-pond-studios.pages.dev`
+  (Cloudflare Pages) and works. The repo's `_redirects` already has the correct
+  `https://rarepond.com/* → https://www.rarepond.com/:splat 301` rule, but it **can never fire** because
+  apex requests never reach Cloudflare Pages — they hit GoDaddy forwarding instead.
+- **This is why the user kept seeing "no change" / "the footer is still the same":** they were viewing the
+  **apex** (`rarepond.com/media`), which serves a stale/cached/forwarded response, NOT the live Cloudflare
+  content on `www`. Always verify fixes on **`https://www.rarepond.com/...`**, and tell the user to view www
+  (hard-refresh) until the apex is repointed.
+- **The fix (requires the owner's GoDaddy + Cloudflare accounts — cannot be done from a code session):**
+  1. In **Cloudflare Pages** → the `rare-pond-studios` project → *Custom domains* → add `rarepond.com` (apex).
+  2. Repoint the apex at Cloudflare. Cleanest is to **move `rarepond.com`'s DNS to Cloudflare** (change the
+     nameservers at GoDaddy to the Cloudflare-assigned pair), then Cloudflare adds the CNAME-flattened apex
+     record automatically. (Apex can't be a plain CNAME at GoDaddy, which is why forwarding was used.)
+  3. Once apex resolves to Pages, the existing `_redirects` rule makes `rarepond.com/media` **301 → www**
+     automatically. Delete the GoDaddy forwarding record.
+  - **Decision needed from the owner:** they said the URL "should just be `rarepond.com/media`, not the extra
+    stuff" — i.e. they may want the **apex to be canonical (no `www`)**. If so, AFTER the apex is confirmed
+    serving Pages, flip `_redirects` to redirect `www → apex` instead of `apex → www`. **Do NOT flip it
+    before the apex DNS is live** — doing so would 301 the working `www` site into the currently-404ing apex
+    and take the whole site down.
+
+### 0.6 Deploy + verify recipe used this session (unchanged)
+```
+cd /Users/rarepondstudios/rp_site_work
+export GIT_ASKPASS=/Users/rarepondstudios/bts-automation/askpass_rp.sh GIT_TERMINAL_PROMPT=0
+git add <specific files>            # NEVER add tools/_devserve.py (local dev server, must stay untracked)
+git commit -q -m "..."
+git -c rebase.autoStash=true pull --rebase origin main
+git -c credential.helper= push origin main
+```
+Local preview: `tools/_devserve.py` on `127.0.0.1:8799` mirrors the Cloudflare `_redirects`
+(static-first, `/media`→`/media/`, `/rentals`→`/rentals/`). Verify on www after the ~1–2 min Pages build.
 
 ---
 
