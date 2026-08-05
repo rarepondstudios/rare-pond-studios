@@ -21,6 +21,26 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-1 EVENING BATCH — scroll fix · shared contact popup · thoughts system
+
+1. **SPA nav lands at the top instantly.** `html{scroll-behavior:smooth}` animated the scroll
+   reset on view switches ("lands at bottom, scrolls up"). `__instTop()` (behavior:'instant')
+   now used by `showView()` + pinTopOnLoad — mirrors JC's `__instScroll`. NOTE for future work:
+   any programmatic scroll reset on these pages must use the instant helpers, never bare scrollTo.
+2. **Contact popup is a SHARED module.** Masters `bts-automation/contact.js` + `contact.css`,
+   published by `social_ui_sync.py` to BOTH repos. jackcarlsen.com now opens the same popup from
+   every Contact control (`data-contact`), configured by its own `data/contact.json` (+ Pages CMS
+   "Contact popup" group in the JC repo).
+3. **Thoughts buttons on project pages.** NocoDB projects: `rp_thoughts`/`jc_thoughts` (text) +
+   NEW `rp_show_thoughts`/`jc_show_thoughts` (checkboxes). Exporters emit
+   `rpShowThoughts`/`jcShowThoughts`. RP film pages render "Hear our thoughts" (`.u-thoughts`),
+   JC renders "What I did" (`.pj-thoughts`) — below the logline, above the genres; fluid
+   grid-template-rows 0fr↔1fr expand/collapse; left-justified pre-wrap text. Button shows only
+   when the toggle is ON and the text is non-empty. Workflow: type in NocoDB → tick the box →
+   live within the exporter cadence.
+4. New reusable headless QC harness on the mini: `bts-automation/_headless/` (puppeteer-core +
+   installed Chrome, run against the loopback dev servers).
+
 ### 0.0.0 NEWEST — Custom cursor system + interaction batch (2026-08-04 night PT; v3–v5 2026-08-05)
 
 **Cursor v5 + interaction batch (2026-08-05 afternoon).** RP + JC, all verified in a Playwright
