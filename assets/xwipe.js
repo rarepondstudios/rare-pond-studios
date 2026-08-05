@@ -26,20 +26,20 @@
     s.textContent=
       '.xw-lines{position:absolute;top:0;bottom:0;left:-400px;right:-400px;opacity:0;pointer-events:none;'+
       'background-image:'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.55) 30%,rgba(255,255,255,.55) 62%,rgba(255,255,255,0) 100%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.35) 25%,rgba(255,255,255,.35) 55%,rgba(255,255,255,0) 100%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.5) 35%,rgba(255,255,255,.5) 70%,rgba(255,255,255,0) 100%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.3) 28%,rgba(255,255,255,.3) 60%,rgba(255,255,255,0) 100%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.45) 32%,rgba(255,255,255,.45) 64%,rgba(255,255,255,0) 100%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.35) 26%,rgba(255,255,255,.35) 58%,rgba(255,255,255,0) 100%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.5) 30%,rgba(255,255,255,.5) 66%,rgba(255,255,255,0) 100%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.3) 30%,rgba(255,255,255,.3) 62%,rgba(255,255,255,0) 100%);'+
-      'background-size:520px 3px,340px 2px,640px 3px,280px 2px,460px 2px,380px 2px,560px 3px,320px 2px;'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.75) 20%,rgba(255,255,255,.75) 40%,rgba(255,255,255,0) 55%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 8%,rgba(255,255,255,.5) 26%,rgba(255,255,255,.5) 44%,rgba(255,255,255,0) 60%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.7) 16%,rgba(255,255,255,.7) 34%,rgba(255,255,255,0) 46%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 10%,rgba(255,255,255,.45) 28%,rgba(255,255,255,.45) 42%,rgba(255,255,255,0) 58%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 4%,rgba(255,255,255,.65) 22%,rgba(255,255,255,.65) 38%,rgba(255,255,255,0) 52%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 12%,rgba(255,255,255,.5) 30%,rgba(255,255,255,.5) 46%,rgba(255,255,255,0) 62%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.7) 18%,rgba(255,255,255,.7) 38%,rgba(255,255,255,0) 50%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 6%,rgba(255,255,255,.45) 24%,rgba(255,255,255,.45) 40%,rgba(255,255,255,0) 54%);'+
+      'background-size:520px 4px,340px 3px,640px 4px,280px 3px,460px 3px,380px 3px,560px 4px,320px 3px;'+
       'background-position:80px 8%,420px 17%,-60px 28%,260px 38%,120px 50%,520px 61%,-140px 72%,360px 86%;'+
       'background-repeat:repeat-x;will-change:transform,opacity}'+
       '@keyframes xw-lines-l{from{transform:translateX(320px)}to{transform:translateX(-320px)}}'+
       '@keyframes xw-lines-r{from{transform:translateX(-320px)}to{transform:translateX(320px)}}'+
-      '@keyframes xw-lines-fade{0%{opacity:0}30%{opacity:.5}70%{opacity:.5}100%{opacity:0}}'+
+      '@keyframes xw-lines-fade{0%{opacity:0}30%{opacity:.7}70%{opacity:.7}100%{opacity:0}}'+
       '@media (prefers-reduced-motion:reduce){.xw-lines{display:none!important}}';
     document.head.appendChild(s);
   }
