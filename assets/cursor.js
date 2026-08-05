@@ -93,19 +93,27 @@
       /* text fields keep the native I-beam so typing still feels right */
       "html.rpc-on textarea,html.rpc-on [contenteditable=''],html.rpc-on [contenteditable='true']," +
       "html.rpc-on input:not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]){cursor:text!important}" +
-      "#rp-cursor{position:fixed;left:0;top:0;width:0;height:0;z-index:2147483646;pointer-events:none;opacity:0;transition:opacity .15s ease}" +
-      "#rp-cursor.on{opacity:1}" +
-      ".rpc-ring{position:fixed;left:0;top:0;width:34px;height:34px;border-radius:50%;will-change:transform;" +
+      /* display:contents: the wrapper must NOT create a stacking context, so the dot's
+         mix-blend-mode can blend against the PAGE (auto black/white contrast). */
+      "#rp-cursor{display:contents}" +
+      ".rpc-ring{position:fixed;left:0;top:0;width:34px;height:34px;border-radius:50%;z-index:2147483644;pointer-events:none;opacity:0;will-change:transform;" +
+      "-webkit-backdrop-filter:blur(2px) saturate(1.25);backdrop-filter:blur(2px) saturate(1.25);" +   /* liquid-glass: subtle distortion under the orb */
       "transition:width .22s cubic-bezier(.3,.9,.3,1),height .22s cubic-bezier(.3,.9,.3,1),border-radius .22s cubic-bezier(.3,.9,.3,1),opacity .16s ease}" +
+      "#rp-cursor.on .rpc-ring{opacity:1}" +
+      ".rpc-ring.hover,.rpc-ring.glowmode{-webkit-backdrop-filter:none;backdrop-filter:none}" +   /* no blur once snapped to an element */
       /* two stacked skins that crossfade: soft gradient orb (free) vs hug-fill (hover) */
       ".rpc-glow,.rpc-fill{position:absolute;inset:0;border-radius:inherit;transition:opacity .18s ease}" +
       ".rpc-glow{background:radial-gradient(circle," + rgba(COL.c1, .34) + " 0%," + rgba(COL.c2, .20) + " 46%," + rgba(COL.c3, .10) + " 66%,rgba(0,0,0,0) 74%)}" +
       ".rpc-fill{opacity:0;background:" + rgba(COL.c1, .10) + ";box-shadow:0 0 0 1.5px " + rgba(COL.c1, .55) + ",0 0 16px -4px " + rgba(COL.c2, .5) + "}" +
       ".rpc-ring.hover .rpc-glow{opacity:0}.rpc-ring.hover .rpc-fill{opacity:1}" +
-      ".rpc-ring.textish{opacity:.3}" +
-      ".rpc-dot{position:fixed;left:0;top:0;width:5px;height:5px;border-radius:50%;will-change:transform;" +
-      "background:linear-gradient(135deg," + COL.c1 + "," + COL.c2 + ");box-shadow:0 0 6px " + rgba(COL.c1, .5) + "}" +
-      ".rpc-loader{position:fixed;left:0;top:0;width:30px;height:30px;border-radius:50%;opacity:0;will-change:transform;" +
+      /* glow mode (logos / irregular objects): a soft ellipse HALO instead of a box — glow skin
+         stays, no outline fill, gentle brightening so it never veils the artwork. */
+      ".rpc-ring.glowmode .rpc-fill{opacity:0}.rpc-ring.glowmode .rpc-glow{opacity:.95}" +   /* plain alpha halo: visible on light AND dark backdrops */
+      "#rp-cursor.on .rpc-ring.textish{opacity:.3}" +
+      ".rpc-dot{position:fixed;left:0;top:0;width:5px;height:5px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
+      "background:#fff;mix-blend-mode:difference;transition:opacity .15s ease}" +   /* difference vs the page = always contrasts (white on dark, black on light) */
+      "#rp-cursor.on .rpc-dot{opacity:1}" +
+      ".rpc-loader{position:fixed;left:0;top:0;width:30px;height:30px;border-radius:50%;z-index:2147483645;pointer-events:none;opacity:0;will-change:transform;" +
       "background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,.14) 200deg,rgba(255,255,255,.95) 345deg,rgba(255,255,255,0) 350deg);" +
       "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
       "mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
@@ -132,8 +140,10 @@
     var mx = -100, my = -100;          // real pointer
     var rx = -100, ry = -100;          // smoothed ring centre
     var pmx = -100, pmy = -100;        // previous pointer (velocity)
-    var kS = 0, angS = 0;              // smoothed stretch + angle
-    var hoverEl = null, hoverRad = 14, textish = false;
+    var kS = 0, kV = 0, angS = 0;      // springy stretch (value + velocity) + angle
+    var hoverEl = null, hoverRad = 14, hoverPct = false, hoverGlow = false, textish = false;
+    var tiltEl = null, tiltOrig = "";  // element receiving the perspective tilt + its original inline transform
+    var clearT = null;                 // hover-out grace timer (kills the between-buttons flash)
     var shown = false, loading = false, loadSince = 0, down = false;
     var idleFrames = 0, running = false, frame = 0;
 
@@ -147,6 +157,9 @@
     }, { passive: true });
     document.addEventListener("mouseleave", hide);
     addEventListener("blur", hide);
+    /* hybrid devices (touchscreen laptops): a finger tap must never fight the custom cursor —
+       hide it on touch and let the tap behave 100% natively (we never intercept clicks anyway). */
+    addEventListener("touchstart", function () { applyHover(null, false); hide(); }, { passive: true });
     addEventListener("mousedown", function () { down = true; wake(); }, { passive: true });
     addEventListener("mouseup", function () { down = false; wake(); }, { passive: true });
 
@@ -162,8 +175,13 @@
     }
     document.addEventListener("pointerover", function (e) {
       var t = e.target;
-      if (!t || t.nodeType !== 1) { setHover(null, false); return; }
-      if (t.tagName === "IFRAME") { hide(); return; }   // embeds own the pointer; reappear on next move outside
+      if (!t || t.nodeType !== 1) { queueClear(false); return; }
+      /* Cross-origin embeds (HubSpot / Jotform forms) own the pointer — the browser stops
+         reporting the mouse inside them, so the custom cursor HANDS OFF: unmorph + fade out
+         immediately (never parks at the edge), native cursor takes over inside the form,
+         and ours fades back in on the first move outside. A watchdog in tick() catches the
+         cases where the crossing event never fires. */
+      if (t.tagName === "IFRAME" || t.tagName === "OBJECT" || t.tagName === "EMBED") { applyHover(null, false); hide(); return; }
       var el = null;
       try { el = t.closest(SEL); } catch (_) {}
       if (!el) {
@@ -177,28 +195,77 @@
       if (el && el.getAttribute && el.getAttribute("data-cursor") === "off") el = null;
       var txt = false;
       if (el && isTextField(el)) { txt = true; el = null; }
+      var glow = false;
       if (el) {
+        glow = el.getAttribute("data-cursor") === "glow";
         var r = el.getBoundingClientRect();
-        if (r.width < 4 || r.height < 4 || r.width > innerWidth * .62 || r.height > innerHeight * .62) el = null;
+        if (r.width < 4 || r.height < 4 || (!glow && (r.width > innerWidth * .62 || r.height > innerHeight * .62))) el = null;
       }
-      setHover(el, txt);
+      if (el) applyHover(el, txt, glow); else queueClear(txt);
       wake();
     }, true);
 
-    function setHover(el, txt) {
+    /* Hover-out GRACE: when the pointer leaves one target, wait ~120ms before relaxing to the
+       circle. Crossing the small gap between two adjacent buttons then morphs DIRECTLY from
+       one rectangle to the next — no shrink-to-circle blink in between. */
+    function queueClear(txt) {
+      textish = !!txt;
+      ring.classList.toggle("textish", textish);
+      if (!hoverEl || clearT) return;
+      clearT = setTimeout(function () { clearT = null; applyHover(null, textish); }, 120);
+    }
+    function applyHover(el, txt, glow) {
+      if (clearT) { clearTimeout(clearT); clearT = null; }
       textish = !!txt;
       ring.classList.toggle("textish", textish);
       if (el === hoverEl) return;
+      /* release any tilted element back to its own styling */
+      if (tiltEl) { try { tiltEl.style.transform = tiltOrig; } catch (_) {} tiltEl = null; }
       hoverEl = el;
+      hoverGlow = !!glow;
       if (el) {
-        var br = 14;
-        try { br = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0; } catch (_) {}
-        hoverRad = br;
+        /* The visible rounding often lives on an INNER child (card wrapper > circular image —
+           e.g. the project bubbles), so scan the element and its near-full-size descendants
+           (2 levels) and take the strongest border-radius. % radius ⇒ the ring ENCOMPASSES the
+           circle/ellipse instead of boxing it. */
+        var best = { px: 0, pct: false }, rr = null;
+        try { rr = el.getBoundingClientRect(); } catch (_) {}
+        function takeRad(node) {
+          try {
+            var raw = getComputedStyle(node).borderTopLeftRadius || "";
+            var v = parseFloat(raw) || 0, p = raw.indexOf("%") > -1;
+            if (p) { best.px = Math.max(best.px, v); best.pct = true; }
+            else if (!best.pct && v > best.px) best.px = v;
+          } catch (_) {}
+        }
+        takeRad(el);
+        if (rr && rr.width) {
+          var kids = el.children, i, j, k, kr;
+          for (i = 0; i < kids.length && i < 6; i++) {
+            k = kids[i];
+            try { kr = k.getBoundingClientRect(); } catch (_) { continue; }
+            if (kr.width >= rr.width * .8 && kr.height >= rr.height * .8) takeRad(k);
+            var gk = k.children;
+            for (j = 0; j < gk.length && j < 6; j++) {
+              try { var gr = gk[j].getBoundingClientRect(); if (gr.width >= rr.width * .8 && gr.height >= rr.height * .8) takeRad(gk[j]); } catch (_) {}
+            }
+          }
+        }
+        hoverRad = best.px;
+        hoverPct = best.pct;
         ring.classList.add("hover");
+        ring.classList.toggle("glowmode", hoverGlow);
+        /* perspective tilt (like the home-page bubbles): only if the element isn't already
+           transform-driven inline (JS animations keep ownership). Opt out: data-cursor="notilt". */
+        if (el.getAttribute("data-cursor") !== "notilt" && !(el.style.transform || "").length) {
+          tiltEl = el; tiltOrig = el.style.transform || "";
+        }
       } else {
         ring.classList.remove("hover");
+        ring.classList.remove("glowmode");
       }
     }
+    function setHover(el, txt) { applyHover(el, txt, false); }   /* back-compat internal alias */
 
     /* ---- loading detection (cheap, every ~12 frames + 250ms engage grace) ---- */
     window.__cursorLoading = function (v) { window.__cursorLoadingFlag = !!v; wake(); };
@@ -227,16 +294,39 @@
     }
 
     /* ---- the one rAF loop ---- */
+    /* Wrapped in try/finally: a one-off exception (e.g. a hovered element getting replaced
+       mid-frame by the SPA) can NEVER kill the loop — worst case that frame is skipped, the
+       error is captured on window.__rpcErr, and the next frame heals. */
     function tick(now) {
+      var keep = true;
+      try { tickBody(now); } catch (e) { if (!window.__rpcErr) window.__rpcErr = (e && e.message) || String(e); applyHover(null, false); }
+      finally {
+        window.__rpcTick = frame;
+        keep = !(idleFrames > 90 || document.hidden);
+        running = keep;
+        if (keep) requestAnimationFrame(tick);
+      }
+    }
+    function tickBody(now) {
       frame++;
       if (frame % 12 === 0) pollLoading(now);
+      /* iframe WATCHDOG: if the pointer has stopped reporting and it last sat over an embed
+         (contact/rental forms), fade out so the ring can never park at the form's edge. */
+      if (frame % 18 === 0 && shown && !loading) {
+        try {
+          var under = document.elementFromPoint(mx, my);
+          if (under && (under.tagName === "IFRAME" || under.tagName === "OBJECT" || under.tagName === "EMBED")) { applyHover(null, false); hide(); }
+        } catch (_) {}
+      }
 
-      /* velocity (from real pointer deltas) */
+      /* springy velocity stretch (from real pointer deltas) — bouncy, liquid */
       var dxm = mx - pmx, dym = my - pmy;
       pmx = mx; pmy = my;
       var sp = Math.sqrt(dxm * dxm + dym * dym);
-      var k = Math.min(sp * .012, .32);
-      kS += (k - kS) * .16;
+      var k = Math.min(sp * .022, .5);
+      kV += (k - kS) * .28;              /* spring toward target stretch */
+      kV *= .78;                          /* damping = a little overshoot/bounce */
+      kS = Math.max(0, Math.min(.5, kS + kV));
       if (sp > .5) { var a = Math.atan2(dym, dxm); angS += (a - angS) * .3; }
 
       /* ring target */
@@ -244,14 +334,30 @@
       if (hoverEl) {
         var r;
         try { r = hoverEl.getBoundingClientRect(); } catch (_) { r = null; }
-        if (!r || !r.width) { setHover(null, false); tx = mx; ty = my; tw = 34; th = 34; tr = 17; }
+        if (!r || !r.width) { applyHover(null, false); tx = mx; ty = my; tw = 34; th = 34; tr = "50%"; }
         else {
-          tx = r.left + r.width / 2 + (mx - (r.left + r.width / 2)) * .12;   /* slight magnetic follow */
-          ty = r.top + r.height / 2 + (my - (r.top + r.height / 2)) * .12;
-          tw = r.width + 10; th = r.height + 10;
-          tr = hoverRad > 0 ? hoverRad + 5 : Math.min(th / 2, 14);
+          var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+          tx = cx + (mx - cx) * .12;   /* slight magnetic follow */
+          ty = cy + (my - cy) * .12;
+          if (hoverGlow) {
+            /* logo/irregular targets: a soft halo slightly larger than the artwork */
+            tw = r.width * 1.18 + 14; th = r.height * 1.3 + 14; tr = "50%";
+          } else {
+            tw = r.width + 4; th = r.height + 4;                 /* hugs the element tightly */
+            /* circular/elliptical elements (border-radius in %): the ring ENCOMPASSES the
+               shape itself — a circle around a bubble, never a square box. */
+            if (hoverPct) tr = hoverRad >= 45 ? "50%" : (hoverRad + "%");
+            else tr = (hoverRad > 0 ? hoverRad + 2 : Math.min(th / 2, 14)) + "px";
+          }
+          /* perspective tilt of the hovered element itself (like the home bubbles) */
+          if (tiltEl) {
+            var nx = Math.max(-1, Math.min(1, (mx - cx) / (r.width / 2 || 1)));
+            var ny = Math.max(-1, Math.min(1, (my - cy) / (r.height / 2 || 1)));
+            tiltEl.style.transform = (tiltOrig ? tiltOrig + " " : "") +
+              "perspective(700px) rotateX(" + (-ny * 4).toFixed(2) + "deg) rotateY(" + (nx * 5).toFixed(2) + "deg)";
+          }
         }
-      } else { tx = mx; ty = my; tw = 34; th = 34; tr = 17; }
+      } else { tx = mx; ty = my; tw = 34; th = 34; tr = "50%"; }
 
       rx += (tx - rx) * (hoverEl ? .3 : .22);
       ry += (ty - ry) * (hoverEl ? .3 : .22);
@@ -260,23 +366,21 @@
       var moved = Math.abs(tx - rx) + Math.abs(ty - ry) + Math.abs(kS);
       var tf = "translate(" + rx.toFixed(2) + "px," + ry.toFixed(2) + "px) translate(-50%,-50%)";
       var sc = down ? " scale(.9)" : "";
-      if (!hoverEl && kS > .015) {
-        ring.style.transform = tf + " rotate(" + angS.toFixed(3) + "rad) scale(" + (1 + kS).toFixed(3) + "," + (1 - kS * .55).toFixed(3) + ")" + sc;
+      if (!hoverEl && kS > .012) {
+        ring.style.transform = tf + " rotate(" + angS.toFixed(3) + "rad) scale(" + (1 + kS).toFixed(3) + "," + (1 - kS * .62).toFixed(3) + ")" + sc;
       } else {
         ring.style.transform = tf + sc;
       }
       if (ring.__w !== tw || ring.__h !== th || ring.__r !== tr) {
         ring.__w = tw; ring.__h = th; ring.__r = tr;
-        ring.style.width = tw + "px"; ring.style.height = th + "px"; ring.style.borderRadius = tr + "px";
+        ring.style.width = tw + "px"; ring.style.height = th + "px"; ring.style.borderRadius = tr;
       }
       dot.style.transform = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
       var lt = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
       if (ldr.__lt !== lt) { ldr.__lt = lt; ldr.style.setProperty("--rpc-lt", lt); }
 
-      /* sleep when idle (nothing moving, nothing loading) */
-      if (moved < .06 && sp < .1 && !loading && !loadSince) idleFrames++; else idleFrames = 0;
-      if (idleFrames > 90 || document.hidden) { running = false; return; }
-      requestAnimationFrame(tick);
+      /* sleep when idle (nothing moving, nothing loading, nothing tilted) */
+      if (moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl) idleFrames++; else idleFrames = 0;
     }
     function wake() {
       if (running) return;

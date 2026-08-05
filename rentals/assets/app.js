@@ -80,6 +80,9 @@ function renderTabs(){
  $('tabline').style.background='linear-gradient(90deg,'+hx(col,0)+' 0%,'+hx(col,.9)+' 14%,'+hx(col,.9)+' 86%,'+hx(col,0)+' 100%)';$('tabline').style.setProperty('--gc',active==='Home'?'transparent':hx(col,.5));
  $('tabline').style.boxShadow='0 4px 14px 0 '+hx(col,.45);}
 function render(){renderTabs();active==='Home'?renderHome():renderCat();}
+/* Same-page wordmark/footer click (see the SAME-PAGE NAV snippet in index.html): the rentals
+   "home" is the Select a Date view, so a home click also resets to that tab, not just scroll-top. */
+window.__samePageHome=function(){if(active!=='Home'){active='Home';render();}};
 function renderHome(){
  var homeLogo=copyStr('logos','homeLogo',LOGOC);
  var heroMark=((!homeLogo)||/rare-pond-color|g_ff961e8ddce4f40b/i.test(homeLogo))?'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:0"><img src="/media/logos/duck-mark.webp" alt="Rare Pond Rentals" style="width:128px;height:auto;display:block;margin-bottom:2px"><span class="bn-rare" style="font-size:66px;line-height:.9;color:#274a86">Rare Pond</span><span class="bn-sub" style="font-size:24px;letter-spacing:11px;padding-left:11px;margin-top:2px;color:#5f82b4">Rentals</span></div>':('<img src="'+esc(homeLogo)+'" alt="Rare Pond Rentals">');
