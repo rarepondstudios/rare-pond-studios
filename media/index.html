@@ -15,6 +15,8 @@
 <link rel="apple-touch-icon" href="/media/site/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/chrome.css">
 <script src="/assets/socials.js"></script>
+<!-- Reserve the event-banner's height before first paint (shared with studio + rentals). MUST be in <head>, no defer. -->
+<script src="/assets/banner-reserve.js"></script>
 <style>
 /* ============ Rare Pond Media — DRAFT scroll-storytelling layout ============
    Reuses the Rare Pond signature language (gradient, Inter/Heebo/Kaushan, dark base).
@@ -29,6 +31,7 @@
   --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   --disp:"Heebo",var(--font);
   --maxw:1160px;
+  --header-h:86px; /* used by the shared event-banner engine (looks.js) to place the banner below the header */
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;background:var(--base)}
@@ -55,7 +58,7 @@ a{color:inherit}
 /* ---- fixed header ---- */
 /* Header matches the studio/rentals logo size + font, and carries the gradient-semicircle
    header — here in DARK BLUE (the media page's own aesthetic) instead of white. */
-.mhdr{position:fixed;top:0;left:0;right:0;z-index:60;height:86px;display:flex;align-items:center;gap:18px;padding:0 clamp(16px,4vw,40px)}
+.mhdr{position:fixed;top:0;left:0;right:0;z-index:100;height:86px;display:flex;align-items:center;gap:18px;padding:0 clamp(16px,4vw,40px)}
 .mhdr .hdr-bg{position:absolute;left:0;right:0;top:0;height:170px;z-index:-1;pointer-events:none;
   background:linear-gradient(180deg,#0b2545 0%,#0b2545 52%,rgba(11,37,69,0) 100%);
   -webkit-mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%);mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%)}
@@ -69,7 +72,7 @@ a{color:inherit}
 .mnav a:hover{background:rgba(255,255,255,.09);color:#fff}
 @media(max-width:1040px){.mnav{display:none}}
 .mhright{margin-left:auto;display:flex;align-items:center;gap:14px}
-@media(max-width:780px){.mhdr{height:78px}.mhdr .bn-rare{font-size:32px}.mhdr .hdr-duck{height:50px}}
+@media(max-width:780px){:root{--header-h:78px}.mhdr{height:78px}.mhdr .bn-rare{font-size:32px}.mhdr .hdr-duck{height:50px}}
 @media(max-width:520px){.mhdr .brandname{display:none}.mhright .hsoc{display:none}}
 /* ---- hero ---- */
 .mhero{position:relative;min-height:100svh;display:flex;align-items:center;z-index:2;overflow:hidden}
@@ -134,7 +137,7 @@ main{position:relative;z-index:2}
 .cta{position:relative;z-index:2;min-height:78svh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;padding:80px 20px}
 .cta .bgimg{position:absolute;inset:0;z-index:0}
 .cta .bgimg img{width:100%;height:100%;object-fit:cover;transform:scale(1.04)}
-.cta .scrim{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,var(--base),rgba(4,9,22,.55) 40%,rgba(6,18,43,.82) 74%,#06122b 100%),radial-gradient(90% 90% at 50% 40%,rgba(63,107,255,.22),transparent 60%)}
+.cta .scrim{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,var(--base),rgba(4,9,22,.5) 36%,rgba(6,18,43,.88) 60%,#06122b 80%,#06122b 100%),radial-gradient(90% 90% at 50% 40%,rgba(63,107,255,.22),transparent 60%)}
 .cta .inner{position:relative;z-index:2;max-width:780px}
 .cta h2{font-family:var(--disp);font-weight:800;font-size:clamp(30px,5.4vw,64px);line-height:1.04;margin:0;letter-spacing:-.6px}
 .cta p{font-size:clamp(16px,1.9vw,21px);color:#dbe8fb;margin:18px 0 34px}
@@ -143,12 +146,17 @@ main{position:relative;z-index:2}
 .btn-sig:hover{transform:translateY(-2px);box-shadow:0 20px 52px -12px rgba(80,110,255,.9)}
 .btn-sig .ar{transition:transform .2s}.btn-sig:hover .ar{transform:translateX(4px)}
 /* footer */
-.mfoot{position:relative;z-index:2;overflow:hidden;padding:190px clamp(16px,4vw,40px) 46px;text-align:center;color:#8fa6cf;
-  background:linear-gradient(180deg,rgba(18,48,86,0) 0%,rgba(13,45,86,.5) 30%,#0c2c57 62%,#06122b 100%)}
-/* caustic water that fades in toward the bottom, matching the studio + rentals footers */
+.mfoot{position:relative;z-index:2;overflow:hidden;margin-top:-80px;padding:270px clamp(16px,4vw,40px) 46px;text-align:center;color:#8fa6cf;
+  /* Top of the footer is a SOLID block of the exact page base (#06122b) that the CTA above fades
+     down into. The footer is ALSO pulled up 80px (negative margin) so its opaque dark top PAINTS OVER
+     the section boundary — there is no adjacent element edge left to show a hairline seam. The blue
+     tint + caustics only begin well below, so nothing "starts" at the join. */
+  background:linear-gradient(180deg,#06122b 0%,#06122b 40%,rgba(13,45,86,.5) 58%,#0c2c57 78%,#06122b 100%)}
+/* caustic water that fades in toward the bottom, matching the studio + rentals footers. Held fully
+   transparent across the top ~22% so the caustics never touch the boundary with the section above. */
 .mfoot-water{position:absolute;left:0;right:0;top:0;bottom:0;z-index:0;pointer-events:none;opacity:.46;
   background:url('/media/site/water.jpg') center bottom/cover no-repeat;
-  -webkit-mask:linear-gradient(180deg,transparent 0%,#000 58%);mask:linear-gradient(180deg,transparent 0%,#000 58%)}
+  -webkit-mask:linear-gradient(180deg,transparent 0%,transparent 22%,#000 64%);mask:linear-gradient(180deg,transparent 0%,transparent 22%,#000 64%)}
 .mfoot .wm{position:relative;z-index:1;justify-content:center;margin:0 auto 12px}
 /* shared footer bits (tagline, socials, links, copy) come from chrome.css .rp-footer;
    just lift them above the caustic water layer and give the copy its media-specific line */
@@ -194,6 +202,9 @@ html.xw-active{overflow:hidden}
     <div class="hsoc rp-soc" id="mSoc"></div>
   </div>
 </header>
+<!-- Event banner mount (shared engine: /assets/looks.js). Renders from site.json → eventBanner,
+     the SAME source of truth that drives the studio + rentals banner. Empty/0-height when off. -->
+<div id="rp-eventbanner-mount"></div>
 
 <main>
   <!-- ============ HERO ============ -->
@@ -326,6 +337,8 @@ html.xw-active{overflow:hidden}
 <script src="/assets/xnav.js" defer></script>
 <script src="/assets/contact.js" defer></script>
 <script src="/assets/social_ui.js" defer></script>
+<!-- shared color-look + event-banner engine (renders site.json → eventBanner into #rp-eventbanner-mount) -->
+<script src="/assets/looks.js" defer></script>
 <script>
 /* Header + footer social icons — same source (data/socials.json) + artwork (assets/socials.js)
    as the studio, so all three sites' socials stay in lockstep. */

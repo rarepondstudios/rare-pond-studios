@@ -121,7 +121,7 @@ content:
           - { name: region, label: Region, type: string }
           - { name: formId, label: Form ID, type: string }
       - name: eventBanner
-        label: Event banner (front page - studio + rentals)
+        label: Event banner (all sites - studio + rentals + media)
         type: object
         fields:
           - { name: enabled, label: Show the event banner, type: boolean }
