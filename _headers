@@ -10,3 +10,9 @@
 # Always re-check content JSON so CMS edits show up immediately
 /data/*
   Cache-Control: public, max-age=0, must-revalidate
+
+# Media caches hard for a week (same rule as the jackcarlsen repo). Safe because the
+# exporters append ?h=<content-hash> to changed files, so a replaced image always gets
+# a fresh URL; unchanged files stay cached.
+/media/*
+  Cache-Control: public, max-age=604800

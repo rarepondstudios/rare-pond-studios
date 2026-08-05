@@ -21,7 +21,32 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
-This session touched the **three-site chrome** (studio `/`, rentals `/rentals`, media `/media`)
+### 0.0 NEWEST — Full-system QC pass + cleanup batch (2026-08-04 late PT)
+The §0.8 full-system QC was run top-to-bottom (all 4 front-ends in-browser, data JSON, git
+authorship, launchd/n8n health, CMS config, DNS). Full report: the "Claude for Website" project
+doc `qc-report-2026-08-04.md`. Results: everything green except the items fixed below.
+- **jackcarlsen.com apex DNS is CUT OVER and LIVE** — apex + www both serve the new Cloudflare
+  Pages site (the Wix era is over). Ignore any older "JC apex still on Wix" notes (§15.2 updated,
+  SSOT updated). `www.jackcarlsen.com` now 301s to the apex (canonical) via its `_redirects`.
+- **rarepond.com apex is STILL on GoDaddy forwarding** (deep paths 404) — see 0.5, unchanged, owner
+  DNS action pending.
+- **Fixed (this repo):** `site.json → orbits[]` referenced the deleted `invalid-orbit.jpg` (one
+  orbit bubble rendered empty; the SPA rewrite masked it as HTTP-200 HTML) → now `invalid-5.jpg`.
+  `eventBanner.buttonLink` `/#rentals` → `/rentals`. `_headers` gained the `/media/*` 7-day cache
+  rule (safe: exporters `?h=` cache-bust). `sitemap.xml` now includes `/media` + the three film
+  pages. **New QA tool `tools/check-media-refs.mjs`** (both repos) verifies every `/media/...`
+  path referenced in `data/*.json` exists on disk — run it before/after content work; it catches
+  the broken-image class that status codes can't (SPA rewrite returns 200 for missing files).
+- **Fixed (JC repo):** `_redirects` www→apex 301; `sitemap.xml` created (robots.txt pointed at a
+  non-existent one); same `check-media-refs.mjs` added.
+- **Fixed (backend):** `automation_health_launchd.py` n8n yellow-flag is now cadence-aware
+  (`SCHEDULE_GRACE_H`) — the weekly backup no longer shows 🟡 "no runs in 24h" six days a week.
+- **NOTE:** both sitemaps are static and list film pages — when films are added/renamed, update
+  them (or fold sitemap generation into the projects exporters, flagged as a future improvement).
+
+---
+
+Previous session (2026-08-05 UTC / 08-04 PT) touched the **three-site chrome** (studio `/`, rentals `/rentals`, media `/media`)
 — header, footer, cross-site nav, and the event banner. Everything below is **live on
 `www.rarepond.com`** and verified in-browser. Four things were worked on; three are fully done,
 one (the apex redirect) needs a manual DNS action nobody in a code session can perform.
@@ -740,12 +765,13 @@ fields those require (`jc_in_carousel`, `jc_in_workwall`, `poster_image`, `hero_
   acct id `c8bba86c59f46ac9e4421e25c86ca077`) with a **Pages** project `jackcarlsen-website`
   connected to the repo. **It is Pages, not Workers** — required for `_headers`, `_redirects`,
   and Pages Functions (`/admin` auth), exactly like rarepond.
-- **Live URL:** https://jackcarlsen-website.pages.dev (serving the scaffold placeholder).
-  **Auto-deploy on push to `main`** is wired.
+- **Live URL:** **https://jackcarlsen.com** (apex, canonical — DNS cut over 2026-08-04; the
+  `.pages.dev` URL still works as the deployment host). **Auto-deploy on push to `main`** is wired.
 - **Local clone:** `/Users/rarepondstudios/jackcarlsen-website` (scaffold: placeholder
   `index.html`, `README.md`, `.gitignore`, `data/projects.json` = `{"projects":[]}`).
-- **Domain:** `jackcarlsen.com` is still the **live Wix site** — leave it. Repoint to Cloudflare
-  only at launch (custom domain in the Pages project, DNS in the new Cloudflare account).
+- **Domain:** ✅ **CUT OVER (2026-08-04):** `jackcarlsen.com` (apex, canonical) + `www` now resolve
+  to the Cloudflare Pages project and serve the new site; www 301s to the apex via `_redirects`.
+  The old Wix site is fully retired.
 
 ### 15.3 Asset locations on THIS Mac (the next chat runs here too)
 - **NAS (read-only on-device; write via Google Drive):** `/Volumes/RarePondNAS/`

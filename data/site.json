@@ -32,7 +32,7 @@
     "/media/projects/geri_action/stills/geri-madeline.jpg",
     "/media/projects/revelations/stills/rev-earth-2.jpg",
     "/media/projects/revelations/stills/rev-heaven-1.jpg",
-    "/media/projects/invalid_opinion/stills/invalid-orbit.jpg",
+    "/media/projects/invalid_opinion/stills/invalid-5.jpg",
     "/media/projects/invalid_opinion/invalid-shot-2.jpg"
   ],
   "header": {
@@ -77,7 +77,7 @@
     "enabled": false,
     "title": "We're At San Diego Comic-Con!",
     "buttonText": "Woa Really?",
-    "buttonLink": "/#rentals",
+    "buttonLink": "/rentals",
     "colorLook": "geri",
     "gradientStyle": "stream"
   }

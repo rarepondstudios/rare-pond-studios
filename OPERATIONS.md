@@ -2,20 +2,32 @@
 
 Written for the next person - human or AI - who has to keep this working.
 
+> **⚠️ 2026-08-04 refresh.** The cross-site backend has evolved since parts of this doc were
+> written: site content is now built by **Python exporters on macOS launchd** (in
+> `~/bts-automation`, looping the `sites.json` registry), **not** by n8n — the old n8n
+> "Projects: DB to site (rarepond)" workflow was retired 2026-08-03. n8n remains event-driven
+> glue only (rentals HubSpot↔DB sync, integrations, alerts, backups). There is also a THIRD
+> surface, **`media/index.html` → rarepond.com/media**, and a separate jackcarlsen.com repo
+> sharing the same backend. The canonical current-state master is
+> **`~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md`** (local, non-public) — trust it over any
+> stale wording below. The n8n-specific sections here have been corrected; the rentals pipeline,
+> Supabase, alerting, and "things that have bitten us" sections remain fully current.
+
 > **This repository is PUBLIC.** No keys, passwords, tokens or API secrets go in this file
 > or anywhere else in this repo. Where a secret is needed, this document says *where it
 > lives*, never what it is.
 
 ---
 
-## The two sites
+## The three surfaces (one repo)
 
 | | |
 |---|---|
-| **Studio** | `index.html` at the repo root → rarepond.com |
-| **Rentals** | `rentals/index.html` → rarepond.com/rentals/ |
+| **Studio** | `index.html` at the repo root → www.rarepond.com |
+| **Rentals** | `rentals/index.html` → www.rarepond.com/rentals/ |
+| **Media** | `media/index.html` → www.rarepond.com/media/ |
 
-Both are plain static files with **no build step**. They fetch `data/*.json` at runtime, so
+All three are plain static files with **no build step**. They fetch `data/*.json` at runtime, so
 editing a JSON file changes the site with no code change.
 
 **Hosting:** Cloudflare Pages, auto-deploying from the `main` branch of this GitHub repo.
@@ -28,9 +40,10 @@ Push to `main` → live in about a minute. There is no staging environment.
 
 - **Projects (the film catalogue)** live in the **shared database**, edited through **NocoDB**
   (`http://localhost:8080`). This is the single source of truth for every project: its content,
-  and which sites show it (`sites` = Rare Pond / jackcarlsen / Corporate). A background n8n
-  workflow (**"Projects: DB to site (rarepond)"**) rebuilds `data/projects.json` from the database
-  and commits it — see "The projects pipeline" below.
+  and which sites show it (the `on_rarepond` / `on_jackcarlsen` checkboxes). The background
+  **Python exporter `projects_sync.py`** (launchd `com.rarepond.rpprojsync`, every 5 min)
+  rebuilds `data/projects.json` from the database and commits it — see "The projects
+  pipeline" below.
 - **Everything else** stays in **[Pages CMS](https://app.pagescms.org)** (reads `.pages.yml`,
   saving commits to GitHub → redeploys): **Color Looks**, Team, Site Settings, Rentals page,
   Form input types, Custom Pages, Maintenance. The **Projects** section in Pages CMS is now just
@@ -43,48 +56,56 @@ and benefit from git history, so they stay in Pages CMS. A project references a 
 name** (`colorLook`), so the two never fight: the palette lives in Color Looks, the assignment
 lives on the project.
 
-**Recurring maintenance — the n8n GitHub token expires.** n8n commits the projects
-catalogue to this repo using a GitHub PAT that has an expiry date. When it lapses, the
-projects export silently stops. A desktop reminder fires ~8 days before, and the full
-recovery procedure lives in [`tools/ROTATE-GITHUB-PAT.md`](tools/ROTATE-GITHUB-PAT.md).
+**Recurring maintenance — the exporters' GitHub credentials expire.** The Python exporters
+commit to this repo (and the jackcarlsen repo) using stored GitHub credentials (askpass
+helpers in `~/bts-automation`) that can lapse. When one lapses, that site's export silently
+stops committing. A desktop reminder fires ~8 days before expiry, and the rotation procedure
+lives in [`tools/ROTATE-GITHUB-PAT.md`](tools/ROTATE-GITHUB-PAT.md). If "my NocoDB edit isn't
+going live", check the exporter logs in `~/bts-automation` and the ClickUp "Automation
+Health" doc first.
 
 ---
 
 ## The projects pipeline (database → site)
 
-**The chain:** edit in NocoDB → the n8n workflow **"Projects: DB to site (rarepond)"** reads
-`rp.projects` from Supabase → rebuilds `data/projects.json` (only projects whose `sites` includes
-`rarepond`) → commits to GitHub → Cloudflare redeploys. It runs every 5 minutes and can be run by
-hand from n8n. It **only commits when something actually changed** (it compares by meaning, so
-JSON key-order never triggers a needless commit).
+**The chain:** edit in NocoDB → the Python exporter **`projects_sync.py --site rarepond`**
+(launchd `com.rarepond.rpprojsync`, in `~/bts-automation`) reads `rp.projects` from Supabase →
+rebuilds `data/projects.json` (only rows with `on_rarepond` ticked) → commits to GitHub →
+Cloudflare redeploys. It runs every 5 minutes and can be run by hand
+(`python3 projects_sync.py --site rarepond --publish`). It **only commits when something
+actually changed** (it compares by meaning, so JSON key-order never triggers a needless
+commit). *(This exporter replaced the old n8n "Projects: DB to site (rarepond)" workflow on
+2026-08-03; the jackcarlsen equivalent is `jc_projects_sync.py` on `com.rarepond.jcprojsync`.)*
 
 **Where each thing lives**
 
 | Thing | Lives in | Edited in |
 |---|---|---|
-| Project content (title, blurb, stills, watch, images…) | `rp.projects` row | NocoDB |
-| Which sites show a project | `rp.projects.sites` | NocoDB (multi-select) |
-| Per-site flags (which color look, bubble glow, in carousel) | `rp.projects.per_site` | NocoDB |
-| Colour palettes (the actual colours) | `data/colorlooks.json` | Pages CMS → Color Looks |
+| Project content (title, logline, stills, watch, images…) | `rp.projects` row | NocoDB |
+| Which sites show a project | `on_rarepond` / `on_jackcarlsen` checkboxes | NocoDB |
+| Per-site flags (use look, in carousel, sort order) | `rp_*` / `jc_*` columns | NocoDB |
+| Colour palettes (the actual colours) | NocoDB `color_looks` table → exported to `data/colorlooks.json` | NocoDB (Pages CMS → Color Looks is view-only) |
 | Projects page open/closed | `data/projects.json` `publicAccess` | Pages CMS → Projects |
 
 **How to make common changes**
 
-- **Add a new Rare Pond project:** in NocoDB, add a row, fill the content, set `sites` to include
-  `rarepond`. Leave the color look blank and the site uses the **`signature`** look; when you want a
-  bespoke palette, add a *film* look in Pages CMS → Color Looks and put its ID in the project's
-  color-look field. Within ~5 min it's live.
-- **Take a project off Rare Pond (or put it back):** just remove/add `rarepond` in that row's
-  `sites`. **Nothing is lost** — the row, all its content, and its per-site settings stay in the
-  database; the color look stays in Pages CMS. Re-adding `rarepond` brings it back exactly as it
-  was. (Same row can be on jackcarlsen and Corporate independently.)
-- **Change a film's colours:** Pages CMS → Color Looks → open that film's look. Every project
-  pointing at it updates. No project edit needed.
+- **Add a new Rare Pond project:** in NocoDB, add a row, fill the content, tick `on_rarepond`.
+  Leave the color look blank and the site uses the **`signature`** look; when you want a bespoke
+  palette, add a *film* look in the NocoDB `color_looks` table and put its key in the project's
+  `color_look` field (with `rp_use_look` on). Within ~5 min it's live.
+- **Take a project off Rare Pond (or put it back):** just untick/tick `on_rarepond` on that row.
+  **Nothing is lost** — the row, all its content, and its per-site settings stay in the
+  database. Re-ticking brings it back exactly as it was. (The same row can be on jackcarlsen
+  independently via `on_jackcarlsen`.)
+- **Change a film's colours:** edit that film's look in the NocoDB `color_looks` table. Every
+  project pointing at it updates on both sites (Pages CMS → Color Looks is a view-only preview
+  link). No project edit needed.
 - **Close/open the projects page:** Pages CMS → Projects → the "open to the public" switch.
-- **Reorder the carousel:** the `sort_order` column in NocoDB (lower = earlier).
+- **Reorder the carousel:** the `rp_sort_order` column in NocoDB (**higher = shown first**; leave
+  gaps like 30/20/10 so new films slot in without renumbering).
 
 **One source of truth:** never edit the project list inside Pages CMS — it's a read-only mirror and
-the sync overwrites it. Projects = NocoDB; colours, team, settings = Pages CMS.
+the sync overwrites it. Projects + colour looks = NocoDB; team, settings, page copy = Pages CMS.
 
 ---
 
@@ -162,18 +183,18 @@ Workflows (mind the **Status** column - some are inactive *by design*):
 |---|---|---|
 | HubSpot → Rental DB Sync | **ACTIVE** | polls HubSpot, writes orders/bookings to Supabase |
 | Rental DB → HubSpot Stage Push | **ACTIVE** | pushes stage changes back |
-| Projects: DB to site (rarepond) | **ACTIVE** | every 5 min, exports `rp.projects` → `data/projects.json`, commits to GitHub (see the projects pipeline) |
+| ~~Projects: DB to site (rarepond)~~ | **RETIRED 2026-08-03** | replaced by the Python exporter `projects_sync.py` on launchd (see the projects pipeline). n8n no longer builds any site content. |
 | **[Alerts] Workflow Failure → Email** | **ACTIVE** | fires on ANY workflow error |
 | **[Alerts] Watchdog - workflow gone silent** | **ACTIVE** | every 30 min, flags a workflow that has stopped running at all |
-| `[Website Forms]` Jotform Intake / Crew / Rental → HubSpot + Calendar | **INACTIVE - leave OFF** | The old n8n copy of the form → HubSpot + Calendar job. **Retired on purpose** - **Jotform's own native integrations do this now** (see "The rental pipeline" above). Re-activating them while Jotform native is on recreates duplicate deals + duplicate calendar events. |
+| ~~`[Website Forms]` Jotform Intake / Crew / Rental → HubSpot + Calendar~~ | **DELETED 2026-08-03** | The old n8n copy of the form → HubSpot + Calendar job. **Jotform's own native integrations do this now** (see "The rental pipeline" above); after a live end-to-end proof the inactive workflows were deleted (backed up to `bts-automation/backups/n8n_20260803/`). Do not resurrect them - running them alongside native previously created duplicate deals + duplicate calendar events. |
 
-> **Do not be misled by these `[Website Forms]` workflows still existing in n8n.** Their being
-> **inactive is the correct, intended end state** - not a broken or rolled-back migration. The
-> source of truth for form → HubSpot + Calendar is **Jotform's native integrations**, full stop.
-> If someone reports "the Website Forms workflows are off, did the migration revert?" - the
-> answer is no; that's how it's supposed to be. The only way to safely turn them back on would be
-> to *simultaneously disable* Jotform's native integrations, which the "things that have bitten
-> us" list says never to do. So: leave them off.
+> **The `[Website Forms]` workflows are GONE from n8n on purpose** (deleted 2026-08-03, backup in
+> `bts-automation/backups/n8n_20260803/`) - not a broken or rolled-back migration. The source of
+> truth for form → HubSpot + Calendar is **Jotform's native integrations**, full stop. If someone
+> reports "the form workflows are missing, did something break?" - the answer is no; that's how
+> it's supposed to be. Never rebuild them while Jotform native is on - that combination created
+> duplicate deals + duplicate calendar events, which the "things that have bitten us" list
+> warns about.
 
 ### The alerting, and why it is shaped this way
 - **Layer 1** is an n8n *Error Workflow*. On n8n 2.x an error workflow **must itself be ACTIVE**
