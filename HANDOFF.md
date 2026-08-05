@@ -134,34 +134,102 @@ Local preview: `tools/_devserve.py` on `127.0.0.1:8799` mirrors the Cloudflare `
   centred in the footer.
 - Kaushan Script + Heebo are already loaded on all three sites, so no font changes were needed.
 
-### 0.8 QC CHECKLIST for the next chat (run on `www.rarepond.com`, NOT the apex)
-Do the pass on **`https://www.rarepond.com`**, **`/rentals`**, **`/media`** (the bare apex `rarepond.com`
-404s deep paths until the DNS fix in 0.5 — do not QC there, you'll see stale/404s). For EACH of the three
-sub-sites confirm:
-1. **Header page nav** = Our Team · Projects · Contact, with labels coming from `site.json → nav`
-   (rename a label there and it should change in header AND footer on all three).
-2. **Cross-site nav** chips Media · Studio · Rentals sit in the SAME fixed slots; the current site is the
-   non-clickable "you are here" chip; clicking a sibling plays the directional wipe and lands cleanly.
-3. **Footer** shows, in order: the typed wordmark (COLOUR duck on studio/rentals, WHITE duck on media) →
-   "Let's Make Something Amazing..." tagline → 4 social pills → link row (Our Team · Projects · Studio ·
-   Media · Rentals · Contact) → copyright. Sub-text white everywhere EXCEPT media (gradient). Left-justified.
-4. **Footer "Contact" link** opens the shared contact modal (it must NOT just scroll or navigate).
-5. **Contact modal** opens from header, footer, and the page's CTA button; the HubSpot form renders inside;
-   the brand social bubbles show beside it.
-6. **Media only** — the footer/CTA join has **no hard line** (the "Start a conversation" photo fades to
-   dark `#06122b`, the caustic water blooms in below it).
-7. **Event banner** — flip `data/site.json → eventBanner.enabled` to `true` and confirm the banner renders
-   on ALL THREE below the header (it tucks behind the header, `z-index` header > banner). Set it back to
-   `false` (its normal state) after checking.
-8. **Studio light scenes** (Team / Projects) — the footer inverts: wordmark text, tagline and links all go
-   dark and stay readable.
-9. **No console errors** on any of the three; **0 broken images** in header/footer.
-- **Scrolling tip for automated checks:** on the studio home the carousel eats wheel events and
-  `scrollingElement.scrollTop` is ignored — use `window.scrollTo({top, behavior:'instant'})` to reach the
-  footer. On media, the body is the scroll container.
-- **Jack Carlsen (`jackcarlsen.com`)** is a **separate repo/deploy** and was NOT touched this session; its
-  chrome is independent of the shared `chrome.css`/`site.json` above. QC it separately if it is in scope —
-  do not assume these Rare Pond changes propagated to it.
+### 0.8 FULL-SYSTEM QC PROTOCOL — run this whole thing in the next chat
+> **Scope:** a top-to-bottom quality-control pass over the ENTIRE system, not just the chrome:
+> all websites + sub-sites, the generated data (source-of-truth) JSON, the host-side backend
+> exporters + their launchd jobs, the databases, and Pages CMS. Read **`OPERATIONS.md` first**
+> (canonical ops manual — pipelines, n8n/NocoDB access, Supabase, "things that have bitten us").
+> Work top-down A→E. This QC is **read-only** — do not change anything unless you find a defect
+> and the owner asks you to fix it.
+
+**System map (what you are QC-ing):**
+- **4 front-ends.** Rare Pond = studio `/` + rentals `/rentals` + media `/media` (ONE repo
+  `rarepondstudios/rare-pond-studios`, host `www.rarepond.com`). Jack Carlsen = `jackcarlsen-website`
+  (SEPARATE repo `Jackjrrc/jackcarlsen-website`, host `jackcarlsen.com`) with its OWN
+  `assets/`, `data/`, `.pages.yml`, `functions/`, `_redirects` — independent of Rare Pond's chrome.
+- **Generated data** = each repo's `data/*.json`, built by host exporters from the DB and committed.
+- **Backend** = Python exporter scripts in `~/bts-automation/*.py`, each on a `com.rarepond.*` launchd
+  job, plus n8n workflows. **Source of truth = NocoDB over Supabase Postgres** (schema `rp`).
+- **CMS** = Pages CMS driven by each repo's `.pages.yml`; it edits ONLY the hand-authored JSON fields.
+- **GOLDEN RULE:** rendered/generated JSON (`projects.json`, `rentals.json`, `socials.json`,
+  `colorlooks.json`, `platforms.json`, `team.json`, `bts.json`, `stills-hd.json`, …) is DB-generated —
+  **never hand-edit it.** Only these are hand/CMS-edited: `site.json` (hero/about/header/**nav**/footer/
+  **eventBanner**/sectionHeadings), `contact.json`, `media.json` (media page copy + navBlurb), and the
+  JC equivalents. Verify nobody hand-edited a generated file (`git log -- data/<file>` should show the
+  exporter/n8n as author, not a manual commit).
+
+**A. FRONT-END QC — all four sites (on the LIVE hosts, NOT the bare apex).**
+Rare Pond: do it on `https://www.rarepond.com`, `/rentals`, `/media` (the bare apex `rarepond.com`
+404s deep paths until the DNS fix in 0.5 — never QC there). For EACH of the three RP sub-sites confirm:
+  1. **Header nav** = Our Team · Projects · Contact, labels from `site.json → nav` (rename one there → it
+     changes in header AND footer on all three).
+  2. **Cross-site nav** chips Media · Studio · Rentals in the SAME fixed slots; current site = the
+     non-clickable "you are here" chip; clicking a sibling plays the directional wipe and lands cleanly
+     (test all hops, including back-to-studio).
+  3. **Footer** in order: typed wordmark (COLOUR duck on studio/rentals, WHITE duck on media) →
+     "Let's Make Something Amazing..." tagline → 4 social pills → link row (Our Team · Projects · Studio ·
+     Media · Rentals · Contact) → copyright. Sub-text white EXCEPT media (gradient). Left-justified.
+  4. **Footer "Contact" link** opens the shared contact modal (must NOT scroll/navigate).
+  5. **Contact modal** opens from header, footer AND the page CTA; HubSpot form renders inside; brand
+     social bubbles show beside it.
+  6. **Media only** — footer/CTA join has NO hard line (photo fades to `#06122b`, caustics bloom below;
+     `.mfoot` has `margin-top:-80px`).
+  7. **Event banner** — temporarily set `data/site.json → eventBanner.enabled:true`, confirm it renders on
+     ALL THREE below the header (header z-index > banner). **Set it back to `false`** after.
+  8. **Studio light scenes** (Team / Projects) — footer inverts: wordmark text, tagline, links go dark + stay readable.
+  9. **No console errors**; **0 broken images** (the studio `.lightbox` empty-src `<img>` is a benign
+     on-demand placeholder — ignore that one).
+  - *Automation tip:* studio home carousel eats wheel events and `scrollingElement.scrollTop` is ignored —
+    use `window.scrollTo({top, behavior:'instant'})`; on media the BODY is the scroll container.
+Jack Carlsen: do it on `https://jackcarlsen.com` (and confirm its own apex/www + `_redirects` behave —
+check its DNS separately). Its chrome is INDEPENDENT, so run an equivalent pass in its own terms: header/
+nav, footer, socials, **projects/film catalogue renders from its `projects.json`**, any contact path,
+no console errors, 0 broken images. Do NOT assume Rare Pond changes propagated here.
+
+**B. DATA / SOURCE-OF-TRUTH QC — both repos' `data/*.json`.**
+  - Every `data/*.json` parses (`python3 -m json.tool <file> >/dev/null`).
+  - GENERATED files are fresh + agree with the DB: spot-check a few `projects.json` / `rentals.json` /
+    `socials.json` / `colorlooks.json` records against NocoDB (see OPERATIONS.md for how to reach it).
+  - HAND-EDITED files intact + valid: `site.json` (nav/footer/hero/eventBanner), `contact.json`, `media.json`.
+  - Golden-rule audit: no manual commits to generated files.
+
+**C. BACKEND / PIPELINE QC — host Mac Mini (`~/bts-automation`).**
+  - **Fastest path — the health monitor.** `automation_health_launchd.py` (job `com.rarepond.pyhealthmon`,
+    every 15 min) writes TWO ClickUp pages: **"Automation Health"** (n8n workflows) and **"Automation
+    Health — Python Jobs (launchd)"**. Read those; all green = every exporter + workflow last ran OK.
+  - **Direct check:** `launchctl list | grep rarepond` — 2nd column is the last exit code (0 = OK,
+    non-zero = failed). Tail the offending job's logs in `~/bts-automation/<job>.log` and
+    `<job>.launchd.err.log`.
+  - **Exporters that MUST be healthy** (job → script): `rpprojsync`→`projects_sync.py`,
+    `jcprojsync`→`jc_projects_sync.py`, `colorlooksync`→`colorlooks_sync.py`,
+    `colorlooksfolders`→`colorlooks_folders_sync.py`, `socialssync`→`socials_sync.py`,
+    `socialuisync`→`social_ui_sync.py`, `platformssync`→`platforms_export.py`,
+    `brandmediasync`→`brand_media_sync.py`, `rentalsunitssync`→`rentals_units_sync.py`,
+    `projmediasync`/`projfoldersync`, `btssync`/`rpbtssync`, `jcnativemediasync`.
+  - **n8n alerts:** `rpalertmail01` + `rpwatchdog01` are the failure/silence email safety net — confirm
+    both enabled (do NOT delete; they are not part of the inventory).
+  - **SYNCED-FILE TRAP:** `assets/social_ui.js` has a master at `~/bts-automation/social_ui.js`; they must
+    be **byte-identical** or `socialuisync` reverts the repo copy. `diff` them; if you ever edit one, edit BOTH.
+  - **Databases:** confirm NocoDB + Supabase reachable (OPERATIONS.md §"How to actually reach n8n / NocoDB"
+    and §"Supabase"). Respect the DB-permissions rule in OPERATIONS.md.
+
+**D. PAGES CMS QC — both repos.**
+  - `.pages.yml` is valid YAML (`python3 -c "import yaml;yaml.safe_load(open('.pages.yml'))"`); every field
+    group maps to a real key in its data JSON. RP: the single **"Navigation"** list, **"Event banner (all
+    sites)"**, and Footer (no links sub-field) resolve.
+  - Round-trip: a CMS edit to `site.json` (e.g. a nav label) shows on all three RP sites; a JC CMS edit
+    shows on jackcarlsen.com.
+  - Reminder: socials / projects / rentals / color-looks are DB-managed and were REMOVED from the CMS — the
+    CMS should only expose hand-edited fields.
+
+**E. INFRA QC.**
+  - Both Cloudflare Pages projects' latest deploy succeeded (~1–2 min after push).
+  - **KNOWN ISSUE (see 0.5):** bare apex `rarepond.com` 404s deep paths (GoDaddy forwarding, not Cloudflare).
+    Needs the DNS move; QC Rare Pond on `www`. Check whether jackcarlsen.com has the same apex/www quirk.
+  - Deploy recipe = 0.6 (never commit `tools/_devserve.py`).
+
+**Deliverable of the QC pass:** a short pass/fail report per layer (A–E) with any defect + file/line/job,
+and — only if the owner approves — the fixes. Nothing above should be changed silently.
 
 ---
 
