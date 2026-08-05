@@ -21,7 +21,40 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
-### 0.0 NEWEST — Full-system QC pass + cleanup batch (2026-08-04 late PT)
+### 0.0.0 NEWEST — Custom cursor system + interaction batch (2026-08-04 night PT)
+Four features shipped across ALL FOUR surfaces (studio/rentals/media/JC), RP `81130b8` + JC `a245da2`:
+- **Shared custom cursor engine — `assets/cursor.js`** (master `bts-automation/cursor.js`, published to
+  BOTH repos by `social_ui_sync.py` / launchd `socialuisync`, same pipeline as `social_ui.js`).
+  Soft gradient-falloff circle + 1:1 tracking dot replaces the mouse on desktop (fine pointers only;
+  auto-off on touch + reduced-motion). Subtle velocity stretch; **iPadOS-style morph**: hovering ANY
+  interactive element makes the ring hug that element's border box + border-radius; a white orbiting
+  arc with a trail replaces the ring while a long transition covers the page (xwipe, social transport,
+  JC transport, load veil — pointer position carries across navigations via sessionStorage `__rpcpos`).
+  **CMS control:** Pages CMS → Site Settings → "Custom cursor" → per sub-site `enabled` + `colorLook`
+  (site.json → `cursor.studio/rentals/media`; JC: `cursor` top-level; default = signature, so JC is
+  automatically purple).
+  **⚠️ RULES FOR FUTURE WORK (the standardized part):** interactivity is AUTO-detected — any
+  `a[href]/button/[role=button]/form control/summary`, OR anything whose computed style is
+  `cursor:pointer`, morphs automatically. A NEW button/link/card needs NOTHING for the cursor to
+  adhere; just style it normally (`cursor:pointer` if it isn't a native control). Opt-outs/ins:
+  `data-cursor="off"` (never morph on this element), `data-cursor="link"` (force morph). Text fields
+  keep the native I-beam by design. Manual loading state: `window.__cursorLoading(true|false)`.
+  Elements larger than ~62% of a viewport axis never morph (size guard).
+- **Same-page nav = scroll to top.** Clicking the wordmark or any nav/footer link that points at the
+  page you are already on now smooth-scrolls to the top instead of re-running a transition or
+  reloading — implemented as one capture-phase inline snippet ("SAME-PAGE NAV") in each document's
+  <head>, registered before the SPA/fade/wipe handlers. Links with a #hash or data-contact/net/wipe
+  are untouched; cross-page nav behaves exactly as before.
+- **Social/watch transport gradient now radiates from the CLICK POINT** (`social_ui.js` master): the
+  radial gradient's centre = the same `--scx/--scy` the clip circle grows from (real click coords,
+  falling back to the icon centre for keyboard activations) — the wipe always blooms out of the
+  click, innermost colour = the icon's own c1, no hard cut.
+- **Speed lines de-uniformed** (`assets/xwipe.js`): 11 layers with near-prime tile widths
+  (701–1409px), uneven row heights and per-layer phases — parallel but no visible repeat.
+- All verified locally (devserve + JC :8801) and live: morph on nav pills/chips/cards, purple cursor
+  on JC, loader auto-engages during wipes, same-page scroll-top on all four, zero console errors.
+
+### 0.0 Full-system QC pass + cleanup batch (2026-08-04 late PT)
 The §0.8 full-system QC was run top-to-bottom (all 4 front-ends in-browser, data JSON, git
 authorship, launchd/n8n health, CMS config, DNS). Full report: the "Claude for Website" project
 doc `qc-report-2026-08-04.md`. Results: everything green except the items fixed below.
