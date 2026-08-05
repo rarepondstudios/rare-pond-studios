@@ -121,17 +121,17 @@ a.xchip:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
 /* ---------- footer WORDMARK: colour duck mark + typed name, unified across all three sites ----------
  * Mirrors the Rare Pond Media footer's typed treatment (duck + Kaushan "Rare Pond" + Heebo sub) so the
  * studio + rentals footers share the same aesthetic - here with the COLOUR duck mark and each site's own
- * name ("Studios" / "Rentals"). The sub carries the signature gradient. Text inverts on light scenes. */
+ * name ("Studios" / "Rentals"). Sub is plain white here (the gradient sub is media-only); text inverts on light scenes. */
 .rp-footer .fwm{display:flex;align-items:center;justify-content:center;gap:12px;width:max-content;max-width:100%;
   margin:0 auto 14px;text-decoration:none;line-height:1}
 .rp-footer .fwm img{width:54px;height:auto;filter:drop-shadow(0 3px 12px rgba(0,0,0,.5))}
 .rp-footer .fwm .fwm-txt{display:flex;flex-direction:column;justify-content:center;line-height:.9;text-align:left}
 .rp-footer .fwm .fwm-rare{font-family:"Kaushan Script",cursive;font-size:34px;color:#eaf2ff;margin-bottom:2px}
 .rp-footer .fwm .fwm-sub{font-family:"Heebo",sans-serif;font-weight:700;font-size:13.5px;letter-spacing:.34em;
-  text-transform:uppercase;padding-left:2px;
-  background:linear-gradient(100deg,#56c8ff,#6f8bff 40%,#9b5cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  text-transform:uppercase;padding-left:2px;color:#fff}
 /* light footer scenes (studio Team / Projects invert the footer) */
 .rp-footer.footer-light .fwm .fwm-rare{color:#0c2c57}
+.rp-footer.footer-light .fwm .fwm-sub{color:#0c2c57}
 .rp-footer.footer-light .fwm img{filter:drop-shadow(0 4px 14px rgba(12,44,87,.28))}
 @media(max-width:520px){.rp-footer .fwm img{width:48px}.rp-footer .fwm .fwm-rare{font-size:30px}}
 .rp-footer .tag{font-size:clamp(18px,2.6vw,26px);font-weight:800;margin:8px 0 18px;color:#eaf2ff}
