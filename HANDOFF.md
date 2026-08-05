@@ -21,6 +21,30 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-2 NIGHT BATCH — cursor v6→v7.1 · keyboard spatial nav · xcur chip (2026-08-05 late)
+
+Cursor master `bts-automation/cursor.js` (synced to both repos) evolved v6→v7.1:
+
+- **v6:** page-transition fade fixed (painted-frame start + computed-opacity safety); specials
+  (bubbles/rentals tabs) = ring COLOR fades out as the object's own glow fades in (`.faded`);
+  faint contrast ghost ring at the dot while hugging (`.rpc-mini`, mix-blend difference, .6).
+- **v7:** ring 50px (+15%), blur 1.3px; `a[data-net]` default hug pad 5; KEYBOARD SPATIAL NAV —
+  arrows move the hug/selection from a hover context, Enter activates; kb engagement of specials
+  conforms (bubbles → circle, logos → rounded rect 16/6) with `.rpc-kbsel` mirroring the site's
+  own hover glow (UA outline suppressed); carousel end-push via `data-kb-carousel` ("click" = RP
+  #stage rotate; nav-id = JC wall/BTS jog buttons) with reseek retries. Two engine bugs fixed:
+  synthetic mousemove no longer cancels kb mode (>3px real movement required), and tilt is
+  hands-off for ANY transform-positioned element (a baked inline matrix pinned carousel items).
+- **v7.1 (this entry):** HUG-RELEASE TRAVEL — on hug→free the outline glides from the element to
+  the dot (travT eased ~14 frames, matching the .22s size shrink); the containment clamp and
+  stretch-rotate are suspended mid-travel. Kills the "outline snaps centered on the dot then
+  shrinks" glitch that read as expansion AWAY from the button (confirmed frame-by-frame from an
+  OBS capture, then harness-verified: monotone travel, zero backtrack).
+
+**xcur chip (RP only):** the blued-out "you are here" cross-site chip is now clickable —
+`assets/xnav.js` section 3 (all three surfaces): smooth scroll to top + `__samePageHome()` +
+Escape dispatch; `chrome.css` gives `.xcur` cursor:pointer (hug engages) + role/tabindex/Enter.
+
 ### 0.0.-1 EVENING BATCH — scroll fix · shared contact popup · thoughts system
 
 1. **SPA nav lands at the top instantly.** `html{scroll-behavior:smooth}` animated the scroll
