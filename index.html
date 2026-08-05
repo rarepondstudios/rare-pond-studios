@@ -686,6 +686,24 @@ html.xw-active{overflow:hidden}
   .u-title{line-height:.92;margin:0 0 14px;font-weight:800}
   .u-tagline{font-size:clamp(17px,2.4vw,26px);font-weight:600;margin:0 0 22px;opacity:.95;color:var(--tagline-color,#ffffff);font-style:var(--tagline-style,normal)}
   .u-logline{font-size:clamp(15px,1.7vw,19px);line-height:1.6;max-width:680px;color:#e7eefb}
+  /* ===== "Hear our thoughts" — expandable note below the logline (NocoDB rp_thoughts).
+     The box grows OUT of the button: pill button on top, panel unfolds beneath it sharing the
+     same glass chrome; grid-template-rows 0fr↔1fr = fluid height animation at any text length. */
+  .u-thoughts{margin:18px 0 0;max-width:680px}
+  .u-thoughts-btn{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;padding:12px 18px;border-radius:14px;cursor:pointer;text-align:left;
+    background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);color:#eef4ff;font:700 13.5px/1 Heebo,sans-serif;letter-spacing:.4px;
+    transition:background .25s ease,border-radius .35s cubic-bezier(.3,.7,.2,1),border-color .25s ease}
+  .u-thoughts-btn:hover{background:rgba(255,255,255,.15)}
+  .u-thoughts-chev{width:15px;height:15px;transition:transform .4s cubic-bezier(.3,.7,.2,1)}
+  .u-thoughts.open .u-thoughts-chev{transform:rotate(180deg)}
+  .u-thoughts.open .u-thoughts-btn{border-radius:14px 14px 0 0;background:rgba(255,255,255,.13);border-bottom-color:transparent}
+  .u-thoughts-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s cubic-bezier(.3,.7,.2,1)}
+  .u-thoughts.open .u-thoughts-body{grid-template-rows:1fr}
+  .u-thoughts-clip{overflow:hidden;min-height:0}
+  .u-thoughts-text{text-align:left;white-space:pre-wrap;padding:14px 18px 16px;font-size:15px;line-height:1.65;color:#dfe9fa;
+    background:rgba(9,20,44,.42);border:1px solid rgba(255,255,255,.18);border-top:none;border-radius:0 0 14px 14px;
+    opacity:0;transform:translateY(-6px);transition:opacity .35s ease .08s,transform .45s cubic-bezier(.3,.7,.2,1) .05s}
+  .u-thoughts.open .u-thoughts-text{opacity:1;transform:none}
   .u-meta{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 0}
   .chip{font-size:12.5px;padding:8px 14px;border-radius:50px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);font-weight:600}
   .u-credits{margin-top:30px;font-size:14px;color:#cdddf7;line-height:1.7}.u-credits b{color:#fff}
@@ -1159,7 +1177,7 @@ const CARD_EYEBROW_TPL=(TPL.cardEyebrowTemplate||SITE.cardEyebrowTemplate||'{kic
 const CARD_LOGLINE_TPL=(TPL.cardLoglineTemplate||SITE.cardLoglineTemplate||'{logline}');
 const GRID_CAPTION_TPL=(TPL.gridCaptionTemplate||SITE.gridCaptionTemplate||'{kicker}');
 const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.kicker,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,focusVideo:p.focusVideo||'',characters:[],logline:(p.logline||p.pageLogline||p.blurb),placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
-const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,focusVideo:p.focusVideo||'',logo:p.titleLogo,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:(p.logline||p.pageLogline),genre:p.genre||[],type:p.type||'',medium:p.medium||'',watch:buildWatch(p),stills:p.stills||[],credits:p.credits,rpThoughts:(p.rpThoughts||''),vars:VARS[p.key]}]));
+const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,focusVideo:p.focusVideo||'',logo:p.titleLogo,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:(p.logline||p.pageLogline),genre:p.genre||[],type:p.type||'',medium:p.medium||'',watch:buildWatch(p),stills:p.stills||[],credits:p.credits,rpThoughts:(p.rpThoughts||''),rpShowThoughts:!!p.rpShowThoughts,vars:VARS[p.key]}]));
 const TEAM=__d[2].team;
 const __pagesData=__d[3]||{pages:[]};
 const BTS=__d[6]||{};  /* per-project behind-the-scenes, auto-synced from the Project Repository BTS folders */
@@ -1929,8 +1947,13 @@ function buildUniverse(key){
      startPreview engine in openUniverse); a film without one just keeps the still. Same lazy
      data-src / preload="none" contract as .side-vid / .bubble-vid / .focus-vid. */
   const uVid=s.focusVideo?`<video class="u-vid" data-src="${s.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
-  sec.innerHTML=`<button class="back">‹ Back</button><div class="u-bg" style="background-image:url('${uBg}')"></div>${uVid}<div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p><div class="u-meta">${(s.type&&String(s.type).trim())?`<span class="chip type-chip">${String(s.type).trim().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</span>`:''}${(s.medium&&String(s.medium).trim())?`<span class="chip type-chip medium-chip">${String(s.medium).trim().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</span>`:''}${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${renderCredits(s.credits,s.vars)}</div><div class="u-rp-thoughts" hidden data-field="rp_thoughts">${s.rpThoughts||''}</div></div>${stillsHTML}${btsHTML}</div>`;
-  sec.querySelector('.back').addEventListener('click',()=>history.back());universes.appendChild(sec);return sec;
+  sec.innerHTML=`<button class="back">‹ Back</button><div class="u-bg" style="background-image:url('${uBg}')"></div>${uVid}<div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p>${(s.rpShowThoughts&&String(s.rpThoughts||'').trim())?`<div class="u-thoughts"><button class="u-thoughts-btn" type="button" aria-expanded="false"><span class="u-thoughts-label">Hear our thoughts</span><svg class="u-thoughts-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="u-thoughts-body"><div class="u-thoughts-clip"><div class="u-thoughts-text">${String(s.rpThoughts).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</div></div></div></div>`:''}<div class="u-meta">${(s.type&&String(s.type).trim())?`<span class="chip type-chip">${String(s.type).trim().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</span>`:''}${(s.medium&&String(s.medium).trim())?`<span class="chip type-chip medium-chip">${String(s.medium).trim().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</span>`:''}${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${renderCredits(s.credits,s.vars)}</div></div>${stillsHTML}${btsHTML}</div>`;
+  sec.querySelector('.back').addEventListener('click',()=>history.back());
+  /* "Hear our thoughts" — fluid expand/collapse (grid-template-rows 0fr↔1fr, same pattern as
+     the rentals package box). Text originates from the NocoDB rp_thoughts field. */
+  const _tw=sec.querySelector('.u-thoughts');
+  if(_tw){const _tb=_tw.querySelector('.u-thoughts-btn');_tb.addEventListener('click',()=>{const open=_tw.classList.toggle('open');_tb.setAttribute('aria-expanded',open?'true':'false');});}
+  universes.appendChild(sec);return sec;
 }
 const built={};let currentOpen=null;
 
@@ -2165,10 +2188,15 @@ function renderCustomPage(pg){
 let activeView='home';
 const viewHome=document.getElementById('view-home'),viewProjects=document.getElementById('view-projects'),viewTeam=document.getElementById('view-team');
 const viewPage=document.getElementById('view-page');
+/* INSTANT scroll reset (no smooth glide). html{scroll-behavior:smooth} turns a bare
+   window.scrollTo(0,0) into an ANIMATED scroll — so arriving on a new view visibly
+   "landed at the bottom and scrolled up" (worst from links far down the page, e.g. the
+   about CTAs / footer). Suspend the CSS behavior for the jump, then restore. */
+function __instTop(){const de=document.documentElement;const p=de.style.scrollBehavior;de.style.scrollBehavior='auto';try{window.scrollTo({top:0,left:0,behavior:'instant'});}catch(_){window.scrollTo(0,0);}de.style.scrollBehavior=p;}
 function showView(name,scrollTo){
   activeView=name;viewHome.style.display=name==='home'?'block':'none';viewProjects.style.display=name==='projects'?'block':'none';viewTeam.style.display=name==='team'?'block':'none';viewPage.style.display=name==='page'?'block':'none';
   document.getElementById('navProjects').classList.toggle('active',name==='projects');
-  if(scrollTo){const t=document.querySelector(scrollTo);if(t){window.scrollTo(0,0);requestAnimationFrame(()=>t.scrollIntoView({behavior:'smooth'}));}}else window.scrollTo(0,0);
+  if(scrollTo){const t=document.querySelector(scrollTo);if(t){__instTop();requestAnimationFrame(()=>t.scrollIntoView({behavior:'smooth'}));}}else __instTop();
 }
 /* slug <-> key (auto from title; optional "slug" in projects.json overrides) */
 const slugify=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
@@ -2291,7 +2319,7 @@ addEventListener('hashchange',routeHash);
   const mark=()=>{userMoved=true;};
   ['wheel','touchstart','pointerdown','keydown'].forEach(ev=>
     addEventListener(ev,mark,{once:true,passive:true}));
-  const top=()=>{ if(!userMoved) window.scrollTo(0,0); };
+  const top=()=>{ if(!userMoved) __instTop(); };   /* instant — html{scroll-behavior:smooth} would animate a bare scrollTo */
   top();
   requestAnimationFrame(top);
   addEventListener('load',()=>{ top(); setTimeout(top,150); },{once:true});
