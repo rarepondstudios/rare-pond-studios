@@ -11,9 +11,9 @@
 > plus the specific mistakes made this session so they aren't repeated. Where this file and
 > `OPERATIONS.md` disagree, trust the live system, then `OPERATIONS.md`.
 >
-> **Status:** local-only working note. It lives in the repo folder so the next chat can read
-> it, but it is **not committed/pushed** (the GitHub repo is PUBLIC — don't push internal
-> notes like this). Move it or delete it whenever you like.
+> **Status:** this file **IS committed** to the (PUBLIC) GitHub repo, so keep it public-safe —
+> architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
+> running handoff note the next chat reads first.
 >
 > Last updated: 2026-08-05.
 
@@ -115,6 +115,53 @@ git -c credential.helper= push origin main
 ```
 Local preview: `tools/_devserve.py` on `127.0.0.1:8799` mirrors the Cloudflare `_redirects`
 (static-first, `/media`→`/media/`, `/rentals`→`/rentals/`). Verify on www after the ~1–2 min Pages build.
+
+### 0.7 Footer wordmark unified across all three sites
+- All three footers now use a **typed wordmark** (duck mark + Kaushan "Rare Pond" + Heebo uppercase site
+  name), replacing the old baked-in `rare-pond-color.webp` logo IMAGE on studio/rentals.
+- Shared style lives once in **`assets/chrome.css` → `.rp-footer .fwm`** (`.fwm` wrapper, `.fwm img`,
+  `.fwm-txt`, `.fwm-rare` = Kaushan name, `.fwm-sub` = uppercase site name). Markup pattern:
+  `<a class="fwm"><img><span class="fwm-txt"><span class="fwm-rare">Rare Pond</span><span class="fwm-sub">Studios</span></span></a>`.
+  - **Studio** (`index.html` `#footerTpl`): `duck-mark.webp` (COLOUR duck) + "Rare Pond" + "Studios".
+  - **Rentals** (`rentals/index.html` footer): `duck-mark.webp` (COLOUR duck) + "Rare Pond" + "Rentals".
+  - **Media** keeps its OWN inline `.wm` treatment (`media/index.html`): `duck-white.webp` (WHITE duck) +
+    "Rare Pond" + "Media". (Jack liked the media one, so it was left as the reference look.)
+- **Sub-text colour:** the gradient is **media-only** (media's `.wm-sub` carries `.grad`). Studio/rentals
+  `.fwm-sub` is **plain white**, and inverts to dark `#0c2c57` on the studio's **light** footer scenes
+  (`.rp-footer.footer-light`, i.e. Team / Projects views).
+- **Alignment:** all three are **left-justified** (media's `.wm .wm-txt` was switched from centred to
+  `align-items:flex-start; text-align:left` to match studio/rentals). The wordmark block itself stays
+  centred in the footer.
+- Kaushan Script + Heebo are already loaded on all three sites, so no font changes were needed.
+
+### 0.8 QC CHECKLIST for the next chat (run on `www.rarepond.com`, NOT the apex)
+Do the pass on **`https://www.rarepond.com`**, **`/rentals`**, **`/media`** (the bare apex `rarepond.com`
+404s deep paths until the DNS fix in 0.5 — do not QC there, you'll see stale/404s). For EACH of the three
+sub-sites confirm:
+1. **Header page nav** = Our Team · Projects · Contact, with labels coming from `site.json → nav`
+   (rename a label there and it should change in header AND footer on all three).
+2. **Cross-site nav** chips Media · Studio · Rentals sit in the SAME fixed slots; the current site is the
+   non-clickable "you are here" chip; clicking a sibling plays the directional wipe and lands cleanly.
+3. **Footer** shows, in order: the typed wordmark (COLOUR duck on studio/rentals, WHITE duck on media) →
+   "Let's Make Something Amazing..." tagline → 4 social pills → link row (Our Team · Projects · Studio ·
+   Media · Rentals · Contact) → copyright. Sub-text white everywhere EXCEPT media (gradient). Left-justified.
+4. **Footer "Contact" link** opens the shared contact modal (it must NOT just scroll or navigate).
+5. **Contact modal** opens from header, footer, and the page's CTA button; the HubSpot form renders inside;
+   the brand social bubbles show beside it.
+6. **Media only** — the footer/CTA join has **no hard line** (the "Start a conversation" photo fades to
+   dark `#06122b`, the caustic water blooms in below it).
+7. **Event banner** — flip `data/site.json → eventBanner.enabled` to `true` and confirm the banner renders
+   on ALL THREE below the header (it tucks behind the header, `z-index` header > banner). Set it back to
+   `false` (its normal state) after checking.
+8. **Studio light scenes** (Team / Projects) — the footer inverts: wordmark text, tagline and links all go
+   dark and stay readable.
+9. **No console errors** on any of the three; **0 broken images** in header/footer.
+- **Scrolling tip for automated checks:** on the studio home the carousel eats wheel events and
+  `scrollingElement.scrollTop` is ignored — use `window.scrollTo({top, behavior:'instant'})` to reach the
+  footer. On media, the body is the scroll container.
+- **Jack Carlsen (`jackcarlsen.com`)** is a **separate repo/deploy** and was NOT touched this session; its
+  chrome is independent of the shared `chrome.css`/`site.json` above. QC it separately if it is in scope —
+  do not assume these Rare Pond changes propagated to it.
 
 ---
 
