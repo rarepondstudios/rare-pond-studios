@@ -21,6 +21,33 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-3 LATE-NIGHT VISUAL-FIX BATCH — cursor v8 · kb accessibility · cross-site handoff
+
+Five recorded glitches fixed (cursor master + shared social_ui.js + both sites' markup):
+
+1. **No sideways page pan on kb selection.** kbEngage's scrollIntoView could pan horizontally
+   when selecting the RP home bubbles that DESIGNEDLY sit part-offscreen — replaced with a
+   vertical-only scrollBy reveal (horizontal travel belongs to the carousels via kbAdvance).
+2. **JC wall posters: no cursor tilt** (`data-cursor="notilt"` in the wtile template — the
+   perspective warp fought the marquee). **KB HOVER PARITY** (cursor.js): the kb selection now
+   dispatches synthetic pointer/mouse enter+leave events (isTrusted=false; our own delegated
+   listeners skip untrusted events), so everything sites tie to real hover — JC wall reels,
+   RP bubble reels, marquee pausing — reacts to keyboard selection exactly like a mouse hover;
+   released on kb hand-back/disengage. Site CSS also mirrors hover for kb (`.wtile.rpc-kbsel`,
+   `.bts-slot img.rpc-kbsel`).
+3. **JC BTS strip is kb-controllable**: `.bts-shot` imgs now `role="button" tabindex="0"`
+   (they were invisible to the engine — cursor:zoom-in, no SEL match); arrows travel the strip,
+   edge presses jog it via the existing `data-kb-carousel="btsNav"`, Enter opens the lightbox.
+4. **Arrow keys activate kb nav with NO hover prerequisite** (accessibility): first arrow press
+   selects the candidate nearest the pointer's last position (viewport centre fallback), trying
+   nearest-first past oversized rejects; the next real mouse move hands control back.
+5. **Cross-site wipe handoff (JC ⇄ RP)**: a held same-tab transport now carries its click
+   origin + gradient colours in the destination URL hash (`#rpt=x%|y%|c1|c2|c3` — sessionStorage
+   can't cross origins). Each document's new pre-paint snippet paints the same gradient before
+   first paint (`window.__RPT`), and shared social_ui.js `arrivalRetract()` retracts it to the
+   carried click point (centre fallback, colours validated, hash stripped via replaceState,
+   1.8s safety, reduced-motion instant). No more hard cut between the sites.
+
 ### 0.0.-2 NIGHT BATCH — cursor v6→v7.1 · keyboard spatial nav · xcur chip (2026-08-05 late)
 
 Cursor master `bts-automation/cursor.js` (synced to both repos) evolved v6→v7.1:
