@@ -191,8 +191,11 @@
 
     /* ---- pointer tracking ---- */
     addEventListener("mousemove", function (e) {
+      /* REAL movement hands control back to the pointer. Chrome also fires a SYNTHETIC
+         mousemove (same coordinates) whenever content shifts under a stationary cursor —
+         e.g. a carousel rotating — which must NOT cancel an active keyboard selection. */
+      if (kbActive && (Math.abs(e.clientX - mx) > 3 || Math.abs(e.clientY - my) > 3)) kbActive = false;
       mx = e.clientX; my = e.clientY;
-      kbActive = false;                /* real mouse movement hands control back to the pointer */
       show(); wake();
     }, { passive: true });
     document.addEventListener("mouseleave", hide);
@@ -353,15 +356,16 @@
           if (fromRel || !(el.style.transform || "").length) {
             var native = "";
             try { native = (getComputedStyle(el).getPropertyValue("--tiltx") || "").trim(); } catch (_) {}
-            if (!native) {
+            var bm = "";
+            try { bm = getComputedStyle(el).transform || ""; } catch (_) {}
+            if (!native && (fromRel || !bm || bm === "none")) {
+              /* transform-POSITIONED elements (carousel items etc.) are hands-off: their
+                 stylesheet transform can change while engaged (a rotation shifting them), and a
+                 baked inline matrix would PIN them at the old spot. Their own hover CSS reacts. */
               tiltEl = el;
               tiltP = fromRel ? fromRel.p : 0;
               tiltOrig = fromRel ? fromRel.orig : (el.style.transform || "");
-              if (fromRel) tiltBase = fromRel.base;
-              else {
-                tiltBase = "";
-                try { var bm = getComputedStyle(el).transform; if (bm && bm !== "none") tiltBase = bm; } catch (_) {}
-              }
+              tiltBase = fromRel ? fromRel.base : "";
               tiltScale = hoverSpecial ? (attrSp ? 1.08 : 1.05) : 1;
             } else if (fromRel) { try { el.style.transform = fromRel.orig; } catch (_) {} }
           }
@@ -400,7 +404,8 @@
       var attrSp = dcHas(el, "glow") || dcHas(el, "special");
       var r; try { r = el.getBoundingClientRect(); } catch (_) { return false; }
       if (r.width < 4 || r.height < 4 || (!attrSp && (r.width > innerWidth * .62 || r.height > innerHeight * .62))) return false;
-      applyHover(el, false, attrSp);
+      applyHover(el, false, attrSp, true);
+      try { el.classList.add("rpc-kbsel"); kbSelEl = el; } catch (_) {}
       try { el.focus({ preventScroll: true }); } catch (_) {}
       try { el.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (_) {}
       show(); wake();
@@ -410,8 +415,13 @@
       if (!hoverEl) return false;
       var cr; try { cr = hoverEl.getBoundingClientRect(); } catch (_) { return false; }
       var cx = cr.left + cr.width / 2, cy = cr.top + cr.height / 2;
+      /* horizontal moves INSIDE a carousel stay inside it (its Prev/Next chrome and outside
+         elements don't steal the step) — reaching the edge falls through to kbAdvance, which
+         pushes the carousel so the next option shifts into place. Vertical moves exit freely. */
+      var car = dx ? (hoverEl.closest && hoverEl.closest("[data-kb-carousel]")) : null;
       var best = null, bs = Infinity;
       kbCandidates().forEach(function (c) {
+        if (car && !car.contains(c.el)) return;
         var x = c.r.left + c.r.width / 2, y = c.r.top + c.r.height / 2;
         var vx = x - cx, vy = y - cy;
         var fwd = vx * dx + vy * dy;                       /* progress along the pressed direction */
@@ -421,7 +431,41 @@
         var score = fwd + ortho * 2;                       /* nearest, preferring in-line targets */
         if (score < bs) { bs = score; best = c; }
       });
+      window.__rpcKb = { at: "kbMove", car: !!car, best: best ? String(best.el.className || best.el.tagName).slice(0, 40) : null };   /* QC breadcrumb */
       return best ? kbEngage(best.el) : false;
+    }
+    /* CAROUSEL PUSH: arrowing past the last visible option advances the carousel itself so the
+       next option shifts into place, then the selection lands on it. A container opts in with
+       data-kb-carousel: "click" = clicking the edge item advances (RP home carousel rotates on
+       side-item click); any other value = the id of a jog-nav whose buttons carry data-dir
+       (-1 | 1), e.g. the JC wall/BTS strips. */
+    function kbAdvance(dx) {
+      if (!hoverEl || !dx) return false;
+      var car = hoverEl.closest && hoverEl.closest("[data-kb-carousel]");
+      if (!car) return false;
+      var mode = car.getAttribute("data-kb-carousel") || "click";
+      /* re-seek with retries: the shifted option may still be travelling (transform transitions
+         run ~.5–.7s), so a single early probe can miss it mid-flight */
+      function reseek(delay) {
+        var tries = 0;
+        (function att() { tries++; if (kbMove(dx, 0)) return; if (tries < 4) setTimeout(att, 320); })();
+      }
+      if (mode === "click") {
+        try { hoverEl.click(); } catch (_) { return false; }
+        setTimeout(function () { reseek(); }, 550);
+        return true;
+      }
+      var nav = document.getElementById(mode);
+      if (!nav) return false;
+      var target = null;
+      nav.querySelectorAll("button").forEach(function (bt) {
+        var d = +(bt.dataset.dir || 0);
+        if ((dx > 0 && d > 0) || (dx < 0 && d < 0)) target = bt;
+      });
+      if (!target) return false;
+      try { target.click(); } catch (_) { return false; }
+      setTimeout(function () { reseek(); }, 400);
+      return true;
     }
     addEventListener("keydown", function (e) {
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
@@ -439,6 +483,7 @@
       if (!dx && !dy) return;
       if (!hoverEl) return;                                 /* no hover context → arrows scroll the page as normal */
       if (kbMove(dx, dy)) { kbActive = true; e.preventDefault(); }
+      else if (dx && kbAdvance(dx)) { kbActive = true; e.preventDefault(); }
     });
 
     /* ---- loading detection (cheap, every ~12 frames + 250ms engage grace) ---- */

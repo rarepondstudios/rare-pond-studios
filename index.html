@@ -544,8 +544,13 @@ html.xw-active{overflow:hidden}
   .bubble:hover{transform:translateZ(40px) scale(1.06) rotateX(var(--tiltx)) rotateY(var(--tilty))}
   .bubble:hover>.bubble-logo{opacity:0;transform:translateX(-50%) translateY(-12px) scale(.95)}
   .bubble:hover .caption .t{opacity:1;transform:translateY(0)}
-  .bubble:hover .glow{opacity:1;filter:blur(12px)}
-  .bubble:hover .edge{opacity:.95}
+  /* keyboard selection (.rpc-kbsel, applied by assets/cursor.js) mirrors the hover glow so the
+     object visibly reacts to being selected — same "selection glow" as a mouse hover. */
+  .bubble.rpc-kbsel{transform:translateZ(40px) scale(1.06)}
+  .bubble.rpc-kbsel .caption .t{opacity:1;transform:translateY(0)}
+  .citem.rpc-kbsel::before,.bubble.rpc-kbsel::before{opacity:.42;visibility:visible}
+  .bubble:hover .glow,.bubble.rpc-kbsel .glow{opacity:1;filter:blur(12px)}
+  .bubble:hover .edge,.bubble.rpc-kbsel .edge{opacity:.95}
 
   body.webkit .glass .spec,body.webkit .cspec{opacity:.55}
 
@@ -1052,7 +1057,7 @@ html.xw-active{overflow:hidden}
       <div class="carousel">
         <div class="carr left" id="carPrev" role="button" tabindex="0" aria-label="Previous slide"><span class="ci">‹</span><span class="cl">Prev</span></div>
         <div class="carr right" id="carNext" role="button" tabindex="0" aria-label="Next slide"><span class="ci">›</span><span class="cl">Next</span></div>
-        <div class="stage" id="stage"></div>
+        <div class="stage" id="stage" data-kb-carousel="click"></div>
         <div class="cinfo" id="cinfo"></div>
         <div class="cdots" id="cdots"></div>
       </div>
@@ -1603,6 +1608,7 @@ function focusHTML(p){
    reel across the whole site is ever playing at once. */
 const citems=CAROUSEL.map((p,i)=>{
   const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',accentFor(p.key));
+  if(!p.placeholder){el.setAttribute('role','button');el.setAttribute('tabindex','0');}   /* keyboard spatial-nav can select carousel items */
   const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" decoding="async" src="${p.img}" alt="${p.title}">`;
   /* only films with a reel AND a real still (not the placeholder poster) get a hover video */
   const sideVid=(!p.poster&&p.focusVideo)?`<video class="side-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
