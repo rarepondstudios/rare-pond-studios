@@ -180,6 +180,12 @@
     var tiltEl = null, tiltOrig = "", tiltBase = "", tiltScale = 1;  // tilted element, its original inline transform, its computed base matrix, extra scale
     var tiltP = 0, tiltNx = 0, tiltNy = 0;  // ease-in progress + last tilt direction (for the ease-out)
     var relEls = [];                   // elements easing BACK to rest after hover-off (fluid shrink)
+    /* RELEASE TRAVEL: on hug→free the outline must TRAVEL from the button to the dot while it
+       shrinks (0.22s CSS size transition), never snap centered on the dot first — a snap makes
+       the still-large outline appear to expand AWAY from the button (the "glitch"). While
+       travT>0 the ring centre is eased from the release point to the live pointer, and the
+       containment clamp + velocity stretch are suspended so nothing can yank it off the path. */
+    var travT = 0, travX = 0, travY = 0;
     var clearT = null;                 // hover-out grace timer (kills the between-buttons flash)
     var shown = false, loading = false, loadSince = 0, down = false;
     var idleFrames = 0, running = false, frame = 0;
@@ -280,6 +286,10 @@
       if (el === hoverEl) return;
       releaseTilt();
       if (kbSelEl && kbSelEl !== el) { try { kbSelEl.classList.remove("rpc-kbsel"); } catch (_) {} kbSelEl = null; }
+      /* hug → free: start the release travel from the outline's CURRENT centre (the element),
+         so the shrinking outline glides back to the dot. Specials were already at the pointer. */
+      if (!el && hoverEl && !hoverSpecial) { travT = 1; travX = rx; travY = ry; }
+      else if (el) travT = 0;
       hoverEl = el;
       hoverSpecial = false;
       hoverPad = 0;
@@ -615,10 +625,21 @@
       rx += (tx - rx) * (free ? .22 : .35);
       ry += (ty - ry) * (free ? .22 : .35);
 
+      /* RELEASE TRAVEL (hug → free): override the centre with an eased glide from the release
+         point to the LIVE pointer — ~14 frames, matching the 0.22s size shrink — so the whole
+         shrinking outline visibly travels the button→dot distance instead of snapping. */
+      if (travT > 0 && free) {
+        travT -= 1 / 14;
+        var te = 1 - Math.max(travT, 0);
+        var teased = 1 - Math.pow(1 - te, 3);
+        rx = travX + (mx - travX) * teased;
+        ry = travY + (my - travY) * teased;
+      } else if (travT > 0) travT = 0;
+
       /* CONTAINMENT: the dot must always sit INSIDE the ring. In free/special mode the ring
          trails the pointer, so on fast moves the dot could exit — clamp the lag against the
          ring's current ELLIPSE (rotated by angS, squashed by kS) and pull the ring along. */
-      if (free) {
+      if (free && travT <= 0) {   /* suspended during release travel — the glide owns the centre */
         var cdx = mx - rx, cdy = my - ry;
         var cca = Math.cos(angS), csa = Math.sin(angS);
         var ex = cdx * cca + cdy * csa, ey = -cdx * csa + cdy * cca;
@@ -633,7 +654,7 @@
       var moved = Math.abs(tx - rx) + Math.abs(ty - ry) + Math.abs(kS);
       var tf = "translate(" + rx.toFixed(2) + "px," + ry.toFixed(2) + "px) translate(-50%,-50%)";
       var sc = down ? " scale(.9)" : "";
-      if (free && kS > .012) {
+      if (free && kS > .012 && travT <= 0) {   /* no stretch-rotate mid-travel — the shrinking outline must stay true to its shape */
         ring.style.transform = tf + " rotate(" + angS.toFixed(3) + "rad) scale(" + (1 + kS).toFixed(3) + "," + (1 - kS * .62).toFixed(3) + ")" + sc;
       } else {
         ring.style.transform = tf + sc;
@@ -648,7 +669,7 @@
       if (ldr.__lt !== lt) { ldr.__lt = lt; ldr.style.setProperty("--rpc-lt", lt); }
 
       /* sleep when idle (nothing moving, loading, tilted, or easing back out) */
-      if (moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length) idleFrames++; else idleFrames = 0;
+      if (moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length && travT <= 0) idleFrames++; else idleFrames = 0;
     }
     function wake() {
       if (running) return;

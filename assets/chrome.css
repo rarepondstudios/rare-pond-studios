@@ -52,7 +52,8 @@ a.xchip:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
 .xnav a.xchip:hover .xar{color:#0b59c4;filter:drop-shadow(0 0 6px rgba(31,111,208,.9))}
 .xnav a.xchip[data-dir="r"]:hover .xar{transform:translateX(3px)}
 .xnav a.xchip[data-dir="l"]:hover .xar{transform:translateX(-3px)}
-.xcur{background:rgba(40,95,180,.12);border-color:transparent;color:#2f57a6;cursor:default;pointer-events:none}
+.xcur{background:rgba(40,95,180,.12);border-color:transparent;color:#2f57a6;cursor:pointer}
+.xcur:hover{background:rgba(40,95,180,.19)}
 /* dark-header variant (Rare Pond Media) */
 .xnav.xnav-dark .xchip{border-color:rgba(140,180,255,.28);background:rgba(255,255,255,.06);color:#dfe9ff}
 .xnav.xnav-dark a.xchip:hover{background:rgba(255,255,255,.14);box-shadow:none}

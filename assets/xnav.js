@@ -62,4 +62,28 @@
     addEventListener('resize',function(){ setOpen(false); measure(); },{passive:true});
     if(document.fonts&&document.fonts.ready) document.fonts.ready.then(measure);   // remeasure once webfonts land
   });
+
+  /* ---------- 3. current-site "you are here" chip = back to this site's home top ----------
+     Same behavior as the wordmark / same-page nav links: smooth scroll to the top (instant
+     under reduced motion), reset an SPA surface to its home view via __samePageHome, and
+     dispatch Escape so an open burger/hamburger closes. The chip is a <span> (no href), so
+     the SAME-PAGE NAV snippet can't see it — wired here for all three surfaces at once. */
+  (function(){
+    function act(){
+      var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+      window.scrollTo({top:0,behavior:rm?'auto':'smooth'});
+      if(window.__samePageHome){try{window.__samePageHome();}catch(_){}}
+      try{document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'}));}catch(_){}
+    }
+    [].slice.call(document.querySelectorAll('.xchip.xcur')).forEach(function(c){
+      c.setAttribute('role','button'); c.setAttribute('tabindex','0');
+      c.setAttribute('aria-label','Back to the top of this site');
+    });
+    document.addEventListener('click',function(e){
+      if(e.target.closest&&e.target.closest('.xchip.xcur')) act();
+    });
+    document.addEventListener('keydown',function(e){
+      if((e.key==='Enter'||e.key===' ')&&e.target.closest&&e.target.closest('.xchip.xcur')){e.preventDefault();act();}
+    });
+  })();
 })();
