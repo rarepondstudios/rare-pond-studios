@@ -11,7 +11,47 @@
   var RM = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
   var docEl = document.documentElement;
   function panel(){ return document.getElementById('xwipe'); }
-  function clearAll(w){ docEl.classList.remove('xw-active','xw-cover'); if(w){ w.style.display='none'; w.style.transition=''; w.style.transform=''; } }
+
+  /* ---------- SPEED LINES (injected; no per-page markup) ----------
+     Thin parallel streaks INSIDE the wipe panel that drift along the sweep direction a
+     little faster than the panel itself - a subtle velocity cue. Seamlessness contract:
+     the lines exist ONLY while the panel is actually sliding, and their opacity keyframes
+     start AND end at 0. At the cross-document handoff the panel is at rest (fully
+     covering) with lines at opacity 0 on both sides, so the cut stays invisible and no
+     cross-page animation-phase sync is needed. They inherit #xwipe's edge mask, so
+     streaks feather out with the panel's soft edges. Hidden under reduced-motion. */
+  function linesCss(){
+    if(document.getElementById('xw-lines-css')) return;
+    var s=document.createElement('style'); s.id='xw-lines-css';
+    s.textContent=
+      '.xw-lines{position:absolute;top:0;bottom:0;left:-400px;right:-400px;opacity:0;pointer-events:none;'+
+      'background-image:'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.55) 30%,rgba(255,255,255,.55) 62%,rgba(255,255,255,0) 100%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.35) 25%,rgba(255,255,255,.35) 55%,rgba(255,255,255,0) 100%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.5) 35%,rgba(255,255,255,.5) 70%,rgba(255,255,255,0) 100%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.3) 28%,rgba(255,255,255,.3) 60%,rgba(255,255,255,0) 100%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.45) 32%,rgba(255,255,255,.45) 64%,rgba(255,255,255,0) 100%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.35) 26%,rgba(255,255,255,.35) 58%,rgba(255,255,255,0) 100%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.5) 30%,rgba(255,255,255,.5) 66%,rgba(255,255,255,0) 100%),'+
+      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.3) 30%,rgba(255,255,255,.3) 62%,rgba(255,255,255,0) 100%);'+
+      'background-size:520px 3px,340px 2px,640px 3px,280px 2px,460px 2px,380px 2px,560px 3px,320px 2px;'+
+      'background-position:80px 8%,420px 17%,-60px 28%,260px 38%,120px 50%,520px 61%,-140px 72%,360px 86%;'+
+      'background-repeat:repeat-x;will-change:transform,opacity}'+
+      '@keyframes xw-lines-l{from{transform:translateX(320px)}to{transform:translateX(-320px)}}'+
+      '@keyframes xw-lines-r{from{transform:translateX(-320px)}to{transform:translateX(320px)}}'+
+      '@keyframes xw-lines-fade{0%{opacity:0}30%{opacity:.5}70%{opacity:.5}100%{opacity:0}}'+
+      '@media (prefers-reduced-motion:reduce){.xw-lines{display:none!important}}';
+    document.head.appendChild(s);
+  }
+  linesCss();
+  function runLines(w,dir,ms){
+    if(RM||!w) return;
+    var el=w.querySelector('.xw-lines');
+    if(!el){ el=document.createElement('div'); el.className='xw-lines'; el.setAttribute('aria-hidden','true'); w.appendChild(el); }
+    el.style.animation='none'; void el.offsetWidth;   /* restart cleanly on rapid hops */
+    el.style.animation='xw-lines-'+(dir==='L'?'l':'r')+' '+ms+'ms linear both, xw-lines-fade '+ms+'ms ease both';
+  }
+  function clearAll(w){ docEl.classList.remove('xw-active','xw-cover'); if(w){ w.style.display='none'; w.style.transition=''; w.style.transform=''; var ln=w.querySelector('.xw-lines'); if(ln) ln.style.animation=''; } }
 
   /* ---------- DESTINATION: finish the sweep (slide the covering panel off-screen) ---------- */
   (function reveal(){
@@ -29,6 +69,7 @@
       w.style.transition='none'; w.style.transform='translateX(0)'; void w.offsetWidth;
       w.style.transition='transform .6s cubic-bezier(.65,0,.35,1)';
       w.style.transform='translateX('+outX+')';
+      runLines(w,dir,600);
       if(window.__resetThemeColor) window.__resetThemeColor(600);
       var fin=function(){ clearAll(w); };
       w.addEventListener('transitionend',function h(e){ if(e.propertyName!=='transform')return; w.removeEventListener('transitionend',h); fin(); });
@@ -60,6 +101,7 @@
     w.style.display='block'; w.style.transition='none'; w.style.transform='translateX('+startX+')'; void w.offsetWidth;
     w.style.transition='transform .5s cubic-bezier(.65,0,.35,1)';
     w.style.transform='translateX(0)';
+    runLines(w,dir,500);
     var did=false, go=function(){ if(did)return; did=true; location.href=url.href; };
     w.addEventListener('transitionend',function h(e){ if(e.propertyName!=='transform')return; w.removeEventListener('transitionend',h); go(); });
     setTimeout(go,560);
