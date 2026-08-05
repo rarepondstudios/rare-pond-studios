@@ -79,8 +79,11 @@ a{color:inherit}
 .mhero .bgimg{position:absolute;inset:0;z-index:0}
 .mhero .bgimg img{width:100%;height:100%;object-fit:cover;transform:scale(1.06);animation:heroZoom 18s ease-out forwards}
 @keyframes heroZoom{to{transform:scale(1)}}
+/* The bottom of the hero DISSOLVES into the page: a long soft fade that reaches FULL base
+   opacity well before the section edge, so scrolling past the hero never shows a hard line
+   where the image ends — the still melts into the site background instead. */
 .mhero .scrim{position:absolute;inset:0;z-index:1;background:
-  linear-gradient(180deg,rgba(4,9,22,.62) 0%,rgba(4,9,22,.32) 34%,rgba(4,9,22,.72) 78%,var(--base) 100%),
+  linear-gradient(180deg,rgba(4,9,22,.62) 0%,rgba(4,9,22,.32) 34%,rgba(6,18,43,.55) 60%,rgba(6,18,43,.82) 74%,rgba(6,18,43,.96) 86%,var(--base) 94%,var(--base) 100%),
   radial-gradient(120% 90% at 78% 20%,transparent 40%,rgba(63,107,255,.18))}
 .mhero .inner{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;padding:0 clamp(16px,4vw,40px);width:100%}
 .mhero .eyebrow{font-family:var(--disp);font-weight:700;letter-spacing:5px;text-transform:uppercase;font-size:13px;color:#bcd2ff;margin:0 0 18px;opacity:0;animation:up .9s .25s cubic-bezier(.2,.7,.2,1) both}
@@ -305,7 +308,7 @@ html.xw-active{overflow:hidden}
   </a>
   <div class="tag">Let's Make Something Amazing...</div>
   <div class="fsoc" id="mFootSoc"></div>
-  <div class="flinks"><a href="/">Rare Pond Studios</a><a href="/media">Media</a><a href="/rentals">Rentals</a><a href="#" data-contact>Contact</a></div>
+  <div class="flinks"><a href="/" data-cursor-pad="6">Rare Pond Studios</a><a href="/media" data-cursor-pad="6">Media</a><a href="/rentals" data-cursor-pad="6">Rentals</a><a href="#" data-contact data-cursor-pad="6">Contact</a></div>
   <div class="copy">A branch of Rare Pond Studios · © Rare Pond 2026</div>
 </footer>
 
@@ -318,7 +321,12 @@ html.xw-active{overflow:hidden}
   var esc=function(s){return (s==null?'':String(s)).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});};
   var grad=function(t,a){t=t||'';if(!a)return esc(t);var i=t.indexOf(a);return i<0?esc(t):esc(t.slice(0,i))+'<span class="grad">'+esc(a)+'</span>'+esc(t.slice(i+a.length));};
   var qs=function(s,r){return (r||document).querySelector(s);},qsa=function(s,r){return [].slice.call((r||document).querySelectorAll(s));};
-  var norm=function(u){return (u&&!/^(https?:)?\/\//.test(u)&&u[0]!=='/')?'/'+u:u;};
+  /* norm(): CMS image fields are plain PATH STRINGS (paste straight from the NocoDB stills/BTS
+     attribute). Accept anything sensible: full https URL → its /media path; missing leading
+     slash → added; whitespace trimmed. */
+  var norm=function(u){u=String(u==null?'':u).trim();if(!u)return u;
+    if(/^https?:\/\//i.test(u)){try{u=new URL(u).pathname;}catch(_){}}
+    return (u[0]!=='/'&&!/^(https?:)?\/\//.test(u))?'/'+u:u;};
   var txt=function(el,v){if(el&&v!=null&&v!=='')el.textContent=v;};
   var html=function(el,v){if(el&&v!=null)el.innerHTML=v;};
   var img=function(el,src){if(el&&src){el.removeAttribute('srcset');el.setAttribute('src',norm(src));}};
@@ -372,11 +380,13 @@ html.xw-active{overflow:hidden}
     var fnav=NAV.filter(function(l){return l&&l.footer!==false;});
     var fl=document.querySelector('.mfoot .flinks');
     if(fl&&fnav.length){
+      /* SPA targets live on the studio site at real paths (/team, /projects) — NOT /#hash.
+         data-cursor-pad gives the hover outline breathing room around the text. */
       fl.innerHTML=fnav.map(function(l){
         var label=esc(l.label||'');
-        if(l.go==='contact')return '<a href="#" data-contact>'+label+'</a>';
-        var href=l.href?l.href:(l.go?('/#'+l.go):'#');
-        return '<a href="'+esc(href)+'">'+label+'</a>';
+        if(l.go==='contact')return '<a href="#" data-contact data-cursor-pad="6">'+label+'</a>';
+        var href=l.href?l.href:(l.go?(l.go==='home'?'/':'/'+l.go):'#');
+        return '<a href="'+esc(href)+'" data-cursor-pad="6">'+label+'</a>';
       }).join('');
     }
   }).catch(function(){});

@@ -74,7 +74,10 @@ function renderTabs(){
   /* data-c stays the DATABASE id (that is what groups the gear); only the visible
      text uses the CMS display name. Renaming a category in Pages CMS therefore
      never touches the database. */
-  return '<div class="tab'+(on?' on':'')+'" data-c="'+c+'" role="button" tabindex="0" style="'+st+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="'+(ICON[c]||'')+'"/></svg>'+esc(c==='Home'?datesLabel():(LABELS[c]||c))+'</div>';}).join('');
+  /* data-cursor="special notilt": the custom cursor never outlines a category tab — the free
+     ring TINTS to the tab's --tc colour instead and merges with the category glow (no tilt:
+     tabs sit flush on the tab bar). */
+  return '<div class="tab'+(on?' on':'')+'" data-c="'+c+'" role="button" tabindex="0" data-cursor="special notilt" style="'+st+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="'+(ICON[c]||'')+'"/></svg>'+esc(c==='Home'?datesLabel():(LABELS[c]||c))+'</div>';}).join('');
  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{active=t.dataset.c;q='';render();});
  const col=tabColor();
  $('tabline').style.background='linear-gradient(90deg,'+hx(col,0)+' 0%,'+hx(col,.9)+' 14%,'+hx(col,.9)+' 86%,'+hx(col,0)+' 100%)';$('tabline').style.setProperty('--gc',active==='Home'?'transparent':hx(col,.5));
@@ -141,7 +144,10 @@ function card(p,col){
  const _kc=rpGroupContents(p.contents);
  const kit=_kc.length?('<div class="kit" data-k="'+p._id+'" role="button" tabindex="0">View kit contents ('+_kc.length+')</div><div class="kitlist" id="kl'+p._id+'">'+_kc.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" alt="" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+rpQx(c.n)+'</span></div>').join('')+'</div>'):'';
  const ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add to cart</button>');
- return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+avb+kit
+ /* data-cursor="off": the item card keeps its own coloured-glow hover only — the cursor never
+    outlines the full card; only the CONTROLS inside it (add / qty / kit / date) hug their own
+    hitboxes. */
+ return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" data-cursor="off" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+avb+kit
  +'<div class="row2">'+priceBlk(p,false)+(rv?'<span class="rv">value '+esc(rv)+'</span>':'')+'</div>'
  +ctl+'</div></div>';}
 function bind(){
@@ -261,7 +267,7 @@ function rpBoxSvg(){return '<svg viewBox="0 0 24 24" fill="none" stroke="current
 function rpPkgCard(p,col){rpEnsureStyles();var grp=rpMemGroups(p);var nmem=grp.length;var price=rpPkgPrice(p);var rv=rvOf(p);var inC=cart[p._id];var dd=days();
  var thumb=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  var ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add package</button>');
- return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'<span class="rp-badge">Package</span></div><div class="body"><h3>'+esc(p.name)+'</h3>'
+ return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" data-cursor="off" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'<span class="rp-badge">Package</span></div><div class="body"><h3>'+esc(p.name)+'</h3>'
   +'<div class="rp-incount">'+nmem+' item'+(nmem!==1?'s':'')+' included</div>'
   +'<div class="row2">'+(dd?('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day × '+dd+'d</span></div><div class="tot">'+fmt(price*dd)+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div></div>'):('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div></div>'))+'</div>'
   +'<div class="row2"><span class="stat">Bundle price</span>'+(rv?'<span class="rv">value '+esc(rv)+'</span>':'')+'</div>'+ctl+'</div></div>';}

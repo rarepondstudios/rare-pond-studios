@@ -117,10 +117,19 @@
       ".rpc-glow{background:conic-gradient(from 210deg," + rgba(COL.c1, .95) + "," + rgba(COL.c2, .95) + "," + rgba(COL.c3, .95) + "," + rgba(COL.c1, .95) + ");" +
       "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px));" +
       "mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px))}" +
-      ".rpc-fill{opacity:0;background:" + rgba(COL.c1, .10) + ";box-shadow:0 0 0 1.5px " + rgba(COL.c1, .55) + ",0 0 16px -4px " + rgba(COL.c2, .5) + "}" +
-      ".rpc-ring.hover .rpc-glow{opacity:0}.rpc-ring.hover .rpc-fill{opacity:1}" +
-      /* special objects (bubbles / wordmarks): NO skin change — the ring stays the free open
-         ring and the ELEMENT reacts (native glow/tilt, or cursor-driven tilt + scale). */
+      ".rpc-fill{opacity:0;background:" + rgba(COL.c1, .10) + ";box-shadow:0 0 18px -4px " + rgba(COL.c2, .55) + "}" +
+      /* hug BORDER: a 3px band that inherits the page's colour-look gradient. The xor-mask
+         (content-box vs full box) leaves only the border band visible at any border-radius. */
+      ".rpc-bord{position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .18s ease;padding:3px;" +
+      "background:conic-gradient(from 140deg," + COL.c1 + "," + COL.c2 + "," + COL.c3 + "," + COL.c1 + ");" +
+      "-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;" +
+      "mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}" +
+      ".rpc-ring.hover .rpc-glow{opacity:0}.rpc-ring.hover .rpc-fill{opacity:1}.rpc-ring.hover .rpc-bord{opacity:1}" +
+      /* special objects (bubbles / wordmarks / category tabs): NO skin change — the ring stays
+         the free open ring and the ELEMENT reacts. If the special element carries a themed
+         colour (--cursor-tint / --tc / --cc), the ring TINTS to it and merges with its glow. */
+      ".rpc-ring.tinted .rpc-glow{background:var(--rpct)}" +
+      ".rpc-ring.tinted{box-shadow:0 0 16px -2px color-mix(in srgb,var(--rpct),transparent 35%),inset 0 0 9px -3px color-mix(in srgb,var(--rpct),transparent 55%)}" +
       "#rp-cursor.on .rpc-ring.textish{opacity:.3}" +
       ".rpc-dot{position:fixed;left:0;top:0;width:5px;height:5px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
       "background:#fff;mix-blend-mode:difference;transition:opacity .15s ease}" +   /* difference vs the page = always contrasts (white on dark, black on light) */
@@ -140,7 +149,7 @@
     var root = document.createElement("div");
     root.id = "rp-cursor";
     root.setAttribute("aria-hidden", "true");
-    root.innerHTML = '<div class="rpc-ring"><div class="rpc-glow"></div><div class="rpc-fill"></div></div><div class="rpc-loader"></div><div class="rpc-dot"></div>';
+    root.innerHTML = '<div class="rpc-ring"><div class="rpc-glow"></div><div class="rpc-fill"></div><div class="rpc-bord"></div></div><div class="rpc-loader"></div><div class="rpc-dot"></div>';
     document.body.appendChild(root);
     document.documentElement.classList.add("rpc-on");
 
@@ -153,8 +162,10 @@
     var rx = -100, ry = -100;          // smoothed ring centre
     var pmx = -100, pmy = -100;        // previous pointer (velocity)
     var kS = 0, kV = 0, angS = 0;      // springy stretch (value + velocity) + angle
-    var hoverEl = null, hoverRad = 14, hoverPct = false, hoverSpecial = false, textish = false;
+    var hoverEl = null, hoverRad = 14, hoverPct = false, hoverSpecial = false, hoverPad = 0, textish = false;
     var tiltEl = null, tiltOrig = "", tiltBase = "", tiltScale = 1;  // tilted element, its original inline transform, its computed base matrix, extra scale
+    var tiltP = 0, tiltNx = 0, tiltNy = 0;  // ease-in progress + last tilt direction (for the ease-out)
+    var relEls = [];                   // elements easing BACK to rest after hover-off (fluid shrink)
     var clearT = null;                 // hover-out grace timer (kills the between-buttons flash)
     var shown = false, loading = false, loadSince = 0, down = false;
     var idleFrames = 0, running = false, frame = 0;
@@ -176,7 +187,13 @@
     addEventListener("mouseup", function () { down = false; wake(); }, { passive: true });
 
     /* ---- standardized interactive detection ---- */
-    var SEL = "a[href],button,[role='button'],input,select,textarea,label,summary,[data-cursor='link'],[onclick]";
+    var SEL = "a[href],button,[role='button'],input,select,textarea,label,summary,[data-cursor~='link'],[onclick]";
+    /* data-cursor is a space-separated token list — e.g. data-cursor="special notilt" */
+    function dcHas(el, word) {
+      var v = "";
+      try { v = el.getAttribute("data-cursor") || ""; } catch (_) {}
+      return (" " + v + " ").indexOf(" " + word + " ") > -1;
+    }
     var TEXT_RE = /^(text|search|email|url|password|tel|number|date|time|datetime-local|month|week)$/i;
     function isTextField(el) {
       var t = el.tagName;
@@ -204,13 +221,12 @@
           n = n.parentElement; i++;
         }
       }
-      if (el && el.getAttribute && el.getAttribute("data-cursor") === "off") el = null;
+      if (el && dcHas(el, "off")) el = null;
       var txt = false;
       if (el && isTextField(el)) { txt = true; el = null; }
       var attrSp = false;
       if (el) {
-        var dc = el.getAttribute("data-cursor");
-        attrSp = dc === "glow" || dc === "special";           /* "glow" kept for back-compat markup */
+        attrSp = dcHas(el, "glow") || dcHas(el, "special");   /* "glow" kept for back-compat markup */
         var r = el.getBoundingClientRect();
         if (r.width < 4 || r.height < 4 || (!attrSp && (r.width > innerWidth * .62 || r.height > innerHeight * .62))) el = null;
       }
@@ -227,15 +243,24 @@
       if (!hoverEl || clearT) return;
       clearT = setTimeout(function () { clearT = null; applyHover(null, textish); }, 120);
     }
+    function releaseTilt() {
+      /* fluid shrink-out: the element eases back to rest over ~12 frames instead of popping */
+      if (!tiltEl) return;
+      if (tiltP > .04) {
+        relEls.push({ el: tiltEl, orig: tiltOrig, base: tiltBase, scale: tiltScale, p: tiltP, nx: tiltNx, ny: tiltNy });
+        if (relEls.length > 3) { var old = relEls.shift(); try { old.el.style.transform = old.orig; } catch (_) {} }
+      } else { try { tiltEl.style.transform = tiltOrig; } catch (_) {} }
+      tiltEl = null; tiltP = 0;
+    }
     function applyHover(el, txt, attrSp) {
       if (clearT) { clearTimeout(clearT); clearT = null; }
       textish = !!txt;
       ring.classList.toggle("textish", textish);
       if (el === hoverEl) return;
-      /* release any tilted element back to its own styling */
-      if (tiltEl) { try { tiltEl.style.transform = tiltOrig; } catch (_) {} tiltEl = null; }
+      releaseTilt();
       hoverEl = el;
       hoverSpecial = false;
+      hoverPad = 0;
       if (el) {
         /* The visible rounding often lives on an INNER child (card wrapper > circular image —
            e.g. the project bubbles), so scan the element and its near-full-size descendants
@@ -273,6 +298,19 @@
            non-% radius, or ask — small circles (social icons) keep the outline. */
         hoverSpecial = !!attrSp || (best.pct && best.px >= 45 && rr && rr.width >= 64 && rr.height >= 64);
         ring.classList.toggle("hover", !hoverSpecial);
+        hoverPad = parseFloat(el.getAttribute("data-cursor-pad")) || 0;   /* extra breathing room around the hug (footer nav links) */
+        /* themed specials (rentals category tabs): tint the free ring to the element's colour
+           so the cursor visibly merges with that category's glow. Var order: --cursor-tint
+           (explicit opt-in for future elements) then --tc / --cc (rentals conventions). */
+        var tint = "";
+        if (hoverSpecial) {
+          try {
+            var tcs = getComputedStyle(el);
+            tint = (tcs.getPropertyValue("--cursor-tint") || tcs.getPropertyValue("--tc") || tcs.getPropertyValue("--cc") || "").trim();
+          } catch (_) {}
+        }
+        if (tint) { ring.classList.add("tinted"); ring.style.setProperty("--rpct", tint); }
+        else ring.classList.remove("tinted");
         /* ELEMENT REACTION (like the home-page bubbles): perspective tilt toward the mouse.
            Ownership rules: if the element natively drives its own tilt (defines --tiltx —
            the RP bubbles do, in CSS or via their pointermove handlers), the cursor stays
@@ -280,18 +318,32 @@
            also hands-off. Otherwise the cursor tilts it, COMPOSITING on top of the element's
            computed base transform (so transform-positioned elements never jump), and specials
            additionally scale up slightly. Opt out: data-cursor="notilt". */
-        if (el.getAttribute("data-cursor") !== "notilt" && !(el.style.transform || "").length) {
-          var native = "";
-          try { native = (getComputedStyle(el).getPropertyValue("--tiltx") || "").trim(); } catch (_) {}
-          if (!native) {
-            tiltEl = el; tiltOrig = el.style.transform || "";
-            tiltBase = "";
-            try { var bm = getComputedStyle(el).transform; if (bm && bm !== "none") tiltBase = bm; } catch (_) {}
-            tiltScale = hoverSpecial ? (attrSp ? 1.08 : 1.05) : 1;
+        if (!dcHas(el, "notilt")) {
+          /* if this element was mid-ease-out (re-entered quickly), adopt it back with its
+             progress + its ORIGINAL base/orig (its current inline transform is our own). */
+          var fromRel = null, ri;
+          for (ri = relEls.length - 1; ri >= 0; ri--) {
+            if (relEls[ri].el === el) { fromRel = relEls[ri]; relEls.splice(ri, 1); }
+          }
+          if (fromRel || !(el.style.transform || "").length) {
+            var native = "";
+            try { native = (getComputedStyle(el).getPropertyValue("--tiltx") || "").trim(); } catch (_) {}
+            if (!native) {
+              tiltEl = el;
+              tiltP = fromRel ? fromRel.p : 0;
+              tiltOrig = fromRel ? fromRel.orig : (el.style.transform || "");
+              if (fromRel) tiltBase = fromRel.base;
+              else {
+                tiltBase = "";
+                try { var bm = getComputedStyle(el).transform; if (bm && bm !== "none") tiltBase = bm; } catch (_) {}
+              }
+              tiltScale = hoverSpecial ? (attrSp ? 1.08 : 1.05) : 1;
+            } else if (fromRel) { try { el.style.transform = fromRel.orig; } catch (_) {} }
           }
         }
       } else {
         ring.classList.remove("hover");
+        ring.classList.remove("tinted");
       }
     }
     function setHover(el, txt) { applyHover(el, txt, false); }   /* back-compat internal alias */
@@ -385,25 +437,59 @@
                zero magnetic drift — moving inside the button moves the BUTTON (tilt),
                never the outline. */
             tx = cx; ty = cy;
-            tw = r.width; th = r.height;
+            tw = r.width + hoverPad * 2; th = r.height + hoverPad * 2;
             if (hoverPct) tr = hoverRad >= 45 ? "50%" : (hoverRad + "%");
-            else tr = (hoverRad > 0 ? hoverRad : Math.min(th / 2, 12)) + "px";
+            else tr = (hoverRad > 0 ? hoverRad + hoverPad : Math.min(th / 2, 12 + hoverPad)) + "px";
           }
           /* perspective warp of the hovered element itself (like the home bubbles),
-             composited on its base transform; specials also scale up slightly */
+             composited on its base transform; specials also scale up slightly.
+             tiltP eases 0→1 so the reaction GROWS IN fluidly instead of popping. */
           if (tiltEl) {
-            var nx = Math.max(-1, Math.min(1, (mx - cx) / (r.width / 2 || 1)));
-            var ny = Math.max(-1, Math.min(1, (my - cy) / (r.height / 2 || 1)));
+            tiltP += (1 - tiltP) * .16;
+            tiltNx = Math.max(-1, Math.min(1, (mx - cx) / (r.width / 2 || 1)));
+            tiltNy = Math.max(-1, Math.min(1, (my - cy) / (r.height / 2 || 1)));
             tiltEl.style.transform = (tiltBase ? tiltBase + " " : "") +
-              "perspective(700px) rotateX(" + (-ny * 6).toFixed(2) + "deg) rotateY(" + (nx * 7).toFixed(2) + "deg)" +
-              (tiltScale > 1 ? " scale(" + tiltScale + ")" : "");
+              "perspective(700px) rotateX(" + (-tiltNy * 6 * tiltP).toFixed(2) + "deg) rotateY(" + (tiltNx * 7 * tiltP).toFixed(2) + "deg)" +
+              (tiltScale > 1 ? " scale(" + (1 + (tiltScale - 1) * tiltP).toFixed(4) + ")" : "");
           }
         }
       } else { tx = mx; ty = my; tw = 44; th = 44; tr = "50%"; }
 
+      /* ease-out any elements released from hover: shrink/untilt fluidly, then restore */
+      if (relEls.length) {
+        for (var qi = relEls.length - 1; qi >= 0; qi--) {
+          var rl = relEls[qi];
+          rl.p *= .8;
+          if (rl.p < .04 || !rl.el.isConnected) {
+            try { rl.el.style.transform = rl.orig; } catch (_) {}
+            relEls.splice(qi, 1);
+          } else {
+            try {
+              rl.el.style.transform = (rl.base ? rl.base + " " : "") +
+                "perspective(700px) rotateX(" + (-rl.ny * 6 * rl.p).toFixed(2) + "deg) rotateY(" + (rl.nx * 7 * rl.p).toFixed(2) + "deg)" +
+                (rl.scale > 1 ? " scale(" + (1 + (rl.scale - 1) * rl.p).toFixed(4) + ")" : "");
+            } catch (_) { relEls.splice(qi, 1); }
+          }
+        }
+      }
+
       var free = !hoverEl || hoverSpecial;    /* over a special object the ring behaves exactly like free */
       rx += (tx - rx) * (free ? .22 : .35);
       ry += (ty - ry) * (free ? .22 : .35);
+
+      /* CONTAINMENT: the dot must always sit INSIDE the ring. In free/special mode the ring
+         trails the pointer, so on fast moves the dot could exit — clamp the lag against the
+         ring's current ELLIPSE (rotated by angS, squashed by kS) and pull the ring along. */
+      if (free) {
+        var cdx = mx - rx, cdy = my - ry;
+        var cca = Math.cos(angS), csa = Math.sin(angS);
+        var ex = cdx * cca + cdy * csa, ey = -cdx * csa + cdy * cca;
+        var press = down ? .9 : 1;
+        var eA = (22 * (1 + kS)) * press - 7, eB = (22 * (1 - kS * .62)) * press - 7;
+        if (eA < 6) eA = 6; if (eB < 6) eB = 6;
+        var qd = (ex * ex) / (eA * eA) + (ey * ey) / (eB * eB);
+        if (qd > 1) { var qs = 1 / Math.sqrt(qd); rx = mx - cdx * qs; ry = my - cdy * qs; }
+      }
 
       /* writes (transform-only per frame; width/height only when the target size changes) */
       var moved = Math.abs(tx - rx) + Math.abs(ty - ry) + Math.abs(kS);
@@ -422,8 +508,8 @@
       var lt = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
       if (ldr.__lt !== lt) { ldr.__lt = lt; ldr.style.setProperty("--rpc-lt", lt); }
 
-      /* sleep when idle (nothing moving, nothing loading, nothing tilted) */
-      if (moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl) idleFrames++; else idleFrames = 0;
+      /* sleep when idle (nothing moving, loading, tilted, or easing back out) */
+      if (moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length) idleFrames++; else idleFrames = 0;
     }
     function wake() {
       if (running) return;

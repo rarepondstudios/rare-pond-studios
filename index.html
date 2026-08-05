@@ -787,6 +787,7 @@ html.xw-active{overflow:hidden}
   .ig-follow svg{width:18px;height:18px;fill:currentColor;flex:0 0 auto}
   .learn-btn{display:inline-flex;align-items:center;gap:8px;margin-top:24px;padding:13px 26px;border-radius:50px;background:linear-gradient(135deg,#2f74d6,#1f5bc0);color:#fff;font-weight:800;font-size:15px;text-decoration:none;cursor:pointer;box-shadow:0 10px 26px rgba(31,91,192,.4);transition:.18s;border:0;font-family:inherit}
   .learn-btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(31,91,192,.55)}
+  .about-ctas{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
   /* ===== team page ===== */
   #team-page{position:relative;padding:calc(var(--header-h) + 38px) clamp(18px,5vw,60px) 0;min-height:100vh;background:linear-gradient(180deg,#e0f1ff 0%,#c1ddf6 42%,#a9cfee 100%)}
   .team-head{position:relative;z-index:1;max-width:900px;margin:0 auto 8px;text-align:center}
@@ -1046,7 +1047,7 @@ html.xw-active{overflow:hidden}
           <div class="ey">What we do</div><h2>Worlds worth escaping into.</h2>
           <p>Rare Pond Studios is an independent film studio crafting escapist stories that feel like peering into an alternate world. We work across live-action and 2D / 3D animation, blending mediums to build immersive little universes, from a retired superspy breaking out of her nursing home to a surreal vision of Heaven and Earth.</p>
           <p>Founded by writer-director Jack Carlsen, the studio is built on a simple idea: every project is a window into somewhere else. We develop, shoot, animate, and finish our films in-house, and we love collaborating with other creatives to bring ambitious worlds to life.</p>
-          <a class="learn-btn" href="/team" data-go="team">Learn who we are &rarr;</a>
+          <div class="about-ctas"><a class="learn-btn" href="/team" data-go="team">Learn who we are &rarr;</a><a class="learn-btn" href="/projects" data-go="projects">See our work &rarr;</a></div>
         </div>
       </div>
     </section>
@@ -1103,7 +1104,7 @@ html.xw-active{overflow:hidden}
     <a class="fwm" href="/" data-go="home" data-cursor="glow" aria-label="Rare Pond Studios home"><img src="/media/logos/duck-mark.webp" loading="lazy" decoding="async" alt=""><span class="fwm-txt"><span class="fwm-rare">Rare Pond</span><span class="fwm-sub">Studios</span></span></a>
     <div class="tag">Let's Make Something Amazing...</div>
     <div class="fsoc" data-socials></div>
-    <div class="flinks"><a href="/team" data-go="team">Our Team</a><a href="/projects" data-go="projects">Projects</a><a href="/rentals">Rentals</a><a href="/#contact" data-contact>Contact</a></div>
+    <div class="flinks"><a href="/team" data-go="team" data-cursor-pad="6">Our Team</a><a href="/projects" data-go="projects" data-cursor-pad="6">Projects</a><a href="/rentals" data-cursor-pad="6">Rentals</a><a href="/#contact" data-contact data-cursor-pad="6">Contact</a></div>
     <div class="copy"><a href="https://rarepond.com" target="_blank" rel="noopener">rarepond.com</a> · © Rare Pond Studios 2026</div>
   </template>
 
@@ -1346,13 +1347,17 @@ try{
          render a dead <a> with no destination. This keeps the link working from
          the label alone. */
       const KNOWN_PATHS={rentals:'/rentals'};
+      /* Every footer link gets a real href (SPA targets use their path — the router still
+         intercepts via data-go, and the custom cursor requires a[href] to engage) plus
+         data-cursor-pad so the hover outline forms with breathing room around the text. */
+      const PAD=' data-cursor-pad="6"';
       links.innerHTML=fnav.map(l=>{
         const label=esc2(l.label||'');
         const fallback=KNOWN_PATHS[String(l.label||'').trim().toLowerCase()];
         const href=l.href||(!l.go&&fallback?fallback:'');
-        if(l.go==='contact')return '<a href="/#contact" data-contact>'+label+'</a>';
-        if(href)return '<a href="'+esc2(href)+'">'+label+'</a>';
-        if(l.go)return '<a data-go="'+esc2(l.go)+'">'+label+'</a>';
+        if(l.go==='contact')return '<a href="/#contact" data-contact'+PAD+'>'+label+'</a>';
+        if(href)return '<a href="'+esc2(href)+'"'+PAD+'>'+label+'</a>';
+        if(l.go)return '<a href="'+(l.go==='home'?'/':'/'+esc2(l.go))+'" data-go="'+esc2(l.go)+'"'+PAD+'>'+label+'</a>';
         return '<a>'+label+'</a>';
       }).join('');
     }
@@ -1512,7 +1517,13 @@ makeBgBubbles(document.getElementById('projects-page'),BG_BUBBLES,'fade-b');
 /* About-logo scroll-tied film-still orbit bubbles. Edit ABOUT_ORBS (IMG keys) to swap images. */
 
 const ABOUT_ORB_POS=[[-172,-96,86],[-202,72,76],[-130,166,80],[10,196,72],[126,150,70],[150,-92,72],[-52,-188,72]];
-(function buildOrbits(){const host=document.querySelector('.about-logo');if(!host)return;const wrap=document.createElement('div');wrap.className='orbits';ABOUT_ORBS.forEach((k,i)=>{const p=ABOUT_ORB_POS[i%ABOUT_ORB_POS.length];const orb=document.createElement('div');orb.className='orb';orb.style.setProperty('--tx',p[0]+'px');orb.style.setProperty('--ty',p[1]+'px');orb.style.setProperty('--sz',p[2]+'px');orb.style.setProperty('--bd',(i*0.6).toFixed(2)+'s');orb.innerHTML='<span class="orbi"><img src="'+(k||'')+'" alt="" loading="lazy"></span>';wrap.appendChild(orb);});host.appendChild(wrap);if(matchMedia('(prefers-reduced-motion:reduce)').matches){wrap.style.setProperty('--p','1');return;}let ticking=false;function upd(){ticking=false;const r=host.getBoundingClientRect();const vh2=innerHeight||document.documentElement.clientHeight;const c=r.top+r.height/2;let p=(vh2*1.04-c)/(vh2*0.46);p=Math.max(0,Math.min(1,p));wrap.style.setProperty('--p',p.toFixed(3));}addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(upd);}},{passive:true});addEventListener('resize',upd);upd();setTimeout(upd,300);})();
+(function buildOrbits(){const host=document.querySelector('.about-logo');if(!host)return;
+/* Orbit images are PLAIN PATH STRINGS in the CMS now — paste a /media/... path straight from
+   the NocoDB stills/BTS attribute and the SAME file the project already uses populates the
+   bubble (no duplicate uploads). Normalize whatever gets pasted: full URL → its path;
+   missing leading slash → added. */
+const normPath=k=>{k=String(k||'').trim();if(!k)return '';if(/^https?:\/\//i.test(k)){try{k=new URL(k).pathname;}catch(_){}}if(k[0]!=='/')k='/'+k;return k;};
+const wrap=document.createElement('div');wrap.className='orbits';ABOUT_ORBS.map(normPath).filter(Boolean).forEach((k,i)=>{const p=ABOUT_ORB_POS[i%ABOUT_ORB_POS.length];const orb=document.createElement('div');orb.className='orb';orb.style.setProperty('--tx',p[0]+'px');orb.style.setProperty('--ty',p[1]+'px');orb.style.setProperty('--sz',p[2]+'px');orb.style.setProperty('--bd',(i*0.6).toFixed(2)+'s');orb.innerHTML='<span class="orbi"><img src="'+k+'" alt="" loading="lazy"></span>';wrap.appendChild(orb);});host.appendChild(wrap);if(matchMedia('(prefers-reduced-motion:reduce)').matches){wrap.style.setProperty('--p','1');return;}let ticking=false;function upd(){ticking=false;const r=host.getBoundingClientRect();const vh2=innerHeight||document.documentElement.clientHeight;const c=r.top+r.height/2;let p=(vh2*1.04-c)/(vh2*0.46);p=Math.max(0,Math.min(1,p));wrap.style.setProperty('--p',p.toFixed(3));}addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(upd);}},{passive:true});addEventListener('resize',upd);upd();setTimeout(upd,300);})();
 
 /* carousel (home) - films only */
 const stage=document.getElementById('stage'),cdots=document.getElementById('cdots');

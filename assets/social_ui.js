@@ -110,38 +110,33 @@
   var IS_TOUCH = false;
   try { IS_TOUCH = (window.matchMedia && matchMedia("(pointer:coarse)").matches) || ("ontouchstart" in window) || navigator.maxTouchPoints > 0; } catch (e) {}
   var busy = false;
-  function transport(a, ev) {
-    var href = a.getAttribute("href");
-    var open = function () {
-      if (IS_TOUCH) { location.href = href; return; }           // reliable on mobile (no popup block)
-      try { window.open(href, "_blank", "noopener"); } catch (e) { location.href = href; }
-    };
-    if (REDUCED) { open(); return; }
-    if (busy) { open(); return; }
+  /* CORE wipe runner — the ONE implementation of the click-origin radial-gradient transport.
+     o = { x, y            : origin in viewport px (click point) — clip circle AND gradient centre
+           c1, c2, c3      : gradient colours, innermost→outermost
+           open            : function that performs the navigation once fully covered
+           hold            : true = never retract/fade — stay covering through a same-tab
+                             navigation so the wipe hands off to the destination's load veil }
+     Also exported as window.__rpTransport({x,y,c1,c2,c3,href,sameTab,hold}) so OTHER effects
+     (e.g. the JC "go to Rare Pond" bubble) reuse this exact code instead of re-implementing it. */
+  function runTransport(o) {
+    if (REDUCED || busy) { o.open(); return; }
     busy = true;
-    var col = colorsFor(a);
-    var r = a.getBoundingClientRect();
-    /* Origin = the user's ACTUAL click point when we have one (a real pointer event carries
-       clientX/Y inside the icon's rect); keyboard/synthetic activations fall back to the icon's
-       centre. Both the clip circle AND the gradient use this same origin. */
-    var ox = r.left + r.width / 2, oy = r.top + r.height / 2;
-    if (ev && typeof ev.clientX === "number" && (ev.clientX || ev.clientY)) { ox = ev.clientX; oy = ev.clientY; }
     var d = document.createElement("div");
     d.className = "rp-soctransport";
-    d.style.setProperty("--scx", ox + "px");
-    d.style.setProperty("--scy", oy + "px");
-    d.style.setProperty("--sc1", col.c1);
-    d.style.setProperty("--sc2", col.c2);
-    d.style.setProperty("--sc3", col.c3);
+    d.style.setProperty("--scx", o.x + "px");
+    d.style.setProperty("--scy", o.y + "px");
+    d.style.setProperty("--sc1", o.c1);
+    d.style.setProperty("--sc2", o.c2);
+    d.style.setProperty("--sc3", o.c3);
     document.body.appendChild(d);
     // tint the browser chrome to the wipe colour so iOS Safari's bars blend into it
-    if (window.__setThemeColor) window.__setThemeColor(col.c1);
+    if (window.__setThemeColor) window.__setThemeColor(o.c1);
     var opened = false, cleaned = false;
-    var doOpen = function () { if (opened) return; opened = true; open(); };
+    var doOpen = function () { if (opened) return; opened = true; o.open(); };
     var cleanup = function () {
-      if (cleaned) return; cleaned = true;
+      if (cleaned || o.hold) return; cleaned = true;              // hold: keep covering through the navigation
       d.classList.add("done");
-      if (window.__resetThemeColor) window.__resetThemeColor(0);   // restore chrome as the wipe retracts (desktop)
+      if (window.__resetThemeColor) window.__resetThemeColor(0);   // restore chrome as the wipe fades (desktop)
       setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); busy = false; }, 420);
     };
     // grow -> when fully covered, open the link
@@ -155,13 +150,14 @@
         // freeze part-way and leave the circle's edge stuck in the far corners. So on desktop we
         // hold the FULL cover and fade it out by opacity (cleanup) instead of retracting. Touch
         // navigates in the same tab and keeps covering through the hand-off.
-        if (!IS_TOUCH) cleanup();
+        cleanup();
       } else cleanup();
     });
-    // If the new tab foregrounds (this tab becomes hidden), drop the cover immediately so coming
-    // back to this tab never shows a half-finished wipe.
+    // If a new tab foregrounds (this tab becomes hidden), drop the cover immediately so coming
+    // back to this tab never shows a half-finished wipe. (Held same-tab wipes are cleaned by
+    // the pageshow handler below when the user comes Back instead.)
     var onHide = function () {
-      if (!document.hidden) return;
+      if (!document.hidden || o.hold) return;
       document.removeEventListener("visibilitychange", onHide);
       if (d.parentNode) d.parentNode.removeChild(d);
       if (window.__resetThemeColor) window.__resetThemeColor(0);
@@ -171,6 +167,30 @@
     // safety net if transitionend is missed (background tab / interrupted)
     setTimeout(function () { doOpen(); }, 560);
     setTimeout(function () { cleanup(); }, 1500);
+  }
+  window.__rpTransport = function (o) {
+    var open = o.open || function () {
+      if (o.sameTab || IS_TOUCH) { location.href = o.href; return; }
+      try { window.open(o.href, "_blank", "noopener"); } catch (e) { location.href = o.href; }
+    };
+    runTransport({ x: o.x, y: o.y, c1: o.c1 || "#3f6bff", c2: o.c2 || o.c1 || "#3f6bff", c3: o.c3 || o.c2 || "#9b5cff", open: open, hold: !!o.hold });
+  };
+  function transport(a, ev) {
+    var href = a.getAttribute("href");
+    var col = colorsFor(a);
+    var r = a.getBoundingClientRect();
+    /* Origin = the user's ACTUAL click point when we have one (a real pointer event carries
+       clientX/Y inside the icon's rect); keyboard/synthetic activations fall back to the icon's
+       centre. Both the clip circle AND the gradient use this same origin. */
+    var ox = r.left + r.width / 2, oy = r.top + r.height / 2;
+    if (ev && typeof ev.clientX === "number" && (ev.clientX || ev.clientY)) { ox = ev.clientX; oy = ev.clientY; }
+    runTransport({
+      x: ox, y: oy, c1: col.c1, c2: col.c2, c3: col.c3,
+      open: function () {
+        if (IS_TOUCH) { location.href = href; return; }           // reliable on mobile (no popup block)
+        try { window.open(href, "_blank", "noopener"); } catch (e) { location.href = href; }
+      }
+    });
   }
 
   /* ---- delegated click on any social link -------------------------------- */
@@ -188,6 +208,14 @@
   function init() {
     injectCSS();
     document.addEventListener("click", onClick, false);
+    /* Back/bfcache: a HELD same-tab wipe is still painted when the page is restored from the
+       back-forward cache — clear any leftover transport so Back always shows the real page. */
+    addEventListener("pageshow", function (e) {
+      if (!e.persisted && !document.querySelector(".rp-soctransport")) return;
+      document.querySelectorAll(".rp-soctransport").forEach(function (d) { if (d.parentNode) d.parentNode.removeChild(d); });
+      busy = false;
+      if (window.__resetThemeColor) window.__resetThemeColor(0);
+    });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

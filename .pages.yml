@@ -91,7 +91,7 @@ content:
       # Social links moved to NocoDB (the `socials` table) 2026-08-04 - edit accounts, links,
       # bubble blurbs and colours there; socials_sync.py writes data/socials.json for BOTH sites.
       # (No longer edited here or in site.json.)
-      - { name: orbits, label: About-logo floating images, type: image, list: true, description: "The little film-still bubbles that orbit the logo. SPECS: square, 600x600 px, JPG, under 200 KB each. They are masked into circles, so keep the subject centred. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+      - { name: orbits, label: "About-logo floating images (paste /media/... paths)", type: string, list: true, description: "The little film-still bubbles that orbit the logo. Each entry is a PATH into the shared media library — paste the generated file path straight from the stills or BTS attribute in NocoDB (e.g. /media/projects/geriaction/stills/ga-1-800.webp). The bubble then shows the SAME file the project already uses — no re-upload, no duplicate copies. A full https:// URL or a path without the leading slash also works. They are masked into circles, so pick stills with a centred subject." }
       - name: header
         label: Header (shared - studio + rentals)
         type: object
@@ -184,7 +184,7 @@ content:
           - { name: headline, label: Headline, type: string }
           - { name: accent, label: "Headline — gradient-highlighted word (must appear in the headline)", type: string }
           - { name: subtitle, label: Subtitle, type: text }
-          - { name: image, label: Hero background image, type: image, description: "SPECS: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. A darker image reads best — the white headline sits on top of it." }
+          - { name: image, label: "Hero background image (image path — paste from NocoDB or pick an existing /media file)", type: string, description: "A /media/... path into the shared media library. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB — the page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. Darker reads best — the white headline sits on top of it." }
       - name: statement
         label: Statement (big centered line)
         type: object
@@ -199,7 +199,7 @@ content:
         list: true
         description: "The five cinematic stills under the statement (2 large + 3 smaller). Replace any of them, and reorder by reordering this list — the five slots on the page fill in this order. Defaults to existing film stills. (Adding a sixth or removing one is a quick code tweak — ask to wire it up.)"
         fields:
-          - { name: image, label: Still, type: image, description: "SPECS: 16:9, JPG/WebP, sRGB 8-bit, under 600 KB." }
+          - { name: image, label: "Still (image path — paste from NocoDB)", type: string, description: "A /media/... path into the shared media library. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB — the page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 16:9, JPG/WebP, sRGB 8-bit, under 600 KB." }
           - { name: alt, label: Alt text (describes the image for accessibility), type: string }
       - name: sections
         label: Story sections (image + text)
@@ -211,7 +211,7 @@ content:
           - { name: heading, label: Heading, type: string }
           - { name: accent, label: "Heading — gradient-highlighted word", type: string }
           - { name: body, label: Body, type: text }
-          - { name: image, label: Photo, type: image, description: "On-set / behind-the-scenes photos read best here. SPECS: 4:3 or 16:9, JPG/WebP, sRGB 8-bit, under 600 KB." }
+          - { name: image, label: "Photo (image path — paste from NocoDB)", type: string, description: "A /media/... path into the shared media library — on-set / BTS photos read best here. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB — the page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 4:3 or 16:9, JPG/WebP, sRGB 8-bit, under 600 KB." }
       - name: cta
         label: Call to action (bottom)
         type: object
@@ -221,7 +221,7 @@ content:
           - { name: body, label: Body, type: text }
           - { name: buttonLabel, label: Button label, type: string }
           - { name: buttonHref, label: "Button link (e.g. /#contact, a /path, or a full https:// URL)", type: string }
-          - { name: image, label: Background image, type: image, description: "SPECS: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. Darker reads best." }
+          - { name: image, label: "Background image (image path — paste from NocoDB)", type: string, description: "A /media/... path into the shared media library. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB — the page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. Darker reads best." }
 
   - name: contact
     label: "Contact popup (all sites)"
