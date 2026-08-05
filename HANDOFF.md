@@ -54,6 +54,40 @@ Four features shipped across ALL FOUR surfaces (studio/rentals/media/JC), RP `81
 - All verified locally (devserve + JC :8801) and live: morph on nav pills/chips/cards, purple cursor
   on JC, loader auto-engages during wipes, same-page scroll-top on all four, zero console errors.
 
+**Cursor v2 (same night, Jack's feedback pass — RP `f2620f0`, JC `808652f`):**
+- **Hug tightened** (+4px/+2px radius, was +10/+5). **Between-buttons flash fixed**: a 120ms
+  hover-out grace makes adjacent targets morph DIRECTLY into each other (verified against Jack's
+  screen recording — the old 1–2 frame shrink-to-circle blink is gone).
+- **Perspective tilt:** the hovered element itself tilts subtly toward the pointer (like the home
+  bubbles) — skipped automatically for elements with inline JS-driven transforms; opt out with
+  `data-cursor="notilt"`.
+- **Glow mode** (`data-cursor="glow"`, applied to every header + footer wordmark on all four
+  surfaces): irregular/logo targets get a soft halo + tilt instead of a box. Rentals' same-page
+  home click now ALSO resets to the "Select a Date" tab (`window.__samePageHome` hook in app.js).
+- **Circular targets** (project bubbles etc.): the ring reads the border-radius of the element OR
+  its near-full-size descendants (the rounding usually lives on an inner wrapper) — % radius ⇒
+  a true encompassing circle, never a box.
+- **Dot = auto-contrast** (white with `mix-blend-mode:difference` — black on light, white on dark;
+  the #rp-cursor wrapper is `display:contents` so the blend reaches the page — do NOT give it a
+  position/z-index or the blend breaks). **Springier squash/stretch** (spring + damping, more
+  travel). **Liquid-glass**: 2px backdrop-blur under the free orb only (off while morphed/loading).
+- **Forms/iframes (HubSpot/Jotform):** the cursor HANDS OFF — unmorph + fade the moment the
+  pointer crosses into an embed, watchdog (elementFromPoint every ~18 frames) catches missed
+  crossings, so the ring can never park at a form's edge; reappears on the first move outside.
+  NOTE: a cross-origin iframe can never receive the custom cursor or site CSS — full design-language
+  forms would need native rendering via the HubSpot Forms API behind a Pages Function (needs a
+  HubSpot token; proposed, not built). The embed workflow (paste a form id, it populates) is unchanged.
+- **Robustness:** the rAF loop is try/finally self-healing (an exception can never kill it;
+  first error lands on `window.__rpcErr`, heartbeat on `window.__rpcTick`); loop sleeps when the
+  tab is hidden or idle (this is why an automated/background tab sees it frame-step — real users
+  don't). **Touch:** any touchstart hides the cursor instantly; it never intercepts clicks, so
+  mobile/hybrid input is untouched.
+- **Stale-shell fix:** `_headers` in BOTH repos now force revalidation on the HTML entry points
+  (`/`, `/media`, `/rentals`, `/index.html`) — this is what made the media page appear to "not have"
+  new features after a deploy (browser reused a cached shell). On RP the /media page paths DETACH
+  the `/media/*` 7-day rule first (`! Cache-Control`) because Cloudflare concatenates same-name
+  headers instead of overriding.
+
 ### 0.0 Full-system QC pass + cleanup batch (2026-08-04 late PT)
 The §0.8 full-system QC was run top-to-bottom (all 4 front-ends in-browser, data JSON, git
 authorship, launchd/n8n health, CMS config, DNS). Full report: the "Claude for Website" project
