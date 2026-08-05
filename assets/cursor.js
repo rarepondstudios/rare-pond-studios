@@ -8,7 +8,7 @@
    WHAT IT IS
    A glowing gradient RING that replaces the mouse (desktop / fine pointers
    only), with a small dot that tracks the real pointer position 1:1:
-     - FREE: a 44px open ring (clear gap between the centre dot and the band,
+     - FREE: a 50px open ring (clear gap between the centre dot and the band,
        same silhouette as the loading orbit but solid) trails the dot with
        smoothing and squashes/stretches into an oval along the direction of
        fast movement — relaxing back to a circle at rest.
@@ -109,8 +109,8 @@
       /* display:contents: the wrapper must NOT create a stacking context, so the dot's
          mix-blend-mode can blend against the PAGE (auto black/white contrast). */
       "#rp-cursor{display:contents}" +
-      ".rpc-ring{position:fixed;left:0;top:0;width:44px;height:44px;border-radius:50%;z-index:2147483644;pointer-events:none;opacity:0;will-change:transform;" +
-      "-webkit-backdrop-filter:blur(2px) saturate(1.25);backdrop-filter:blur(2px) saturate(1.25);" +   /* liquid-glass: subtle distortion under the orb */
+      ".rpc-ring{position:fixed;left:0;top:0;width:50px;height:50px;border-radius:50%;z-index:2147483644;pointer-events:none;opacity:0;will-change:transform;" +
+      "-webkit-backdrop-filter:blur(1.3px) saturate(1.2);backdrop-filter:blur(1.3px) saturate(1.2);" +   /* liquid-glass: subtle distortion under the orb */
       "box-shadow:0 0 14px -3px " + rgba(COL.c1, .55) + ",inset 0 0 9px -3px " + rgba(COL.c2, .40) + ";" +   /* the ring band GLOWS both outward and inward */
       "transition:width .22s cubic-bezier(.3,.9,.3,1),height .22s cubic-bezier(.3,.9,.3,1),border-radius .22s cubic-bezier(.3,.9,.3,1),opacity .16s ease}" +
       "#rp-cursor.on .rpc-ring{opacity:1}" +
@@ -141,10 +141,13 @@
       /* while the ring is HUGGING an element, a faint ghost ring stays at the dot marking where
          the circle collapses back to. Same auto-contrast treatment as the dot (difference blend),
          60% of the dot's opacity; fades away when the hug releases and the coloured ring returns. */
-      ".rpc-mini{position:fixed;left:0;top:0;width:44px;height:44px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
+      ".rpc-mini{position:fixed;left:0;top:0;width:50px;height:50px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
       "border:1.5px solid #fff;mix-blend-mode:difference;transition:opacity .2s ease}" +
       "#rp-cursor.on.hugging .rpc-mini{opacity:.6}" +
-      ".rpc-loader{position:fixed;left:0;top:0;width:38px;height:38px;border-radius:50%;z-index:2147483645;pointer-events:none;opacity:0;will-change:transform;" +
+      /* keyboard-engaged element: our hug IS the focus indicator — kill the browser's default
+         (square/irregular) focus outline on that element only. */
+      ".rpc-kbsel{outline:none!important}.rpc-kbsel:focus,.rpc-kbsel:focus-visible{outline:none!important}" +
+      ".rpc-loader{position:fixed;left:0;top:0;width:44px;height:44px;border-radius:50%;z-index:2147483645;pointer-events:none;opacity:0;will-change:transform;" +
       "background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,.14) 200deg,rgba(255,255,255,.95) 345deg,rgba(255,255,255,0) 350deg);" +
       "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
       "mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
@@ -181,6 +184,7 @@
     var shown = false, loading = false, loadSince = 0, down = false;
     var idleFrames = 0, running = false, frame = 0;
     var kbActive = false;              // keyboard spatial-nav owns the selection until the mouse moves
+    var kbSelEl = null;                // element carrying .rpc-kbsel (site CSS mirrors its hover glow; UA outline suppressed)
 
     function show() { if (!shown) { shown = true; root.classList.add("on"); } }
     function hide() { if (shown) { shown = false; root.classList.remove("on"); } }
@@ -266,12 +270,13 @@
       } else { try { tiltEl.style.transform = tiltOrig; } catch (_) {} }
       tiltEl = null; tiltP = 0;
     }
-    function applyHover(el, txt, attrSp) {
+    function applyHover(el, txt, attrSp, kb) {
       if (clearT) { clearTimeout(clearT); clearT = null; }
       textish = !!txt;
       ring.classList.toggle("textish", textish);
       if (el === hoverEl) return;
       releaseTilt();
+      if (kbSelEl && kbSelEl !== el) { try { kbSelEl.classList.remove("rpc-kbsel"); } catch (_) {} kbSelEl = null; }
       hoverEl = el;
       hoverSpecial = false;
       hoverPad = 0;
@@ -311,15 +316,26 @@
            Force the outline back on a big circle if ever needed: data-cursor="link" + a
            non-% radius, or ask — small circles (social icons) keep the outline. */
         hoverSpecial = !!attrSp || (best.pct && best.px >= 45 && rr && rr.width >= 64 && rr.height >= 64);
+        /* KEYBOARD engagement: the hug IS the focus indicator, so specials hug too — the shape
+           CONFORMS (bubbles → encompassing circle via the %-radius scan; irregular logos → a
+           consistent rounded rectangle with breathing room) instead of the browser's square
+           outline, and the object's own selection glow is mirrored via .rpc-kbsel site CSS. */
+        if (kb && hoverSpecial) {
+          hoverSpecial = false;
+          if (!best.pct) { hoverRad = 16; hoverPad = 6; }
+        }
         /* Engaged states — in BOTH the glow reads as "transferred" to the object, and the faint
            ghost ring (.rpc-mini) marks the pointer:
            - ordinary elements: ring MORPHS onto the element ("hover" hug)
-           - special elements: ring keeps its shape but its colour FADES OUT ("faded") while the
-             object's own glow/reaction fades in; it fades back in on leave. */
+           - special elements (mouse): ring keeps its shape but its colour FADES OUT ("faded")
+             while the object's own glow/reaction fades in; it fades back in on leave. */
         ring.classList.toggle("hover", !hoverSpecial);
         ring.classList.toggle("faded", hoverSpecial);
         root.classList.add("hugging");
-        hoverPad = parseFloat(el.getAttribute("data-cursor-pad")) || 0;   /* extra breathing room around the hug (footer nav links) */
+        hoverPad = hoverPad || parseFloat(el.getAttribute("data-cursor-pad")) || 0;   /* extra breathing room around the hug (footer nav links) */
+        /* social icons (a[data-net], every site) get default breathing room so their circles
+           never read tighter than the rest of the hug outlines */
+        if (!hoverPad) { try { if (el.matches && el.matches("a[data-net]")) hoverPad = 5; } catch (_) {} }
         /* ELEMENT REACTION (like the home-page bubbles): perspective tilt toward the mouse.
            Ownership rules: if the element natively drives its own tilt (defines --tiltx —
            the RP bubbles do, in CSS or via their pointermove handlers), the cursor stays
@@ -327,7 +343,7 @@
            also hands-off. Otherwise the cursor tilts it, COMPOSITING on top of the element's
            computed base transform (so transform-positioned elements never jump), and specials
            additionally scale up slightly. Opt out: data-cursor="notilt". */
-        if (!dcHas(el, "notilt")) {
+        if (!dcHas(el, "notilt") && !kb) {   /* keyboard has no pointer to tilt toward — site .rpc-kbsel CSS provides the reaction */
           /* if this element was mid-ease-out (re-entered quickly), adopt it back with its
              progress + its ORIGINAL base/orig (its current inline transform is our own). */
           var fromRel = null, ri;
@@ -502,13 +518,13 @@
       if (hoverEl) {
         var r;
         try { r = hoverEl.getBoundingClientRect(); } catch (_) { r = null; }
-        if (!r || !r.width) { applyHover(null, false); tx = mx; ty = my; tw = 44; th = 44; tr = "50%"; }
+        if (!r || !r.width) { applyHover(null, false); tx = mx; ty = my; tw = 50; th = 50; tr = "50%"; }
         else {
           var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
           if (hoverSpecial) {
             /* special objects: the ring never outlines them — it stays the free ring
                following the pointer; the OBJECT is what reacts (below). */
-            tx = mx; ty = my; tw = 44; th = 44; tr = "50%";
+            tx = mx; ty = my; tw = 50; th = 50; tr = "50%";
           } else {
             /* the outline is ATTACHED to the element's edges: exact box, exact radius,
                zero magnetic drift — moving inside the button moves the BUTTON (tilt),
@@ -530,7 +546,7 @@
               (tiltScale > 1 ? " scale(" + (1 + (tiltScale - 1) * tiltP).toFixed(4) + ")" : "");
           }
         }
-      } else { tx = mx; ty = my; tw = 44; th = 44; tr = "50%"; }
+      } else { tx = mx; ty = my; tw = 50; th = 50; tr = "50%"; }
 
       /* ease-out any elements released from hover: shrink/untilt fluidly, then restore */
       if (relEls.length) {
@@ -562,7 +578,7 @@
         var cca = Math.cos(angS), csa = Math.sin(angS);
         var ex = cdx * cca + cdy * csa, ey = -cdx * csa + cdy * cca;
         var press = down ? .9 : 1;
-        var eA = (22 * (1 + kS)) * press - 7, eB = (22 * (1 - kS * .62)) * press - 7;
+        var eA = (25 * (1 + kS)) * press - 7, eB = (25 * (1 - kS * .62)) * press - 7;
         if (eA < 6) eA = 6; if (eB < 6) eB = 6;
         var qd = (ex * ex) / (eA * eA) + (ey * ey) / (eB * eB);
         if (qd > 1) { var qs = 1 / Math.sqrt(qd); rx = mx - cdx * qs; ry = my - cdy * qs; }
