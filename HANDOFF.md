@@ -21,7 +21,19 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
-### 0.0.0 NEWEST — Custom cursor system + interaction batch (2026-08-04 night PT)
+### 0.0.0 NEWEST — Custom cursor system + interaction batch (2026-08-04 night PT; v3 2026-08-05)
+
+**Cursor v3 (2026-08-05 morning):** the FREE state is now a **44px open ring** — a solid
+conic-gradient band (c1→c2→c3) at the rim with a clear empty gap to the 5px contrast dot, same
+silhouette as the loading orbit (which grew to 38px to match). The old radial glow-falloff orb is
+gone from the free state; the ring band glows outward + inward via box-shadow (removed while
+hovering/morphed). `data-cursor="glow"` targets (wordmarks) still get the SOFT halo — glowmode
+overrides the ring mask back to the radial gradient. Squash/stretch is much stronger
+(`k = min(speed*.034, .72)`): fast mouse = clear oval along the travel direction, spring-relaxes
+to a circle at rest. All in the master `bts-automation/cursor.js`; published + committed to both
+repos. Also 2026-08-05: security headers added to both repos' `_headers`
+(X-Frame-Options SAMEORIGIN + Permissions-Policy deny) — see SSOT change log.
+
 Four features shipped across ALL FOUR surfaces (studio/rentals/media/JC), RP `81130b8` + JC `a245da2`:
 - **Shared custom cursor engine — `assets/cursor.js`** (master `bts-automation/cursor.js`, published to
   BOTH repos by `social_ui_sync.py` / launchd `socialuisync`, same pipeline as `social_ui.js`).
