@@ -195,8 +195,13 @@ no console errors, 0 broken images. Do NOT assume Rare Pond changes propagated h
 
 **C. BACKEND / PIPELINE QC — host Mac Mini (`~/bts-automation`).**
   - **Fastest path — the health monitor.** `automation_health_launchd.py` (job `com.rarepond.pyhealthmon`,
-    every 15 min) writes TWO ClickUp pages: **"Automation Health"** (n8n workflows) and **"Automation
-    Health — Python Jobs (launchd)"**. Read those; all green = every exporter + workflow last ran OK.
+    every 15 min) writes THREE ClickUp pages in one doc: **"Automation Health"** (n8n workflows),
+    **"Automation Health — Python Jobs (launchd)"** (the site/data exporters), and **"Automation Health —
+    Local AI & System (launchd)"** (model-router, card-service, contacts-photoprep, imessage-reader — the
+    non-site infra). Each is sorted failures-first with a copy-paste fix block per red. Read those; all
+    green = everything last ran OK. The launchd site/data page is driven by the `JOBS` registry in that
+    script and the infra page by `INFRA_JOBS`; add any new `com.rarepond.*` job to the right list or it
+    won't be tracked.
   - **Direct check:** `launchctl list | grep rarepond` — 2nd column is the last exit code (0 = OK,
     non-zero = failed). Tail the offending job's logs in `~/bts-automation/<job>.log` and
     `<job>.launchd.err.log`.
