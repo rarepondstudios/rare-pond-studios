@@ -82,9 +82,11 @@
   })();
 
   /* ---------- SOURCE: intercept a [data-wipe] link and slide the panel IN to cover ---------- */
+  var busy=false;   /* in-flight guard: a rapid second click must never restart the panel mid-wipe */
   document.addEventListener('click',function(e){
     var a = e.target.closest && e.target.closest('a[data-wipe]');
     if(!a) return;
+    if(busy){ e.preventDefault(); e.stopImmediatePropagation(); return; }
     if(e.defaultPrevented||e.button===1||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey) return;
     if(a.target && a.target!=='_self') return;
     var dir = a.getAttribute('data-wipe'); if(dir!=='L'&&dir!=='R') return;
@@ -94,6 +96,7 @@
     e.preventDefault(); e.stopImmediatePropagation();       // never let the old cross-fade also fire
     var w = panel();
     if(RM || !w){ location.href=url.href; return; }
+    busy=true; setTimeout(function(){ busy=false; },1500);  /* self-clears in case navigation is ever blocked */
     try{ sessionStorage.setItem('__xw',dir); }catch(e2){}
     if(window.__setThemeColor) window.__setThemeColor('#3f6bff');
     var startX = (dir==='L') ? '100%' : '-100%';            // L enters from the right, R from the left
