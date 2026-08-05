@@ -195,13 +195,14 @@ no console errors, 0 broken images. Do NOT assume Rare Pond changes propagated h
 
 **C. BACKEND / PIPELINE QC — host Mac Mini (`~/bts-automation`).**
   - **Fastest path — the health monitor.** `automation_health_launchd.py` (job `com.rarepond.pyhealthmon`,
-    every 15 min) writes THREE ClickUp pages in one doc: **"Automation Health"** (n8n workflows),
-    **"Automation Health — Python Jobs (launchd)"** (the site/data exporters), and **"Automation Health —
-    Local AI & System (launchd)"** (model-router, card-service, contacts-photoprep, imessage-reader — the
-    non-site infra). Each is sorted failures-first with a copy-paste fix block per red. Read those; all
-    green = everything last ran OK. The launchd site/data page is driven by the `JOBS` registry in that
-    script and the infra page by `INFRA_JOBS`; add any new `com.rarepond.*` job to the right list or it
-    won't be tracked.
+    every 15 min) writes **ONE** ClickUp page, **"Automation Health"** (doc `2kyde6jc-1234`), with three
+    sections: **Websites** (site/data exporters, from the `JOBS` registry), **Local AI & System**
+    (model-router, card-service, contacts-photoprep, imessage-reader, from `INFRA_JOBS`), and **n8n
+    workflows** (read live from the n8n DB). Each section is sorted worst-first with a copy-paste fix block
+    under any red; all green = everything last ran OK. Add any new `com.rarepond.*` job to `JOBS` or
+    `INFRA_JOBS` or it won't be tracked. (History: it used to write 3 separate pages and, on transient API
+    errors, `publish()` re-created pages — the doc had accumulated 8 duplicates. Consolidated to one page +
+    dedup-hardened `find_page`/`publish` on 2026-08-05, and the 7 dup/legacy pages were deleted.)
   - **Direct check:** `launchctl list | grep rarepond` — 2nd column is the last exit code (0 = OK,
     non-zero = failed). Tail the offending job's logs in `~/bts-automation/<job>.log` and
     `<job>.launchd.err.log`.
