@@ -21,7 +21,23 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
-### 0.0.0 NEWEST — Custom cursor system + interaction batch (2026-08-04 night PT; v3 2026-08-05)
+### 0.0.0 NEWEST — Custom cursor system + interaction batch (2026-08-04 night PT; v3+v4 2026-08-05)
+
+**Cursor v4 (2026-08-05 midday) — hover model rework + pop fix.** Three rules now govern hover:
+1. **Ordinary interactive elements** (buttons/links/cards): the outline is ATTACHED to the element —
+   exact box, exact radius, zero magnetic drift — and the ELEMENT warps in perspective toward the
+   mouse (±6/7°, composited on its computed base transform so transform-positioned elements never
+   jump; verified in a Playwright harness).
+2. **SPECIAL objects never get the ring outline** — the ring stays the free ring and the OBJECT
+   reacts. Auto-detected: large circular targets (% radius ≥45, ≥64px — project bubbles, carousel
+   side circles, JC hbubs). Explicit: `data-cursor="glow"` (wordmarks, kept for back-compat) or
+   `data-cursor="special"`. If the element natively drives its own tilt (defines `--tiltx` — RP
+   bubbles do), the cursor is HANDS-OFF (no double-tilt); otherwise the cursor tilts it and scales
+   it slightly (1.05, wordmarks 1.08). Small circles (social icons) keep the outline.
+3. **Pop fix:** the free oval's orientation now takes the shortest path modulo π (ellipse symmetry;
+   raw atan2 smoothing was the "pops in unnatural directions" glitch), pointer deltas are clamped,
+   and `wake()` resyncs the previous-pointer so a sleeping loop can't wake into a giant stale delta.
+   The old glowmode HALO skin is gone (wordmarks now scale+tilt instead).
 
 **Cursor v3 (2026-08-05 morning):** the FREE state is now a **44px open ring** — a solid
 conic-gradient band (c1→c2→c3) at the rim with a clear empty gap to the 5px contrast dot, same
