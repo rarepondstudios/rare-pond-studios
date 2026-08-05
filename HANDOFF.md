@@ -43,6 +43,23 @@ doc `qc-report-2026-08-04.md`. Results: everything green except the items fixed 
   (`SCHEDULE_GRACE_H`) — the weekly backup no longer shows 🟡 "no runs in 24h" six days a week.
 - **NOTE:** both sitemaps are static and list film pages — when films are added/renamed, update
   them (or fold sitemap generation into the projects exporters, flagged as a future improvement).
+- **(Same session, later) JC www→apex 301 NOW LIVE — but NOT via `_redirects`.** Both JC hostnames
+  were already attached as Pages custom domains, yet the host-scoped `_redirects` line never fired —
+  **Cloudflare Pages does not reliably apply full-URL (host-scoped) `_redirects` sources.** The
+  working fix is a **zone Redirect Rule** (Cloudflare dash → jackcarlsen.com → Rules → "Redirect
+  from WWW to root" template, 301, query preserved) — deployed + verified live. ⚠️ **This means
+  RP's apex→www `_redirects` line will likely ALSO not fire after the rarepond DNS cutover** — plan
+  to add the mirror zone Redirect Rule ("root to WWW", or reverse if apex becomes canonical) in the
+  Cloudflare dashboard at cutover time. The `_redirects` host lines stay as harmless documentation.
+- **(Same session, later) Cross-site wipe SPEED LINES shipped** (`assets/xwipe.js`, commit
+  `a635c89`). The Studio↔Rentals↔Media gradient wipe now carries subtle parallel motion streaks
+  drifting in the sweep direction (L/R), injected entirely by the shared engine — **no per-page
+  markup/CSS was added**. Seamlessness contract: the lines animate ONLY while the panel is moving
+  and their opacity keyframes start AND end at 0, so at the cross-document handoff (panel at rest,
+  covering) both pages show a line-free panel — the cut stays invisible with no cross-page
+  animation-phase sync needed. They inherit `#xwipe`'s edge mask (streaks feather with the panel
+  edges) and are disabled under reduced-motion. Verified locally (devserve) + live on www: both
+  directions, clean landings, zero console errors.
 
 ---
 
