@@ -958,6 +958,7 @@ html.xw-active{overflow:hidden}
     background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.55),rgba(255,255,255,.12) 42%,rgba(120,180,255,.09) 70%,transparent 74%);
     border:1px solid rgba(255,255,255,.22);animation:bob 9s ease-in-out infinite alternate}
 </style>
+<script>/* SAME-PAGE NAV = smooth scroll to top (no transition / reload). A nav control pointing at the page the user is already on (wordmark, header or footer links) scrolls to the top instead of re-running a transition. Capture-phase and registered first so it wins before the SPA/fade/wipe handlers; links with a #hash, data-contact/net/wipe, other pages, or modified clicks are untouched. Escape is dispatched so an open hamburger menu closes via its existing handler. */(function(){function n(p){p=(p||"/").replace(/\/+$/,"");return p||"/";}document.addEventListener("click",function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;var a=e.target.closest&&e.target.closest("a[href]");if(!a)return;if(a.target&&a.target!=="_self")return;if(a.hasAttribute("data-contact")||a.hasAttribute("data-net")||a.hasAttribute("data-wipe"))return;var h=a.getAttribute("href")||"";if(!h||h.charAt(0)==="#")return;var u;try{u=new URL(h,location.href);}catch(_){return;}if(u.origin!==location.origin||u.hash)return;if(n(u.pathname)!==n(location.pathname))return;e.preventDefault();e.stopImmediatePropagation();var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;window.scrollTo({top:0,behavior:rm?"auto":"smooth"});try{document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape"}))}catch(_){}},true);})();</script>
 </head>
 <body>
   <div id="pageveil" aria-hidden="true"></div>
@@ -2354,7 +2355,7 @@ __main().catch(e=>console.error("init error",e));</script>
 </script>
 <!-- Shared across rarepond.com + jackcarlsen.com (single source: bts-automation/social_ui.js,
      published by social_ui_sync.py). Contact-bubble hover-glow + social-link transport wipe. -->
-<script src="/assets/social_ui.js" defer></script>
+<script src="/assets/social_ui.js" defer></script><script src="/assets/cursor.js" defer></script>
 <script src="/assets/xwipe.js" defer></script>
 <script src="/assets/xnav.js" defer></script>
 <script src="/assets/contact.js" defer></script>

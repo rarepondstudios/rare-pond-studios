@@ -178,6 +178,7 @@ html.xw-active{overflow:hidden}
   .showgrid .s-a{grid-column:span 2}
 }
 </style>
+<script>/* SAME-PAGE NAV = smooth scroll to top (no transition / reload). A nav control pointing at the page the user is already on (wordmark, header or footer links) scrolls to the top instead of re-running a transition. Capture-phase and registered first so it wins before the SPA/fade/wipe handlers; links with a #hash, data-contact/net/wipe, other pages, or modified clicks are untouched. Escape is dispatched so an open hamburger menu closes via its existing handler. */(function(){function n(p){p=(p||"/").replace(/\/+$/,"");return p||"/";}document.addEventListener("click",function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;var a=e.target.closest&&e.target.closest("a[href]");if(!a)return;if(a.target&&a.target!=="_self")return;if(a.hasAttribute("data-contact")||a.hasAttribute("data-net")||a.hasAttribute("data-wipe"))return;var h=a.getAttribute("href")||"";if(!h||h.charAt(0)==="#")return;var u;try{u=new URL(h,location.href);}catch(_){return;}if(u.origin!==location.origin||u.hash)return;if(n(u.pathname)!==n(location.pathname))return;e.preventDefault();e.stopImmediatePropagation();var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;window.scrollTo({top:0,behavior:rm?"auto":"smooth"});try{document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape"}))}catch(_){}},true);})();</script>
 </head>
 <body>
 <script>/* pre-paint: cover before first paint if arriving via a directional wipe (no flash) */(function(){try{var d=sessionStorage.getItem('__xw');if(d==='L'||d==='R'){document.documentElement.classList.add('xw-cover');window.__XW_IN=d;if(window.__setThemeColor)window.__setThemeColor('#3f6bff');}}catch(e){}})();</script>
@@ -336,7 +337,7 @@ html.xw-active{overflow:hidden}
 <script src="/assets/xwipe.js" defer></script>
 <script src="/assets/xnav.js" defer></script>
 <script src="/assets/contact.js" defer></script>
-<script src="/assets/social_ui.js" defer></script>
+<script src="/assets/social_ui.js" defer></script><script src="/assets/cursor.js" defer></script>
 <!-- shared color-look + event-banner engine (renders site.json → eventBanner into #rp-eventbanner-mount) -->
 <script src="/assets/looks.js" defer></script>
 <script>

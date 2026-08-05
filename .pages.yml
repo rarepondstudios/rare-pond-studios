@@ -41,6 +41,30 @@ content:
           - { name: style, label: "Fade colour style", type: select, default: full, options: { values: [muted, full] }, description: "FULL shows the look's colours vividly (matches the Rare Pond transport splash). MUTED tones them onto a dark base for a subtler cover." }
           - { name: enabled, label: "Fade enabled", type: boolean, default: true, description: "ON: the branded fade-in plays on load. OFF: the page appears immediately with no cover." }
 
+      - name: cursor
+        label: "🖱 Custom cursor (per sub-site)"
+        type: object
+        description: "The soft gradient circle + dot that replaces the mouse on desktop (auto-hidden on touch devices). Per sub-site: turn it on/off and pick which COLOUR LOOK tints it (blank/'signature' = the site look). It morphs onto buttons on hover and shows a white loading orbit during long transitions."
+        fields:
+          - name: studio
+            label: "Studio site"
+            type: object
+            fields:
+              - { name: enabled, label: "Cursor enabled", type: boolean, default: true, description: "ON: the custom cursor replaces the mouse on the studio site (desktop only)." }
+              - { name: colorLook, label: "Colour look (key or name)", type: string, description: "Which colour look tints the cursor. Type a look's key or NAME exactly as in the Color Looks list. Blank = signature." }
+          - name: rentals
+            label: "Rentals site"
+            type: object
+            fields:
+              - { name: enabled, label: "Cursor enabled", type: boolean, default: true, description: "ON: the custom cursor replaces the mouse on the rentals site (desktop only)." }
+              - { name: colorLook, label: "Colour look (key or name)", type: string, description: "Which colour look tints the cursor. Blank = signature." }
+          - name: media
+            label: "Media site"
+            type: object
+            fields:
+              - { name: enabled, label: "Cursor enabled", type: boolean, default: true, description: "ON: the custom cursor replaces the mouse on the media site (desktop only)." }
+              - { name: colorLook, label: "Colour look (key or name)", type: string, description: "Which colour look tints the cursor. Blank = signature." }
+
       - name: logos
         label: Logos
         type: object

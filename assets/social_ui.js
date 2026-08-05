@@ -67,8 +67,12 @@
       /* ===== #3 social transport wipe ===== */
       /* height:100lvh (large-viewport) + inset:0 cover the FULL mobile screen, extending behind
          iOS Safari's dynamic top/bottom bars so the wipe never leaves an uncovered band. */
+      /* The gradient radiates from the SAME point the clip circle grows from (--scx/--scy = the
+         user's actual click), so the wipe always reads as blooming out of the click: the innermost
+         colour (c1 = the brand colour already on the clicked icon) appears first at radius 0 and
+         c2/c3 unfold outward — no hard cut between the button's gradient and the wipe's. */
       ".rp-soctransport{position:fixed;inset:0;height:100vh;height:100lvh;z-index:2147483000;pointer-events:none;opacity:1;" +
-      "background:radial-gradient(circle at 50% 44%,var(--sc1,#3f6bff),var(--sc2,#3f6bff) 52%,var(--sc3,#9b5cff) 100%);" +
+      "background:radial-gradient(circle at var(--scx,50%) var(--scy,44%),var(--sc1,#3f6bff),var(--sc2,#3f6bff) 52%,var(--sc3,#9b5cff) 100%);" +
       "clip-path:circle(0px at var(--scx,50%) var(--scy,50%));-webkit-clip-path:circle(0px at var(--scx,50%) var(--scy,50%));" +
       "transition:clip-path .5s cubic-bezier(.66,0,.34,1),-webkit-clip-path .5s cubic-bezier(.66,0,.34,1),opacity .35s ease}" +
       ".rp-soctransport.go{clip-path:circle(220vmax at var(--scx,50%) var(--scy,50%));-webkit-clip-path:circle(220vmax at var(--scx,50%) var(--scy,50%))}" +
@@ -106,7 +110,7 @@
   var IS_TOUCH = false;
   try { IS_TOUCH = (window.matchMedia && matchMedia("(pointer:coarse)").matches) || ("ontouchstart" in window) || navigator.maxTouchPoints > 0; } catch (e) {}
   var busy = false;
-  function transport(a) {
+  function transport(a, ev) {
     var href = a.getAttribute("href");
     var open = function () {
       if (IS_TOUCH) { location.href = href; return; }           // reliable on mobile (no popup block)
@@ -117,7 +121,11 @@
     busy = true;
     var col = colorsFor(a);
     var r = a.getBoundingClientRect();
+    /* Origin = the user's ACTUAL click point when we have one (a real pointer event carries
+       clientX/Y inside the icon's rect); keyboard/synthetic activations fall back to the icon's
+       centre. Both the clip circle AND the gradient use this same origin. */
     var ox = r.left + r.width / 2, oy = r.top + r.height / 2;
+    if (ev && typeof ev.clientX === "number" && (ev.clientX || ev.clientY)) { ox = ev.clientX; oy = ev.clientY; }
     var d = document.createElement("div");
     d.className = "rp-soctransport";
     d.style.setProperty("--scx", ox + "px");
@@ -174,7 +182,7 @@
     if (e.defaultPrevented) return;
     if (e.button === 1 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;  // honour open-in-new-tab etc.
     e.preventDefault();
-    transport(a);
+    transport(a, e);
   }
 
   function init() {
