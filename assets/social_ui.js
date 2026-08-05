@@ -168,12 +168,32 @@
     setTimeout(function () { doOpen(); }, 560);
     setTimeout(function () { cleanup(); }, 1500);
   }
+  /* HANDOFF (cross-site seamlessness): a HELD same-tab wipe covers this page right up to the
+     unload, but the DESTINATION used to hard-cut in. Now the click origin + gradient colours
+     travel WITH the navigation in the URL hash (#rpt=x%|y%|c1|c2|c3 — sessionStorage can't
+     cross the jackcarlsen.com ⇄ rarepond.com origin boundary), the destination's pre-paint
+     snippet paints the SAME gradient before first paint, and shared social_ui.js on that side
+     retracts it to the carried click point (centre if the coords are missing/invalid). */
+  function handoffHref(href, x, y, c1, c2, c3) {
+    try {
+      var u = new URL(href, location.href);
+      if (u.hash) return href;                                   // never clobber a real anchor
+      u.hash = "rpt=" + [Math.round(x / innerWidth * 1000) / 10, Math.round(y / innerHeight * 1000) / 10,
+        encodeURIComponent(c1), encodeURIComponent(c2), encodeURIComponent(c3)].join("|");
+      return u.href;
+    } catch (e) { return href; }
+  }
   window.__rpTransport = function (o) {
+    var c1 = o.c1 || "#3f6bff", c2 = o.c2 || c1, c3 = o.c3 || c2;
     var open = o.open || function () {
-      if (o.sameTab || IS_TOUCH) { location.href = o.href; return; }
-      try { window.open(o.href, "_blank", "noopener"); } catch (e) { location.href = o.href; }
+      var href = o.href;
+      if (o.sameTab || IS_TOUCH) {
+        if (o.hold) href = handoffHref(href, o.x, o.y, c1, c2, c3);   // held same-tab wipe → destination retracts it
+        location.href = href; return;
+      }
+      try { window.open(href, "_blank", "noopener"); } catch (e) { location.href = href; }
     };
-    runTransport({ x: o.x, y: o.y, c1: o.c1 || "#3f6bff", c2: o.c2 || o.c1 || "#3f6bff", c3: o.c3 || o.c2 || "#9b5cff", open: open, hold: !!o.hold });
+    runTransport({ x: o.x, y: o.y, c1: c1, c2: c2, c3: c3, open: open, hold: !!o.hold });
   };
   function transport(a, ev) {
     var href = a.getAttribute("href");
@@ -205,8 +225,52 @@
     transport(a, e);
   }
 
+  /* ARRIVAL: retract a handed-off wipe (#rpt=...) to the carried click point. The pre-paint
+     snippet in each document painted the cover before first paint (window.__RPT); if that
+     snippet is absent the cover is built here (worst case a brief flash instead of a cut). */
+  function arrivalRetract() {
+    var m = /[#&]rpt=([^&]+)/.exec(location.hash || "");
+    if (!m) return;
+    var okc = function (c) { return (/^#[0-9a-f]{3,8}$/i.test(c) || /^rgba?\([\d ,.%]+\)$/i.test(c)) ? c : ""; };
+    var p = m[1].split("|"), x = parseFloat(p[0]), y = parseFloat(p[1]);
+    if (!(x >= 0 && x <= 100)) x = 50;
+    if (!(y >= 0 && y <= 100)) y = 50;
+    var c1 = okc(decodeURIComponent(p[2] || "")) || "#3f6bff";
+    var c2 = okc(decodeURIComponent(p[3] || "")) || c1;
+    var c3 = okc(decodeURIComponent(p[4] || "")) || c2;
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    var d = window.__RPT && window.__RPT.el;
+    if (!d) {
+      d = document.createElement("div");
+      d.style.cssText = "position:fixed;inset:0;height:100vh;height:100lvh;z-index:2147483001;pointer-events:none;" +
+        "background:radial-gradient(circle at " + x + "% " + y + "%," + c1 + "," + c2 + " 52%," + c3 + " 100%)";
+      document.body.appendChild(d);
+    }
+    if (REDUCED) {
+      if (d.parentNode) d.parentNode.removeChild(d);
+      window.__RPT = null;
+      if (window.__resetThemeColor) window.__resetThemeColor(0);
+      return;
+    }
+    d.style.transition = "clip-path .55s cubic-bezier(.66,0,.34,1),-webkit-clip-path .55s cubic-bezier(.66,0,.34,1)";
+    d.style.clipPath = d.style.webkitClipPath = "circle(220vmax at " + x + "% " + y + "%)";
+    var gone = false;
+    var go = function () {
+      if (gone) return; gone = true;
+      requestAnimationFrame(function () { requestAnimationFrame(function () {
+        d.style.clipPath = d.style.webkitClipPath = "circle(0px at " + x + "% " + y + "%)";
+        if (window.__resetThemeColor) window.__resetThemeColor(0);
+        setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); window.__RPT = null; }, 750);
+      }); });
+    };
+    /* start once the page behind the cover has actually painted */
+    if (document.readyState === "complete") setTimeout(go, 120);
+    else addEventListener("load", function () { setTimeout(go, 120); }, { once: true });
+    setTimeout(go, 1800);   // safety: never trap the user behind the cover
+  }
   function init() {
     injectCSS();
+    arrivalRetract();
     document.addEventListener("click", onClick, false);
     /* Back/bfcache: a HELD same-tab wipe is still painted when the page is restored from the
        back-forward cache — clear any leftover transport so Back always shows the real page. */

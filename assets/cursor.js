@@ -200,7 +200,7 @@
       /* REAL movement hands control back to the pointer. Chrome also fires a SYNTHETIC
          mousemove (same coordinates) whenever content shifts under a stationary cursor —
          e.g. a carousel rotating — which must NOT cancel an active keyboard selection. */
-      if (kbActive && (Math.abs(e.clientX - mx) > 3 || Math.abs(e.clientY - my) > 3)) kbActive = false;
+      if (kbActive && (Math.abs(e.clientX - mx) > 3 || Math.abs(e.clientY - my) > 3)) { kbActive = false; kbSynth(null); }
       mx = e.clientX; my = e.clientY;
       show(); wake();
     }, { passive: true });
@@ -229,6 +229,7 @@
       return false;
     }
     document.addEventListener("pointerover", function (e) {
+      if (e.isTrusted === false) return;  /* our own kb-parity synthetic hover events must never loop back */
       if (kbActive) return;            /* scrolling under a stationary mouse fires pointerover — don't let it steal a keyboard selection */
       var t = e.target;
       if (!t || t.nodeType !== 1) { queueClear(false); return; }
@@ -384,6 +385,7 @@
         ring.classList.remove("hover");
         ring.classList.remove("faded");
         root.classList.remove("hugging");
+        if (kbSynthEl) kbSynth(null);   /* full disengage (Escape / iframe / touch): release the synthetic hover too */
       }
     }
     function setHover(el, txt) { applyHover(el, txt, false); }   /* back-compat internal alias */
@@ -396,6 +398,24 @@
        (accessibility + native Enter on links/buttons). The first genuine mouse move hands
        control back to the pointer. Arrows scroll the page normally when no element is
        engaged; typing in text fields is never intercepted. */
+    /* KB HOVER PARITY: sites tie real behaviour (preview-reel play/pause on the JC wall and the
+       RP bubbles, marquee pausing, tilt resets) to genuine hover EVENTS on the element — so the
+       keyboard selection mirrors them with synthetic enter/leave events. They are untrusted
+       (isTrusted=false) and our own delegated listeners skip those, so nothing loops back. */
+    var kbSynthEl = null;
+    function kbFire(el, type, bub) {
+      try {
+        var r = el.getBoundingClientRect();
+        el.dispatchEvent(new MouseEvent(type, { bubbles: !!bub, cancelable: true, view: window,
+          clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }));
+      } catch (_) {}
+    }
+    function kbSynth(el) {
+      if (kbSynthEl === el) return;
+      if (kbSynthEl) { kbFire(kbSynthEl, "pointerleave", false); kbFire(kbSynthEl, "mouseout", true); kbFire(kbSynthEl, "mouseleave", false); }
+      kbSynthEl = el;
+      if (el) { kbFire(el, "pointerover", true); kbFire(el, "pointerenter", false); kbFire(el, "mouseover", true); kbFire(el, "mouseenter", false); }
+    }
     function kbCandidates() {
       var els = document.querySelectorAll(SEL), out = [], i, el, r, cs;
       for (i = 0; i < els.length; i++) {
@@ -417,7 +437,17 @@
       applyHover(el, false, attrSp, true);
       try { el.classList.add("rpc-kbsel"); kbSelEl = el; } catch (_) {}
       try { el.focus({ preventScroll: true }); } catch (_) {}
-      try { el.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (_) {}
+      /* VERTICAL-only reveal scroll. scrollIntoView could also pan HORIZONTALLY, which shifted
+         the whole page sideways when selecting elements DESIGNED to sit partly off-screen (the
+         RP home edge bubbles) and exposed the background's edge. Sideways travel is the
+         carousels' own job (kbAdvance rotates/jogs them); the page itself never pans. */
+      try {
+        var vr = el.getBoundingClientRect(), dyv = 0;
+        if (vr.top < 70) dyv = vr.top - 70;
+        else if (vr.bottom > innerHeight - 40) dyv = vr.bottom - (innerHeight - 40);
+        if (dyv) window.scrollBy({ top: dyv, left: 0, behavior: "smooth" });
+      } catch (_) {}
+      kbSynth(el);   /* hover parity: preview reels etc. react to the kb selection like a hover */
       show(); wake();
       return true;
     }
@@ -491,7 +521,22 @@
       var dx = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
       var dy = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0;
       if (!dx && !dy) return;
-      if (!hoverEl) return;                                 /* no hover context → arrows scroll the page as normal */
+      if (!hoverEl) {
+        /* ACCESSIBILITY: no hover prerequisite — the FIRST arrow press engages the nav by
+           selecting the candidate nearest the pointer's last known position (viewport centre
+           if the mouse hasn't been seen yet). The next real mouse move hands control back. */
+        var sx = mx >= 0 ? mx : innerWidth / 2, sy = my >= 0 ? my : innerHeight / 2;
+        var cands = kbCandidates().map(function (c) {
+          var nx = c.r.left + c.r.width / 2 - sx, ny = c.r.top + c.r.height / 2 - sy;
+          return { el: c.el, d: nx * nx + ny * ny };
+        }).sort(function (a, b2) { return a.d - b2.d; });
+        /* nearest first, but keep trying — the closest match can be an OVERSIZED wrapper
+           kbEngage refuses (>62% viewport), and one refusal must not kill the activation */
+        for (var ci = 0; ci < cands.length && ci < 8; ci++) {
+          if (kbEngage(cands[ci].el)) { kbActive = true; e.preventDefault(); break; }
+        }
+        return;
+      }
       if (kbMove(dx, dy)) { kbActive = true; e.preventDefault(); }
       else if (dx && kbAdvance(dx)) { kbActive = true; e.preventDefault(); }
     });
