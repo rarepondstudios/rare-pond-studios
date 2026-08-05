@@ -21,7 +21,40 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
-### 0.0.0 NEWEST — Custom cursor system + interaction batch (2026-08-04 night PT; v3+v4 2026-08-05)
+### 0.0.0 NEWEST — Custom cursor system + interaction batch (2026-08-04 night PT; v3–v5 2026-08-05)
+
+**Cursor v5 + interaction batch (2026-08-05 afternoon).** RP + JC, all verified in a Playwright
+harness and live:
+- **Fluid hover reactions:** element tilt/scale now EASES in (progress spring) and eases back out
+  after leave (release queue `relEls`) — no more pop to full size. Re-hover mid-shrink resumes
+  from current progress.
+- **Dot containment:** the centre dot can never exit the ring — the ring's lag is clamped against
+  its own rotated/squashed ellipse each frame.
+- **Hug border v2:** thicker 3px band that carries the page's colour-look gradient
+  (`.rpc-bord`, conic c1→c2→c3, xor-mask border technique; works at any border-radius).
+- **`data-cursor` is now a TOKEN LIST** (e.g. `"special notilt"`); tokens: off / link / glow /
+  special / notilt. New: **`data-cursor-pad="N"`** = hug outline forms N px away from the element
+  (used on all footer nav links, pad 6). New: special elements with `--cursor-tint` / `--tc` /
+  `--cc` TINT the free ring to that colour (rentals category tabs = colour-merge, no outline).
+- **Rentals:** category tabs `special notilt` (ring tints + merges with the category glow); item
+  cards + package cards `data-cursor="off"` (native colored-glow hover only; the controls inside
+  hug their own hitboxes).
+- **Footer nav consistency:** every SPA footer link now renders a real `href` (cursor needs
+  `a[href]`; Our Team / Projects were unlit before) across RP studio builder + static template,
+  media builder (also fixed `/#go` → real `/team`-style paths) + static row, rentals static row,
+  JC builder.
+- **"See our work" button** next to "Learn who we are" on the studio home → `/projects`
+  (`.about-ctas` flex row).
+- **Media hero seam fix:** the hero scrim now dissolves to full base opacity before the section
+  edge (long fade) — no hard line when scrolling off the top.
+- **Unified radial transport:** `social_ui.js` exports **`window.__rpTransport({x,y,c1,c2,c3,
+  href,sameTab,hold})`** — ONE implementation of the click-origin radial-gradient wipe. The JC
+  "go to Rare Pond" bubble now rides it (held cover through same-tab navigation; old `.xtransport`
+  CSS/JS retired); social icons use the same core. bfcache pageshow cleanup lives in social_ui.js.
+- **Orbit bubbles + media-site images are pasteable PATHS:** Pages CMS fields (`site.orbits`,
+  `mediasite hero/showcase/sections/cta images`) are now string fields — paste a `/media/...`
+  path straight from the NocoDB stills/BTS attribute; front-ends normalize (full URL → path,
+  missing leading slash added). No duplicate image uploads.
 
 **Cursor v4 (2026-08-05 midday) — hover model rework + pop fix.** Three rules now govern hover:
 1. **Ordinary interactive elements** (buttons/links/cards): the outline is ATTACHED to the element —
