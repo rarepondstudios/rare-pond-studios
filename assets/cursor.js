@@ -17,9 +17,14 @@
        offset drift — the outline is attached to the edges) while the element
        itself warps in perspective toward the mouse. SPECIAL objects — project
        bubbles / large circular instances, plus wordmarks tagged
-       data-cursor="glow"/"special" — never get the ring outline: the ring stays
-       a free ring and the OBJECT reacts instead (its own native glow/tilt if it
-       has one, else cursor-driven perspective tilt + slight scale-up).
+       data-cursor="glow"/"special" — never get the ring outline: the ring's
+       colour FADES OUT (glow "transfers" to the object) while the OBJECT reacts
+       (its own native glow/tilt if it has one, else cursor-driven tilt+scale),
+       and fades back in on leave. While ANY element is engaged, a faint
+       auto-contrast ghost ring (60% dot opacity) marks the pointer position.
+     - KEYBOARD: from a hover context, arrow keys move the selection spatially
+       between interactive elements (the hug/reaction travels), Enter activates;
+       the first real mouse move hands control back to the pointer.
      - LOADING: while a long transition covers the page (cross-site wipe, social
        transport, JC transport, the initial load veil) the circle is replaced by
        a WHITE orbiting arc with a trail around the dot; it restores after.
@@ -109,7 +114,11 @@
       "box-shadow:0 0 14px -3px " + rgba(COL.c1, .55) + ",inset 0 0 9px -3px " + rgba(COL.c2, .40) + ";" +   /* the ring band GLOWS both outward and inward */
       "transition:width .22s cubic-bezier(.3,.9,.3,1),height .22s cubic-bezier(.3,.9,.3,1),border-radius .22s cubic-bezier(.3,.9,.3,1),opacity .16s ease}" +
       "#rp-cursor.on .rpc-ring{opacity:1}" +
-      ".rpc-ring.hover{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}" +   /* no blur / free-ring glow once snapped to an element */
+      /* SPECIAL objects (category tabs / bubbles / wordmarks): the ring's colour FADES OUT as the
+         object's own glow fades in — the glow visibly "transfers" to the object — leaving only the
+         faint ghost ring (.rpc-mini) at the pointer. Fades back in when the pointer leaves. */
+      "#rp-cursor.on .rpc-ring.faded{opacity:0}" +
+      ".rpc-ring.hover,.rpc-ring.faded{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}" +   /* no blur / free-ring glow once snapped to an element */
       /* two stacked skins that crossfade: glowing open ring (free) vs hug-fill (hover) */
       ".rpc-glow,.rpc-fill{position:absolute;inset:0;border-radius:inherit;transition:opacity .18s ease}" +
       /* FREE state: an OPEN RING — solid gradient band at the rim (loader silhouette, not animated),
@@ -125,15 +134,16 @@
       "-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;" +
       "mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}" +
       ".rpc-ring.hover .rpc-glow{opacity:0}.rpc-ring.hover .rpc-fill{opacity:1}.rpc-ring.hover .rpc-bord{opacity:1}" +
-      /* special objects (bubbles / wordmarks / category tabs): NO skin change — the ring stays
-         the free open ring and the ELEMENT reacts. If the special element carries a themed
-         colour (--cursor-tint / --tc / --cc), the ring TINTS to it and merges with its glow. */
-      ".rpc-ring.tinted .rpc-glow{background:var(--rpct)}" +
-      ".rpc-ring.tinted{box-shadow:0 0 16px -2px color-mix(in srgb,var(--rpct),transparent 35%),inset 0 0 9px -3px color-mix(in srgb,var(--rpct),transparent 55%)}" +
       "#rp-cursor.on .rpc-ring.textish{opacity:.3}" +
       ".rpc-dot{position:fixed;left:0;top:0;width:5px;height:5px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
       "background:#fff;mix-blend-mode:difference;transition:opacity .15s ease}" +   /* difference vs the page = always contrasts (white on dark, black on light) */
       "#rp-cursor.on .rpc-dot{opacity:1}" +
+      /* while the ring is HUGGING an element, a faint ghost ring stays at the dot marking where
+         the circle collapses back to. Same auto-contrast treatment as the dot (difference blend),
+         60% of the dot's opacity; fades away when the hug releases and the coloured ring returns. */
+      ".rpc-mini{position:fixed;left:0;top:0;width:44px;height:44px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
+      "border:1.5px solid #fff;mix-blend-mode:difference;transition:opacity .2s ease}" +
+      "#rp-cursor.on.hugging .rpc-mini{opacity:.6}" +
       ".rpc-loader{position:fixed;left:0;top:0;width:38px;height:38px;border-radius:50%;z-index:2147483645;pointer-events:none;opacity:0;will-change:transform;" +
       "background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,.14) 200deg,rgba(255,255,255,.95) 345deg,rgba(255,255,255,0) 350deg);" +
       "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
@@ -149,12 +159,13 @@
     var root = document.createElement("div");
     root.id = "rp-cursor";
     root.setAttribute("aria-hidden", "true");
-    root.innerHTML = '<div class="rpc-ring"><div class="rpc-glow"></div><div class="rpc-fill"></div><div class="rpc-bord"></div></div><div class="rpc-loader"></div><div class="rpc-dot"></div>';
+    root.innerHTML = '<div class="rpc-ring"><div class="rpc-glow"></div><div class="rpc-fill"></div><div class="rpc-bord"></div></div><div class="rpc-loader"></div><div class="rpc-mini"></div><div class="rpc-dot"></div>';
     document.body.appendChild(root);
     document.documentElement.classList.add("rpc-on");
 
     var ring = root.querySelector(".rpc-ring"),
         dot = root.querySelector(".rpc-dot"),
+        mini = root.querySelector(".rpc-mini"),
         ldr = root.querySelector(".rpc-loader");
 
     /* ---- state ---- */
@@ -169,6 +180,7 @@
     var clearT = null;                 // hover-out grace timer (kills the between-buttons flash)
     var shown = false, loading = false, loadSince = 0, down = false;
     var idleFrames = 0, running = false, frame = 0;
+    var kbActive = false;              // keyboard spatial-nav owns the selection until the mouse moves
 
     function show() { if (!shown) { shown = true; root.classList.add("on"); } }
     function hide() { if (shown) { shown = false; root.classList.remove("on"); } }
@@ -176,6 +188,7 @@
     /* ---- pointer tracking ---- */
     addEventListener("mousemove", function (e) {
       mx = e.clientX; my = e.clientY;
+      kbActive = false;                /* real mouse movement hands control back to the pointer */
       show(); wake();
     }, { passive: true });
     document.addEventListener("mouseleave", hide);
@@ -203,6 +216,7 @@
       return false;
     }
     document.addEventListener("pointerover", function (e) {
+      if (kbActive) return;            /* scrolling under a stationary mouse fires pointerover — don't let it steal a keyboard selection */
       var t = e.target;
       if (!t || t.nodeType !== 1) { queueClear(false); return; }
       /* Cross-origin embeds (HubSpot / Jotform forms) own the pointer — the browser stops
@@ -297,20 +311,15 @@
            Force the outline back on a big circle if ever needed: data-cursor="link" + a
            non-% radius, or ask — small circles (social icons) keep the outline. */
         hoverSpecial = !!attrSp || (best.pct && best.px >= 45 && rr && rr.width >= 64 && rr.height >= 64);
+        /* Engaged states — in BOTH the glow reads as "transferred" to the object, and the faint
+           ghost ring (.rpc-mini) marks the pointer:
+           - ordinary elements: ring MORPHS onto the element ("hover" hug)
+           - special elements: ring keeps its shape but its colour FADES OUT ("faded") while the
+             object's own glow/reaction fades in; it fades back in on leave. */
         ring.classList.toggle("hover", !hoverSpecial);
+        ring.classList.toggle("faded", hoverSpecial);
+        root.classList.add("hugging");
         hoverPad = parseFloat(el.getAttribute("data-cursor-pad")) || 0;   /* extra breathing room around the hug (footer nav links) */
-        /* themed specials (rentals category tabs): tint the free ring to the element's colour
-           so the cursor visibly merges with that category's glow. Var order: --cursor-tint
-           (explicit opt-in for future elements) then --tc / --cc (rentals conventions). */
-        var tint = "";
-        if (hoverSpecial) {
-          try {
-            var tcs = getComputedStyle(el);
-            tint = (tcs.getPropertyValue("--cursor-tint") || tcs.getPropertyValue("--tc") || tcs.getPropertyValue("--cc") || "").trim();
-          } catch (_) {}
-        }
-        if (tint) { ring.classList.add("tinted"); ring.style.setProperty("--rpct", tint); }
-        else ring.classList.remove("tinted");
         /* ELEMENT REACTION (like the home-page bubbles): perspective tilt toward the mouse.
            Ownership rules: if the element natively drives its own tilt (defines --tiltx —
            the RP bubbles do, in CSS or via their pointermove handlers), the cursor stays
@@ -343,10 +352,78 @@
         }
       } else {
         ring.classList.remove("hover");
-        ring.classList.remove("tinted");
+        ring.classList.remove("faded");
+        root.classList.remove("hugging");
       }
     }
     function setHover(el, txt) { applyHover(el, txt, false); }   /* back-compat internal alias */
+
+    /* ---- KEYBOARD SPATIAL NAVIGATION -------------------------------------------------
+       Engages from a hover context: with the pointer over an interactive element (stills
+       grid, buttons, bubbles...), the ARROW KEYS move the selection to the nearest
+       interactive element in that direction — the hug outline / object reaction travels
+       with it — and ENTER activates it. The selected element also receives real focus
+       (accessibility + native Enter on links/buttons). The first genuine mouse move hands
+       control back to the pointer. Arrows scroll the page normally when no element is
+       engaged; typing in text fields is never intercepted. */
+    function kbCandidates() {
+      var els = document.querySelectorAll(SEL), out = [], i, el, r, cs;
+      for (i = 0; i < els.length; i++) {
+        el = els[i];
+        if (el === hoverEl || dcHas(el, "off") || isTextField(el)) continue;
+        try { r = el.getBoundingClientRect(); } catch (_) { continue; }
+        if (r.width < 4 || r.height < 4) continue;
+        if (r.bottom < -60 || r.top > innerHeight + 60 || r.right < -60 || r.left > innerWidth + 60) continue;   /* roughly on screen */
+        try { cs = getComputedStyle(el); } catch (_) { continue; }
+        if (cs.visibility === "hidden" || cs.display === "none" || parseFloat(cs.opacity) === 0) continue;
+        out.push({ el: el, r: r });
+      }
+      return out;
+    }
+    function kbEngage(el) {
+      var attrSp = dcHas(el, "glow") || dcHas(el, "special");
+      var r; try { r = el.getBoundingClientRect(); } catch (_) { return false; }
+      if (r.width < 4 || r.height < 4 || (!attrSp && (r.width > innerWidth * .62 || r.height > innerHeight * .62))) return false;
+      applyHover(el, false, attrSp);
+      try { el.focus({ preventScroll: true }); } catch (_) {}
+      try { el.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (_) {}
+      show(); wake();
+      return true;
+    }
+    function kbMove(dx, dy) {
+      if (!hoverEl) return false;
+      var cr; try { cr = hoverEl.getBoundingClientRect(); } catch (_) { return false; }
+      var cx = cr.left + cr.width / 2, cy = cr.top + cr.height / 2;
+      var best = null, bs = Infinity;
+      kbCandidates().forEach(function (c) {
+        var x = c.r.left + c.r.width / 2, y = c.r.top + c.r.height / 2;
+        var vx = x - cx, vy = y - cy;
+        var fwd = vx * dx + vy * dy;                       /* progress along the pressed direction */
+        if (fwd < 8) return;                               /* must actually lie in that direction */
+        var ortho = Math.abs(vx * dy) + Math.abs(vy * dx); /* sideways offset */
+        if (ortho > fwd * 2.2) return;                     /* stay inside a ~65° cone */
+        var score = fwd + ortho * 2;                       /* nearest, preferring in-line targets */
+        if (score < bs) { bs = score; best = c; }
+      });
+      return best ? kbEngage(best.el) : false;
+    }
+    addEventListener("keydown", function (e) {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      var t = e.target;
+      if (t && t.nodeType === 1 && (isTextField(t) || t.isContentEditable)) return;   /* typing owns the keys */
+      if (e.key === "Enter" && kbActive && hoverEl) {
+        /* natively-activating elements handle Enter themselves once focused — only click the rest */
+        var tg = hoverEl.tagName;
+        var nativeAct = (tg === "A" && hoverEl.hasAttribute("href")) || tg === "BUTTON" || tg === "INPUT" || tg === "SELECT" || tg === "SUMMARY";
+        if (!(nativeAct && document.activeElement === hoverEl)) { try { hoverEl.click(); } catch (_) {} e.preventDefault(); }
+        return;
+      }
+      var dx = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
+      var dy = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0;
+      if (!dx && !dy) return;
+      if (!hoverEl) return;                                 /* no hover context → arrows scroll the page as normal */
+      if (kbMove(dx, dy)) { kbActive = true; e.preventDefault(); }
+    });
 
     /* ---- loading detection (cheap, every ~12 frames + 250ms engage grace) ---- */
     window.__cursorLoading = function (v) { window.__cursorLoadingFlag = !!v; wake(); };
@@ -505,6 +582,7 @@
         ring.style.width = tw + "px"; ring.style.height = th + "px"; ring.style.borderRadius = tr;
       }
       dot.style.transform = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
+      mini.style.transform = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";   /* ghost ring rides the dot 1:1 */
       var lt = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
       if (ldr.__lt !== lt) { ldr.__lt = lt; ldr.style.setProperty("--rpc-lt", lt); }
 

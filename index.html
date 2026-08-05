@@ -2288,14 +2288,30 @@ function __pageFade(swap){
   v.style.transition='opacity .18s ease';v.style.opacity='1';
   var did=false;
   function go(){ if(did)return;did=true; try{swap();}catch(e){}
-    /* schedule the reveal via setTimeout (not rAF) so a suspended-rAF background tab can never leave the veil covering */
-    setTimeout(function(){
+    /* REVEAL. Two hard-won rules live here:
+       1. Start the fade-out on the next PAINTED frame (double-rAF), not a fixed timeout — the
+          swapped view can block the main thread for hundreds of ms (image decode/layout), and a
+          transition requested during that jank doesn't visually start until it clears.
+       2. Never force-finish mid-animation. The old fixed 650ms safety was scheduled from the
+          REQUEST, so when jank delayed the start, it fired halfway through the fade = the
+          "half fade then hard cut". Now the safety checks the veil's COMPUTED opacity and only
+          finishes once it is actually (near) transparent, re-checking while it settles. */
+    var started=false;
+    function startFade(){
+      if(started)return;started=true;
+      try{__instTop();}catch(e){}                                  // re-assert top: nothing may have scrolled under the cover
       v.style.transition='opacity .34s ease';v.style.opacity='0';
       if(window.__resetThemeColor)window.__resetThemeColor(340);   // restore chrome as the veil fades out
       var fin=function(){v.classList.add('pv-gone');v.style.transition='';v.style.opacity='';};
-      v.addEventListener('transitionend',function oe(e){if(e.propertyName&&e.propertyName!=='opacity')return;v.removeEventListener('transitionend',oe);fin();});
-      setTimeout(fin,650);
-    },32);
+      var finT=null,tries=0;
+      v.addEventListener('transitionend',function oe(e){if(e.propertyName&&e.propertyName!=='opacity')return;v.removeEventListener('transitionend',oe);clearTimeout(finT);fin();});
+      finT=setTimeout(function chk(){
+        var o=1; try{o=parseFloat(getComputedStyle(v).opacity);}catch(e){}
+        if(o<=0.06||tries++>7){fin();} else {finT=setTimeout(chk,220);}
+      },700);
+    }
+    requestAnimationFrame(function(){requestAnimationFrame(startFade);});
+    setTimeout(startFade,320);   // suspended-rAF background tabs still reveal
   }
   var t=setTimeout(go,240);
   v.addEventListener('transitionend',function h(e){if(e.propertyName&&e.propertyName!=='opacity')return;v.removeEventListener('transitionend',h);clearTimeout(t);go();});
