@@ -2091,7 +2091,7 @@ function closeUniverse(sec){
   stopSideVid(sec.querySelector('.u-vid'));   // PAUSE the background reel (keep currentTime) - stops decoding once the film is closed
   syncFocusVideo();     // back on the carousel - the featured card picks up where it left off
 }
-addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){if(e.key==='Escape')closeLB();else if(e.key==='ArrowRight')lbShow(lbIdx+1);else if(e.key==='ArrowLeft')lbShow(lbIdx-1);return;}if(e.key==='Escape'&&currentOpen)history.back();});
+addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){/* preventDefault = arrows HANDLED here; the deferred custom-cursor kb nav sees defaultPrevented and stays out of the page behind the viewer */if(e.key==='Escape')closeLB();else if(e.key==='ArrowRight'){e.preventDefault();lbShow(lbIdx+1);}else if(e.key==='ArrowLeft'){e.preventDefault();lbShow(lbIdx-1);}return;}if(e.key==='Escape'&&currentOpen)history.back();});
 
 /* ===== CUSTOM PAGES =====================================================
    Data: /data/pages.json   (edited in Pages CMS → "Custom Pages")

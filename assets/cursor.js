@@ -436,6 +436,17 @@
         if (r.bottom < -60 || r.top > innerHeight + 60 || r.right < -60 || r.left > innerWidth + 60) continue;   /* roughly on screen */
         try { cs = getComputedStyle(el); } catch (_) { continue; }
         if (cs.visibility === "hidden" || cs.display === "none" || parseFloat(cs.opacity) === 0) continue;
+        /* OCCLUSION: an option sitting BEHIND an open popup/lightbox/menu must be neither
+           selectable nor haloed THROUGH the overlay — probe the stacking order at its centre.
+           Only what is actually on top (the element itself, its own children, or an ancestor
+           wrapper) keeps it eligible; anything else covering it removes it from play. */
+        try {
+          var px2 = r.left + r.width / 2, py2 = r.top + r.height / 2;
+          if (px2 >= 0 && py2 >= 0 && px2 <= innerWidth && py2 <= innerHeight) {
+            var ov = document.elementFromPoint(px2, py2);
+            if (ov && ov !== el && !el.contains(ov) && !ov.contains(el)) continue;
+          }
+        } catch (_) {}
         out.push({ el: el, r: r });
       }
       return out;
@@ -461,6 +472,35 @@
       show(); wake();
       return true;
     }
+    /* JOG-STRIP ONE-BY-ONE (JC wall / BTS type): horizontal arrows walk the strip ITEM BY ITEM.
+       If the next option in line sits (partly) outside the strip's visible box, the strip is
+       shifted by JUST enough to reveal it (custom event "rpc-kb-jog", handled by the site's
+       marquee) — the selection is always on screen and rides the slide (motion tracking).
+       The strip's own Prev/Next chrome never steals a horizontal step; it is reached with
+       the UP arrow, where Enter / left / right page a full view at a time. */
+    function kbJogStep(car, navId, dx, cx, cy) {
+      var nav = document.getElementById(navId);
+      var els = car.querySelectorAll(SEL), cand = null, bs = Infinity, i, e2, r2;
+      for (i = 0; i < els.length; i++) {
+        e2 = els[i];
+        if (e2 === hoverEl || dcHas(e2, "off") || (nav && nav.contains(e2))) continue;
+        try { r2 = e2.getBoundingClientRect(); } catch (_) { continue; }
+        if (r2.width < 4 || r2.height < 4) continue;
+        var fx = (r2.left + r2.width / 2 - cx) * dx;
+        if (fx < 8) continue;                       /* must lie in the pressed direction */
+        var sc = fx + Math.abs(r2.top + r2.height / 2 - cy) * 2.5;   /* stay in the same ROW (2-row mosaics) */
+        if (sc < bs) { bs = sc; cand = { el: e2, r: r2 }; }
+      }
+      if (!cand) return false;
+      /* reveal it before selecting: shift the strip only as far as needed (never a page) */
+      try {
+        var cb = car.getBoundingClientRect(), pad = 14, need = 0;
+        if (dx > 0 && cand.r.right > cb.right - pad) need = cand.r.right - (cb.right - pad);
+        else if (dx < 0 && cand.r.left < cb.left + pad) need = cand.r.left - (cb.left + pad);
+        if (need) car.dispatchEvent(new CustomEvent("rpc-kb-jog", { detail: { px: need } }));
+      } catch (_) {}
+      return kbEngage(cand.el);
+    }
     function kbMove(dx, dy) {
       if (!hoverEl) return false;
       var cr; try { cr = hoverEl.getBoundingClientRect(); } catch (_) { return false; }
@@ -469,6 +509,10 @@
          elements don't steal the step) — reaching the edge falls through to kbAdvance, which
          pushes the carousel so the next option shifts into place. Vertical moves exit freely. */
       var car = dx ? (hoverEl.closest && hoverEl.closest("[data-kb-carousel]")) : null;
+      if (car) {
+        var cmode = car.getAttribute("data-kb-carousel") || "click";
+        if (cmode !== "click") return kbJogStep(car, cmode, dx, cx, cy);   /* jog strips: strictly one item at a time */
+      }
       var best = null, bs = Infinity;
       kbCandidates().forEach(function (c) {
         if (car && !car.contains(c.el)) return;
@@ -550,6 +594,19 @@
       var dx = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
       var dy = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0;
       if (!dx && !dy) return;
+      /* ON a jog-strip's Prev/Next arrow: left/right (or Enter, natively) pages the strip a
+         FULL view in that direction — the deliberate "skip a whole page" gesture. */
+      if (dx && kbActive && hoverEl && hoverEl.dataset && hoverEl.dataset.dir) {
+        var pnav = hoverEl.parentElement;
+        if (pnav && pnav.id && document.querySelector('[data-kb-carousel="' + pnav.id + '"]')) {
+          var tbt = null;
+          pnav.querySelectorAll("button").forEach(function (bb) {
+            var dd = +(bb.dataset.dir || 0);
+            if ((dx > 0 && dd > 0) || (dx < 0 && dd < 0)) tbt = bb;
+          });
+          if (tbt) { try { tbt.click(); } catch (_) {} kbEngage(tbt); e.preventDefault(); return; }
+        }
+      }
       if (!hoverEl) {
         /* ACCESSIBILITY: no hover prerequisite — the FIRST arrow press engages the nav by
            selecting the candidate nearest the pointer's last known position (viewport centre
@@ -619,6 +676,20 @@
         try {
           var under = document.elementFromPoint(mx, my);
           if (under && (under.tagName === "IFRAME" || under.tagName === "OBJECT" || under.tagName === "EMBED")) { applyHover(null, false); hide(); }
+        } catch (_) {}
+      }
+      /* KB OCCLUSION WATCHDOG: a popup/lightbox can open OVER the keyboard selection (Enter on
+         a photo) — the hug and its glow must never keep shining THROUGH the overlay. If the
+         selection's centre is now covered by an unrelated element, release the hug; the next
+         arrow press re-engages among the overlay's own (visible) controls. */
+      if (frame % 12 === 6 && kbActive && hoverEl && trackN <= 0) {
+        try {
+          var hr2 = hoverEl.getBoundingClientRect();
+          var hx2 = hr2.left + hr2.width / 2, hy2 = hr2.top + hr2.height / 2;
+          if (hx2 >= 0 && hy2 >= 0 && hx2 <= innerWidth && hy2 <= innerHeight) {
+            var ov2 = document.elementFromPoint(hx2, hy2);
+            if (ov2 && ov2 !== hoverEl && !hoverEl.contains(ov2) && !ov2.contains(hoverEl)) applyHover(null, false);
+          }
         } catch (_) {}
       }
 
