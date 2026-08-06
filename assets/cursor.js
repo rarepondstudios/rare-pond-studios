@@ -80,6 +80,15 @@
 
   /* ---- config + colours, then boot --------------------------------------- */
   var COL = { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" };
+  /* capture the page's DEFAULT look-var values NOW (deferred script: DOM parsed, site JS's
+     async data work hasn't run yet) - the color-look adoption treats these as "no look". */
+  try {
+    var _bcs = getComputedStyle(document.body || document.documentElement);
+    window.__rpcLookBase = { g: (_bcs.getPropertyValue("--gg1") || "").trim(),
+                             g0: (_bcs.getPropertyValue("--g1") || "").trim(),
+                             c: (_bcs.getPropertyValue("--c1") || "").trim(),
+                             r: (_bcs.getPropertyValue("--cc") || "").trim() };
+  } catch (_) {}
   function j(u) { return fetch(u).then(function (r) { return r.json(); }).catch(function () { return null; }); }
   Promise.all([j("/data/site.json"), j("/data/colorlooks.json")]).then(function (res) {
     var site = res[0] || {}, cl = res[1] || {};
@@ -102,6 +111,13 @@
   /* ---- boot --------------------------------------------------------------- */
   function boot() {
     var css =
+      /* PROJECT COLOR LOOK: the ring's gradients read --rpc-a/b/c (registered so changes
+         TRANSITION smoothly). JS retargets them to the color look of the project/section the
+         pointer or keyboard selection is in (--gg1/--c1/--cc vars on or above the element),
+         and restores the site look on exit. */
+      "@property --rpc-a{syntax:'<color>';inherits:true;initial-value:" + COL.c1 + "}" +
+      "@property --rpc-b{syntax:'<color>';inherits:true;initial-value:" + COL.c2 + "}" +
+      "@property --rpc-c{syntax:'<color>';inherits:true;initial-value:" + COL.c3 + "}" +
       "html.rpc-on,html.rpc-on *{cursor:none!important}" +
       /* text fields keep the native I-beam so typing still feels right */
       "html.rpc-on textarea,html.rpc-on [contenteditable=''],html.rpc-on [contenteditable='true']," +
@@ -111,11 +127,11 @@
       "#rp-cursor{display:contents}" +
       ".rpc-ring{position:fixed;left:0;top:0;width:50px;height:50px;border-radius:50%;z-index:2147483644;pointer-events:none;opacity:0;will-change:transform;" +
       "-webkit-backdrop-filter:blur(1.3px) saturate(1.2);backdrop-filter:blur(1.3px) saturate(1.2);" +   /* liquid-glass: subtle distortion under the orb */
-      "box-shadow:0 0 14px -3px " + rgba(COL.c1, .55) + ",inset 0 0 9px -3px " + rgba(COL.c2, .40) + ";" +   /* the ring band GLOWS both outward and inward */
-      "transition:width .22s cubic-bezier(.3,.9,.3,1),height .22s cubic-bezier(.3,.9,.3,1),border-radius .22s cubic-bezier(.3,.9,.3,1),opacity .16s ease}" +
+      "box-shadow:0 0 14px -3px color-mix(in srgb,var(--rpc-a) 55%,transparent),inset 0 0 9px -3px color-mix(in srgb,var(--rpc-b) 40%,transparent);" +   /* the ring band GLOWS both outward and inward */
+      "transition:width .22s cubic-bezier(.3,.9,.3,1),height .22s cubic-bezier(.3,.9,.3,1),border-radius .22s cubic-bezier(.3,.9,.3,1),opacity .16s ease,--rpc-a .45s ease,--rpc-b .45s ease,--rpc-c .45s ease}" +
       /* tracking = the hugged ELEMENT itself is in motion (carousel rotation) — the ring is
          glued to it per-frame, so its own size transitions must not fight the element's */
-      ".rpc-ring.tracking{transition:opacity .16s ease}" +
+      ".rpc-ring.tracking{transition:opacity .16s ease,--rpc-a .45s ease,--rpc-b .45s ease,--rpc-c .45s ease}" +
       "#rp-cursor.on .rpc-ring{opacity:1}" +
       /* SPECIAL objects (category tabs / bubbles / wordmarks): the ring's colour FADES OUT as the
          object's own glow fades in — the glow visibly "transfers" to the object — leaving only the
@@ -126,14 +142,14 @@
       ".rpc-glow,.rpc-fill{position:absolute;inset:0;border-radius:inherit;transition:opacity .18s ease}" +
       /* FREE state: an OPEN RING — solid gradient band at the rim (loader silhouette, not animated),
          clear empty gap between the band and the centre dot. Band = feathered radial mask. */
-      ".rpc-glow{background:conic-gradient(from 210deg," + rgba(COL.c1, .95) + "," + rgba(COL.c2, .95) + "," + rgba(COL.c3, .95) + "," + rgba(COL.c1, .95) + ");" +
+      ".rpc-glow{background:conic-gradient(from 210deg,color-mix(in srgb,var(--rpc-a) 95%,transparent),color-mix(in srgb,var(--rpc-b) 95%,transparent),color-mix(in srgb,var(--rpc-c) 95%,transparent),color-mix(in srgb,var(--rpc-a) 95%,transparent));" +
       "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px));" +
       "mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px))}" +
-      ".rpc-fill{opacity:0;background:" + rgba(COL.c1, .10) + ";box-shadow:0 0 18px -4px " + rgba(COL.c2, .55) + "}" +
+      ".rpc-fill{opacity:0;background:color-mix(in srgb,var(--rpc-a) 10%,transparent);box-shadow:0 0 18px -4px color-mix(in srgb,var(--rpc-b) 55%,transparent)}" +
       /* hug BORDER: a 3px band that inherits the page's colour-look gradient. The xor-mask
          (content-box vs full box) leaves only the border band visible at any border-radius. */
       ".rpc-bord{position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .18s ease;padding:3px;" +
-      "background:conic-gradient(from 140deg," + COL.c1 + "," + COL.c2 + "," + COL.c3 + "," + COL.c1 + ");" +
+      "background:conic-gradient(from 140deg,var(--rpc-a),var(--rpc-b),var(--rpc-c),var(--rpc-a));" +
       "-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;" +
       "mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}" +
       ".rpc-ring.hover .rpc-glow{opacity:0}.rpc-ring.hover .rpc-fill{opacity:1}.rpc-ring.hover .rpc-bord{opacity:1}" +
@@ -156,7 +172,17 @@
       "mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
       "animation:rpc-spin .8s linear infinite;transition:opacity .18s ease}" +
       "#rp-cursor.loading .rpc-loader{opacity:1}#rp-cursor.loading .rpc-ring{opacity:0}" +
-      "@keyframes rpc-spin{from{transform:var(--rpc-lt,translate(-50%,-50%)) rotate(0deg)}to{transform:var(--rpc-lt,translate(-50%,-50%)) rotate(360deg)}}";
+      "@keyframes rpc-spin{from{transform:var(--rpc-lt,translate(-50%,-50%)) rotate(0deg)}to{transform:var(--rpc-lt,translate(-50%,-50%)) rotate(360deg)}}" +
+      /* ---- footer accessibility line + dynamic-cursor toggle (markup lives in each site's
+         footer; the styling + wiring is shared here so every current and future site gets the
+         identical widget: <button data-rpc-toggle role="switch"> toggles the whole cursor). */
+      ".rpc-a11y{display:flex;gap:6px 22px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:12.5px;font-weight:600;letter-spacing:.02em;opacity:.72;margin-top:14px;text-align:center}" +
+      ".rpc-a11y .rpc-a11y-cur{display:inline-flex;align-items:center;gap:8px}" +
+      ".rpc-toggle{position:relative;width:38px;height:20px;border-radius:20px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);padding:0;cursor:pointer;transition:background .25s ease,border-color .25s ease;vertical-align:middle}" +
+      ".rpc-toggle[aria-checked='true']{background:rgba(110,170,255,.55);border-color:rgba(150,200,255,.75)}" +
+      ".rpc-toggle .rpc-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4);transition:left .25s cubic-bezier(.4,0,.2,1)}" +
+      ".rpc-toggle[aria-checked='true'] .rpc-knob{left:20px}" +
+      "html.rpc-off #rp-cursor{display:none!important}";
     var st = document.createElement("style");
     st.id = "rp-cursor-css";
     st.textContent = css;
@@ -167,7 +193,11 @@
     root.setAttribute("aria-hidden", "true");
     root.innerHTML = '<div class="rpc-ring"><div class="rpc-glow"></div><div class="rpc-fill"></div><div class="rpc-bord"></div></div><div class="rpc-loader"></div><div class="rpc-mini"></div><div class="rpc-dot"></div>';
     document.body.appendChild(root);
-    document.documentElement.classList.add("rpc-on");
+    /* the dynamic cursor is ON by default; the footer toggle persists an opt-out */
+    var cursorOff = false;
+    try { cursorOff = localStorage.getItem("rpCursorOff") === "1"; } catch (_) {}
+    document.documentElement.classList.toggle("rpc-on", !cursorOff);
+    document.documentElement.classList.toggle("rpc-off", cursorOff);
 
     var ring = root.querySelector(".rpc-ring"),
         dot = root.querySelector(".rpc-dot"),
@@ -181,6 +211,56 @@
     var kS = 0, kV = 0, angS = 0;      // springy stretch (value + velocity) + angle
     var hoverEl = null, hoverRad = 14, hoverPct = false, hoverRadY = 0, hoverSpecial = false, hoverPad = 0, textish = false;
     var hoverBoxEl = null;             // the VISIBLE SURFACE the outline draws around (can float independently of the anchor)
+    /* ---- PROJECT COLOR LOOK ADOPTION ----
+       The ring's gradients read --rpc-a/b/c (see the stylesheet). When the pointer or the
+       keyboard selection is over/inside an element that carries a color look (--gg1/2/3 on
+       RP+JC projects, --c1/2/3 on contact/social bubbles, --cc/--ccg on rentals sections and
+       cards - all INHERITED vars, so anywhere inside a project section resolves the look),
+       the ring adopts those colors; leaving the section restores the site look. Values equal
+       to the document root's baseline (the @property initial or a page default) do NOT count
+       as a look - only subtree overrides do. */
+    var lookBase = null, lookKey = "@";
+    function lookBaseInit() {
+      if (lookBase) return;
+      /* baseline = the PAGE-WIDE defaults (body-inherited), captured synchronously at script
+         evaluation (window.__rpcLookBase, set below at module load) - BEFORE any site JS can
+         retarget them. A value equal to the baseline is a page default, not a project look;
+         a later body-level override (rentals setting the active section's --cc) differs from
+         the captured baseline and correctly counts as a look. */
+      lookBase = window.__rpcLookBase || null;
+      if (!lookBase) {
+        try {
+          var cs = getComputedStyle(document.body || document.documentElement);
+          lookBase = { g: (cs.getPropertyValue("--gg1") || "").trim(),
+                       g0: (cs.getPropertyValue("--g1") || "").trim(),
+                       c: (cs.getPropertyValue("--c1") || "").trim(),
+                       r: (cs.getPropertyValue("--cc") || "").trim() };
+        } catch (_) {}
+      }
+    }
+    function lookRead(el) {
+      if (!el || el.nodeType !== 1) return null;
+      lookBaseInit(); if (!lookBase) return null;
+      try {
+        var cs = getComputedStyle(el);
+        var v = (cs.getPropertyValue("--gg1") || "").trim();
+        if (v && v !== lookBase.g) return [v, (cs.getPropertyValue("--gg2") || "").trim() || v, (cs.getPropertyValue("--gg3") || "").trim() || v];
+        v = (cs.getPropertyValue("--g1") || "").trim();   /* JC scopes + raw RP look vars */
+        if (v && v !== lookBase.g0) return [v, (cs.getPropertyValue("--g2") || "").trim() || v, (cs.getPropertyValue("--g3") || "").trim() || v];
+        v = (cs.getPropertyValue("--c1") || "").trim();
+        if (v && v !== lookBase.c) return [v, (cs.getPropertyValue("--c2") || "").trim() || v, (cs.getPropertyValue("--c3") || "").trim() || v];
+        v = (cs.getPropertyValue("--cc") || "").trim();
+        if (v && v !== lookBase.r) { var g2 = (cs.getPropertyValue("--ccg") || "").trim(); return [v, g2 || v, v]; }
+      } catch (_) {}
+      return null;
+    }
+    function lookApply(cols) {
+      var key = cols ? cols.join("|") : "";
+      if (key === lookKey) return;
+      lookKey = key;
+      if (cols) { ring.style.setProperty("--rpc-a", cols[0]); ring.style.setProperty("--rpc-b", cols[1]); ring.style.setProperty("--rpc-c", cols[2]); }
+      else { ring.style.removeProperty("--rpc-a"); ring.style.removeProperty("--rpc-b"); ring.style.removeProperty("--rpc-c"); }
+    }
     var tiltEl = null, tiltOrig = "", tiltBase = "", tiltScale = 1;  // tilted element, its original inline transform, its computed base matrix, extra scale
     var tiltP = 0, tiltNx = 0, tiltNy = 0;  // ease-in progress + last tilt direction (for the ease-out)
     var relEls = [];                   // elements easing BACK to rest after hover-off (fluid shrink)
@@ -201,7 +281,7 @@
     var kbActive = false;              // keyboard spatial-nav owns the selection until the mouse moves
     var kbSelEl = null;                // element carrying .rpc-kbsel (site CSS mirrors its hover glow; UA outline suppressed)
 
-    function show() { if (!shown) { shown = true; root.classList.add("on"); } }
+    function show() { if (cursorOff) return; if (!shown) { shown = true; root.classList.add("on"); } }
     function hide() { if (shown) { shown = false; root.classList.remove("on"); } }
 
     /* ---- pointer tracking ---- */
@@ -238,6 +318,7 @@
       return false;
     }
     document.addEventListener("pointerover", function (e) {
+      if (cursorOff) return;              /* toggle off = fully native mouse behaviour */
       if (e.isTrusted === false) return;  /* our own kb-parity synthetic hover events must never loop back */
       if (kbActive) return;            /* scrolling under a stationary mouse fires pointerover — don't let it steal a keyboard selection */
       var t = e.target;
@@ -390,6 +471,7 @@
         var sres = scanShape(el);
         var best = sres.best, rr = sres.rr;
         hoverBoxEl = findBox(el);
+        lookApply(lookRead(el));   /* the hug adopts the project's color look immediately */
         /* SPECIAL objects never get the ring outline — the object reacts instead.
            Auto: any large circular target (project bubbles / carousel side circles / JC hbubs;
            % radius ≥45 and ≥64px). Explicit: data-cursor="glow" (wordmarks) or "special".
@@ -400,16 +482,17 @@
            CONFORMS (bubbles → encompassing circle via the %-radius scan; irregular logos → a
            consistent rounded rectangle with breathing room) instead of the browser's square
            outline, and the object's own selection glow is mirrored via .rpc-kbsel site CSS. */
-        if (kb && hoverSpecial) {
-          if (dcHas(el, "kbnative")) {
-            /* kbnative: the OBJECT renders its own keyboard indicator (a site layer shown by
-               .rpc-kbsel, e.g. the RP project bubbles' .kbring sitting BENEATH their logo) —
-               the engine's fixed-layer ring would paint OVER page chrome like logos, so it
-               stays faded exactly like a mouse-hovered special. */
-          } else {
-            hoverSpecial = false;
-            if (!best.pct) { hoverRad = 16; hoverPad = 6; hoverRadY = 0; }
-          }
+        if (kb && dcHas(el, "kbnative")) {
+          /* kbnative: the OBJECT renders its own keyboard indicator (a site layer shown by
+             .rpc-kbsel - the RP project bubbles' .kbring and the home carousel's .ckbring,
+             both sitting BENEATH their logo layer). The engine's ring is a fixed overlay that
+             would paint OVER page chrome like logos, so for these it stays faded. Works on
+             specials AND ordinary elements alike: LOGOS ALWAYS RENDER ON TOP of selection
+             indicators; popups/transitions still cover them (they are page content above). */
+          hoverSpecial = true;
+        } else if (kb && hoverSpecial) {
+          hoverSpecial = false;
+          if (!best.pct) { hoverRad = 16; hoverPad = 6; hoverRadY = 0; }
         }
         /* Engaged states — in BOTH the glow reads as "transferred" to the object, and the faint
            ghost ring (.rpc-mini) marks the pointer:
@@ -543,9 +626,16 @@
         el = els[i];
         if (el === hoverEl || kbSkip(el)) continue;
         if (mod && !mod.contains(el)) continue;
+        /* contents of a CLOSED popup are NEVER reachable: the rentals cart drawer slides
+           off-screen right (transform) while its buttons keep real rects - kb engaged them,
+           flew the selection off-screen bottom-right and dead-ended there. Anything inside a
+           [data-kb-modal] container only joins in while THAT container is the open modal. */
+        var pmod = el.closest ? el.closest("[data-kb-modal]") : null;
+        if (pmod && pmod !== mod) continue;
         try { r = el.getBoundingClientRect(); } catch (_) { continue; }
         if (r.width < 4 || r.height < 4) continue;
         if (r.bottom < -60 || r.top > innerHeight + 60 || r.right < -60 || r.left > innerWidth + 60) continue;   /* roughly on screen */
+        if (r.right < 8 || r.left > innerWidth - 8) continue;   /* horizontally off-screen is unreachable: the page never pans sideways by design */
         try { cs = getComputedStyle(el); } catch (_) { continue; }
         if (cs.visibility === "hidden" || cs.display === "none" || parseFloat(cs.opacity) === 0) continue;
         /* OCCLUSION: an option sitting BEHIND an open popup/lightbox/menu must be neither
@@ -733,7 +823,34 @@
       setTimeout(function () { reseek(); }, 400);
       return true;
     }
+    /* ---- dynamic-cursor accessibility toggle (footer switch, shared across sites) ----
+       Any <button data-rpc-toggle role="switch"> toggles the whole dynamic cursor. A real
+       <button> so Enter/Space activate natively - it stays operable with the engine OFF.
+       Preference persists in localStorage("rpCursorOff"); native cursor + native focus
+       outlines return while disabled. */
+    function syncToggles() {
+      try {
+        document.querySelectorAll("[data-rpc-toggle]").forEach(function (t) {
+          t.setAttribute("aria-checked", cursorOff ? "false" : "true");
+        });
+      } catch (_) {}
+    }
+    window.rpCursorEnable = function (on) {
+      cursorOff = !on;
+      try { on ? localStorage.removeItem("rpCursorOff") : localStorage.setItem("rpCursorOff", "1"); } catch (_) {}
+      document.documentElement.classList.toggle("rpc-on", on);
+      document.documentElement.classList.toggle("rpc-off", !on);
+      if (!on) { applyHover(null, false); hide(); } else { show(); wake(); }
+      syncToggles();
+    };
+    document.addEventListener("click", function (e) {
+      var t = e.target && e.target.closest && e.target.closest("[data-rpc-toggle]");
+      if (t) window.rpCursorEnable(cursorOff);
+    });
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncToggles); else syncToggles();
+
     addEventListener("keydown", function (e) {
+      if (cursorOff) return;   /* disabled = fully native keyboard behaviour */
       if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
       if (e.defaultPrevented) {
         /* The page's own handler consumed this key (a lightbox paging photos on ←/→).
@@ -840,7 +957,7 @@
       try { tickBody(now); } catch (e) { if (!window.__rpcErr) window.__rpcErr = (e && e.message) || String(e); applyHover(null, false); }
       finally {
         window.__rpcTick = frame;
-        keep = !(idleFrames > 90 || document.hidden);
+        keep = !cursorOff && !(idleFrames > 90 || document.hidden);
         running = keep;
         if (keep) requestAnimationFrame(tick);
       }
@@ -848,6 +965,11 @@
     function tickBody(now) {
       frame++;
       if (frame % 12 === 0) pollLoading(now);
+      if (frame % 12 === 3 && !hoverEl) {
+        var lsrc = null;
+        if (mx >= 0) { try { lsrc = document.elementFromPoint(mx, my); } catch (_) {} }
+        lookApply(lookRead(lsrc));
+      }
       /* iframe WATCHDOG: if the pointer has stopped reporting and it last sat over an embed
          (contact/rental forms), fade out so the ring can never park at the form's edge. */
       if (frame % 18 === 0 && shown && !loading) {
@@ -1063,7 +1185,7 @@
       if (!floating && moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length && travT <= 0 && trackN <= 0) idleFrames++; else idleFrames = 0;
     }
     function wake() {
-      if (running) return;
+      if (running || cursorOff) return;
       /* the loop may have slept for seconds — a stale previous-pointer would read as one
          giant instantaneous delta and detonate the stretch ("pops"). Resync first. */
       pmx = mx; pmy = my;

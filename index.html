@@ -315,6 +315,19 @@ html.xw-active{overflow:hidden}
   /* the "more to come" bubble already has its own rainbow hover treatment - leave it be */
   .bubble.placeholder::before{display:none}
   .cbub{position:absolute;inset:0;z-index:1;overflow:hidden;border-radius:50%;transition:border-radius .6s;animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;contain:layout paint}
+  /* keyboard selection ring (data-cursor="kbnative"): drawn by the CITEM so the film logo
+     (z 11) stays ON TOP of it. Same box+radius morph and same bob (duration+delay) as .cbub,
+     colored by THIS project's look - a 3px conic band via the xor mask, sitting just outside
+     the visible edge. Popups/lightboxes still cover it (they are page content above z 11). */
+  .ckbring{position:absolute;inset:-3px;z-index:2;border-radius:50%;pointer-events:none;opacity:0;
+    background:conic-gradient(from 140deg,var(--gg1),var(--gg2),var(--gg3),var(--gg1));
+    padding:3px;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+    mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;
+    filter:drop-shadow(0 0 9px var(--gg2));
+    transition:opacity .25s ease,border-radius .6s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;
+    animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate}
+  .citem.feat .ckbring{border-radius:13%/20%}
+  .citem.rpc-kbsel .ckbring{opacity:1}
 
   /* ===== THE BUBBLE'S CAST SHADOW - CURRENTLY OFF =================================
      Switched off at Jack's call: with the ambient glow doing the depth work, the cast
@@ -551,13 +564,16 @@ html.xw-active{overflow:hidden}
   .bubble.rpc-kbsel .caption .t{opacity:1;transform:translateY(0)}
   /* keyboard selection ring, rendered by the BUBBLE itself (data-cursor="kbnative") so it sits
      BENEATH the floating logo (z 5 < .bubble-logo z 7) — the logo stays in the foreground */
-  .bubble .kbring{position:absolute;inset:-11px;border-radius:50%;border:2.5px solid rgba(255,255,255,.92);
-    /* SAME bob as .bubble-inner/.glow (same duration + delay = same phase): the ring is part of
-       the bubble's visual, so it must FLOAT with it — a static ring next to a bobbing bubble
-       reads as disconnected. */
+  .bubble .kbring{position:absolute;inset:-3px;border-radius:50%;pointer-events:none;opacity:0;z-index:5;
+    /* the ring hugs the bubble's EDGE (inset -3px = the band sits just outside it) in THIS
+       project's color look - a conic band via the xor mask, not a white halo. Same bob as
+       .bubble-inner (same duration + delay = same phase) so it floats with the bubble. */
+    background:conic-gradient(from 140deg,var(--gg1,#9ec7ff),var(--gg2,#9ec7ff),var(--gg3,#9ec7ff),var(--gg1,#9ec7ff));
+    padding:3px;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+    mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;
+    filter:drop-shadow(0 0 9px var(--gg2,#9ec7ff));
     animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate;
-    box-shadow:0 0 18px -2px var(--gg2,#9ec7ff),inset 0 0 12px -6px var(--gg2,#9ec7ff);
-    opacity:0;z-index:5;pointer-events:none;transition:opacity .25s ease}
+    transition:opacity .25s ease}
   .bubble.rpc-kbsel .kbring{opacity:1}
   .citem.rpc-kbsel::before,.bubble.rpc-kbsel::before{opacity:.42;visibility:visible}
   .bubble:hover .glow,.bubble.rpc-kbsel .glow{opacity:1;filter:blur(12px)}
@@ -1140,6 +1156,7 @@ html.xw-active{overflow:hidden}
     <div class="fsoc" data-socials></div>
     <div class="flinks"><a href="/team" data-go="team" data-cursor-pad="6">Our Team</a><a href="/projects" data-go="projects" data-cursor-pad="6">Projects</a><a href="/rentals" data-cursor-pad="6">Rentals</a><a href="/#contact" data-contact data-cursor-pad="6">Contact</a></div>
     <div class="copy"><a href="https://rarepond.com" target="_blank" rel="noopener">rarepond.com</a> · © Rare Pond Studios 2026</div>
+    <div class="rpc-a11y"><span>This site is keyboard accessible, try it out!</span><span class="rpc-a11y-cur">Use cool dynamic mouse: <button type="button" class="rpc-toggle" data-rpc-toggle role="switch" aria-checked="true" aria-label="Toggle dynamic cursor"><span class="rpc-knob"></span></button></span></div>
   </template>
 
   <div id="universes"></div>
@@ -1625,6 +1642,7 @@ function focusHTML(p){
 const citems=CAROUSEL.map((p,i)=>{
   const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',accentFor(p.key));
   if(!p.placeholder){el.setAttribute('role','button');el.setAttribute('tabindex','0');}   /* keyboard spatial-nav can select carousel items */
+  el.setAttribute('data-cursor','kbnative');   /* kb indicator is the site's .ckbring (under the logo) - the engine ring would paint OVER the film logo */
   const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" decoding="async" src="${p.img}" alt="${p.title}">`;
   /* only films with a reel AND a real still (not the placeholder poster) get a hover video */
   const sideVid=(!p.poster&&p.focusVideo)?`<video class="side-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
@@ -1632,7 +1650,7 @@ const citems=CAROUSEL.map((p,i)=>{
      cast-shadow oval, .cglow = halo): the custom cursor's hug-outline scans border-radius from
      near-full-size children, and these ovals must never drive the outline shape - only the
      visible .cbub surface should (see assets/cursor.js scanShape). */
-  el.innerHTML=`<div class="cdrop" data-cursor="noscan"></div><div class="cglow" data-cursor="noscan"></div><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
+  el.innerHTML=`<div class="cdrop" data-cursor="noscan"></div><div class="cglow" data-cursor="noscan"></div><div class="ckbring" data-cursor="noscan"></div><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
   el.addEventListener('mouseenter',()=>{
     if(el.classList.contains('feat'))return;   /* featured card uses its own .focus-vid reel */
     startPreview(el.querySelector('.side-vid'));   /* shared hardened path */

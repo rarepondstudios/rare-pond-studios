@@ -81,7 +81,11 @@ function renderTabs(){
  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{active=t.dataset.c;q='';render();});
  const col=tabColor();
  $('tabline').style.background='linear-gradient(90deg,'+hx(col,0)+' 0%,'+hx(col,.9)+' 14%,'+hx(col,.9)+' 86%,'+hx(col,0)+' 100%)';$('tabline').style.setProperty('--gc',active==='Home'?'transparent':hx(col,.5));
- $('tabline').style.boxShadow='0 4px 14px 0 '+hx(col,.45);}
+ $('tabline').style.boxShadow='0 4px 14px 0 '+hx(col,.45);
+ /* SECTION COLOR LOOK: the custom cursor adopts --cc/--ccg from the pointer's context - setting
+    the active category's colour on <body> tints the cursor to the SECTION the user is in
+    (cards override it with their own --cc on hover). */
+ document.body.style.setProperty('--cc',col);document.body.style.setProperty('--ccg',hx(col,0.5));}
 function render(){renderTabs();active==='Home'?renderHome():renderCat();}
 /* Same-page wordmark/footer click (see the SAME-PAGE NAV snippet in index.html): the rentals
    "home" is the Select a Date view, so a home click also resets to that tab, not just scroll-top. */
