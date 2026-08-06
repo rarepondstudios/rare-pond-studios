@@ -21,6 +21,21 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-6 OUTLINE = VISIBLE EDGE — cursor v11
+
+- The RP home outline mismatch (OBS 19-04-10): the hug's radius scan could be driven by the
+  DECORATIVE oval layers behind the card (.cdrop cast-shadow, .cglow halo) and was computed
+  only once at engage — a side circle's 50% stuck while the card grew into a rounded rect
+  (.cbub morphs 50% → 13%/20% over .6s). Fixes: `data-cursor="noscan"` on .cdrop/.cglow in
+  the citem template (the layers are intentional visuals and stay); cursor.js `scanShape()`
+  (noscan-aware, captures elliptical two-axis %-radii "13% / 20%"), re-run every 2 frames
+  while the hugged element is in motion and once on settle; and applyHover re-enters when
+  KEYBOARD takes over a mouse-hovered special (previously early-returned, leaving the ring
+  detached/faded through the ride). Harness: ring radius follows the live morph and the
+  settled ring matches .cbub's computed radius exactly (0px size/centre error).
+- NOTE: the "still persists" kb recordings (19:02–19:04) predate the v10 edge deploy
+  (~19:05) — v10 behaviour re-verified locally; ask for a hard-refresh retest.
+
 ### 0.0.-5 POPUP FOCUS TRAP + JOG-STRIP STEPPING — cursor v10
 
 From three OBS recordings (kb selecting through/behind popups; JC strips misbehaving on kb):
