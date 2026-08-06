@@ -477,7 +477,7 @@ html.xw-active{overflow:hidden}
   .bubble.placeholder{cursor:default}
   .glow{position:absolute;inset:-16px;border-radius:50%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);filter:blur(9px);opacity:.32;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
   .bubble.placeholder .glow{opacity:.2}
-  .bubble.placeholder:hover .glow{background:var(--rainbow);opacity:.85}
+  .bubble.placeholder:hover .glow,.bubble.placeholder.rp-tap .glow{background:var(--rainbow);opacity:.85}
   .bubble-inner{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;-webkit-clip-path:circle(50%);clip-path:circle(50%);/* NO box-shadow here: clip-path clips it away. The shadow is cast by .bubble::after. */animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
   .bubble.placeholder .bubble-inner{opacity:.7}
   .bubble__media{position:absolute;inset:-3%;width:106%;height:106%;object-fit:cover;display:block}
@@ -500,7 +500,7 @@ html.xw-active{overflow:hidden}
   .edge{position:absolute;inset:0;border-radius:50%;z-index:4;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));
     -webkit-mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);opacity:.45;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
   .bubble.placeholder .edge{opacity:.5}
-  .bubble.placeholder:hover .edge{background:var(--rainbow);opacity:1}
+  .bubble.placeholder:hover .edge,.bubble.placeholder.rp-tap .edge{background:var(--rainbow);opacity:1}
   .bubble>.bubble-logo{position:absolute;left:50%;top:-17%;transform:translateX(-50%);z-index:7;pointer-events:none;display:grid;place-items:center;transition:opacity .4s,transform .5s}
   .bubble>.bubble-logo img{height:calc(var(--bubble-size)*0.54);width:auto;max-width:calc(var(--bubble-size)*1.15);object-fit:contain;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45))}
   .bubble>.bubble-logo .txt{font-weight:800;font-size:clamp(18px,2.2vw,25px);color:#fff;text-align:center;line-height:1.05;text-shadow:0 4px 16px rgba(0,10,40,.6)}
@@ -882,6 +882,12 @@ html.xw-active{overflow:hidden}
     .bubble:hover>.bubble-logo{opacity:1 !important;transform:translateX(-50%) !important}
     .bubble:hover .caption .t{opacity:0 !important}
     .bubble.placeholder:hover .ph-logo{opacity:0 !important}
+    /* TAP reaction (Jack, mobile pass): a tap on the placeholder flashes its rainbow
+       treatment + the RP mark via .rp-tap (JS, 1.4s). These OUTRANK the hover
+       neutralizers above - .rp-tap is deliberate, not sticky-hover residue. */
+    .bubble.placeholder.rp-tap .glow{background:var(--rainbow) !important;opacity:.85 !important;animation-play-state:running !important}
+    .bubble.placeholder.rp-tap .edge{background:var(--rainbow) !important;opacity:1 !important}
+    .bubble.placeholder.rp-tap .ph-logo{opacity:.95 !important}
     .bubble.placeholder:hover .ph-spin{opacity:0 !important}
     .citem:hover .cglow{opacity:.2 !important;animation-play-state:paused !important}
     .citem.feat:hover .cglow{opacity:.32 !important}
@@ -941,7 +947,11 @@ html.xw-active{overflow:hidden}
   .orbi::before{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:2;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5),inset 0 0 10px rgba(255,255,255,.28)}
   @keyframes orbbob{from{transform:translateY(-4px)}to{transform:translateY(5px)}}
   @media(prefers-reduced-motion:reduce){.orbi{animation:none}}
-  @media(max-width:760px){.orbits{transform:scale(.58)}}
+  /* mobile: was scale(.58) - the whole orbit collapsed INSIDE the white logo plate, so the
+     bubbles never emerged on scroll (Jack's phone screenshots). .70 clears the plate while
+     staying inside a 390px viewport. NOTE: this section is slated for a full redo - the real
+     fix is sizing the orbit ring relative to the plate, not a fixed px position table. */
+  @media(max-width:760px){.orbits{transform:scale(.70)}}
   /* ===== carousel swipe =====
      NOTHING visual is switched off during a swipe any more - no glow flashing out, no
      shadow popping. Every effect that used to be hidden was measured on a 120Hz Mac:
@@ -1480,7 +1490,16 @@ function makeGridBubble(p,i){
      ever paints over the logo. */
   bubble.setAttribute('data-cursor','kbnative');
   if(!p.placeholder){bubble.setAttribute('role','button');bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','Open '+p.title);}
-  else{bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','More to come');}
+  else{
+    /* mobile: taps don't fire :hover on an element with no click behaviour, so the
+       placeholder never reacted. A tap now flashes the same rainbow treatment via .rp-tap. */
+    bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','More to come');
+    bubble.addEventListener('pointerdown',function(){
+      bubble.classList.add('rp-tap');
+      clearTimeout(bubble.__tapT);
+      bubble.__tapT=setTimeout(function(){bubble.classList.remove('rp-tap');},1400);
+    });
+  }
   const mediaHTML=p.placeholder?`<div class="bubble__media placeholder-fill"></div><div class="ph-logo" style="-webkit-mask:url('${SITE.logos.duckMark}') center/contain no-repeat;mask:url('${SITE.logos.duckMark}') center/contain no-repeat"></div><div class="ph-spin"></div>`
     :(p.poster?'<div class="bubble__media poster"></div>':`<img class="bubble__media" decoding="async" src="${p.img}" alt="${p.title}">`);
   /* ===== PROJECTS-PAGE HOVER-PREVIEW REEL =========================================

@@ -59,7 +59,43 @@
     FINE = window.matchMedia && matchMedia("(pointer:fine)").matches;
     RM = window.matchMedia && matchMedia("(prefers-reduced-motion:reduce)").matches;
   } catch (e) {}
-  if (!FINE || RM) return;
+  if (!FINE || RM) {
+    /* TOUCH / REDUCED-MOTION: the engine stays off, but the footer accessibility widget
+       markup exists in every footer and must not render as a raw unstyled div (it did on
+       phones - Jack's screenshots). Inject just enough: hidden entirely below 700px
+       (phones have no cursor/keyboard to advertise); on iPads and up (which can attach
+       keyboards/trackpads) the line renders styled, and the switch still persists the
+       preference for when a fine pointer is present. */
+    try {
+      var mst = document.createElement("style");
+      mst.id = "rp-cursor-a11y-css";
+      mst.textContent =
+        "@media (max-width:700px){.rpc-a11y{display:none!important}}" +
+        ".rpc-a11y{display:flex;gap:6px 22px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:12.5px;font-weight:600;letter-spacing:.02em;opacity:.72;margin-top:14px;text-align:center}" +
+        ".rpc-a11y .rpc-a11y-cur{display:inline-flex;align-items:center;gap:8px}" +
+        ".rpc-toggle{position:relative;width:38px;height:20px;border-radius:20px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);padding:0;cursor:pointer;transition:background .25s ease,border-color .25s ease;vertical-align:middle}" +
+        ".rpc-toggle[aria-checked='true']{background:rgba(110,170,255,.55);border-color:rgba(150,200,255,.75)}" +
+        ".rpc-toggle .rpc-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4);transition:left .25s cubic-bezier(.4,0,.2,1)}" +
+        ".rpc-toggle[aria-checked='true'] .rpc-knob{left:20px}";
+      (document.head || document.documentElement).appendChild(mst);
+      var syncT = function () {
+        var off = false;
+        try { off = localStorage.getItem("rpCursorOff") === "1"; } catch (_) {}
+        try { document.querySelectorAll("[data-rpc-toggle]").forEach(function (t) { t.setAttribute("aria-checked", off ? "false" : "true"); }); } catch (_) {}
+      };
+      document.addEventListener("click", function (e) {
+        var t = e.target && e.target.closest && e.target.closest("[data-rpc-toggle]");
+        if (!t) return;
+        try {
+          var off = localStorage.getItem("rpCursorOff") === "1";
+          off ? localStorage.removeItem("rpCursorOff") : localStorage.setItem("rpCursorOff", "1");
+        } catch (_) {}
+        syncT();
+      });
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncT); else syncT();
+    } catch (_) {}
+    return;
+  }
 
   /* ---- which sub-site is this? (rarepond serves three surfaces from one repo) */
   function surface() {
@@ -182,7 +218,10 @@
       ".rpc-toggle[aria-checked='true']{background:rgba(110,170,255,.55);border-color:rgba(150,200,255,.75)}" +
       ".rpc-toggle .rpc-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4);transition:left .25s cubic-bezier(.4,0,.2,1)}" +
       ".rpc-toggle[aria-checked='true'] .rpc-knob{left:20px}" +
-      "html.rpc-off #rp-cursor{display:none!important}";
+      "html.rpc-off #rp-cursor{display:none!important}" +
+      /* phones: no hardware cursor/keyboard to advertise, and the line wrapped awkwardly -
+         hidden below 700px. iPads (>=744px logical) keep it: they support pointers + keyboards. */
+      "@media (max-width:700px){.rpc-a11y{display:none}}";
     var st = document.createElement("style");
     st.id = "rp-cursor-css";
     st.textContent = css;

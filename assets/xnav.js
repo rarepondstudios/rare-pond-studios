@@ -54,7 +54,15 @@
     function measure(){
       cluster.classList.remove('xnav-collapsed');                  // un-collapse to measure the natural width need
       var header=cluster.closest('header')||cluster;
-      var over=header.scrollWidth>header.clientWidth+1;
+      /* STANDARD collapse rule (all sub-sites): burger when (a) the header genuinely
+         overflows, (b) the page-nav (.hnav/.mnav) has been hidden by a breakpoint - its
+         links must reappear inside the burger, never vanish (the media page lost Team/
+         Projects/Contact between 720-1040px), or (c) plain phone width. */
+      var pnav2=header.querySelector('.hnav,.mnav');
+      var pnavHidden=false;
+      try{ pnavHidden=!!(pnav2&&getComputedStyle(pnav2).display==='none'); }catch(e){}
+      var vw=document.documentElement.clientWidth||innerWidth;
+      var over=header.scrollWidth>header.clientWidth+1||pnavHidden||vw<=720;
       cluster.classList.toggle('xnav-collapsed',over);
     }
     measure();
