@@ -21,6 +21,33 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-10 EDGE-TRUE OUTLINE + ARROW BOUNCE + FLOATING FOLLOW — cursor v15
+
+Three visual fixes from Jack's retest:
+
+- **Outline ON the edge, not inside it.** The 3px .rpc-bord gradient band is drawn INSIDE
+  the ring box, so an exact-size box put the visible line slightly WITHIN the button. The
+  hug box now grows by one band-width per side (+6px total, radius +3): the band's inner
+  edge sits exactly on the element's rim.
+- **Lightbox arrows: the selection BOUNCES with paging.** The lightbox's ‹ › buttons carry
+  `data-kb-dir="-1"/"1"` (both sites — the annotation rule for any paging modal). When the
+  page's own handler consumes ←/→ (defaultPrevented), the engine no longer ignores the
+  press: inside an open modal it lands the halo on the matching data-kb-dir control, so
+  toggling photos visibly bounces the selection between the two arrows. Plus a modal cone
+  fallback in kbMove: with only corner controls (‹ › X), a directional press that the ~65°
+  cone rejects retries nearest-in-direction — ↑ now always reaches the close X from either
+  arrow.
+- **Outline follows FLOATING (bobbing) surfaces.** Bob keyframes run on INNER layers
+  (.cbub / .bubble-inner / .xb-core) while the anchor the engine hugs stays still — the
+  outline sat frozen next to the bobbing visual. `findBox()` picks the visible surface:
+  the deepest INFINITE-animated descendant covering the anchor's box (finished one-shot
+  entrance animations don't count; noscan layers skipped), and the ring's per-frame easing
+  rides it (harness: bob range 10.06px, ring range 10px, max error 0.07px). Two supporting
+  fixes: the idle sleep never engages while hugging a floating surface (the ease-in-out
+  bob's zero-velocity dwell at the extremes used to trip the 90-frame idle threshold and
+  FREEZE the loop mid-bob), and the RP projects .kbring (site-drawn, kbnative) now carries
+  the same bob animation/phase as .bubble-inner so it floats with its bubble.
+
 ### 0.0.-9 MODAL KEYBOARD TRAP — cursor v14 (FRAMEWORK RULE)
 
 The v10 occlusion probe was not a real focus trap: it only rejected candidates whose CENTRE
