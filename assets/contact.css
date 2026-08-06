@@ -10,7 +10,7 @@ html.rpc-open{overflow:hidden}
   background:linear-gradient(180deg,#123a6b 0%,#0c2c57 55%,#081d3f 100%);border:1px solid rgba(150,190,255,.22);border-radius:22px;
   padding:clamp(16px,2.2vw,30px);box-shadow:0 40px 100px rgba(0,8,30,.7);color:#eaf2ff;transform:translateY(14px) scale(.985);transition:transform .24s cubic-bezier(.2,.7,.2,1)}
 .rpc-backdrop.rpc-show .rpc-modal{transform:none}
-.rpc-close{position:absolute;top:12px;right:12px;z-index:2;width:40px;height:40px;border-radius:50%;border:1px solid rgba(150,190,255,.25);
+.rpc-close{position:absolute;top:12px;left:12px;z-index:2;width:40px;height:40px;border-radius:50%;border:1px solid rgba(150,190,255,.25);/* STANDARD: popup X = TOP-LEFT */
   background:rgba(255,255,255,.08);color:#eaf2ff;font-size:22px;line-height:1;cursor:pointer;transition:.18s;display:grid;place-items:center}
 .rpc-close:hover{background:rgba(255,255,255,.18)}
 /* ported contact styles so the popup matches the old inline contact section exactly */

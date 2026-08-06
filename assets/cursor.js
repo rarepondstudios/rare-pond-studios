@@ -85,6 +85,7 @@
   try {
     var _bcs = getComputedStyle(document.body || document.documentElement);
     window.__rpcLookBase = { g: (_bcs.getPropertyValue("--gg1") || "").trim(),
+                             f: (_bcs.getPropertyValue("--fg1") || "").trim(),
                              g0: (_bcs.getPropertyValue("--g1") || "").trim(),
                              c: (_bcs.getPropertyValue("--c1") || "").trim(),
                              r: (_bcs.getPropertyValue("--cc") || "").trim() };
@@ -142,7 +143,7 @@
       ".rpc-glow,.rpc-fill{position:absolute;inset:0;border-radius:inherit;transition:opacity .18s ease}" +
       /* FREE state: an OPEN RING — solid gradient band at the rim (loader silhouette, not animated),
          clear empty gap between the band and the centre dot. Band = feathered radial mask. */
-      ".rpc-glow{background:conic-gradient(from 210deg,color-mix(in srgb,var(--rpc-a) 95%,transparent),color-mix(in srgb,var(--rpc-b) 95%,transparent),color-mix(in srgb,var(--rpc-c) 95%,transparent),color-mix(in srgb,var(--rpc-a) 95%,transparent));" +
+      ".rpc-glow{background:conic-gradient(from calc(210deg + var(--rpc-spin,0rad)),color-mix(in srgb,var(--rpc-a) 95%,transparent),color-mix(in srgb,var(--rpc-b) 95%,transparent),color-mix(in srgb,var(--rpc-c) 95%,transparent),color-mix(in srgb,var(--rpc-a) 95%,transparent));" +
       "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px));" +
       "mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px))}" +
       ".rpc-fill{opacity:0;background:color-mix(in srgb,var(--rpc-a) 10%,transparent);box-shadow:0 0 18px -4px color-mix(in srgb,var(--rpc-b) 55%,transparent)}" +
@@ -232,6 +233,7 @@
         try {
           var cs = getComputedStyle(document.body || document.documentElement);
           lookBase = { g: (cs.getPropertyValue("--gg1") || "").trim(),
+                       f: (cs.getPropertyValue("--fg1") || "").trim(),
                        g0: (cs.getPropertyValue("--g1") || "").trim(),
                        c: (cs.getPropertyValue("--c1") || "").trim(),
                        r: (cs.getPropertyValue("--cc") || "").trim() };
@@ -245,12 +247,16 @@
         var cs = getComputedStyle(el);
         var v = (cs.getPropertyValue("--gg1") || "").trim();
         if (v && v !== lookBase.g) return [v, (cs.getPropertyValue("--gg2") || "").trim() || v, (cs.getPropertyValue("--gg3") || "").trim() || v];
+        v = (cs.getPropertyValue("--fg1") || "").trim();   /* RP universe (film section) looks */
+        if (v && v !== lookBase.f) return [v, (cs.getPropertyValue("--fg2") || "").trim() || v, (cs.getPropertyValue("--fg3") || "").trim() || v];
+        /* --cc BEFORE --g1: rentals runs page chrome that later sets a signature --g1 on the
+           page, which would shadow the active SECTION's --cc if --g1 were checked first */
+        v = (cs.getPropertyValue("--cc") || "").trim();
+        if (v && v !== lookBase.r) { var g2 = (cs.getPropertyValue("--ccg") || "").trim(); return [v, g2 || v, v]; }
         v = (cs.getPropertyValue("--g1") || "").trim();   /* JC scopes + raw RP look vars */
         if (v && v !== lookBase.g0) return [v, (cs.getPropertyValue("--g2") || "").trim() || v, (cs.getPropertyValue("--g3") || "").trim() || v];
         v = (cs.getPropertyValue("--c1") || "").trim();
         if (v && v !== lookBase.c) return [v, (cs.getPropertyValue("--c2") || "").trim() || v, (cs.getPropertyValue("--c3") || "").trim() || v];
-        v = (cs.getPropertyValue("--cc") || "").trim();
-        if (v && v !== lookBase.r) { var g2 = (cs.getPropertyValue("--ccg") || "").trim(); return [v, g2 || v, v]; }
       } catch (_) {}
       return null;
     }
@@ -456,7 +462,16 @@
       ring.classList.toggle("textish", textish);
       if (el === hoverEl && !!kb === hoverKb) return;   /* re-enter when kb takes over a mouse hover: specials convert to a conforming kb hug */
       releaseTilt();
-      if (kbSelEl && kbSelEl !== el) { try { kbSelEl.classList.remove("rpc-kbsel"); } catch (_) {} kbSelEl = null; }
+      if (kbSelEl && kbSelEl !== el) {
+        try {
+          kbSelEl.classList.remove("rpc-kbsel");
+          /* kbEngage focused it and .rpc-kbsel suppressed the UA outline — dropping the class
+             while it stays document.activeElement re-exposes the native focus RECTANGLE (the
+             "white square" glitch). Release focus with the selection. */
+          if (document.activeElement === kbSelEl) kbSelEl.blur();
+        } catch (_) {}
+        kbSelEl = null;
+      }
       /* hug → free: start the release travel from the outline's CURRENT centre (the element),
          so the shrinking outline glides back to the dot. Specials were already at the pointer. */
       if (!el && hoverEl && !hoverSpecial) { travT = 1; travX = rx; travY = ry; }
@@ -478,6 +493,23 @@
            Force the outline back on a big circle if ever needed: data-cursor="link" + a
            non-% radius, or ask — small circles (social icons) keep the outline. */
         hoverSpecial = !!attrSp || (best.pct && best.px >= 45 && rr && rr.width >= 64 && rr.height >= 64);
+        /* FOCUS-vs-ENTER RULE (mouse): if clicking this element only brings it to the
+           FOREGROUND (it does not enter/open anything), the cursor circle LOSES its glow —
+           the ring staying lit means "this can be entered". Opt in explicitly with
+           data-cursor~="focus", and AUTOMATICALLY for any off-centre option of a click-mode
+           carousel (data-kb-carousel="click": clicking a side option rotates it to centre).
+           Future focus-click elements inherit this with no extra wiring. */
+        if (!kb) {
+          try {
+            var fcar = el.closest && el.closest('[data-kb-carousel="click"]');
+            var fOnly = dcHas(el, "focus");
+            if (!fOnly && fcar) {
+              var fcb = fcar.getBoundingClientRect(), feb = el.getBoundingClientRect();
+              fOnly = Math.abs((feb.left + feb.width / 2) - (fcb.left + fcb.width / 2)) > fcb.width * .18;
+            }
+            if (fOnly) hoverSpecial = true;   /* ring fades exactly like a special: no glow = focus-only */
+          } catch (_) {}
+        }
         /* KEYBOARD engagement: the hug IS the focus indicator, so specials hug too — the shape
            CONFORMS (bubbles → encompassing circle via the %-radius scan; irregular logos → a
            consistent rounded rectangle with breathing room) instead of the browser's square
@@ -591,13 +623,15 @@
       try {
         var cs = getComputedStyle(el);
         if (cs.display === "none" || cs.visibility === "hidden" || parseFloat(cs.opacity) < .05) return false;
-        var r = el.getBoundingClientRect();   /* a drawer slid off-screen (transform) is NOT open */
-        return r.width > 2 && r.height > 2 && r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight;
+        var r = el.getBoundingClientRect();   /* a drawer slid off-screen (transform) is NOT open;
+           12px margin: sub-pixel rounding of translateX(100%) must never count as "open" */
+        return r.width > 2 && r.height > 2 && r.right > 12 && r.left < innerWidth - 12 && r.bottom > 12 && r.top < innerHeight - 12;
       } catch (_) { return false; }
     }
     function kbModal() {
       var els = document.querySelectorAll("[data-kb-modal]"), best = null, i;
       for (i = 0; i < els.length; i++) if (kbVis(els[i])) best = els[i];
+      window.__rpcModal = best ? (best.id || String(best.className).slice(0, 24)) : null;   /* QC breadcrumb */
       if (best) return best;
       try {
         var n = document.elementFromPoint(innerWidth / 2, innerHeight / 2);
@@ -607,7 +641,7 @@
             var r2 = n.getBoundingClientRect();
             var cov = Math.max(0, Math.min(r2.right, innerWidth) - Math.max(r2.left, 0)) *
                       Math.max(0, Math.min(r2.bottom, innerHeight) - Math.max(r2.top, 0));
-            if (cov >= innerWidth * innerHeight * .55 && (+cs2.zIndex || 0) >= 10) return n;
+            if (cov >= innerWidth * innerHeight * .55 && (+cs2.zIndex || 0) >= 10) { window.__rpcModal = "heur:" + (n.id || String(n.className).slice(0, 20)); return n; }
           }
           n = n.parentElement;
         }
@@ -1165,8 +1199,14 @@
       var sc = down ? " scale(.9)" : "";
       if (free && kS > .012 && travT <= 0) {   /* no stretch-rotate mid-travel — the shrinking outline must stay true to its shape */
         ring.style.transform = tf + " rotate(" + angS.toFixed(3) + "rad) scale(" + (1 + kS).toFixed(3) + "," + (1 - kS * .62).toFixed(3) + ")" + sc;
+        /* the stretch ROTATES the ring element — without compensation the conic gradient spins
+           with it and mouse shakes read as the colours FLIPPING (the smoothed angle jumps by
+           ~pi on direction reversals). The gradient's from-angle counter-rotates so the colour
+           band stays FIXED in screen space no matter how the oval turns. */
+        if (ring.__sp !== angS) { ring.__sp = angS; ring.style.setProperty("--rpc-spin", (-angS).toFixed(3) + "rad"); }
       } else {
         ring.style.transform = tf + sc;
+        if (ring.__sp) { ring.__sp = 0; ring.style.setProperty("--rpc-spin", "0rad"); }
       }
       if (ring.__w !== tw || ring.__h !== th || ring.__r !== tr) {
         ring.__w = tw; ring.__h = th; ring.__r = tr;

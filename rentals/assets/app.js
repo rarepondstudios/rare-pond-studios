@@ -250,7 +250,7 @@ var RP_PKG_CSS=
 ".rp-mp{font:600 11px/1.2 Heebo,sans-serif;color:#6b7a99;margin-top:3px}"+
 ".rp-mtag{display:inline-block;font:700 9px/1 Heebo,sans-serif;letter-spacing:.8px;text-transform:uppercase;color:#fff;background:var(--dpc,#2f57a6);padding:3px 6px;border-radius:5px;margin-top:5px}"+
 ".dpdesc{font:400 14px/1.5 Heebo,sans-serif;color:#4a5a76;margin:8px 0 2px}"+
-".dpback{position:absolute;top:14px;left:14px;z-index:6;width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.92);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#2f57a6;box-shadow:0 2px 10px rgba(0,0,0,.18)}"+
+".dpback{position:absolute;top:14px;left:60px;/* the X owns the top-left corner; back sits beside it */z-index:6;width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.92);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#2f57a6;box-shadow:0 2px 10px rgba(0,0,0,.18)}"+
 ".dpback:hover{background:#fff;color:#1c2b46}"+
 ".dpback svg{width:20px;height:20px}"+
 /* fix3: collapsible Packages sub-box (open by default) */
@@ -334,6 +334,7 @@ function pickDay(is){badDay=null;
 function afterDate(){renderTabs();if(active==='Home')renderHome();else renderCat();uc();if($('reqpop')&&$('reqpop').classList.contains('show'))renderReq();}
 function openDates(){calRender();$('dpop').classList.add('show');}
 $('ddone').onclick=()=>$('dpop').classList.remove('show');
+var _dpx=$('dpopx');if(_dpx)_dpx.onclick=()=>$('dpop').classList.remove('show');
 $('dclear').onclick=()=>{D.s='';D.e='';pick='start';calRender();afterDate();};
 $('dpop').onclick=e=>{if(e.target.id==='dpop')$('dpop').classList.remove('show');};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('dpop').classList.contains('show')){$('dpop').classList.remove('show');return;}if($('reqpop').classList.contains('show')){closeReq();return;}closeDP();openCart(false);}});
