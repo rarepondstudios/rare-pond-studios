@@ -21,6 +21,41 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-11 COLOR-LOOK CURSOR + A11Y TOGGLE + RENTALS KB FIX — cursor v16
+
+Seven-item batch from Jack's notes:
+
+- **COLOR-LOOK ADOPTION (mouse + keyboard, all sites).** The ring's gradients now read
+  registered props `--rpc-a/b/c` (smoothly transitioned). The engine retargets them to the
+  color look of whatever the pointer or kb selection is over or INSIDE: it resolves
+  `--gg1/2/3` (RP), `--g1/2/3` (JC scopes + raw RP), `--c1/2/3` (social/contact bubbles),
+  `--cc`/`--ccg` (rentals) on the element — inherited vars, so anywhere inside an open
+  project section resolves that section's look. Values equal to the page baseline (captured
+  synchronously at script load into `window.__rpcLookBase`, before site JS runs) do NOT
+  count; leaving a look scope restores the site colors. Rentals sets the active category's
+  color on `<body>` (renderTabs), so the cursor tints per SECTION there too.
+- **LOGOS ALWAYS ON TOP of selection indicators (`data-cursor="kbnative"` generalized to
+  non-specials).** Home carousel citems now render their own kb ring: `.ckbring`, a 3px
+  conic band in the PROJECT's look just outside the visible edge, mirroring .cbub's radius
+  morph and bob, at z 2 under the film logo (z 11). Popups/lightboxes still cover
+  everything (they are page content stacked above). Projects-page `.kbring` rebuilt the
+  same way: color-look band ON the bubble edge (inset -3px), not the old oversized white
+  halo.
+- **RENTALS KB DEAD-END FIXED (framework rule).** The cart drawer hides by sliding
+  off-screen right (transform) — its buttons kept real rects and the kb engaged them: the
+  selection flew off bottom-right and dead-ended (the red flashes were the cart's
+  quote-warning arrows). Two new candidate rules in the engine: (1) anything inside a
+  `[data-kb-modal]` container is only reachable while THAT container is the open modal —
+  closed popups/drawers are never candidates; (2) horizontally off-screen elements are
+  never candidates (the page never pans sideways by design).
+- **FOOTER ACCESSIBILITY LINE + DYNAMIC-CURSOR TOGGLE (all pages, both sites).** Markup:
+  `.rpc-a11y` ("This site is keyboard accessible, try it out!" + "Use cool dynamic mouse:"
+  with `<button data-rpc-toggle role="switch">`). Styling + wiring live in cursor.js so
+  every future site gets the identical widget. Toggling off removes html.rpc-on (native
+  cursor + native focus return), hides the engine, disables its key/pointer handling, and
+  persists in localStorage("rpCursorOff"); the switch is a real button, so it stays
+  keyboard-operable with the engine off.
+
 ### 0.0.-10 EDGE-TRUE OUTLINE + ARROW BOUNCE + FLOATING FOLLOW — cursor v15
 
 Three visual fixes from Jack's retest:
