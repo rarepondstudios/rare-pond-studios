@@ -15,11 +15,39 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-06 (cursor v18).
+> Last updated: 2026-08-06 (v20 mobile pass).
 
 ---
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
+
+### 0.0.-15 MOBILE PASS — v20
+
+From Jack's phone screenshots/recording:
+
+- **Footer a11y widget on touch devices:** cursor.js exits early on touch (`pointer:fine`
+  gate), so the footer accessibility line rendered as a RAW UNSTYLED div on phones. The
+  touch/reduced-motion exit path now injects the widget's styling + toggle wiring before
+  returning: hidden entirely `<=700px` (phones — nothing to advertise), styled and
+  functional on iPads and up (they take keyboards/trackpads; the switch persists the pref).
+  LESSON: anything cursor.js styles that exists in static markup must also be styled on the
+  no-engine path.
+- **STANDARD HEADER COLLAPSE (xnav.js):** the burger now appears when (a) the header
+  actually overflows, (b) the page-nav (.hnav/.mnav) has been hidden by a breakpoint — its
+  links must reappear in the burger, never vanish (the media page lost Team/Projects/
+  Contact from 720-1040px and showed uncollapsed chips on phones), or (c) width <=720px.
+  Applies to every current and future sub-site using the shared header cluster.
+- **Crew form X** now straddles the popup's top-left corner (-12,-12; the backdrop's 40px
+  padding keeps it on-screen) instead of sitting inside where it covered the title.
+- **"More to come" tap reaction:** the touch hover-neutralizer block (`@media(hover:none)`
+  — it kills sticky hover on purpose) also killed any tap feedback on the placeholder.
+  A tap now adds `.rp-tap` for 1.4s, whose rules OUTRANK the neutralizers: rainbow
+  glow/edge + the RP mark reveal.
+- **What-we-do orbit bubbles (PREP for the section redo):** mobile orbit scale was .58 —
+  the whole px-table orbit collapsed inside the white logo plate so the bubbles never
+  emerged on scroll. Bumped to .70 as a mitigation. REAL fix for the redo: size the orbit
+  ring relative to the plate (percent/viewport-based positions, not the fixed
+  ABOUT_ORB_POS px table), and consider z-ordering emerged bubbles above the plate.
 
 ### 0.0.-14 THE SCROLLBAR BUG (rentals truly solved) + GLOW-ONLY BUBBLES — cursor v19
 
