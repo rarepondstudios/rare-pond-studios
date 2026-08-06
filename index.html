@@ -1838,7 +1838,7 @@ if(teamList){TEAM.forEach((m,i)=>{
   teamList.appendChild(row);
 });}
 const universes=document.getElementById('universes');
-const lightbox=document.createElement('div');lightbox.className='lightbox';lightbox.innerHTML='<button class="lb-close" aria-label="Close">✕</button><button class="lb-nav lb-prev" type="button" aria-label="Previous image">‹</button><img alt=""><button class="lb-nav lb-next" type="button" aria-label="Next image">›</button>';document.body.appendChild(lightbox);
+const lightbox=document.createElement('div');lightbox.className='lightbox';lightbox.setAttribute('data-kb-modal','');lightbox.innerHTML='<button class="lb-close" aria-label="Close">✕</button><button class="lb-nav lb-prev" type="button" aria-label="Previous image">‹</button><img alt=""><button class="lb-nav lb-next" type="button" aria-label="Next image">›</button>';document.body.appendChild(lightbox);
 const lbImg=lightbox.querySelector('img');
 let lbList=[],lbIdx=0;
 function lbShow(i){if(!lbList.length)return;lbIdx=((i%lbList.length)+lbList.length)%lbList.length;lbImg.src=lbList[lbIdx];}

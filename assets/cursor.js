@@ -457,6 +457,41 @@
          an "off" element carrying role=button/tabindex (rentals item cards — the mouse hug is
          deliberately off, the card glows natively) must still be reachable and Enter-able. */
     var SELKB = SEL + ',[tabindex="0"]';
+    /* ===== MODAL KEYBOARD TRAP (framework rule) =====
+       While a popup owns the screen (image lightbox, contact modal, rental item menu / cart /
+       request form, any future overlay), the keyboard may ONLY reach that popup's own controls
+       (its prev/next arrows, its close X, its form fields) — never the page behind it, and
+       never off-screen background elements. A popup declares itself by putting data-kb-modal
+       on its OUTERMOST container (the rule every future site follows); as a safety net, any
+       FIXED overlay covering >=55% of the viewport at z-index >= 10 is trapped automatically,
+       so a forgotten annotation still behaves. The topmost (last visible) modal wins. */
+    function kbVis(el) {
+      try {
+        var cs = getComputedStyle(el);
+        if (cs.display === "none" || cs.visibility === "hidden" || parseFloat(cs.opacity) < .05) return false;
+        var r = el.getBoundingClientRect();   /* a drawer slid off-screen (transform) is NOT open */
+        return r.width > 2 && r.height > 2 && r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight;
+      } catch (_) { return false; }
+    }
+    function kbModal() {
+      var els = document.querySelectorAll("[data-kb-modal]"), best = null, i;
+      for (i = 0; i < els.length; i++) if (kbVis(els[i])) best = els[i];
+      if (best) return best;
+      try {
+        var n = document.elementFromPoint(innerWidth / 2, innerHeight / 2);
+        while (n && n !== document.body && n !== document.documentElement) {
+          var cs2 = getComputedStyle(n);
+          if (cs2.position === "fixed") {
+            var r2 = n.getBoundingClientRect();
+            var cov = Math.max(0, Math.min(r2.right, innerWidth) - Math.max(r2.left, 0)) *
+                      Math.max(0, Math.min(r2.bottom, innerHeight) - Math.max(r2.top, 0));
+            if (cov >= innerWidth * innerHeight * .55 && (+cs2.zIndex || 0) >= 10) return n;
+          }
+          n = n.parentElement;
+        }
+      } catch (_) {}
+      return null;
+    }
     function kbSkip(el) {
       if (isTextField(el)) return true;
       if (!dcHas(el, "off")) return false;
@@ -464,9 +499,11 @@
     }
     function kbCandidates() {
       var els = document.querySelectorAll(SELKB), out = [], i, el, r, cs;
+      var mod = kbModal();   /* open popup => only ITS controls are candidates, full stop */
       for (i = 0; i < els.length; i++) {
         el = els[i];
         if (el === hoverEl || kbSkip(el)) continue;
+        if (mod && !mod.contains(el)) continue;
         try { r = el.getBoundingClientRect(); } catch (_) { continue; }
         if (r.width < 4 || r.height < 4) continue;
         if (r.bottom < -60 || r.top > innerHeight + 60 || r.right < -60 || r.left > innerWidth + 60) continue;   /* roughly on screen */
@@ -648,6 +685,13 @@
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
       var t = e.target;
       if (t && t.nodeType === 1 && (isTextField(t) || t.isContentEditable)) return;   /* typing owns the keys */
+      /* MODAL TRAP, key-time: a popup just opened OVER the current selection (Enter on a
+         photo while the strip behind keeps auto-drifting — the motion-tracking watchdog
+         exemption meant the stale hug could linger). The stale selection must never receive
+         another key: drop it NOW, so this very press falls through to the no-hover branch
+         and engages the popup's own nearest control instead. */
+      var kmod = kbModal();
+      if (kmod && hoverEl && !kmod.contains(hoverEl)) applyHover(null, false);
       if (e.key === "Enter" && kbActive && hoverEl) {
         /* natively-activating elements handle Enter themselves once focused — only click the rest */
         var tg = hoverEl.tagName;
@@ -746,13 +790,20 @@
          a photo) — the hug and its glow must never keep shining THROUGH the overlay. If the
          selection's centre is now covered by an unrelated element, release the hug; the next
          arrow press re-engages among the overlay's own (visible) controls. */
-      if (frame % 12 === 6 && kbActive && hoverEl && trackN <= 0) {
+      if (frame % 12 === 6 && kbActive && hoverEl) {
         try {
-          var hr2 = hoverEl.getBoundingClientRect();
-          var hx2 = hr2.left + hr2.width / 2, hy2 = hr2.top + hr2.height / 2;
-          if (hx2 >= 0 && hy2 >= 0 && hx2 <= innerWidth && hy2 <= innerHeight) {
-            var ov2 = document.elementFromPoint(hx2, hy2);
-            if (ov2 && ov2 !== hoverEl && !hoverEl.contains(ov2) && !ov2.contains(hoverEl)) applyHover(null, false);
+          /* MODAL first, and NOT exempted by motion tracking: the JC strips auto-drift, so a
+             selection there is permanently "in motion" — the old trackN exemption let its hug
+             and glow linger under an opened lightbox. Popup open + selection outside => release. */
+          var mod2 = kbModal();
+          if (mod2 && !mod2.contains(hoverEl)) applyHover(null, false);
+          else if (trackN <= 0) {
+            var hr2 = hoverEl.getBoundingClientRect();
+            var hx2 = hr2.left + hr2.width / 2, hy2 = hr2.top + hr2.height / 2;
+            if (hx2 >= 0 && hy2 >= 0 && hx2 <= innerWidth && hy2 <= innerHeight) {
+              var ov2 = document.elementFromPoint(hx2, hy2);
+              if (ov2 && ov2 !== hoverEl && !hoverEl.contains(ov2) && !ov2.contains(hoverEl)) applyHover(null, false);
+            }
           }
         } catch (_) {}
       }

@@ -31,7 +31,7 @@
   function build(){
     if(backdrop)return;
     var c=cfg||DEFAULT, hs=c.hubspot||DEFAULT.hubspot;
-    backdrop=document.createElement('div'); backdrop.className='rpc-backdrop'; backdrop.setAttribute('hidden','');
+    backdrop=document.createElement('div'); backdrop.className='rpc-backdrop'; backdrop.setAttribute('hidden',''); backdrop.setAttribute('data-kb-modal','');
     backdrop.innerHTML='<div class="rpc-modal" role="dialog" aria-modal="true" aria-labelledby="rpcTitle">'
       +'<button class="rpc-close" type="button" aria-label="Close">&times;</button>'
       +'<div class="contact-head"><div class="ey">'+esc(c.eyebrow||DEFAULT.eyebrow)+'</div><h2 id="rpcTitle">'+esc(c.heading||DEFAULT.heading)+'</h2><p>'+esc(c.sub||DEFAULT.sub)+'</p></div>'
