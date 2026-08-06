@@ -113,6 +113,9 @@
       "-webkit-backdrop-filter:blur(1.3px) saturate(1.2);backdrop-filter:blur(1.3px) saturate(1.2);" +   /* liquid-glass: subtle distortion under the orb */
       "box-shadow:0 0 14px -3px " + rgba(COL.c1, .55) + ",inset 0 0 9px -3px " + rgba(COL.c2, .40) + ";" +   /* the ring band GLOWS both outward and inward */
       "transition:width .22s cubic-bezier(.3,.9,.3,1),height .22s cubic-bezier(.3,.9,.3,1),border-radius .22s cubic-bezier(.3,.9,.3,1),opacity .16s ease}" +
+      /* tracking = the hugged ELEMENT itself is in motion (carousel rotation) — the ring is
+         glued to it per-frame, so its own size transitions must not fight the element's */
+      ".rpc-ring.tracking{transition:opacity .16s ease}" +
       "#rp-cursor.on .rpc-ring{opacity:1}" +
       /* SPECIAL objects (category tabs / bubbles / wordmarks): the ring's colour FADES OUT as the
          object's own glow fades in — the glow visibly "transfers" to the object — leaving only the
@@ -186,6 +189,11 @@
        travT>0 the ring centre is eased from the release point to the live pointer, and the
        containment clamp + velocity stretch are suspended so nothing can yank it off the path. */
     var travT = 0, travX = 0, travY = 0;
+    /* ELEMENT-MOTION TRACKING: >0 while the hugged element itself is moving/resizing (a
+       carousel rotation carrying the selection to centre). The ring is glued to it —
+       no easing lag, no CSS size transition — so the outline conforms every frame. */
+    var trackN = 0;
+    var hoverAttrSp = false, hoverKb = false;   // last applyHover args, for the settled-size re-scan
     var clearT = null;                 // hover-out grace timer (kills the between-buttons flash)
     var shown = false, loading = false, loadSince = 0, down = false;
     var idleFrames = 0, running = false, frame = 0;
@@ -294,6 +302,8 @@
       hoverEl = el;
       hoverSpecial = false;
       hoverPad = 0;
+      hoverAttrSp = !!attrSp; hoverKb = !!kb;
+      trackN = 0; try { ring.classList.remove("tracking"); } catch (_) {}
       if (el) {
         /* The visible rounding often lives on an INNER child (card wrapper > circular image —
            e.g. the project bubbles), so scan the element and its near-full-size descendants
@@ -472,7 +482,19 @@
         if (score < bs) { bs = score; best = c; }
       });
       window.__rpcKb = { at: "kbMove", car: !!car, best: best ? String(best.el.className || best.el.tagName).slice(0, 40) : null };   /* QC breadcrumb */
-      return best ? kbEngage(best.el) : false;
+      if (!best) return false;
+      var ok = kbEngage(best.el);
+      /* CLICK-mode carousels (RP home): choosing an OFF-CENTRE option also ROTATES it into the
+         centre — the selection + hug RIDE the moving element (element-motion tracking glues the
+         outline to it), so "arrow right onto Geri-Action" ends with Geri-Action centred and
+         still selected. A CENTRED option is never clicked — that would ACTIVATE it (open it). */
+      if (ok && dx && car && (car.getAttribute("data-kb-carousel") || "click") === "click") {
+        try {
+          var cb = car.getBoundingClientRect(), eb = best.el.getBoundingClientRect();
+          if (Math.abs((eb.left + eb.width / 2) - (cb.left + cb.width / 2)) > cb.width * .18) best.el.click();
+        } catch (_) {}
+      }
+      return ok;
     }
     /* CAROUSEL PUSH: arrowing past the last visible option advances the carousel itself so the
        next option shifts into place, then the selection lands on it. A container opts in with
@@ -491,8 +513,15 @@
         (function att() { tries++; if (kbMove(dx, 0)) return; if (tries < 4) setTimeout(att, 320); })();
       }
       if (mode === "click") {
-        try { hoverEl.click(); } catch (_) { return false; }
-        setTimeout(function () { reseek(); }, 550);
+        /* the selection RIDES the rotation: click the (off-centre) selection so it rotates to
+           the centre and STAYS selected — no reseek to a different item. A centred selection
+           is never clicked here (that would activate/open it). */
+        try {
+          var cb2 = car.getBoundingClientRect(), eb2 = hoverEl.getBoundingClientRect();
+          if (Math.abs((eb2.left + eb2.width / 2) - (cb2.left + cb2.width / 2)) <= cb2.width * .18) return false;
+          hoverEl.click();
+          kbEngage(hoverEl);   /* the selection was a mouse hover until now — take kb ownership (kbsel glow, focus, hover parity) so it visibly rides */
+        } catch (_) { return false; }
         return true;
       }
       var nav = document.getElementById(mode);
@@ -626,6 +655,23 @@
                following the pointer; the OBJECT is what reacts (below). */
             tx = mx; ty = my; tw = 50; th = 50; tr = "50%";
           } else {
+            /* ELEMENT-MOTION TRACKING: a carousel rotation moves/resizes the hugged element
+               while the ring's own 0.22s size transition restarts every frame — the outline
+               warped into shapes that conformed to nothing. While the element is in motion
+               the ring is GLUED to it (transitions off, near-zero lag); once it settles the
+               transitions return and the hug shape is re-scanned for the grown card. */
+            var pR = hoverEl.__rpcR;
+            var elMoving = !!(pR && (Math.abs(pR.x - r.left) > .8 || Math.abs(pR.y - r.top) > .8 ||
+                                     Math.abs(pR.w - r.width) > .8 || Math.abs(pR.h - r.height) > .8));
+            hoverEl.__rpcR = { x: r.left, y: r.top, w: r.width, h: r.height };
+            if (elMoving) { trackN = 8; ring.classList.add("tracking"); }
+            else if (trackN > 0 && --trackN === 0) {
+              ring.classList.remove("tracking");
+              var heS = hoverEl; hoverEl = null;
+              applyHover(heS, textish, hoverAttrSp, hoverKb);   /* settled-size re-scan (same el: radius/pads) */
+              try { r = heS.getBoundingClientRect(); } catch (_) {}
+              cx = r.left + r.width / 2; cy = r.top + r.height / 2;
+            }
             /* the outline is ATTACHED to the element's edges: exact box, exact radius,
                zero magnetic drift — moving inside the button moves the BUTTON (tilt),
                never the outline. */
@@ -667,8 +713,9 @@
       }
 
       var free = !hoverEl || hoverSpecial;    /* over a special object the ring behaves exactly like free */
-      rx += (tx - rx) * (free ? .22 : .35);
-      ry += (ty - ry) * (free ? .22 : .35);
+      var ease = free ? .22 : (trackN > 0 ? .85 : .35);   /* glued while the hugged element is in motion */
+      rx += (tx - rx) * ease;
+      ry += (ty - ry) * ease;
 
       /* RELEASE TRAVEL (hug → free): override the centre with an eased glide from the release
          point to the LIVE pointer — ~14 frames, matching the 0.22s size shrink — so the whole
@@ -714,7 +761,7 @@
       if (ldr.__lt !== lt) { ldr.__lt = lt; ldr.style.setProperty("--rpc-lt", lt); }
 
       /* sleep when idle (nothing moving, loading, tilted, or easing back out) */
-      if (moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length && travT <= 0) idleFrames++; else idleFrames = 0;
+      if (moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length && travT <= 0 && trackN <= 0) idleFrames++; else idleFrames = 0;
     }
     function wake() {
       if (running) return;
