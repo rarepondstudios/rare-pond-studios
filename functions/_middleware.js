@@ -240,6 +240,31 @@ export async function onRequest(context) {
   try { cover = await maintenanceFor(context, pathname); } catch (e) { cover = null; }
   if (cover) return cover;
 
+  // A missing file under /media/ must 404, not fall through to the SPA. Cloudflare Pages cannot
+  // express this statically: a root 404.html HIJACKS the SPA /* catch-all (it 404'd every film
+  // route once), and _redirects only supports a 200 rewrite, never a 404. So decide it here -- for
+  // a /media/ FILE path, resolve the pipeline and, if it came back HTML, the real file is missing:
+  // return a real 404 (no-store) so a wrong response can never be cached as an image (the 7-day
+  // /media cache-poison). Real images resolve to image/*, so they pass straight through.
+  if (pathname.startsWith('/media/') && !pathname.endsWith('/')) {
+    try {
+      const r = await next();
+      const ct = (r.headers.get('Content-Type') || '').toLowerCase();
+      if (ct.startsWith('text/html')) {
+        return new Response(
+          '<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex">' +
+          '<title>Not found \u2014 Rare Pond Studios</title>' +
+          '<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;' +
+          'background:#0a1f3c;color:#eaf1ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;text-align:center">' +
+          '<div><h1 style="margin:0 0 .5rem">Page not found</h1>' +
+          '<p style="color:#a9c2e8">That file doesn\u2019t exist. ' +
+          '<a style="color:#7aa2ff" href="/">Back to Rare Pond Studios</a></p></div>',
+          { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
+      }
+      return r;
+    } catch (e) { return next(); }   // fail OPEN
+  }
+
   // Everything outside /admin/ is served exactly as before.
   if (!isProtected(pathname)) return next();
 

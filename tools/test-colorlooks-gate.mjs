@@ -85,5 +85,12 @@ if (!noindex) fails++;
 await check('/colorlooks (old address) no longer serves the tool', await call('/colorlooks'), 200, false);
 await check('/pagesindex (old address) no longer serves the tool', await call('/pagesindex'), 200, false);
 
+// --- SEC-2: missing media files 404 (decided in the middleware; Pages can't do it statically) ---
+const imgNext = async () => new Response('BIN', { status: 200, headers: { 'Content-Type': 'image/webp' } });
+const callImg = (path) => onRequest({ request: new Request('https://www.rarepond.com' + path), env: { COLORLOOKS_PASSWORD: 's3cret' }, next: imgNext });
+await check('/media/missing.jpg (SPA shell) -> 404', await call('/media/missing.jpg'), 404, false);
+await check('/media/logos/real.webp (real image) passes through 200', await callImg('/media/logos/real.webp'), 200, false);
+await check('/media/ (the media PAGE itself) is NOT 404d', await call('/media/'), 200, false);
+
 console.log(fails === 0 ? '\nALL TESTS PASSED' : `\n${fails} TEST(S) FAILED`);
 process.exit(fails === 0 ? 0 : 1);
