@@ -21,6 +21,40 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-14 THE SCROLLBAR BUG (rentals truly solved) + GLOW-ONLY BUBBLES — cursor v19
+
+- **RENTALS KEYBOARD, ACTUAL ROOT CAUSE — CLASSIC SCROLLBARS.** Reproduced at last in
+  Jack's own Chrome (via the browser bridge): `window.__rpcModal` reported "cartp" with the
+  cart CLOSED. His Mac renders ALWAYS-VISIBLE scrollbars (measured
+  `innerWidth - clientWidth = 15`). Fixed elements lay out against the LAYOUT viewport
+  (clientWidth), so the cart drawer parked at `translateX(100%)` sits at clientWidth —
+  15px INSIDE innerWidth — and the engine's visibility check (which used innerWidth)
+  counted the closed drawer as an open popup: keyboard whitelisted to an off-screen cart =
+  totally dead, while real popups (later in DOM) still worked. Headless Chrome uses 0px
+  overlay scrollbars, which is why it never reproduced; incognito shares the OS setting,
+  which is why incognito failed too; the Windows Firefox window happened to have no
+  vertical scrollbar. FIX: all popup-visibility and horizontal-reachability checks now use
+  `document.documentElement.clientWidth/Height`. Verified fixed IN JACK'S BROWSER
+  (modal null, selections landing). RULE: never use innerWidth for on-screen geometry —
+  classic scrollbars exist on most Windows machines and any macOS with "always show".
+- **First arrow press always lands:** with the pointer parked on an element and no
+  candidate in the pressed direction (mouse on the cart FAB, pressing down), the press now
+  falls through to nearest-candidate activation instead of silently doing nothing.
+- **Rentals cursor tint REMOVED** (Jack: hurts visibility): the engine no longer reads
+  `--cc/--ccg` at all; category colour stays in the tabline/cards. renderTabs no longer
+  sets a body-level look.
+- **RP bubbles/cards: kb indicator is the STANDARD GLOW only.** The v16 ring bands
+  (.kbring on projects bubbles, .ckbring on home cards) are deleted; the `.rpc-kbsel`
+  mirrors (halo ::before, .glow/.cglow, scale, caption) are the whole indicator. The hard
+  hug outline remains for buttons/controls. Per-site creative choice stays possible:
+  `data-cursor="kbnative"` + that site's `.rpc-kbsel` CSS decide outline vs glow-only.
+- **CROSS-BROWSER TESTING NOW IN THE HARNESS:** Firefox 152 runs headless via
+  puppeteer-core webDriverBiDi (`_headless/ff1.mjs`); local FF verifies boot, @property,
+  color-mix, special fade and look adoption all working. If a browser-specific report
+  comes in, run the same test file against both engines. (Safari has no comparable
+  automation path installed; untested.) Stale-cache caveat applies to FF too — Jack's
+  Windows FF likely served an old cached cursor.js (hard-refresh before comparing).
+
 ### 0.0.-13 STALE-STATE FIXES + THE RENTALS MYSTERY SOLVED — cursor v18
 
 Deep-dive on Jack's keyboard-overlay OBS recordings. Root causes, all verified in the
