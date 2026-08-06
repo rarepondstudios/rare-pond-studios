@@ -180,6 +180,7 @@
     var pmx = -100, pmy = -100;        // previous pointer (velocity)
     var kS = 0, kV = 0, angS = 0;      // springy stretch (value + velocity) + angle
     var hoverEl = null, hoverRad = 14, hoverPct = false, hoverRadY = 0, hoverSpecial = false, hoverPad = 0, textish = false;
+    var hoverBoxEl = null;             // the VISIBLE SURFACE the outline draws around (can float independently of the anchor)
     var tiltEl = null, tiltOrig = "", tiltBase = "", tiltScale = 1;  // tilted element, its original inline transform, its computed base matrix, extra scale
     var tiltP = 0, tiltNx = 0, tiltNy = 0;  // ease-in progress + last tilt direction (for the ease-out)
     var relEls = [];                   // elements easing BACK to rest after hover-off (fluid shrink)
@@ -296,6 +297,42 @@
        Elliptical %-radii ("13% 20%") are captured on both axes for an exact match, and the
        scan is re-run while a hugged element is in motion so an animated border-radius
        (.cbub's 50% → 13%/20% morph) is followed frame by frame. */
+    /* FLOATING SURFACES: bob keyframes run on INNER layers (.cbub / .bubble-inner / .xb-core /
+       .orbi) while the ANCHOR element the engine hugs stays still — an outline drawn around
+       the anchor sits frozen next to the bobbing visual, visibly disconnected. findBox picks
+       the node the outline should draw around: the deepest CSS-animated descendant that
+       covers (roughly) the anchor's box, skipping decorative noscan layers. The ring's
+       per-frame position easing (.35) then rides the bob. */
+    function findBox(el) {
+      var bx = el, rr = null;
+      try { rr = el.getBoundingClientRect(); } catch (_) { return el; }
+      if (!rr || !rr.width) return el;
+      /* only INFINITE animations mark a floating surface — a finished one-shot entrance
+         animation (the carousel items keep their animationName after settling) must not
+         claim the box, or the outline pins to the static anchor while the inner bob layer
+         floats. */
+      function anim(n) {
+        try {
+          var a = getComputedStyle(n);
+          return a.animationName && a.animationName !== "none" && (a.animationIterationCount || "").indexOf("infinite") > -1;
+        } catch (_) { return false; }
+      }
+      function pick(n, depth) {
+        var kids = n.children, i, k, kr;
+        for (i = 0; i < kids.length && i < 8; i++) {
+          k = kids[i];
+          if (dcHas(k, "noscan")) continue;
+          try { kr = k.getBoundingClientRect(); } catch (_) { continue; }
+          if (kr.width >= rr.width * .7 && kr.height >= rr.height * .7 &&
+              kr.width <= rr.width * 1.35 && kr.height <= rr.height * 1.35) {
+            if (anim(k)) bx = k;
+            if (depth < 2) pick(k, depth + 1);
+          }
+        }
+      }
+      pick(el, 0);
+      return bx;
+    }
     function scanShape(el) {
       var best = { px: 0, pct: false, py: 0 }, rr = null;
       try { rr = el.getBoundingClientRect(); } catch (_) {}
@@ -344,6 +381,7 @@
       if (!el && hoverEl && !hoverSpecial) { travT = 1; travX = rx; travY = ry; }
       else if (el) travT = 0;
       hoverEl = el;
+      hoverBoxEl = null;
       hoverSpecial = false;
       hoverPad = 0;
       hoverAttrSp = !!attrSp; hoverKb = !!kb;
@@ -351,6 +389,7 @@
       if (el) {
         var sres = scanShape(el);
         var best = sres.best, rr = sres.rr;
+        hoverBoxEl = findBox(el);
         /* SPECIAL objects never get the ring outline — the object reacts instead.
            Auto: any large circular target (project bubbles / carousel side circles / JC hbubs;
            % radius ≥45 and ≥64px). Explicit: data-cursor="glow" (wordmarks) or "special".
@@ -626,6 +665,19 @@
         var score = fwd + ortho * 2;                       /* nearest, preferring in-line targets */
         if (score < bs) { bs = score; best = c; }
       });
+      /* MODAL FALLBACK: a popup has FEW controls in extreme corners (lightbox ‹ › X) — the
+         normal ~65° cone can reject them all (↑ from the LEFT arrow to a TOP-RIGHT X is a
+         long diagonal). Inside a modal a directional press must still land somewhere: retry
+         without the cone, nearest candidate with ANY progress in the pressed direction. */
+      if (!best && kbModal()) {
+        kbCandidates().forEach(function (c) {
+          var x = c.r.left + c.r.width / 2, y = c.r.top + c.r.height / 2;
+          var fwd = (x - cx) * dx + (y - cy) * dy;
+          if (fwd < 8) return;
+          var d = Math.abs(x - cx) + Math.abs(y - cy);
+          if (d < bs) { bs = d; best = c; }
+        });
+      }
       window.__rpcKb = { at: "kbMove", car: !!car, best: best ? String(best.el.className || best.el.tagName).slice(0, 40) : null };   /* QC breadcrumb */
       if (!best) return false;
       var ok = kbEngage(best.el);
@@ -682,7 +734,25 @@
       return true;
     }
     addEventListener("keydown", function (e) {
-      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      if (e.defaultPrevented) {
+        /* The page's own handler consumed this key (a lightbox paging photos on ←/→).
+           The SELECTION still mirrors the action: inside an open modal, a consumed left/right
+           lands the halo on the modal control annotated data-kb-dir="-1"/"1" (the ‹ or ›
+           arrow that just fired) — so the visible selection BOUNCES between the two arrows
+           as the user toggles through photos, and ↑ from there reaches the close X. */
+        var mdx = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
+        if (mdx) {
+          var m0 = kbModal();
+          if (m0) {
+            var dbs = m0.querySelectorAll("[data-kb-dir]"), dtg = null, qj;
+            for (qj = 0; qj < dbs.length; qj++)
+              if ((+dbs[qj].getAttribute("data-kb-dir") || 0) === mdx && kbVis(dbs[qj])) dtg = dbs[qj];
+            if (dtg && dtg !== hoverEl) { kbEngage(dtg); kbActive = true; }
+          }
+        }
+        return;
+      }
       var t = e.target;
       if (t && t.nodeType === 1 && (isTextField(t) || t.isContentEditable)) return;   /* typing owns the keys */
       /* MODAL TRAP, key-time: a popup just opened OVER the current selection (Enter on a
@@ -888,11 +958,22 @@
             /* the outline is ATTACHED to the element's edges: exact box, exact radius,
                zero magnetic drift — moving inside the button moves the BUTTON (tilt),
                never the outline. */
-            tx = cx; ty = cy;
-            tw = r.width + hoverPad * 2; th = r.height + hoverPad * 2;
+            /* the outline draws around the VISIBLE SURFACE (findBox): a bobbing inner layer
+               floats while the anchor stays still — the ring must bob WITH the visual. */
+            var vb = r;
+            if (hoverBoxEl && hoverBoxEl !== hoverEl) {
+              try { var vb2 = hoverBoxEl.getBoundingClientRect(); if (vb2 && vb2.width) vb = vb2; } catch (_) {}
+            }
+            if (frame % 30 === 0) window.__rpcBox = hoverBoxEl ? (hoverBoxEl === hoverEl ? "self" : String(hoverBoxEl.className).slice(0, 30)) : "null";   /* QC breadcrumb */
+            tx = vb.left + vb.width / 2; ty = vb.top + vb.height / 2;
+            /* +3px per side = the .rpc-bord band's own width: the band is drawn INSIDE the
+               ring box, so an exact-size box put the visible line slightly WITHIN the button.
+               Growing the box by one band-width sets the line's inner edge ON the element's
+               edge — the outline sits on the rim, never inside it. */
+            tw = vb.width + hoverPad * 2 + 6; th = vb.height + hoverPad * 2 + 6;
             if (hoverPct) tr = hoverRad >= 45 ? "50%" :
               (hoverRadY && Math.abs(hoverRadY - hoverRad) > .5 ? hoverRad + "% / " + hoverRadY + "%" : hoverRad + "%");
-            else tr = (hoverRad > 0 ? hoverRad + hoverPad : Math.min(th / 2, 12 + hoverPad)) + "px";
+            else tr = (hoverRad > 0 ? hoverRad + hoverPad + 3 : Math.min(th / 2, 12 + hoverPad)) + "px";
           }
           /* perspective warp of the hovered element itself (like the home bubbles),
              composited on its base transform; specials also scale up slightly.
@@ -974,8 +1055,12 @@
       var lt = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
       if (ldr.__lt !== lt) { ldr.__lt = lt; ldr.style.setProperty("--rpc-lt", lt); }
 
-      /* sleep when idle (nothing moving, loading, tilted, or easing back out) */
-      if (moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length && travT <= 0 && trackN <= 0) idleFrames++; else idleFrames = 0;
+      /* sleep when idle (nothing moving, loading, tilted, or easing back out).
+         NEVER while hugging a FLOATING surface (hoverBoxEl != anchor): its ease-in-out bob
+         dwells ~0-velocity at the extremes long enough to trip the 90-frame idle threshold —
+         the loop slept mid-bob and the outline froze while the visual floated on. */
+      var floating = !!(hoverEl && hoverBoxEl && hoverBoxEl !== hoverEl);
+      if (!floating && moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length && travT <= 0 && trackN <= 0) idleFrames++; else idleFrames = 0;
     }
     function wake() {
       if (running) return;

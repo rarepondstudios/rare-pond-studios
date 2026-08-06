@@ -552,6 +552,10 @@ html.xw-active{overflow:hidden}
   /* keyboard selection ring, rendered by the BUBBLE itself (data-cursor="kbnative") so it sits
      BENEATH the floating logo (z 5 < .bubble-logo z 7) — the logo stays in the foreground */
   .bubble .kbring{position:absolute;inset:-11px;border-radius:50%;border:2.5px solid rgba(255,255,255,.92);
+    /* SAME bob as .bubble-inner/.glow (same duration + delay = same phase): the ring is part of
+       the bubble's visual, so it must FLOAT with it — a static ring next to a bobbing bubble
+       reads as disconnected. */
+    animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate;
     box-shadow:0 0 18px -2px var(--gg2,#9ec7ff),inset 0 0 12px -6px var(--gg2,#9ec7ff);
     opacity:0;z-index:5;pointer-events:none;transition:opacity .25s ease}
   .bubble.rpc-kbsel .kbring{opacity:1}
@@ -1838,7 +1842,7 @@ if(teamList){TEAM.forEach((m,i)=>{
   teamList.appendChild(row);
 });}
 const universes=document.getElementById('universes');
-const lightbox=document.createElement('div');lightbox.className='lightbox';lightbox.setAttribute('data-kb-modal','');lightbox.innerHTML='<button class="lb-close" aria-label="Close">✕</button><button class="lb-nav lb-prev" type="button" aria-label="Previous image">‹</button><img alt=""><button class="lb-nav lb-next" type="button" aria-label="Next image">›</button>';document.body.appendChild(lightbox);
+const lightbox=document.createElement('div');lightbox.className='lightbox';lightbox.setAttribute('data-kb-modal','');lightbox.innerHTML='<button class="lb-close" aria-label="Close">✕</button><button class="lb-nav lb-prev" type="button" data-kb-dir="-1" aria-label="Previous image">‹</button><img alt=""><button class="lb-nav lb-next" type="button" data-kb-dir="1" aria-label="Next image">›</button>';document.body.appendChild(lightbox);
 const lbImg=lightbox.querySelector('img');
 let lbList=[],lbIdx=0;
 function lbShow(i){if(!lbList.length)return;lbIdx=((i%lbList.length)+lbList.length)%lbList.length;lbImg.src=lbList[lbIdx];}
