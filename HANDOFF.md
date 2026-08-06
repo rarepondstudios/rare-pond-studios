@@ -48,6 +48,12 @@ All pushed + live-verified on RP + JC. From the full-system QC pass:
   judges it by actual backup-FILE freshness (`_backup_freshness_h()`) and shows the truth (green,
   and would catch a real missing/stale-files failure).
 
+- **Privacy policy (NEW):** static `/privacy/` page on BOTH sites (served as a directory index
+  like /rentals//media/), footer-linked via `site.json -> nav` (RP, footer-only) and
+  `site.json -> footer.links` (JC). CalOPPA-shaped; contact contact@rarepond.com; mailing address is
+  a marked placeholder for Jack. RP c264c18, JC 09511d4. TODO next pass: Terms of Use + gate HubSpot
+  cookies behind consent (CIPA).
+
 RULE for every future site: never drop a root `404.html` into a Pages SPA repo -- do missing-asset
 404s in the middleware. Commits: RP f4ed193->9d2b528, JC 3eff23c->5efe065.
 
