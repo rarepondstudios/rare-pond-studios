@@ -999,9 +999,13 @@
     function tickBody(now) {
       frame++;
       if (frame % 12 === 0) pollLoading(now);
-      if (frame % 12 === 3 && !hoverEl) {
-        var lsrc = null;
-        if (mx >= 0) { try { lsrc = document.elementFromPoint(mx, my); } catch (_) {} }
+      if (frame % 12 === 3) {
+        /* re-resolve every ~200ms EVEN WHILE something is hovered/selected: the element's own
+           look can change under a stationary selection (the home carousel swaps which project
+           is featured, hover-look vars transition in) - colour must follow the element, not
+           the moment of engagement. */
+        var lsrc = hoverEl;
+        if (!lsrc && mx >= 0) { try { lsrc = document.elementFromPoint(mx, my); } catch (_) {} }
         lookApply(lookRead(lsrc));
       }
       /* iframe WATCHDOG: if the pointer has stopped reporting and it last sat over an embed
@@ -1016,19 +1020,37 @@
          a photo) — the hug and its glow must never keep shining THROUGH the overlay. If the
          selection's centre is now covered by an unrelated element, release the hug; the next
          arrow press re-engages among the overlay's own (visible) controls. */
-      if (frame % 12 === 6 && kbActive && hoverEl) {
+      if (frame % 12 === 6 && hoverEl) {
         try {
-          /* MODAL first, and NOT exempted by motion tracking: the JC strips auto-drift, so a
-             selection there is permanently "in motion" — the old trackN exemption let its hug
-             and glow linger under an opened lightbox. Popup open + selection outside => release. */
-          var mod2 = kbModal();
-          if (mod2 && !mod2.contains(hoverEl)) applyHover(null, false);
-          else if (trackN <= 0) {
-            var hr2 = hoverEl.getBoundingClientRect();
-            var hx2 = hr2.left + hr2.width / 2, hy2 = hr2.top + hr2.height / 2;
-            if (hx2 >= 0 && hy2 >= 0 && hx2 <= innerWidth && hy2 <= innerHeight) {
-              var ov2 = document.elementFromPoint(hx2, hy2);
-              if (ov2 && ov2 !== hoverEl && !hoverEl.contains(ov2) && !ov2.contains(hoverEl)) applyHover(null, false);
+          if (!hoverEl.isConnected) applyHover(null, false);   /* SPA re-render removed it */
+          else if (kbActive) {
+            /* MODAL first, and NOT exempted by motion tracking: the JC strips auto-drift, so a
+               selection there is permanently "in motion" — the old trackN exemption let its hug
+               and glow linger under an opened lightbox. Popup open + selection outside => release. */
+            var mod2 = kbModal();
+            if (mod2 && !mod2.contains(hoverEl)) applyHover(null, false);
+            else if (trackN <= 0) {
+              var hr2 = hoverEl.getBoundingClientRect();
+              var hx2 = hr2.left + hr2.width / 2, hy2 = hr2.top + hr2.height / 2;
+              if (hx2 >= 0 && hy2 >= 0 && hx2 <= innerWidth && hy2 <= innerHeight) {
+                var ov2 = document.elementFromPoint(hx2, hy2);
+                if (ov2 && ov2 !== hoverEl && !hoverEl.contains(ov2) && !ov2.contains(hoverEl)) applyHover(null, false);
+              }
+            }
+          } else if (trackN <= 0) {
+            /* MOUSE hugs get the same staleness probe: leaving a project page swaps the whole
+               section under a stationary pointer — no pointerout ever fires, the button keeps
+               its old rect (fixed, now invisible), and the hug outline GHOSTED there until the
+               mouse moved. If the point where the element sits is now painted by something
+               unrelated, the hug is over. */
+            var hr4 = hoverEl.getBoundingClientRect();
+            if (!hr4.width) applyHover(null, false);
+            else {
+              var hx4 = hr4.left + hr4.width / 2, hy4 = hr4.top + hr4.height / 2;
+              if (hx4 >= 0 && hy4 >= 0 && hx4 <= innerWidth && hy4 <= innerHeight) {
+                var ov4 = document.elementFromPoint(hx4, hy4);
+                if (ov4 && ov4 !== hoverEl && !hoverEl.contains(ov4) && !ov4.contains(hoverEl)) applyHover(null, false);
+              }
             }
           }
         } catch (_) {}
@@ -1221,8 +1243,12 @@
          NEVER while hugging a FLOATING surface (hoverBoxEl != anchor): its ease-in-out bob
          dwells ~0-velocity at the extremes long enough to trip the 90-frame idle threshold —
          the loop slept mid-bob and the outline froze while the visual floated on. */
+      /* ...and never while ANYTHING is hovered: the staleness watchdog, look re-poll and
+         bob-follow all live in this loop — sleeping mid-hug froze them (the ghost outline
+         after leaving a project page survived precisely because the loop slept before the
+         section swap finished). Sleep only in the free-ring idle state. */
       var floating = !!(hoverEl && hoverBoxEl && hoverBoxEl !== hoverEl);
-      if (!floating && moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length && travT <= 0 && trackN <= 0) idleFrames++; else idleFrames = 0;
+      if (!hoverEl && !floating && moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length && travT <= 0 && trackN <= 0) idleFrames++; else idleFrames = 0;
     }
     function wake() {
       if (running || cursorOff) return;

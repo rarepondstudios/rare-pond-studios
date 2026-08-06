@@ -549,7 +549,10 @@ html.xw-active{overflow:hidden}
      interpolated, so those land on hover as a straight swap - still hover-only, and still on
      all three layers. */
   .citem,.bubble{--gg1:var(--g1);--gg2:var(--g2);--gg3:var(--g3)}
-  .citem.rp-hover-look:hover,.bubble.rp-hover-look:hover{--gg1:var(--h1,var(--g1));--gg2:var(--h2,var(--g2));--gg3:var(--h3,var(--g3))}
+  /* the hover-look colour swap fires for the KEYBOARD selection too (.rpc-kbsel is the kb
+     mirror of :hover) - without it, kb interaction left bubbles AND the adopting cursor on the
+     signature colours while the mouse showed the project look */
+  .citem.rp-hover-look:hover,.citem.rp-hover-look.rpc-kbsel,.bubble.rp-hover-look:hover,.bubble.rp-hover-look.rpc-kbsel{--gg1:var(--h1,var(--g1));--gg2:var(--h2,var(--g2));--gg3:var(--h3,var(--g3))}
   .bubble.rp-glow-special:hover .glow,.bubble.rp-glow-special:hover .edge,
   .citem.rp-glow-special:hover .cglow,.citem.rp-glow-special:hover .cedge{background:var(--rp-glow)}
   .caption{position:absolute;left:50%;top:calc(100% + 20px);transform:translateX(-50%);text-align:center;white-space:nowrap;pointer-events:none}
@@ -698,7 +701,7 @@ html.xw-active{overflow:hidden}
      re-sampled into layout and shimmered). There is deliberately NO transform on :hover — see
      the note on the hover rule below for why moving this fixed pill caused the flicker.
      Transition is scoped to the exact properties that change (never `all`). */
-  .back{position:fixed;top:calc(var(--header-h) + 8px);left:clamp(14px,5vw,54px);z-index:180;display:inline-flex;align-items:center;gap:9px;cursor:pointer;border-radius:50px;padding:11px 18px;font-weight:700;font-size:14px;color:#fff;background:rgba(10,22,46,.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 22px rgba(0,0,0,.35);transform:translateZ(0);backface-visibility:hidden;transition:background .2s ease,border-color .2s ease,box-shadow .2s ease}
+  .back{position:fixed;top:calc(var(--header-h) + 8px);left:clamp(14px,5vw,54px);z-index:900;/* above every universe layer - kicker/eyebrow text can scroll under it, never over it */display:inline-flex;align-items:center;gap:9px;cursor:pointer;border-radius:50px;padding:11px 18px;font-weight:700;font-size:14px;color:#fff;background:rgba(10,22,46,.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 22px rgba(0,0,0,.35);transform:translateZ(0);backface-visibility:hidden;transition:background .2s ease,border-color .2s ease,box-shadow .2s ease}
   /* Hover feedback is background/border/shadow ONLY — never a transform that moves the button.
      A -2px translate slid this fixed pill 2px under the cursor, so at its edges the pointer kept
      crossing in and out as the button moved, firing hover on/off every frame = the flicker Jack
@@ -974,7 +977,7 @@ html.xw-active{overflow:hidden}
      The only thing a swipe still does is PAUSE the idle bob/float animations, which is
      invisible - they resume from where they were. */
   body.swiping .bgb,body.swiping .orbi,body.swiping .cbub,
-  body.swiping .cglow,body.swiping .citem::before{animation-play-state:paused !important}
+  body.swiping .cglow,body.swiping .ckbring,body.swiping .citem::before{animation-play-state:paused !important}
 
   /* ===== custom pages (Pages CMS → Custom Pages) ===== */
   #custom-page{position:relative;padding:calc(var(--header-h) + 38px) clamp(18px,5vw,60px) 0;min-height:100vh;background-size:cover;background-position:center;background-repeat:no-repeat}
