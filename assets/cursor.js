@@ -497,25 +497,53 @@
        the UP arrow, where Enter / left / right page a full view at a time. */
     function kbJogStep(car, navId, dx, cx, cy) {
       var nav = document.getElementById(navId);
+      var cb; try { cb = car.getBoundingClientRect(); } catch (_) { return false; }
+      var pad = 14;
+      /* WRAP / OVERSHOOT RECOVERY: looped strips are DOUBLED content — when the marquee
+         position wraps, every element teleports by half the track in a single frame, and
+         rapid presses measure mid-flight rects. So the current selection's coordinates are
+         never trusted beyond the strip's visible box: the step's reference point is the
+         selection CLAMPED into the box, candidates are only options in/near the box (far-off
+         loop duplicates can never be picked), and a "lost" selection (teleported outside)
+         re-engages the nearest on-screen option first — the selector is always back on
+         screen after ONE press, never a march across the page. */
+      var hr = null; try { hr = hoverEl ? hoverEl.getBoundingClientRect() : null; } catch (_) {}
+      var hcx = hr ? hr.left + hr.width / 2 : cx;
+      var lost = !dx || !hr || hcx < cb.left - (hr.width || 60) || hcx > cb.right + (hr.width || 60);
+      var refX = Math.max(cb.left + pad, Math.min(cb.right - pad, hcx));
       var els = car.querySelectorAll(SEL), cand = null, bs = Infinity, i, e2, r2;
       for (i = 0; i < els.length; i++) {
         e2 = els[i];
-        if (e2 === hoverEl || dcHas(e2, "off") || (nav && nav.contains(e2))) continue;
+        if ((!lost && e2 === hoverEl) || dcHas(e2, "off") || (nav && nav.contains(e2))) continue;
         try { r2 = e2.getBoundingClientRect(); } catch (_) { continue; }
         if (r2.width < 4 || r2.height < 4) continue;
-        var fx = (r2.left + r2.width / 2 - cx) * dx;
-        if (fx < 8) continue;                       /* must lie in the pressed direction */
-        var sc = fx + Math.abs(r2.top + r2.height / 2 - cy) * 2.5;   /* stay in the same ROW (2-row mosaics) */
-        if (sc < bs) { bs = sc; cand = { el: e2, r: r2 }; }
+        var ecx = r2.left + r2.width / 2;
+        if (ecx < cb.left - r2.width * 1.5 || ecx > cb.right + r2.width * 1.5) continue;   /* in/near the box only */
+        var vy = Math.abs(r2.top + r2.height / 2 - cy) * 2.5;   /* stay in the same ROW (2-row mosaics) */
+        if (lost) {
+          var d0 = Math.abs(ecx - refX) + vy;
+          if (d0 < bs) { bs = d0; cand = { el: e2, r: r2 }; }
+        } else {
+          var fx = (ecx - refX) * dx;
+          if (fx < 8) continue;                     /* must lie in the pressed direction */
+          var sc = fx + vy;
+          if (sc < bs) { bs = sc; cand = { el: e2, r: r2 }; }
+        }
       }
       if (!cand) return false;
-      /* reveal it before selecting: shift the strip only as far as needed (never a page) */
-      try {
-        var cb = car.getBoundingClientRect(), pad = 14, need = 0;
-        if (dx > 0 && cand.r.right > cb.right - pad) need = cand.r.right - (cb.right - pad);
-        else if (dx < 0 && cand.r.left < cb.left + pad) need = cand.r.left - (cb.left + pad);
-        if (need) car.dispatchEvent(new CustomEvent("rpc-kb-jog", { detail: { px: need } }));
-      } catch (_) {}
+      if (!lost) {
+        /* reveal it before selecting: shift the strip only as far as needed — and a single
+           step is CAPPED at ~one option's width, so no measurement glitch can ever inflate
+           it into a page-sized jump */
+        try {
+          var need = 0;
+          if (dx > 0 && cand.r.right > cb.right - pad) need = cand.r.right - (cb.right - pad);
+          else if (dx < 0 && cand.r.left < cb.left + pad) need = cand.r.left - (cb.left + pad);
+          var cap = cand.r.width + 60;
+          if (need > cap) need = cap; else if (need < -cap) need = -cap;
+          if (need) car.dispatchEvent(new CustomEvent("rpc-kb-jog", { detail: { px: need } }));
+        } catch (_) {}
+      }
       return kbEngage(cand.el);
     }
     function kbMove(dx, dy) {
@@ -749,6 +777,32 @@
                the ring is GLUED to it (transitions off, near-zero lag); once it settles the
                transitions return and the hug shape is re-scanned for the grown card. */
             var pR = hoverEl.__rpcR;
+            /* LOOP-WRAP TELEPORT: a looped strip's wrap moves elements by HALF THE TRACK in one
+               frame — the selection must snap to its on-screen equivalent immediately instead
+               of riding off into the void (kbJogStep with dx=0 = lost-recovery: re-engage the
+               nearest option inside the strip's visible box). */
+            if (kbActive) {
+              var doRecover = !!(pR && (Math.abs(pR.x - r.left) > 150 || Math.abs(pR.y - r.top) > 150));
+              var jcar = null, jmode = null;
+              if (doRecover || frame % 6 === 0) {
+                jcar = hoverEl.closest && hoverEl.closest("[data-kb-carousel]");
+                jmode = jcar ? (jcar.getAttribute("data-kb-carousel") || "click") : null;
+                if (jcar && jmode !== "click" && !doRecover) {
+                  /* periodic drift probe: easing overshoot can also carry the selection out */
+                  try {
+                    var jcb = jcar.getBoundingClientRect(), jc = r.left + r.width / 2;
+                    if (jc < jcb.left - r.width || jc > jcb.right + r.width) doRecover = true;
+                  } catch (_) {}
+                }
+              }
+              if (doRecover && jcar && jmode !== "click" &&
+                  kbJogStep(jcar, jmode, 0, r.left + r.width / 2, r.top + r.height / 2)) {
+                window.__rpcWrap = (window.__rpcWrap || 0) + 1;   /* QC breadcrumb */
+                try { r = hoverEl.getBoundingClientRect(); } catch (_) {}
+                cx = r.left + r.width / 2; cy = r.top + r.height / 2;
+                pR = null;
+              }
+            }
             var elMoving = !!(pR && (Math.abs(pR.x - r.left) > .8 || Math.abs(pR.y - r.top) > .8 ||
                                      Math.abs(pR.w - r.width) > .8 || Math.abs(pR.h - r.height) > .8));
             hoverEl.__rpcR = { x: r.left, y: r.top, w: r.width, h: r.height };
