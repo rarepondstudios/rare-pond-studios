@@ -21,6 +21,28 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-4 CAROUSEL RIDE — cursor v9 (element-motion tracking + selection rides rotation)
+
+Root cause of the "connector warps during navigation" OBS recording: while the hug is attached
+to a carousel item that is itself moving/resizing (RP home rotation, .5–.6s transforms), the
+ring's own 0.22s width/height CSS transition restarted every frame → rubbery outline shapes
+that conformed to nothing. Fixes (cursor master, both repos):
+
+- **ELEMENT-MOTION TRACKING:** per-frame rect diff on the hugged element; while it moves the
+  ring gets `.tracking` (size transitions off) + near-zero easing (.85) — the outline is GLUED
+  to the element. When it settles, transitions return and the hug shape is re-scanned via a
+  same-element applyHover (radius/pads for the grown card). Sleep guard covers trackN.
+- **Selection RIDES click-mode carousels:** kb arrow onto an OFF-CENTRE option in a
+  `data-kb-carousel="click"` container both selects it AND clicks it (rotates it to centre);
+  the selection + hug travel WITH the element (same DOM node — layout() swaps slot classes).
+  A CENTRED option is never auto-clicked (that would open the project); Enter activates it.
+  kbAdvance click-mode no longer reseeks to a different item — it kb-engages the ridden
+  element (kbsel glow, focus, hover parity). Off-centre test = |item centre − container
+  centre| > 18% of container width.
+- Harness (`_headless/v9btest.mjs`): ride via edge push and via kbMove both keep the chosen
+  pk selected into the feat slot; ≤34px centre error across 56+ tracked frames; settled ring
+  fits the 883px feat card exactly. Release-travel + xcur regressions green.
+
 ### 0.0.-3 LATE-NIGHT VISUAL-FIX BATCH — cursor v8 · kb accessibility · cross-site handoff
 
 Five recorded glitches fixed (cursor master + shared social_ui.js + both sites' markup):
