@@ -1613,7 +1613,11 @@ const citems=CAROUSEL.map((p,i)=>{
   const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" decoding="async" src="${p.img}" alt="${p.title}">`;
   /* only films with a reel AND a real still (not the placeholder poster) get a hover video */
   const sideVid=(!p.poster&&p.focusVideo)?`<video class="side-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
-  el.innerHTML=`<div class="cdrop"></div><div class="cglow"></div><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
+  /* data-cursor="noscan" on the decorative layers BEHIND the visible card (.cdrop = stretched
+     cast-shadow oval, .cglow = halo): the custom cursor's hug-outline scans border-radius from
+     near-full-size children, and these ovals must never drive the outline shape - only the
+     visible .cbub surface should (see assets/cursor.js scanShape). */
+  el.innerHTML=`<div class="cdrop" data-cursor="noscan"></div><div class="cglow" data-cursor="noscan"></div><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
   el.addEventListener('mouseenter',()=>{
     if(el.classList.contains('feat'))return;   /* featured card uses its own .focus-vid reel */
     startPreview(el.querySelector('.side-vid'));   /* shared hardened path */

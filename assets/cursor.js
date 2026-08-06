@@ -179,7 +179,7 @@
     var rx = -100, ry = -100;          // smoothed ring centre
     var pmx = -100, pmy = -100;        // previous pointer (velocity)
     var kS = 0, kV = 0, angS = 0;      // springy stretch (value + velocity) + angle
-    var hoverEl = null, hoverRad = 14, hoverPct = false, hoverSpecial = false, hoverPad = 0, textish = false;
+    var hoverEl = null, hoverRad = 14, hoverPct = false, hoverRadY = 0, hoverSpecial = false, hoverPad = 0, textish = false;
     var tiltEl = null, tiltOrig = "", tiltBase = "", tiltScale = 1;  // tilted element, its original inline transform, its computed base matrix, extra scale
     var tiltP = 0, tiltNx = 0, tiltNy = 0;  // ease-in progress + last tilt direction (for the ease-out)
     var relEls = [];                   // elements easing BACK to rest after hover-off (fluid shrink)
@@ -288,11 +288,55 @@
       } else { try { tiltEl.style.transform = tiltOrig; } catch (_) {} }
       tiltEl = null; tiltP = 0;
     }
+    /* HUG SHAPE SCAN: strongest border-radius among the element and its near-full-size
+       descendants (2 levels) — the visible rounding often lives on an inner card (project
+       bubble > circular image). Layers marked data-cursor~="noscan" (decorative cast-shadow /
+       glow OVALS sitting behind the visible surface, e.g. the RP carousel's .cdrop/.cglow)
+       never drive the outline: the outline must parallel the VISIBLE edge, not a backdrop.
+       Elliptical %-radii ("13% 20%") are captured on both axes for an exact match, and the
+       scan is re-run while a hugged element is in motion so an animated border-radius
+       (.cbub's 50% → 13%/20% morph) is followed frame by frame. */
+    function scanShape(el) {
+      var best = { px: 0, pct: false, py: 0 }, rr = null;
+      try { rr = el.getBoundingClientRect(); } catch (_) {}
+      function takeRad(node) {
+        if (dcHas(node, "noscan")) return;
+        try {
+          var raw = getComputedStyle(node).borderTopLeftRadius || "";
+          var parts = raw.split(/\s+/);
+          var v = parseFloat(parts[0]) || 0, p = raw.indexOf("%") > -1;
+          if (p) {
+            if (v >= best.px) best.py = parseFloat(parts[1]) || v;
+            best.px = Math.max(best.px, v);
+            best.pct = true;
+          } else if (!best.pct && v > best.px) best.px = v;
+        } catch (_) {}
+      }
+      takeRad(el);
+      if (rr && rr.width) {
+        var kids = el.children, i, j, k, kr;
+        for (i = 0; i < kids.length && i < 6; i++) {
+          k = kids[i];
+          if (dcHas(k, "noscan")) continue;
+          try { kr = k.getBoundingClientRect(); } catch (_) { continue; }
+          if (kr.width >= rr.width * .8 && kr.height >= rr.height * .8) takeRad(k);
+          var gk = k.children;
+          for (j = 0; j < gk.length && j < 6; j++) {
+            if (dcHas(gk[j], "noscan")) continue;
+            try { var gr = gk[j].getBoundingClientRect(); if (gr.width >= rr.width * .8 && gr.height >= rr.height * .8) takeRad(gk[j]); } catch (_) {}
+          }
+        }
+      }
+      hoverRad = best.px;
+      hoverPct = best.pct;
+      hoverRadY = best.pct ? best.py : 0;
+      return { best: best, rr: rr };
+    }
     function applyHover(el, txt, attrSp, kb) {
       if (clearT) { clearTimeout(clearT); clearT = null; }
       textish = !!txt;
       ring.classList.toggle("textish", textish);
-      if (el === hoverEl) return;
+      if (el === hoverEl && !!kb === hoverKb) return;   /* re-enter when kb takes over a mouse hover: specials convert to a conforming kb hug */
       releaseTilt();
       if (kbSelEl && kbSelEl !== el) { try { kbSelEl.classList.remove("rpc-kbsel"); } catch (_) {} kbSelEl = null; }
       /* hug → free: start the release travel from the outline's CURRENT centre (the element),
@@ -305,35 +349,8 @@
       hoverAttrSp = !!attrSp; hoverKb = !!kb;
       trackN = 0; try { ring.classList.remove("tracking"); } catch (_) {}
       if (el) {
-        /* The visible rounding often lives on an INNER child (card wrapper > circular image —
-           e.g. the project bubbles), so scan the element and its near-full-size descendants
-           (2 levels) and take the strongest border-radius. % radius ⇒ the ring ENCOMPASSES the
-           circle/ellipse instead of boxing it. */
-        var best = { px: 0, pct: false }, rr = null;
-        try { rr = el.getBoundingClientRect(); } catch (_) {}
-        function takeRad(node) {
-          try {
-            var raw = getComputedStyle(node).borderTopLeftRadius || "";
-            var v = parseFloat(raw) || 0, p = raw.indexOf("%") > -1;
-            if (p) { best.px = Math.max(best.px, v); best.pct = true; }
-            else if (!best.pct && v > best.px) best.px = v;
-          } catch (_) {}
-        }
-        takeRad(el);
-        if (rr && rr.width) {
-          var kids = el.children, i, j, k, kr;
-          for (i = 0; i < kids.length && i < 6; i++) {
-            k = kids[i];
-            try { kr = k.getBoundingClientRect(); } catch (_) { continue; }
-            if (kr.width >= rr.width * .8 && kr.height >= rr.height * .8) takeRad(k);
-            var gk = k.children;
-            for (j = 0; j < gk.length && j < 6; j++) {
-              try { var gr = gk[j].getBoundingClientRect(); if (gr.width >= rr.width * .8 && gr.height >= rr.height * .8) takeRad(gk[j]); } catch (_) {}
-            }
-          }
-        }
-        hoverRad = best.px;
-        hoverPct = best.pct;
+        var sres = scanShape(el);
+        var best = sres.best, rr = sres.rr;
         /* SPECIAL objects never get the ring outline — the object reacts instead.
            Auto: any large circular target (project bubbles / carousel side circles / JC hbubs;
            % radius ≥45 and ≥64px). Explicit: data-cursor="glow" (wordmarks) or "special".
@@ -346,7 +363,7 @@
            outline, and the object's own selection glow is mirrored via .rpc-kbsel site CSS. */
         if (kb && hoverSpecial) {
           hoverSpecial = false;
-          if (!best.pct) { hoverRad = 16; hoverPad = 6; }
+          if (!best.pct) { hoverRad = 16; hoverPad = 6; hoverRadY = 0; }
         }
         /* Engaged states — in BOTH the glow reads as "transferred" to the object, and the faint
            ghost ring (.rpc-mini) marks the pointer:
@@ -735,20 +752,22 @@
             var elMoving = !!(pR && (Math.abs(pR.x - r.left) > .8 || Math.abs(pR.y - r.top) > .8 ||
                                      Math.abs(pR.w - r.width) > .8 || Math.abs(pR.h - r.height) > .8));
             hoverEl.__rpcR = { x: r.left, y: r.top, w: r.width, h: r.height };
-            if (elMoving) { trackN = 8; ring.classList.add("tracking"); }
-            else if (trackN > 0 && --trackN === 0) {
+            if (elMoving) {
+              trackN = 8; ring.classList.add("tracking");
+              /* the visible surface's border-radius can be MORPHING too (.cbub 50% → 13%/20%
+                 over .6s) — follow it live so the outline parallels the visible edge exactly */
+              if (frame % 2 === 0) scanShape(hoverEl);
+            } else if (trackN > 0 && --trackN === 0) {
               ring.classList.remove("tracking");
-              var heS = hoverEl; hoverEl = null;
-              applyHover(heS, textish, hoverAttrSp, hoverKb);   /* settled-size re-scan (same el: radius/pads) */
-              try { r = heS.getBoundingClientRect(); } catch (_) {}
-              cx = r.left + r.width / 2; cy = r.top + r.height / 2;
+              scanShape(hoverEl);   /* settled re-scan: final radius for the grown card */
             }
             /* the outline is ATTACHED to the element's edges: exact box, exact radius,
                zero magnetic drift — moving inside the button moves the BUTTON (tilt),
                never the outline. */
             tx = cx; ty = cy;
             tw = r.width + hoverPad * 2; th = r.height + hoverPad * 2;
-            if (hoverPct) tr = hoverRad >= 45 ? "50%" : (hoverRad + "%");
+            if (hoverPct) tr = hoverRad >= 45 ? "50%" :
+              (hoverRadY && Math.abs(hoverRadY - hoverRad) > .5 ? hoverRad + "% / " + hoverRadY + "%" : hoverRad + "%");
             else tr = (hoverRad > 0 ? hoverRad + hoverPad : Math.min(th / 2, 12 + hoverPad)) + "px";
           }
           /* perspective warp of the hovered element itself (like the home bubbles),
