@@ -51,7 +51,7 @@ export function validateProjects(root = ROOT) {
     const key = String(p.key || '').trim();
     if (!key) add(errors, label, 'missing "key" (url-safe id, e.g. geri)');
     else {
-      if (!/^[a-z0-9-]+$/.test(key)) add(errors, label, `key "${key}" must be lowercase letters/numbers/hyphens only`);
+      if (!/^[a-z0-9_-]+$/.test(key)) add(errors, label, `key "${key}" must be lowercase letters/numbers/hyphens/underscores only`);
       if (seenKeys.has(key)) add(errors, label, `duplicate key "${key}" (also used by ${seenKeys.get(key)})`);
       else seenKeys.set(key, label);
     }

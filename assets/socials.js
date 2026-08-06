@@ -49,12 +49,12 @@
 
   /* Renders the header icons and the footer into the maintenance cover.
      `home` is where the footer's studio links should point ("/" or "/rentals"). */
-  window.RP_renderChrome = function (site, opts) {
+  window.RP_renderChrome = function (site, opts, socials) {
     opts = opts || {};
     var s = site || {};
 
     var head = document.getElementById('mSocials');
-    if (head) head.innerHTML = socialsHTML(s.socials);
+    if (head) head.innerHTML = socialsHTML(socials);
 
     if (!document.getElementById('mFoot')) return;
     var f = s.footer || {};
@@ -74,14 +74,14 @@
     if (tag && f.tagline) tag.textContent = f.tagline;
 
     var soc = document.getElementById('mFootSoc');
-    if (soc) soc.innerHTML = socialsHTML(s.socials);
+    if (soc) soc.innerHTML = socialsHTML(socials);
 
     /* Footer links are CMS-driven. On the real site some are in-page jumps ("go": "team")
        handled by the SPA router; the cover is a standalone page with no router, so those
        become real /#team links - which is what someone stranded here actually needs. */
     var links = document.getElementById('mFootLinks');
     if (links) {
-      links.innerHTML = (f.links || []).map(function (l) {
+      links.innerHTML = (s.nav || []).map(function (l) {
         var href = l.href ? l.href : ('/#' + (l.go || ''));
         return '<a href="' + esc(href) + '">' + esc(l.label || '') + '</a>';
       }).join('');

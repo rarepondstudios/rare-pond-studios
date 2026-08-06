@@ -26,6 +26,7 @@ function makeEnv(flag, { coverMissing = false, dotHtmlRedirects = false,
         const p = new URL(req.url).pathname;
         if (p === '/data/team.json')     return new Response(JSON.stringify(team), { status: 200 });
         if (p === '/data/projects.json') return new Response(JSON.stringify(projects), { status: 200 });
+        if (p === '/data/site.json')     return new Response(JSON.stringify({ projectsPublicAccess: projects && projects.publicAccess }), { status: 200 });
         if (p === '/data/pages.json')    return new Response(JSON.stringify(pages), { status: 200 });
         if (p === '/data/rentals.json') {
           if (flag === null) return new Response('not found', { status: 404 });

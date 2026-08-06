@@ -228,10 +228,13 @@
 
   /* Header icons + footer, from the same site.json the real pages use. If it fails to load,
      the page simply has no footer - it never shows an error and never blocks the message. */
-  fetch('/data/site.json', { cache: 'no-store' })
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (site) { if (site && window.RP_renderChrome) window.RP_renderChrome(site, P); })
-    .catch(function () {});
+  Promise.all([
+    fetch('/data/site.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
+    fetch('/data/socials.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+  ]).then(function (res) {
+    var site = res[0], soc = res[1];
+    if (site && window.RP_renderChrome) window.RP_renderChrome(site, P, (soc && soc.socials) || []);
+  });
 
   fetch('/data/maintenance.json', { cache: 'no-store' })
     .then(function (r) { return r.ok ? r.json() : null; })

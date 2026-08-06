@@ -85,7 +85,7 @@ commit). *(This exporter replaced the old n8n "Projects: DB to site (rarepond)" 
 | Which sites show a project | `on_rarepond` / `on_jackcarlsen` checkboxes | NocoDB |
 | Per-site flags (use look, in carousel, sort order) | `rp_*` / `jc_*` columns | NocoDB |
 | Colour palettes (the actual colours) | NocoDB `color_looks` table → exported to `data/colorlooks.json` | NocoDB (Pages CMS → Color Looks is view-only) |
-| Projects page open/closed | `data/projects.json` `publicAccess` | Pages CMS → Projects |
+| Projects page open/closed | `data/site.json` `projectsPublicAccess` | Pages CMS → Projects |
 
 **How to make common changes**
 
