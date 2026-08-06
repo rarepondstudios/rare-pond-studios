@@ -21,6 +21,36 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-5 POPUP FOCUS TRAP + JOG-STRIP STEPPING — cursor v10
+
+From three OBS recordings (kb selecting through/behind popups; JC strips misbehaving on kb):
+
+- **Occlusion filter (kbCandidates):** every candidate's centre is probed with
+  `elementFromPoint` — anything covered by an unrelated element (an open popup, lightbox,
+  menu) is not selectable and never gets a halo THROUGH the overlay. Only the overlay's own
+  visible controls stay in play.
+- **KB occlusion watchdog (tick, every 12 frames):** if the current kb selection becomes
+  covered (Enter opened a lightbox over it), the hug is released immediately — the ring
+  can never keep shining through an overlay.
+- **Lightbox arrows own the keys:** both sites' lightbox keydown handlers now call
+  `preventDefault()` on Arrow keys. cursor.js is deferred (registers after the inline
+  handlers) and already skips `defaultPrevented` events, so while a photo viewer is open,
+  arrows page photos ONLY — no background spatial nav. Verified: Enter on a BTS shot →
+  viewer opens, hug releases, ArrowRight changes photo only, ArrowDown selects the
+  viewer's own CTA (nothing behind it).
+- **TWO CAROUSEL TYPES formalized.** (1) click-mode (RP home): arrow onto a side option →
+  it rotates to centre with the selection riding (v9). (2) jog strips (JC wall/BTS,
+  `data-kb-carousel="<navId>"`): horizontal arrows step ONE ITEM AT A TIME — new
+  `kbJogStep` picks the adjacent option (same-row biased for the 2-row mosaic; the strip's
+  Prev/Next chrome is excluded from horizontal steps) and, if it sits outside the strip's
+  visible box, dispatches `rpc-kb-jog {px}` so the site marquee shifts JUST enough to
+  reveal it (wireNav binds it to `mq.jog`). Selection always stays on screen; the hug
+  rides the shift via motion tracking. Full-page skip: ArrowUp to the strip's arrow
+  button, then Enter / left / right pages a full view (keydown special-case on
+  `[data-dir]` buttons whose parent nav id is referenced by a data-kb-carousel).
+  Old behavior (page-jog + reseek that let the selection go off screen / land on the
+  arrows) is gone; jog-mode kbAdvance remains only as a fallback.
+
 ### 0.0.-4 CAROUSEL RIDE — cursor v9 (element-motion tracking + selection rides rotation)
 
 Root cause of the "connector warps during navigation" OBS recording: while the hug is attached
