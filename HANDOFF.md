@@ -21,6 +21,41 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-12 LOOK COVERAGE + X-STANDARD + FOCUS RULE — cursor v17
+
+From Jack's OBS retest (frames verified):
+
+- **Look coverage gaps closed.** RP project pages (universes) use `--fg1/2/3` — the engine
+  now reads them, so the cursor tints INSIDE a project. Lightboxes are appended to <body>
+  (outside any look scope), so both sites' `openLB` (and JC's reel viewer) now COPY the
+  source element's computed look vars onto the lightbox — the cursor tints on the ‹ › X
+  buttons of the photo viewer. Precedence fix: `--cc` (rentals section) is resolved BEFORE
+  `--g1`, because rentals page chrome later sets a signature `--g1` page-wide which was
+  shadowing the section color.
+- **Gradient fixed in screen space.** The velocity stretch ROTATES the ring element, which
+  spun the conic gradient with it — mouse shakes read as the colours flipping (the smoothed
+  angle jumps ~pi on direction reversals). The gradient's from-angle now counter-rotates
+  (`--rpc-spin`), so the colour band never moves while the oval turns.
+- **WHITE-SQUARE glitch:** kb-select then mouse-away left the element focused after
+  `.rpc-kbsel` (which suppresses the UA outline) was removed — Chrome's native focus
+  RECTANGLE appeared. The engine now blurs the element when its selection class is removed.
+- **FOCUS-vs-ENTER RULE (the cursor's meaning):** ring glow present over an element =
+  "clicking ENTERS this". Elements whose click only brings them to the FOREGROUND lose the
+  ring glow (faded, object reacts instead): opt in with `data-cursor~="focus"`, and
+  AUTOMATIC for off-centre options of click-mode carousels — future focus-click elements
+  inherit it with no wiring.
+- **POPUP X STANDARD: TOP-LEFT.** Every popup's close X now lives in/just outside the TOP-
+  LEFT corner: RP+JC lightbox .lb-close, JC reel viewer, shared contact .rpc-close (master
+  contact.css), crew form .rpc-x, rentals .dpx (item menu + request form; the dp back
+  button moved beside it at left:60px), cart header X (order:-1), and the DATE-PICKER popup
+  (#dpop) — which previously had NO X at all — got one (#dpopx). Any new popup follows
+  this rule.
+- **Rentals kb hardening + diagnostics:** kbVis needs a popup ≥12px inside the viewport
+  (sub-pixel translateX(100%) rounding can never count a closed drawer as "open"), and
+  `window.__rpcModal` breadcrumb reports what the engine considers the open modal (check it
+  first if "keyboard dead on the page, fine in popups" ever comes back). Full state sweep
+  (open/close dates, item menu, cart, contact) keeps kb + section tint working.
+
 ### 0.0.-11 COLOR-LOOK CURSOR + A11Y TOGGLE + RENTALS KB FIX — cursor v16
 
 Seven-item batch from Jack's notes:
