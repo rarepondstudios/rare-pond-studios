@@ -87,8 +87,7 @@
     window.__rpcLookBase = { g: (_bcs.getPropertyValue("--gg1") || "").trim(),
                              f: (_bcs.getPropertyValue("--fg1") || "").trim(),
                              g0: (_bcs.getPropertyValue("--g1") || "").trim(),
-                             c: (_bcs.getPropertyValue("--c1") || "").trim(),
-                             r: (_bcs.getPropertyValue("--cc") || "").trim() };
+                             c: (_bcs.getPropertyValue("--c1") || "").trim() };
   } catch (_) {}
   function j(u) { return fetch(u).then(function (r) { return r.json(); }).catch(function () { return null; }); }
   Promise.all([j("/data/site.json"), j("/data/colorlooks.json")]).then(function (res) {
@@ -235,8 +234,7 @@
           lookBase = { g: (cs.getPropertyValue("--gg1") || "").trim(),
                        f: (cs.getPropertyValue("--fg1") || "").trim(),
                        g0: (cs.getPropertyValue("--g1") || "").trim(),
-                       c: (cs.getPropertyValue("--c1") || "").trim(),
-                       r: (cs.getPropertyValue("--cc") || "").trim() };
+                       c: (cs.getPropertyValue("--c1") || "").trim() };
         } catch (_) {}
       }
     }
@@ -249,10 +247,6 @@
         if (v && v !== lookBase.g) return [v, (cs.getPropertyValue("--gg2") || "").trim() || v, (cs.getPropertyValue("--gg3") || "").trim() || v];
         v = (cs.getPropertyValue("--fg1") || "").trim();   /* RP universe (film section) looks */
         if (v && v !== lookBase.f) return [v, (cs.getPropertyValue("--fg2") || "").trim() || v, (cs.getPropertyValue("--fg3") || "").trim() || v];
-        /* --cc BEFORE --g1: rentals runs page chrome that later sets a signature --g1 on the
-           page, which would shadow the active SECTION's --cc if --g1 were checked first */
-        v = (cs.getPropertyValue("--cc") || "").trim();
-        if (v && v !== lookBase.r) { var g2 = (cs.getPropertyValue("--ccg") || "").trim(); return [v, g2 || v, v]; }
         v = (cs.getPropertyValue("--g1") || "").trim();   /* JC scopes + raw RP look vars */
         if (v && v !== lookBase.g0) return [v, (cs.getPropertyValue("--g2") || "").trim() || v, (cs.getPropertyValue("--g3") || "").trim() || v];
         v = (cs.getPropertyValue("--c1") || "").trim();
@@ -623,9 +617,13 @@
       try {
         var cs = getComputedStyle(el);
         if (cs.display === "none" || cs.visibility === "hidden" || parseFloat(cs.opacity) < .05) return false;
-        var r = el.getBoundingClientRect();   /* a drawer slid off-screen (transform) is NOT open;
-           12px margin: sub-pixel rounding of translateX(100%) must never count as "open" */
-        return r.width > 2 && r.height > 2 && r.right > 12 && r.left < innerWidth - 12 && r.bottom > 12 && r.top < innerHeight - 12;
+        var r = el.getBoundingClientRect();   /* a drawer slid off-screen (transform) is NOT open.
+           Judge against the LAYOUT viewport (clientWidth/Height EXCLUDE classic scrollbars):
+           with always-visible scrollbars, translateX(100%) parks a drawer ~15px inside
+           innerWidth - that must never count as "open". 12px margin absorbs sub-pixel rounding. */
+        var vw = document.documentElement.clientWidth || innerWidth;
+        var vh = document.documentElement.clientHeight || innerHeight;
+        return r.width > 2 && r.height > 2 && r.right > 12 && r.left < vw - 12 && r.bottom > 12 && r.top < vh - 12;
       } catch (_) { return false; }
     }
     function kbModal() {
@@ -669,7 +667,8 @@
         try { r = el.getBoundingClientRect(); } catch (_) { continue; }
         if (r.width < 4 || r.height < 4) continue;
         if (r.bottom < -60 || r.top > innerHeight + 60 || r.right < -60 || r.left > innerWidth + 60) continue;   /* roughly on screen */
-        if (r.right < 8 || r.left > innerWidth - 8) continue;   /* horizontally off-screen is unreachable: the page never pans sideways by design */
+        var vw2 = document.documentElement.clientWidth || innerWidth;
+        if (r.right < 8 || r.left > vw2 - 8) continue;   /* horizontally outside the LAYOUT viewport (scrollbars excluded) is unreachable: the page never pans sideways by design */
         try { cs = getComputedStyle(el); } catch (_) { continue; }
         if (cs.visibility === "hidden" || cs.display === "none" || parseFloat(cs.opacity) === 0) continue;
         /* OCCLUSION: an option sitting BEHIND an open popup/lightbox/menu must be neither
@@ -954,6 +953,20 @@
       }
       if (kbMove(dx, dy)) { kbActive = true; e.preventDefault(); }
       else if (dx && kbAdvance(dx)) { kbActive = true; e.preventDefault(); }
+      else if (!kbActive) {
+        /* FIRST kb interaction with the pointer parked ON an element and no candidate in the
+           pressed direction (mouse on the cart FAB, pressing down toward nothing): the press
+           must still light the keyboard up - engage the nearest candidate like the no-hover
+           activation does, instead of silently doing nothing. */
+        var sx2 = mx >= 0 ? mx : innerWidth / 2, sy2 = my >= 0 ? my : innerHeight / 2;
+        var cands2 = kbCandidates().map(function (c) {
+          var nx = c.r.left + c.r.width / 2 - sx2, ny = c.r.top + c.r.height / 2 - sy2;
+          return { el: c.el, d: nx * nx + ny * ny };
+        }).sort(function (a, b2) { return a.d - b2.d; });
+        for (var ci2 = 0; ci2 < cands2.length && ci2 < 8; ci2++) {
+          if (kbEngage(cands2[ci2].el)) { kbActive = true; e.preventDefault(); break; }
+        }
+      }
     });
 
     /* ---- loading detection (cheap, every ~12 frames + 250ms engage grace) ---- */
