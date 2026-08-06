@@ -301,6 +301,13 @@ file holds the switch, which key, and an id) and a matching entry in `PAGES` in
 
 ## Things that have bitten us (don't re-learn these)
 
+- **A root `404.html` HIJACKS the SPA `/*` catch-all on Cloudflare Pages.** Dropping a
+  `404.html` at the repo root to 404 missing files made Pages serve it (with a 404) for EVERY
+  non-file route -- every film / projects / team SPA route 404'd, LIVE, until rolled back. Pages'
+  only static custom-404 IS a root `404.html`, and `_redirects` has no 404 action (only a 200
+  rewrite), so a SPA cannot 404 missing assets via static config. Do it in a Pages Function
+  (`functions/_middleware.js`): resolve the path, and if a `/media/` file came back `text/html`
+  the real file is missing -> return a real 404. (2026-08-06)
 - **Cloudflare Pages 308-redirects `/foo.html` to `/foo`.** A 308 is not `ok`, so a
   `fetch('/maintenance.html')` inside the middleware silently failed and fell through to the
   real page — in production only, while every test passed, because the test fixture served

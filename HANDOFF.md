@@ -21,6 +21,36 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-17 SECURITY + BACKUP FIXES (QC follow-up, 2026-08-06) — no cursor change
+
+All pushed + live-verified on RP + JC. From the full-system QC pass:
+
+- **ADMIN AUTH BYPASS (fixed).** `/admin%2Fcolorlooks` (URL-encoded slash) served the internal
+  tools with NO password: Cloudflare decodes `%2F` to LOCATE the asset, but the middleware tested
+  the still-encoded pathname, so `isProtected()` never matched `/admin/`. It now
+  `decodeURIComponent`s (and defuses `%252F`) before the prefix test; 4 encoded-slash cases added
+  to `tools/test-colorlooks-gate.mjs` (all green). Live: encoded path now 401.
+- **/media CACHE-POISON (fixed) — and a HARD LESSON.** A missing `/media/...` file fell through to
+  the SPA (`/* /index.html 200`) and the `/media/* 7-day` cache rule cached that wrong HTML at the
+  image URL. **DO NOT fix this with a root `404.html`:** a root `404.html` HIJACKS the SPA `/*`
+  catch-all on Cloudflare Pages and 404'd EVERY film/projects/team route (caught + rolled back
+  within minutes this session). `_redirects` has no 404 action either (only a 200 rewrite). The
+  working fix lives in `functions/_middleware.js`: for a `/media/` FILE path, resolve the pipeline
+  and if it came back `text/html` the real file is missing -> return a real 404 (`no-store`). Real
+  images resolve to `image/*` and pass through (cache header preserved -- verified).
+  **jackcarlsen.com got its FIRST Pages Function** for the identical fix.
+- **Error beacon** (`functions/api/client-error.js`) now drops non-same-origin POSTs first
+  (cross-site spam). A per-IP throttle would need a KV/DO binding (not configured).
+- **Weekly backup was NOT stalled** (the QC report's "Jul 11" looked at the wrong dir). It writes
+  to `~/Desktop/Archived Backups` (mounted `/backups` in the n8n container); last scheduled run
+  Aug 2, plus a fresh run triggered Aug 6. The health monitor false-flagged it because this
+  workflow's successful executions aren't recorded in n8n; `automation_health_launchd.py` now
+  judges it by actual backup-FILE freshness (`_backup_freshness_h()`) and shows the truth (green,
+  and would catch a real missing/stale-files failure).
+
+RULE for every future site: never drop a root `404.html` into a Pages SPA repo -- do missing-asset
+404s in the middleware. Commits: RP f4ed193->9d2b528, JC 3eff23c->5efe065.
+
 > **NEXT SESSION: read `STREAMLINE-ROADMAP.md` before touching anything.** Jack's standing
 > order for the next pass is a fresh-eyes streamline: every recurring element (header,
 > footer, transitions, lightbox) unified into one config-driven engine per element, plus a
