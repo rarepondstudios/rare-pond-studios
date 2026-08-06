@@ -160,7 +160,7 @@ main{position:relative;z-index:2}
 .mfoot-water{position:absolute;left:0;right:0;top:0;bottom:0;z-index:0;pointer-events:none;opacity:.46;
   background:url('/media/site/water.jpg') center bottom/cover no-repeat;
   -webkit-mask:linear-gradient(180deg,transparent 0%,transparent 22%,#000 64%);mask:linear-gradient(180deg,transparent 0%,transparent 22%,#000 64%)}
-.mfoot .wm{position:relative;z-index:1;justify-content:center;margin:0 auto 12px}
+.mfoot .wm{position:relative;z-index:1;display:inline-flex;justify-content:center;margin:0 auto 12px}/* inline-flex: a flex anchor is otherwise a full-row block - the cursor reacted to the wordmark from the far edges of the footer */
 /* shared footer bits (tagline, socials, links, copy) come from chrome.css .rp-footer;
    just lift them above the caustic water layer and give the copy its media-specific line */
 .mfoot .tag,.mfoot .fsoc,.mfoot .flinks,.mfoot .copy{position:relative;z-index:1}

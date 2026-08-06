@@ -15,11 +15,31 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-06 (v20 mobile pass).
+> Last updated: 2026-08-06 (v21 + streamline roadmap).
 
 ---
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
+
+> **NEXT SESSION: read `STREAMLINE-ROADMAP.md` before touching anything.** Jack's standing
+> order for the next pass is a fresh-eyes streamline: every recurring element (header,
+> footer, transitions, lightbox) unified into one config-driven engine per element, plus a
+> deep-dive cleanup sweep — without breaking current behaviour. The roadmap file carries
+> the full inventory, guardrails, and definition of done.
+
+### 0.0.-16 SMALL FIXES + THE ROADMAP — v21
+
+- **Media footer wordmark hitbox:** the `.wm` anchor is a flex element, so it laid out as
+  a FULL-ROW block — the cursor reacted to it from the far edges of the footer. Now
+  inline-flex (hitbox = visual). This is a drift symptom of four bespoke footers — see the
+  roadmap.
+- **"More to come" keyboard parity:** kb selection (`.rpc-kbsel`) now joins the
+  :hover/.rp-tap selectors for the placeholder's rainbow glow/edge + duck-mark reveal —
+  keyboard users get the same reaction as mouse hover and mobile tap.
+- **`STREAMLINE-ROADMAP.md` added** (committed, public-safe): the next session's mission
+  brief — unification targets (4 footers, 4 headers, duplicated inline boot snippets, twin
+  lightboxes, the look-var naming zoo), the already-shared engines to model on, the sweep
+  candidates, guardrails, and the definition of done.
 
 ### 0.0.-15 MOBILE PASS — v20
 

@@ -477,7 +477,7 @@ html.xw-active{overflow:hidden}
   .bubble.placeholder{cursor:default}
   .glow{position:absolute;inset:-16px;border-radius:50%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);filter:blur(9px);opacity:.32;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
   .bubble.placeholder .glow{opacity:.2}
-  .bubble.placeholder:hover .glow,.bubble.placeholder.rp-tap .glow{background:var(--rainbow);opacity:.85}
+  .bubble.placeholder:hover .glow,.bubble.placeholder.rp-tap .glow,.bubble.placeholder.rpc-kbsel .glow{background:var(--rainbow);opacity:.85}
   .bubble-inner{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;-webkit-clip-path:circle(50%);clip-path:circle(50%);/* NO box-shadow here: clip-path clips it away. The shadow is cast by .bubble::after. */animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
   .bubble.placeholder .bubble-inner{opacity:.7}
   .bubble__media{position:absolute;inset:-3%;width:106%;height:106%;object-fit:cover;display:block}
@@ -500,7 +500,7 @@ html.xw-active{overflow:hidden}
   .edge{position:absolute;inset:0;border-radius:50%;z-index:4;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));
     -webkit-mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);opacity:.45;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
   .bubble.placeholder .edge{opacity:.5}
-  .bubble.placeholder:hover .edge,.bubble.placeholder.rp-tap .edge{background:var(--rainbow);opacity:1}
+  .bubble.placeholder:hover .edge,.bubble.placeholder.rp-tap .edge,.bubble.placeholder.rpc-kbsel .edge{background:var(--rainbow);opacity:1}
   .bubble>.bubble-logo{position:absolute;left:50%;top:-17%;transform:translateX(-50%);z-index:7;pointer-events:none;display:grid;place-items:center;transition:opacity .4s,transform .5s}
   .bubble>.bubble-logo img{height:calc(var(--bubble-size)*0.54);width:auto;max-width:calc(var(--bubble-size)*1.15);object-fit:contain;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45))}
   .bubble>.bubble-logo .txt{font-weight:800;font-size:clamp(18px,2.2vw,25px);color:#fff;text-align:center;line-height:1.05;text-shadow:0 4px 16px rgba(0,10,40,.6)}
@@ -871,7 +871,7 @@ html.xw-active{overflow:hidden}
   #contact{content-visibility:auto;contain-intrinsic-size:1px 1200px}
   /* ===== 'More to come' hover reveal of RP mark ===== */
   .bubble.placeholder .ph-logo{position:absolute;inset:20%;z-index:5;pointer-events:none;opacity:0;transition:opacity .45s ease;background:#e6ebff;filter:drop-shadow(0 0 12px rgba(155,92,255,.55))}
-  .bubble.placeholder:hover .ph-logo{opacity:.95}
+  .bubble.placeholder:hover .ph-logo,.bubble.placeholder.rpc-kbsel .ph-logo{opacity:.95}
   /* ===== touch devices: never stick the hover aura-glow ===== */
   @media(hover:none){
     .bubble:hover{transform:rotateX(var(--tiltx)) rotateY(var(--tilty)) !important}
