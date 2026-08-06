@@ -47,7 +47,15 @@
  * than the filename closes that back door automatically.
  */
 function isProtected(pathname) {
-  const p = (pathname || '').toLowerCase().replace(/\/+$/, '');   // ignore a trailing slash
+  // Decode percent-encoding BEFORE the prefix test. Cloudflare's asset layer decodes %2F to a
+  // slash when it locates the file, so /admin%2Fcolorlooks resolves to the admin asset; testing
+  // the still-encoded path let it slip PAST the gate. Decode (and defuse double-encoding) so an
+  // encoded slash can never bypass the /admin/ check. Decoding only ever makes MORE paths match
+  // (fail-closed): no public path legitimately contains an encoded '/admin/'.
+  let p = (pathname || '');
+  try { p = decodeURIComponent(p); } catch (e) { /* malformed escape -> fall back to the raw path */ }
+  p = p.replace(/%2f/gi, '/');                    // belt-and-suspenders for %252F double-encoding
+  p = p.toLowerCase().replace(/\/+$/, '');        // ignore a trailing slash
   return p === '/admin' || p.startsWith('/admin/');
 }
 const REALM = 'Rare Pond - Internal';

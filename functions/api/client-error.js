@@ -11,6 +11,19 @@
 export async function onRequestPost(context) {
   try {
     const { request, env } = context;
+
+    // Same-origin only: reject cross-site abuse of this open, unauthenticated beacon. Real
+    // reports from our own pages carry an Origin (POST) or at least a same-host Referer;
+    // anything else is dropped silently with the usual 204. (A true per-IP throttle would need
+    // a KV / Durable Object binding, which this project does not have configured.)
+    try {
+      const host = new URL(request.url).host;
+      const origin = request.headers.get('Origin') || '';
+      const referer = request.headers.get('Referer') || '';
+      const srcHost = origin ? new URL(origin).host : (referer ? new URL(referer).host : '');
+      if (!srcHost || srcHost !== host) return new Response(null, { status: 204 });
+    } catch (e) { return new Response(null, { status: 204 }); }
+
     let text = '';
     try { text = (await request.text()).slice(0, 4000); } catch (e) { text = ''; }
     if (!text) return new Response(null, { status: 204 });

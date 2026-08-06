@@ -13,5 +13,11 @@ https://rarepond.com/*    https://www.rarepond.com/:splat    301
 # Rare Pond Media is served from media/index.html at /media/ (Cloudflare serves the directory
 # index just like rentals/index.html at /rentals/). Real asset files under /media/* keep serving
 # static-first, so the page index and the asset library coexist. No custom rule needed here.
+# Missing files under /media/* must 404 -- NOT fall through to the SPA below. Falling through
+# returned a 200 HTML app-shell in place of the image, and the /media/* rule in _headers cached
+# that wrong response for 7 days, poisoning any not-yet-uploaded /media URL. Real media files
+# serve static-first and never reach this rule; only genuinely-missing ones 404.
+/media/*    /404.html    404
+
 # Studio SPA: any other unknown path renders the app (which reads the path and routes).
 /*    /index.html    200

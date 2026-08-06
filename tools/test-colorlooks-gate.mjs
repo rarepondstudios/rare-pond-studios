@@ -57,6 +57,12 @@ await check('/ADMIN/CoLorLooks (case games)', await call('/ADMIN/CoLorLooks'), 4
 // still locked on its first deploy. Under the old filename list it would have been public.
 await check('a brand-new, unlisted /admin/ page is locked by default', await call('/admin/some-future-tool'), 401);
 
+// --- ENCODED-SLASH BYPASS (fixed): Cloudflare decodes %2F to find the asset, so the gate must too ---
+await check('/admin%2Fcolorlooks (encoded slash) is gated', await call('/admin%2Fcolorlooks'), 401);
+await check('/admin%2fpreview (lowercase encoded slash) is gated', await call('/admin%2fpreview'), 401);
+await check('/admin%252Fcolorlooks (double-encoded slash) is gated', await call('/admin%252Fcolorlooks'), 401);
+await check('/admin%2Fsome-future-tool (encoded, unlisted) is gated', await call('/admin%2Fsome-future-tool'), 401);
+
 // --- wrong credentials ---
 await check('wrong password', await call('/admin/colorlooks', { Authorization: basic('rarepond', 'wrong') }), 401);
 await check('wrong username', await call('/admin/colorlooks', { Authorization: basic('nope', 's3cret') }), 401);
