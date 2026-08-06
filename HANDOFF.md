@@ -21,6 +21,32 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-9 MODAL KEYBOARD TRAP — cursor v14 (FRAMEWORK RULE)
+
+The v10 occlusion probe was not a real focus trap: it only rejected candidates whose CENTRE
+was covered on-screen, so kb could still reach roughly-off-screen background elements while
+a lightbox was open, and a selection on an AUTO-DRIFTING strip (permanently "in motion")
+was exempt from the release watchdog — its glow lingered under the opened photo. Replaced
+with an explicit modal whitelist:
+
+- **THE RULE (every popup, every future site):** the OUTERMOST container of any popup that
+  owns the screen — image lightbox, reel viewer, contact modal, rental item menu / cart /
+  request form / date picker — carries **`data-kb-modal`**. While one is visible, keyboard
+  candidates are ONLY its own controls (its prev/next arrows, its close X, its form fields).
+  Nothing behind it is selectable, haloed, or scrollable-to. Topmost (last visible in DOM)
+  wins when several stack; "visible" requires on-screen intersection, so a drawer slid away
+  by transform does not count as open.
+- **Safety net for forgotten annotations:** any FIXED overlay covering >=55% of the viewport
+  at z-index >= 10 is trapped automatically (heuristic in `kbModal()`).
+- **Stale-selection release, twice over:** at KEY-TIME (a press with a modal open and the
+  selection outside it drops the selection first, then that same press engages the popup's
+  nearest control) and in the WATCHDOG (modal check now runs even while motion tracking is
+  active — the auto-drift exemption is gone).
+- Annotated: RP .lightbox; JC .lightbox + .reel-lb; shared contact .rpc-backdrop
+  (master contact.js); rentals #dp, #cartp, #reqpop, #dpop. Harness: JC lightbox — stale
+  strip glow released on open, 6-arrow hammer never left the modal, ArrowRight paged the
+  photo; RP contact + rentals menu trapped; v9/v12/v13 regressions clean.
+
 ### 0.0.-8 FULL-SITE KEYBOARD QA — cursor v13
 
 Full kb sweep of both sites plus four targeted fixes from Jack's checklist:
