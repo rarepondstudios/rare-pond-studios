@@ -549,6 +549,12 @@ html.xw-active{overflow:hidden}
      object visibly reacts to being selected — same "selection glow" as a mouse hover. */
   .bubble.rpc-kbsel{transform:translateZ(40px) scale(1.06)}
   .bubble.rpc-kbsel .caption .t{opacity:1;transform:translateY(0)}
+  /* keyboard selection ring, rendered by the BUBBLE itself (data-cursor="kbnative") so it sits
+     BENEATH the floating logo (z 5 < .bubble-logo z 7) — the logo stays in the foreground */
+  .bubble .kbring{position:absolute;inset:-11px;border-radius:50%;border:2.5px solid rgba(255,255,255,.92);
+    box-shadow:0 0 18px -2px var(--gg2,#9ec7ff),inset 0 0 12px -6px var(--gg2,#9ec7ff);
+    opacity:0;z-index:5;pointer-events:none;transition:opacity .25s ease}
+  .bubble.rpc-kbsel .kbring{opacity:1}
   .citem.rpc-kbsel::before,.bubble.rpc-kbsel::before{opacity:.42;visibility:visible}
   .bubble:hover .glow,.bubble.rpc-kbsel .glow{opacity:1;filter:blur(12px)}
   .bubble:hover .edge,.bubble.rpc-kbsel .edge{opacity:.95}
@@ -1464,7 +1470,12 @@ function makeGridBubble(p,i){
      carousel items already carried it; the grid ones did not, which is why a look
      could only ever reach half the bubbles. */
   bubble.dataset.pk=p.key;
+  /* kbnative: keyboard selection is indicated by the bubble's OWN .kbring layer (beneath the
+     logo, so logos stay in the foreground) instead of the cursor engine's fixed-layer ring.
+     The placeholder ("More to come") is a keyboard STOP too (tabindex, no role/click). */
+  bubble.setAttribute('data-cursor','kbnative');
   if(!p.placeholder){bubble.setAttribute('role','button');bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','Open '+p.title);}
+  else{bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','More to come');}
   const mediaHTML=p.placeholder?`<div class="bubble__media placeholder-fill"></div><div class="ph-logo" style="-webkit-mask:url('${SITE.logos.duckMark}') center/contain no-repeat;mask:url('${SITE.logos.duckMark}') center/contain no-repeat"></div><div class="ph-spin"></div>`
     :(p.poster?'<div class="bubble__media poster"></div>':`<img class="bubble__media" decoding="async" src="${p.img}" alt="${p.title}">`);
   /* ===== PROJECTS-PAGE HOVER-PREVIEW REEL =========================================
@@ -1475,7 +1486,7 @@ function makeGridBubble(p,i){
      hover (see the mouseenter wiring below, which reuses the shared sideActive/stopSideVid). */
   const gridVid=(!p.placeholder&&!p.poster&&p.focusVideo)
     ?`<video class="bubble-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
-  bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}${gridVid}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${fillVars(GRID_CAPTION_TPL,VARS[p.key])}</div></div>`;
+  bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}${gridVid}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="kbring"></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${fillVars(GRID_CAPTION_TPL,VARS[p.key])}</div></div>`;
   bubble.addEventListener('pointermove',e=>{if(!INTERACTIVE)return;const r=bubble.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){bubble.style.setProperty('--mx',(px*100).toFixed(1)+'%');bubble.style.setProperty('--my',(py*100).toFixed(1)+'%');}const tm=7;bubble.style.setProperty('--tilty',((px-.5)*tm*2).toFixed(2)+'deg');bubble.style.setProperty('--tiltx',((.5-py)*tm*2).toFixed(2)+'deg');});
   bubble.addEventListener('pointerleave',()=>{if(INTERACTIVE){bubble.style.setProperty('--mx','73%');bubble.style.setProperty('--my','26%');bubble.style.setProperty('--tiltx','0deg');bubble.style.setProperty('--tilty','0deg');}});
   if(!p.placeholder){

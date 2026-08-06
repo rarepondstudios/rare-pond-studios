@@ -362,8 +362,15 @@
            consistent rounded rectangle with breathing room) instead of the browser's square
            outline, and the object's own selection glow is mirrored via .rpc-kbsel site CSS. */
         if (kb && hoverSpecial) {
-          hoverSpecial = false;
-          if (!best.pct) { hoverRad = 16; hoverPad = 6; hoverRadY = 0; }
+          if (dcHas(el, "kbnative")) {
+            /* kbnative: the OBJECT renders its own keyboard indicator (a site layer shown by
+               .rpc-kbsel, e.g. the RP project bubbles' .kbring sitting BENEATH their logo) —
+               the engine's fixed-layer ring would paint OVER page chrome like logos, so it
+               stays faded exactly like a mouse-hovered special. */
+          } else {
+            hoverSpecial = false;
+            if (!best.pct) { hoverRad = 16; hoverPad = 6; hoverRadY = 0; }
+          }
         }
         /* Engaged states — in BOTH the glow reads as "transferred" to the object, and the faint
            ghost ring (.rpc-mini) marks the pointer:
@@ -443,11 +450,23 @@
       kbSynthEl = el;
       if (el) { kbFire(el, "pointerover", true); kbFire(el, "pointerenter", false); kbFire(el, "mouseover", true); kbFire(el, "mouseenter", false); }
     }
+    /* Keyboard candidates are broader than mouse targets:
+       - [tabindex="0"] joins in (kb-only stops like the RP "More to come" bubble — the mouse
+         detector still ignores them unless they match SEL / cursor:pointer);
+       - data-cursor="off" only excludes kb when the element is NOT explicitly interactive:
+         an "off" element carrying role=button/tabindex (rentals item cards — the mouse hug is
+         deliberately off, the card glows natively) must still be reachable and Enter-able. */
+    var SELKB = SEL + ',[tabindex="0"]';
+    function kbSkip(el) {
+      if (isTextField(el)) return true;
+      if (!dcHas(el, "off")) return false;
+      return !(el.getAttribute("role") === "button" || el.getAttribute("tabindex") === "0");
+    }
     function kbCandidates() {
-      var els = document.querySelectorAll(SEL), out = [], i, el, r, cs;
+      var els = document.querySelectorAll(SELKB), out = [], i, el, r, cs;
       for (i = 0; i < els.length; i++) {
         el = els[i];
-        if (el === hoverEl || dcHas(el, "off") || isTextField(el)) continue;
+        if (el === hoverEl || kbSkip(el)) continue;
         try { r = el.getBoundingClientRect(); } catch (_) { continue; }
         if (r.width < 4 || r.height < 4) continue;
         if (r.bottom < -60 || r.top > innerHeight + 60 || r.right < -60 || r.left > innerWidth + 60) continue;   /* roughly on screen */
@@ -511,10 +530,10 @@
       var hcx = hr ? hr.left + hr.width / 2 : cx;
       var lost = !dx || !hr || hcx < cb.left - (hr.width || 60) || hcx > cb.right + (hr.width || 60);
       var refX = Math.max(cb.left + pad, Math.min(cb.right - pad, hcx));
-      var els = car.querySelectorAll(SEL), cand = null, bs = Infinity, i, e2, r2;
+      var els = car.querySelectorAll(SELKB), cand = null, bs = Infinity, i, e2, r2;
       for (i = 0; i < els.length; i++) {
         e2 = els[i];
-        if ((!lost && e2 === hoverEl) || dcHas(e2, "off") || (nav && nav.contains(e2))) continue;
+        if ((!lost && e2 === hoverEl) || kbSkip(e2) || (nav && nav.contains(e2))) continue;
         try { r2 = e2.getBoundingClientRect(); } catch (_) { continue; }
         if (r2.width < 4 || r2.height < 4) continue;
         var ecx = r2.left + r2.width / 2;
