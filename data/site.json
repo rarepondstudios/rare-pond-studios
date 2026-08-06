@@ -2,11 +2,24 @@
   "navBlurb": "Narrative Films",
   "imageSpecs": "sRGB 8-bit only. Stills 2560x1440 (16:9). Backgrounds 2560x1440. Bubbles 1200x1200. Team 800x800. Logos = transparent PNG 1400px+. Under 600 KB. Video frames: Rec.709 LIMITED (16-235) must be expanded to FULL (0-255). Never upscale. See STILLS.md.",
   "projectsPublicAccess": true,
-  "veil": { "colorLook": "signature", "enabled": true, "style": "full" },
+  "veil": {
+    "colorLook": "signature",
+    "enabled": true,
+    "style": "full"
+  },
   "cursor": {
-    "studio":  { "enabled": true, "colorLook": "signature" },
-    "rentals": { "enabled": true, "colorLook": "signature" },
-    "media":   { "enabled": true, "colorLook": "signature" }
+    "studio": {
+      "enabled": true,
+      "colorLook": "signature"
+    },
+    "rentals": {
+      "enabled": true,
+      "colorLook": "signature"
+    },
+    "media": {
+      "enabled": true,
+      "colorLook": "signature"
+    }
   },
   "home": {
     "bgBubbleCount": 28
@@ -45,12 +58,37 @@
     "brandLine2": "Studios"
   },
   "nav": [
-    { "label": "Our Team", "go": "team", "header": true },
-    { "label": "Projects", "go": "projects", "header": true },
-    { "label": "Studio", "href": "/" },
-    { "label": "Media", "href": "/media" },
-    { "label": "Rentals", "href": "/rentals" },
-    { "label": "Contact", "go": "contact", "header": true }
+    {
+      "label": "Our Team",
+      "go": "team",
+      "header": true
+    },
+    {
+      "label": "Projects",
+      "go": "projects",
+      "header": true
+    },
+    {
+      "label": "Studio",
+      "href": "/"
+    },
+    {
+      "label": "Media",
+      "href": "/media"
+    },
+    {
+      "label": "Rentals",
+      "href": "/rentals"
+    },
+    {
+      "label": "Contact",
+      "go": "contact",
+      "header": true
+    },
+    {
+      "label": "Privacy",
+      "href": "/privacy/"
+    }
   ],
   "sectionHeadings": {
     "projectsEyebrow": "The catalogue",
