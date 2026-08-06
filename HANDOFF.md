@@ -15,11 +15,51 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-05.
+> Last updated: 2026-08-06 (cursor v18).
 
 ---
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
+
+### 0.0.-13 STALE-STATE FIXES + THE RENTALS MYSTERY SOLVED — cursor v18
+
+Deep-dive on Jack's keyboard-overlay OBS recordings. Root causes, all verified in the
+headless harness before shipping:
+
+- **Colour only refreshed on re-hover:** the look poll skipped whenever something was
+  hovered, so the ring kept the ENGAGEMENT-time colours while the element's own look
+  changed under it (the home carousel swapping which project is featured; hover-look var
+  transitions). The poll now re-resolves the hovered/selected element every ~200ms —
+  colour follows the element, not the moment of engagement.
+- **Keyboard showed signature colours on RP bubbles:** the project colour on the home/
+  projects bubbles lives in the HOVER-look vars (`--h1/2/3`), swapped in by a `:hover`-only
+  rule. `.rpc-kbsel` (the kb mirror of :hover) now joins those selectors, so kb selection
+  swaps the bubble's own glow AND the adopting cursor to the project look. Verified:
+  kb-selecting Geri-Action turns --gg1, the ring, and the .kbring band geri-pink.
+- **Bob desync (the halo stopped following):** `body.swiping` pauses the bob on
+  .cbub/.cglow/::before DURING carousel rotations — the v16 `.ckbring` was not in that
+  pause list, so every rotation advanced it ~700ms relative to the card. One rotation =
+  permanent phase drift. It's in the list now; getAnimations() shows identical currentTime
+  after any number of rotations. LESSON for future bob layers: any new layer that bobs
+  must join the body.swiping pause list.
+- **Ghost outline after leaving a project:** two stacked causes. (1) The idle sleep could
+  stop the rAF loop while a hug was active, freezing every watchdog; the loop now only
+  sleeps in the free-ring state. (2) Mouse hugs never re-validated their element — leaving
+  a universe swaps the section under a stationary pointer, no pointerout fires, and the
+  fixed back button kept its rect while invisible. Mouse hugs now get the same staleness
+  probe as kb (disconnected or covered ⇒ release). Ghost gone in <600ms.
+- **THE RENTALS "still broken" MYSTERY:** the OBS video shows the rentals tab running OLD
+  code (cart X on the left before v17 shipped that, pre-v17 cart-drawer modal leak
+  symptoms). Jack keeps MANY PINNED Rare Pond tabs — a pinned tab never reloads, so no
+  deploy ever reaches it. Live rentals verified working (fresh sessions, every popup
+  open/close cycle, kb + section tint). OPERATIONAL NOTE: after a deploy, pinned tabs must
+  be manually reloaded (Cmd+R) before retesting; `window.__rpcModal` +
+  `window.__rpcTick` in DevTools console identify a stale/stuck engine instantly.
+- **Back-button text occlusion (geri page): NOT reproduced** locally or live at several
+  scrolls/viewports. Defensive fix shipped: `.back` z-index 180 → 900 (above every
+  universe layer; popups/lightboxes live far higher). If it recurs on Jack's machine, grab
+  `document.elementFromPoint` at the button centre in the console — that names the
+  occluder immediately.
 
 ### 0.0.-12 LOOK COVERAGE + X-STANDARD + FOCUS RULE — cursor v17
 
