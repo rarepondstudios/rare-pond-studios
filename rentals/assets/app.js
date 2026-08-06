@@ -126,7 +126,7 @@ function renderResults(){
  var html='';
  if(pkgs.length){var open=pkgOpen[c];
   html+='<div class="rp-pkgbox'+(open?'':' closed')+'" id="rppkgbox" style="--pc:'+col+';--pcg:'+hx(col,.42)+';--pcb1:'+hx(col,.16)+';--pcb2:'+hx(col,.07)+'">'
-   +'<button class="rp-pkgbox-h" id="rppkgh" aria-expanded="'+(open?'true':'false')+'" aria-controls="rppkgbody">'+rpBoxSvg()+'<span class="rp-pkgbox-t">Packages</span><span class="rp-pkgbox-n">'+pkgs.length+'</span><svg class="rp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>'
+   +'<button class="rp-pkgbox-h" id="rppkgh" aria-expanded="'+(open?'true':'false')+'" aria-controls="rppkgbody" data-cursor="off">'+rpBoxSvg()+'<span class="rp-pkgbox-lbl" data-cursor="link notilt"><span class="rp-pkgbox-t">Packages</span><span class="rp-pkgbox-n">'+pkgs.length+'</span></span><svg class="rp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>'
    +'<div class="rp-pkgbox-body" id="rppkgbody"><div><div class="grid rp-pkgbox-grid">'+pkgs.map(p=>card(p,col)).join('')+'</div></div></div></div>';
  }
  if(items.length){html+=_sections(items);}
@@ -261,7 +261,7 @@ var RP_PKG_CSS=
 ".rp-pkgbox-body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .34s cubic-bezier(.4,.85,.35,1)}"+
 ".rp-pkgbox.closed .rp-pkgbox-body{grid-template-rows:0fr}"+
 ".rp-pkgbox-body>div{overflow:hidden;min-height:0}"+
-".rp-pkgbox-grid{padding:2px 14px 16px}"+
+".rp-pkgbox-grid{padding:30px 14px 16px}"+".rp-pkgbox-lbl{display:inline-flex;align-items:center;gap:9px}"+
 /* fix2: clean quantity badge */
 ".rp-qx{display:inline-block;font-weight:800;color:var(--cc,#2f57a6);font-size:.9em;margin-left:1px;white-space:nowrap}";
 function rpEnsureStyles(){if(document.getElementById('rp-pkg-css'))return;var s=document.createElement('style');s.id='rp-pkg-css';s.textContent=RP_PKG_CSS;document.head.appendChild(s);}
