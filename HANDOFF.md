@@ -21,6 +21,43 @@
 
 ## 0. LATEST SESSION (2026-08-05) — READ THIS FIRST
 
+### 0.0.-8 FULL-SITE KEYBOARD QA — cursor v13
+
+Full kb sweep of both sites plus four targeted fixes from Jack's checklist:
+
+- **`SELKB` (kb-only stops).** kb navigation now scans `SEL + ',[tabindex="0"]'`, so an
+  element can be a keyboard stop without becoming a mouse-cursor target. New `kbSkip()`:
+  `data-cursor="off"` elements stay kb-reachable when they carry `role="button"` or
+  `tabindex="0"` (mouse ring still ignores them). This is the pattern for "selectable by
+  keyboard, plain for mouse".
+- **Ring BEHIND the logo (`data-cursor="kbnative"`).** New token: kb engagement of a
+  special keeps it special (engine ring stays faded) and the SITE renders the indicator
+  via the `.rpc-kbsel` class. RP project bubbles use it — a `.kbring` div (z-index 5)
+  sits UNDER `.bubble-logo` (z 7), so the selection ring draws behind the logo art.
+  Verified: kbring opacity 1, engine ring faded, logo overlaps ring in screenshot.
+- **"More to come" placeholder selectable:** gets `tabindex="0"` + aria-label; any future
+  placeholder bubble is kb-reachable automatically via SELKB.
+- **Rentals item menus kb-openable:** cards are `role="button" tabindex="0"
+  data-cursor="off"` — kbSkip's role allowance makes them kb stops; `.card.rpc-kbsel`
+  CSS mirrors the hover lift/glow. Enter opens the item menu (.dp show) and arrows then
+  select only the menu's own controls (occlusion filter holds — no background cards).
+- **Expanded-view trap re-verified** (no background-grid selection while a film section
+  is open) and JC regression re-run: 95-press jog stress, 0 offscreen samples (bigJog
+  events are the strip's own loop-wrap teleports; selection stays in box).
+
+### 0.0.-7 WRAP-PROOF JOG STEPPING — cursor v12
+
+Jog strips "freaked out" after enough presses (page-scale jumps, selector off-screen,
+opposite-direction mashing to recover). Root cause: the infinite strips TELEPORT their DOM
+nodes by half a track at the loop seam; the kb selection was pinned to a node, so a wrap
+carried it off-screen and each further press jogged by the huge stale dx. `kbJogStep` is
+now wrap-proof: reference point is clamped into the strip's box; candidates only within
+box ± 1.5×width (loop duplicates excluded); "lost" states re-engage the nearest in-box
+candidate WITHOUT jogging; per-press jog need capped at one item width; plus tick-level
+recovery (teleport >150px/frame, and a periodic out-of-box probe every 6 frames). Jogging
+routes through `CustomEvent "rpc-kb-jog"` which JC's `wireNav` binds to `mq.jog(px)`.
+Stress: 22 presses each direction + rapid-fire on WALL and BTS — 0 offscreen samples.
+
 ### 0.0.-6 OUTLINE = VISIBLE EDGE — cursor v11
 
 - The RP home outline mismatch (OBS 19-04-10): the hug's radius scan could be driven by the
