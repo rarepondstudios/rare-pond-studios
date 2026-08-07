@@ -86,6 +86,10 @@
       "header": true
     },
     {
+      "label": "Terms",
+      "href": "/terms/"
+    },
+    {
       "label": "Privacy",
       "href": "/privacy/"
     }
