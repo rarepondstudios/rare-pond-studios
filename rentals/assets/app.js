@@ -74,7 +74,7 @@ function renderTabs(){
   /* data-c stays the DATABASE id (that is what groups the gear); only the visible
      text uses the CMS display name. Renaming a category in Pages CMS therefore
      never touches the database. */
-  /* data-cursor="special notilt": the custom cursor never outlines a category tab — the free
+  /* data-cursor="special notilt": the custom cursor never outlines a category tab, the free
      ring TINTS to the tab's --tc colour instead and merges with the category glow (no tilt:
      tabs sit flush on the tab bar). */
   return '<div class="tab'+(on?' on':'')+'" data-c="'+c+'" role="button" tabindex="0" data-cursor="special notilt" style="'+st+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="'+(ICON[c]||'')+'"/></svg>'+esc(c==='Home'?datesLabel():(LABELS[c]||c))+'</div>';}).join('');
@@ -146,7 +146,7 @@ function card(p,col){
  const _kc=rpGroupContents(p.contents);
  const kit=_kc.length?('<div class="kit" data-k="'+p._id+'" role="button" tabindex="0">View kit contents ('+_kc.length+')</div><div class="kitlist" id="kl'+p._id+'">'+_kc.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" alt="" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+rpQx(c.n)+'</span></div>').join('')+'</div>'):'';
  const ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add to cart</button>');
- /* data-cursor="off": the item card keeps its own coloured-glow hover only — the cursor never
+ /* data-cursor="off": the item card keeps its own coloured-glow hover only, the cursor never
     outlines the full card; only the CONTROLS inside it (add / qty / kit / date) hug their own
     hitboxes. */
  return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" data-cursor="off" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+avb+kit
@@ -208,7 +208,7 @@ function rpPkgPrice(p){return rpMembers(p).reduce(function(s,m){return s+(Number
 /* ============================================================================
    Rentals display helpers (render-time; run on BOTH the built-in fallback
    catalog and the live Supabase catalog, so EVERY current and future item is
-   handled automatically — no per-item data entry needed):
+   handled automatically, no per-item data entry needed):
      rvOf(p)          fix1: replacement value = own val, else SUM of valued
                             contents (items) / members (packages)
      rpGroupContents  fix2: collapse duplicate / "#1"/"#2" / "xN" sub-items into
@@ -486,7 +486,7 @@ function sbMoney(v){return (v===null||v===undefined||v==="")?"":"$"+Number(v).to
 function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={},i,r;for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null){if(r.hidden)continue;var fn=Number(r.price_per_day)||0;var it={cat:r.category,sec:r.section,name:r.name,fn:fn,fee:fn>0?"$"+fn.toFixed(2):"Included",val:sbMoney(r.replacement_value),img:r.photo||"",contents:[],qty:(r.kind==='package'?(parseInt(r.qty,10)||1):(parseInt(r.qty,10)||0)),dbid:r.id,kind:r.kind||"item",accIds:Array.isArray(r.accessory_ids)?r.accessory_ids:[],memIds:Array.isArray(r.member_ids)?r.member_ids:[],desc:r.description||""};if(it.kind==='package'){if(!it.memIds||!it.memIds.length){continue;}}else if(it.qty<1){continue;}byId[r.id]=it;out.push(it);}}for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null)continue;if(r.hidden)continue;
    /* A sub-item normally belongs to its single parent_id. It MAY also be shared
       across additional parents via shared_parent_ids ("1020,1376" or an array):
-      it then shows under every listed parent — but only if there are enough units
+      it then shows under every listed parent, but only if there are enough units
       to go round (qty >= number of parents). If not, it stays on its primary
       parent and a console warning flags the shortfall (so two lenses can't both
       claim the one ring, but a 2-unit back-lens-cap can serve both). */
@@ -494,7 +494,7 @@ function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={}
    var _parents=[r.parent_id];
    var _sp=r.shared_parent_ids;
    if(_sp!=null&&_sp!==""){var _xs=(Array.isArray(_sp)?_sp:String(_sp).split(/[^0-9]+/)).map(function(x){return parseInt(x,10);}).filter(function(x){return x&&x!==r.parent_id;});_xs.forEach(function(x){if(_parents.indexOf(x)<0)_parents.push(x);});}
-   if(_parents.length>1&&_pq<_parents.length){try{console.warn('[RP Rentals] sub-item "'+r.name+'" (id '+r.id+') is shared across '+_parents.length+' parents but only '+_pq+' unit(s) exist — showing on its primary parent only.');}catch(e){}_parents=[r.parent_id];}
+   if(_parents.length>1&&_pq<_parents.length){try{console.warn('[RP Rentals] sub-item "'+r.name+'" (id '+r.id+') is shared across '+_parents.length+' parents but only '+_pq+' unit(s) exist, showing on its primary parent only.');}catch(e){}_parents=[r.parent_id];}
    var _per=_parents.length>1?1:_pq;
    for(var _pi=0;_pi<_parents.length;_pi++){var par=byId[_parents[_pi]];if(par)par.contents.push({l:r.name,v:sbMoney(r.replacement_value),g:(r.sub_group||r.section),img:r.photo||"",q:_per});}
   }return out.length?out:null;}

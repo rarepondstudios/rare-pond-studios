@@ -1,5 +1,5 @@
 {
-  "_note": "The Contact popup, shared by all three sites (studio, rentals, media) via /assets/contact.js — same form everywhere, edited from one place. Edited in Pages CMS under 'Contact'. The social bubbles + their blurbs come from the NocoDB socials table (edit them there). This file controls the heading text, the button label, and the HubSpot form connection.",
+  "_note": "The Contact popup, shared by all three sites (studio, rentals, media) via /assets/contact.js, same form everywhere, edited from one place. Edited in Pages CMS under 'Contact'. The social bubbles + their blurbs come from the NocoDB socials table (edit them there). This file controls the heading text, the button label, and the HubSpot form connection.",
   "eyebrow": "Get in touch",
   "heading": "Let's make something amazing.",
   "sub": "Tell us about your project and we'll be in touch.",

@@ -1,4 +1,4 @@
-/* Shared Contact popup — one implementation for studio, rentals and media (built by
+/* Shared Contact popup, one implementation for studio, rentals and media (built by
    /assets/contact.js from data/contact.json + the NocoDB socials table). Opens as a modal over
    the page; click the backdrop or the X to close; the form keeps whatever was typed. */
 html.rpc-open{overflow:hidden}

@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#06122b">
-<title>Rare Pond Media — Cinematic video for business</title>
-<meta name="description" content="Rare Pond Media brings narrative-film craft to corporate and commissioned video — telling your business's story in cinematic quality.">
+<title>Rare Pond Media, Cinematic video for business</title>
+<meta name="description" content="Rare Pond Media brings narrative-film craft to corporate and commissioned video, telling your business's story in cinematic quality.">
 <!-- theme-color controller (shared pattern): lets the wipe tint the mobile browser chrome -->
 <script>(function(){var BASE="#06122b";function meta(){var m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement('meta');m.setAttribute('name','theme-color');document.head.appendChild(m);}return m;}meta().setAttribute('content',BASE);var t=null;window.__setThemeColor=function(c){try{clearTimeout(t);t=null;meta().setAttribute('content',c||BASE);}catch(e){}};window.__resetThemeColor=function(d){try{clearTimeout(t);t=setTimeout(function(){meta().setAttribute('content',BASE);t=null;},d||0);}catch(e){}};})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,11 +18,11 @@
 <!-- Reserve the event-banner's height before first paint (shared with studio + rentals). MUST be in <head>, no defer. -->
 <script src="/assets/banner-reserve.js"></script>
 <style>
-/* ============ Rare Pond Media — DRAFT scroll-storytelling layout ============
+/* ============ Rare Pond Media, DRAFT scroll-storytelling layout ============
    Reuses the Rare Pond signature language (gradient, Inter/Heebo/Kaushan, dark base).
    Imagery is pulled from existing deployed project stills + on-set BTS (no generated
    imagery). Motion is CSS/SVG only. Every section image is a plain <img> so swaps are
-   one-line. Jack: polish freely — this is the initial build. */
+   one-line. Jack: polish freely, this is the initial build. */
 :root{
   --g1:#3f6bff; --g2:#9b5cff; --g3:#56c8ff;
   --ink:#0b2c55; --base:#06122b; --base2:#081a3a;
@@ -49,7 +49,7 @@ a{color:inherit}
 .bg-aura b:nth-child(3){width:40vw;height:40vw;left:24vw;bottom:-14vw;background:radial-gradient(circle,#56c8ff,transparent 62%);animation-delay:-15s}
 @keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(4vw,3vh,0) scale(1.14)}}
 .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.06;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-/* ---- wordmark (typed "Rare Pond Media" — reuses the duck mark + header type treatment) ---- */
+/* ---- wordmark (typed "Rare Pond Media", reuses the duck mark + header type treatment) ---- */
 .wm{display:flex;align-items:center;gap:12px;text-decoration:none;line-height:1}
 .wm img{width:50px;height:50px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
 .wm .wm-txt{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;line-height:.9;text-align:left}
@@ -57,7 +57,7 @@ a{color:inherit}
 .wm .wm-sub{font-family:"Heebo",sans-serif;font-weight:700;font-size:13.5px;letter-spacing:.36em;text-transform:uppercase;padding-left:2px}
 /* ---- fixed header ---- */
 /* Header matches the studio/rentals logo size + font, and carries the gradient-semicircle
-   header — here in DARK BLUE (the media page's own aesthetic) instead of white. */
+   header, here in DARK BLUE (the media page's own aesthetic) instead of white. */
 .mhdr{position:fixed;top:0;left:0;right:0;z-index:100;height:86px;display:flex;align-items:center;gap:18px;padding:0 clamp(16px,4vw,40px)}
 .mhdr .hdr-bg{position:absolute;left:0;right:0;top:0;height:170px;z-index:-1;pointer-events:none;
   background:linear-gradient(180deg,#0b2545 0%,#0b2545 52%,rgba(11,37,69,0) 100%);
@@ -81,7 +81,7 @@ a{color:inherit}
 @keyframes heroZoom{to{transform:scale(1)}}
 /* The bottom of the hero DISSOLVES into the page: a long soft fade that reaches FULL base
    opacity well before the section edge, so scrolling past the hero never shows a hard line
-   where the image ends — the still melts into the site background instead. */
+   where the image ends, the still melts into the site background instead. */
 .mhero .scrim{position:absolute;inset:0;z-index:1;background:
   linear-gradient(180deg,rgba(4,9,22,.62) 0%,rgba(4,9,22,.32) 34%,rgba(6,18,43,.55) 60%,rgba(6,18,43,.82) 74%,rgba(6,18,43,.96) 86%,var(--base) 94%,var(--base) 100%),
   radial-gradient(120% 90% at 78% 20%,transparent 40%,rgba(63,107,255,.18))}
@@ -101,7 +101,7 @@ main{position:relative;z-index:2}
 .kicker{font-family:var(--disp);font-weight:700;letter-spacing:4px;text-transform:uppercase;font-size:12.5px;color:#8fb0ea;margin:0 0 16px}
 .blk h2{font-family:var(--disp);font-weight:800;font-size:clamp(28px,4.6vw,54px);line-height:1.06;letter-spacing:-.5px;margin:0}
 .blk p.lead{font-size:clamp(17px,1.7vw,21px);line-height:1.6;color:#cdddf7;margin:20px 0 0;max-width:60ch;font-weight:450}
-/* statement — big centered narrative line */
+/* statement, big centered narrative line */
 .statement{text-align:center;max-width:900px}
 .statement h2{font-size:clamp(30px,5.2vw,62px)}
 /* two-column split (text + shot) */
@@ -152,7 +152,7 @@ main{position:relative;z-index:2}
 .mfoot{position:relative;z-index:2;overflow:hidden;margin-top:-80px;padding:270px clamp(16px,4vw,40px) 46px;text-align:center;color:#8fa6cf;
   /* Top of the footer is a SOLID block of the exact page base (#06122b) that the CTA above fades
      down into. The footer is ALSO pulled up 80px (negative margin) so its opaque dark top PAINTS OVER
-     the section boundary — there is no adjacent element edge left to show a hairline seam. The blue
+     the section boundary, there is no adjacent element edge left to show a hairline seam. The blue
      tint + caustics only begin well below, so nothing "starts" at the join. */
   background:linear-gradient(180deg,#06122b 0%,#06122b 40%,rgba(13,45,86,.5) 58%,#0c2c57 78%,#06122b 100%)}
 /* caustic water that fades in toward the bottom, matching the studio + rentals footers. Held fully
@@ -238,11 +238,11 @@ html.xw-active{overflow:hidden}
   <!-- ============ CINEMATIC SHOWCASE ============ -->
   <section class="showcase reveal">
     <div class="showgrid">
-      <figure class="s-a"><img loading="lazy" src="/media/projects/invalid_opinion/stills/invalid-1-1600.webp" srcset="/media/projects/invalid_opinion/stills/invalid-1-800.webp 800w,/media/projects/invalid_opinion/stills/invalid-1-1600.webp 1600w" sizes="50vw" alt="Cinematic still — Invalid Opinion"></figure>
-      <figure class="s-b"><img loading="lazy" src="/media/projects/revelations/stills/rev-michael-bar-1600.webp" srcset="/media/projects/revelations/stills/rev-michael-bar-800.webp 800w,/media/projects/revelations/stills/rev-michael-bar-1600.webp 1600w" sizes="50vw" alt="Cinematic still — Revelations"></figure>
-      <figure class="s-c"><img loading="lazy" src="/media/projects/geri_action/stills/geri-madeline-800.webp" srcset="/media/projects/geri_action/stills/geri-madeline-800.webp 800w,/media/projects/geri_action/stills/geri-madeline-1600.webp 1600w" sizes="33vw" alt="Cinematic still — Geri Action"></figure>
-      <figure class="s-d"><img loading="lazy" src="/media/projects/invalid_opinion/stills/invalid-sourpatch-800.webp" srcset="/media/projects/invalid_opinion/stills/invalid-sourpatch-800.webp 800w,/media/projects/invalid_opinion/stills/invalid-sourpatch-1600.webp 1600w" sizes="33vw" alt="Cinematic still — Invalid Opinion"></figure>
-      <figure class="s-e"><img loading="lazy" src="/media/projects/revelations/stills/rev-earth-2-800.webp" srcset="/media/projects/revelations/stills/rev-earth-2-800.webp 800w,/media/projects/revelations/stills/rev-earth-2-1600.webp 1600w" sizes="33vw" alt="Cinematic still — Revelations"></figure>
+      <figure class="s-a"><img loading="lazy" src="/media/projects/invalid_opinion/stills/invalid-1-1600.webp" srcset="/media/projects/invalid_opinion/stills/invalid-1-800.webp 800w,/media/projects/invalid_opinion/stills/invalid-1-1600.webp 1600w" sizes="50vw" alt="Cinematic still, Invalid Opinion"></figure>
+      <figure class="s-b"><img loading="lazy" src="/media/projects/revelations/stills/rev-michael-bar-1600.webp" srcset="/media/projects/revelations/stills/rev-michael-bar-800.webp 800w,/media/projects/revelations/stills/rev-michael-bar-1600.webp 1600w" sizes="50vw" alt="Cinematic still, Revelations"></figure>
+      <figure class="s-c"><img loading="lazy" src="/media/projects/geri_action/stills/geri-madeline-800.webp" srcset="/media/projects/geri_action/stills/geri-madeline-800.webp 800w,/media/projects/geri_action/stills/geri-madeline-1600.webp 1600w" sizes="33vw" alt="Cinematic still, Geri Action"></figure>
+      <figure class="s-d"><img loading="lazy" src="/media/projects/invalid_opinion/stills/invalid-sourpatch-800.webp" srcset="/media/projects/invalid_opinion/stills/invalid-sourpatch-800.webp 800w,/media/projects/invalid_opinion/stills/invalid-sourpatch-1600.webp 1600w" sizes="33vw" alt="Cinematic still, Invalid Opinion"></figure>
+      <figure class="s-e"><img loading="lazy" src="/media/projects/revelations/stills/rev-earth-2-800.webp" srcset="/media/projects/revelations/stills/rev-earth-2-800.webp 800w,/media/projects/revelations/stills/rev-earth-2-1600.webp 1600w" sizes="33vw" alt="Cinematic still, Revelations"></figure>
     </div>
   </section>
 
@@ -315,7 +315,7 @@ html.xw-active{overflow:hidden}
 </footer>
 
 <script>
-/* Rare Pond Media — overlay CMS-editable content (rp_media/data/media.json) onto the built-in
+/* Rare Pond Media, overlay CMS-editable content (rp_media/data/media.json) onto the built-in
    defaults, so edits made in Pages CMS ("Rare Pond Media") show on the live page. The page still
    renders fully if this file is missing or JS is off (the HTML carries the same defaults). Uses
    stable structural selectors so no per-node markup is required. */
@@ -351,7 +351,7 @@ html.xw-active{overflow:hidden}
 <!-- shared color-look + event-banner engine (renders site.json → eventBanner into #rp-eventbanner-mount) -->
 <script src="/assets/looks.js" defer></script>
 <script>
-/* Header + footer social icons — same source (data/socials.json) + artwork (assets/socials.js)
+/* Header + footer social icons, same source (data/socials.json) + artwork (assets/socials.js)
    as the studio, so all three sites' socials stay in lockstep. */
 (function(){
   var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
@@ -375,14 +375,14 @@ html.xw-active{overflow:hidden}
     if(tag&&ft.tagline)tag.textContent=ft.tagline;
     var NAV=(d&&Array.isArray(d.nav)&&d.nav.length)?d.nav:(ft.links||[]);
     /* Header nav labels come from the same shared list, matched in order to the header items
-       (team / projects / contact) — one list drives header and footer, like the studio. */
+       (team / projects / contact), one list drives header and footer, like the studio. */
     var headerItems=NAV.filter(function(l){return l&&l.header;});
     var mn=document.querySelectorAll('.mnav a');
     headerItems.forEach(function(l,i){ if(mn[i]&&l.label) mn[i].innerHTML=esc(l.label).replace(/ /g,'&nbsp;'); });
     var fnav=NAV.filter(function(l){return l&&l.footer!==false;});
     var fl=document.querySelector('.mfoot .flinks');
     if(fl&&fnav.length){
-      /* SPA targets live on the studio site at real paths (/team, /projects) — NOT /#hash.
+      /* SPA targets live on the studio site at real paths (/team, /projects), NOT /#hash.
          data-cursor-pad gives the hover outline breathing room around the text. */
       fl.innerHTML=fnav.map(function(l){
         var label=esc(l.label||'');

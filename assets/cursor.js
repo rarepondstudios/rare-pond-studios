@@ -1,5 +1,5 @@
 /* ============================================================================
-   Rare Pond / Jack Carlsen — SHARED custom cursor  (assets/cursor.js)
+   Rare Pond / Jack Carlsen, SHARED custom cursor  (assets/cursor.js)
    ----------------------------------------------------------------------------
    ONE source of truth for BOTH sites. Master lives in bts-automation/cursor.js
    and is published to each repo's assets/cursor.js by social_ui_sync.py
@@ -11,13 +11,13 @@
      - FREE: a 50px open ring (clear gap between the centre dot and the band,
        same silhouette as the loading orbit but solid) trails the dot with
        smoothing and squashes/stretches into an oval along the direction of
-       fast movement — relaxing back to a circle at rest.
+       fast movement, relaxing back to a circle at rest.
      - HOVER (iPadOS-style): over ordinary interactive elements (buttons, links,
        cards) the ring snaps DIRECTLY onto the element's border box + radius (no
-       offset drift — the outline is attached to the edges) while the element
-       itself warps in perspective toward the mouse. SPECIAL objects — project
+       offset drift, the outline is attached to the edges) while the element
+       itself warps in perspective toward the mouse. SPECIAL objects, project
        bubbles / large circular instances, plus wordmarks tagged
-       data-cursor="glow"/"special" — never get the ring outline: the ring's
+       data-cursor="glow"/"special", never get the ring outline: the ring's
        colour FADES OUT (glow "transfers" to the object) while the OBJECT reacts
        (its own native glow/tilt if it has one, else cursor-driven tilt+scale),
        and fades back in on leave. While ANY element is engaged, a faint
@@ -29,7 +29,7 @@
        transport, JC transport, the initial load veil) the circle is replaced by
        a WHITE orbiting arc with a trail around the dot; it restores after.
 
-   STANDARDIZED INTERACTIVE DETECTION (future-proof — new buttons "just work"):
+   STANDARDIZED INTERACTIVE DETECTION (future-proof, new buttons "just work"):
    an element is interactive if it matches the SEL list (a[href], button, form
    controls, [role=button], summary, [data-cursor="link"]) OR any of its first 5
    ancestors computes cursor:pointer. Opt out per element: data-cursor="off".
@@ -40,7 +40,7 @@
    CMS CONTROL (per site / sub-site, data/site.json → cursor):
      Rare Pond: cursor.studio / cursor.rentals / cursor.media (surface = path)
      Jack Carlsen: cursor at the top level.
-     Each: { enabled: true|false, colorLook: "<look key or name>" } —
+     Each: { enabled: true|false, colorLook: "<look key or name>" },
      colours come from that look's c1/c2/c3 in data/colorlooks.json (default =
      the site's own "signature" look, so JC is automatically purple).
 
@@ -165,18 +165,18 @@
       "-webkit-backdrop-filter:blur(1.3px) saturate(1.2);backdrop-filter:blur(1.3px) saturate(1.2);" +   /* liquid-glass: subtle distortion under the orb */
       "box-shadow:0 0 14px -3px color-mix(in srgb,var(--rpc-a) 55%,transparent),inset 0 0 9px -3px color-mix(in srgb,var(--rpc-b) 40%,transparent);" +   /* the ring band GLOWS both outward and inward */
       "transition:width .22s cubic-bezier(.3,.9,.3,1),height .22s cubic-bezier(.3,.9,.3,1),border-radius .22s cubic-bezier(.3,.9,.3,1),opacity .16s ease,--rpc-a .45s ease,--rpc-b .45s ease,--rpc-c .45s ease}" +
-      /* tracking = the hugged ELEMENT itself is in motion (carousel rotation) — the ring is
+      /* tracking = the hugged ELEMENT itself is in motion (carousel rotation), the ring is
          glued to it per-frame, so its own size transitions must not fight the element's */
       ".rpc-ring.tracking{transition:opacity .16s ease,--rpc-a .45s ease,--rpc-b .45s ease,--rpc-c .45s ease}" +
       "#rp-cursor.on .rpc-ring{opacity:1}" +
       /* SPECIAL objects (category tabs / bubbles / wordmarks): the ring's colour FADES OUT as the
-         object's own glow fades in — the glow visibly "transfers" to the object — leaving only the
+         object's own glow fades in (the glow visibly "transfers" to the object) leaving only the
          faint ghost ring (.rpc-mini) at the pointer. Fades back in when the pointer leaves. */
       "#rp-cursor.on .rpc-ring.faded{opacity:0}" +
       ".rpc-ring.hover,.rpc-ring.faded{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}" +   /* no blur / free-ring glow once snapped to an element */
       /* two stacked skins that crossfade: glowing open ring (free) vs hug-fill (hover) */
       ".rpc-glow,.rpc-fill{position:absolute;inset:0;border-radius:inherit;transition:opacity .18s ease}" +
-      /* FREE state: an OPEN RING — solid gradient band at the rim (loader silhouette, not animated),
+      /* FREE state: an OPEN RING, solid gradient band at the rim (loader silhouette, not animated),
          clear empty gap between the band and the centre dot. Band = feathered radial mask. */
       ".rpc-glow{background:conic-gradient(from calc(210deg + var(--rpc-spin,0rad)),color-mix(in srgb,var(--rpc-a) 95%,transparent),color-mix(in srgb,var(--rpc-b) 95%,transparent),color-mix(in srgb,var(--rpc-c) 95%,transparent),color-mix(in srgb,var(--rpc-a) 95%,transparent));" +
       "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px));" +
@@ -199,7 +199,7 @@
       ".rpc-mini{position:fixed;left:0;top:0;width:50px;height:50px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
       "border:1.5px solid #fff;mix-blend-mode:difference;transition:opacity .2s ease}" +
       "#rp-cursor.on.hugging .rpc-mini{opacity:.6}" +
-      /* keyboard-engaged element: our hug IS the focus indicator — kill the browser's default
+      /* keyboard-engaged element: our hug IS the focus indicator, kill the browser's default
          (square/irregular) focus outline on that element only. */
       ".rpc-kbsel{outline:none!important}.rpc-kbsel:focus,.rpc-kbsel:focus-visible{outline:none!important}" +
       ".rpc-loader{position:fixed;left:0;top:0;width:44px;height:44px;border-radius:50%;z-index:2147483645;pointer-events:none;opacity:0;will-change:transform;" +
@@ -304,14 +304,14 @@
     var tiltP = 0, tiltNx = 0, tiltNy = 0;  // ease-in progress + last tilt direction (for the ease-out)
     var relEls = [];                   // elements easing BACK to rest after hover-off (fluid shrink)
     /* RELEASE TRAVEL: on hug→free the outline must TRAVEL from the button to the dot while it
-       shrinks (0.22s CSS size transition), never snap centered on the dot first — a snap makes
+       shrinks (0.22s CSS size transition), never snap centered on the dot first, a snap makes
        the still-large outline appear to expand AWAY from the button (the "glitch"). While
        travT>0 the ring centre is eased from the release point to the live pointer, and the
        containment clamp + velocity stretch are suspended so nothing can yank it off the path. */
     var travT = 0, travX = 0, travY = 0;
     /* ELEMENT-MOTION TRACKING: >0 while the hugged element itself is moving/resizing (a
-       carousel rotation carrying the selection to centre). The ring is glued to it —
-       no easing lag, no CSS size transition — so the outline conforms every frame. */
+       carousel rotation carrying the selection to centre). The ring is glued to it,
+       no easing lag, no CSS size transition, so the outline conforms every frame. */
     var trackN = 0;
     var hoverAttrSp = false, hoverKb = false;   // last applyHover args, for the settled-size re-scan
     var clearT = null;                 // hover-out grace timer (kills the between-buttons flash)
@@ -326,15 +326,15 @@
     /* ---- pointer tracking ---- */
     addEventListener("mousemove", function (e) {
       /* REAL movement hands control back to the pointer. Chrome also fires a SYNTHETIC
-         mousemove (same coordinates) whenever content shifts under a stationary cursor —
-         e.g. a carousel rotating — which must NOT cancel an active keyboard selection. */
+         mousemove (same coordinates) whenever content shifts under a stationary cursor,
+         e.g. a carousel rotating, which must NOT cancel an active keyboard selection. */
       if (kbActive && (Math.abs(e.clientX - mx) > 3 || Math.abs(e.clientY - my) > 3)) { kbActive = false; kbSynth(null); }
       mx = e.clientX; my = e.clientY;
       show(); wake();
     }, { passive: true });
     document.addEventListener("mouseleave", hide);
     addEventListener("blur", hide);
-    /* hybrid devices (touchscreen laptops): a finger tap must never fight the custom cursor —
+    /* hybrid devices (touchscreen laptops): a finger tap must never fight the custom cursor,
        hide it on touch and let the tap behave 100% natively (we never intercept clicks anyway). */
     addEventListener("touchstart", function () { applyHover(null, false); hide(); }, { passive: true });
     addEventListener("mousedown", function () { down = true; wake(); }, { passive: true });
@@ -342,7 +342,7 @@
 
     /* ---- standardized interactive detection ---- */
     var SEL = "a[href],button,[role='button'],input,select,textarea,label,summary,[data-cursor~='link'],[onclick]";
-    /* data-cursor is a space-separated token list — e.g. data-cursor="special notilt" */
+    /* data-cursor is a space-separated token list, e.g. data-cursor="special notilt" */
     function dcHas(el, word) {
       var v = "";
       try { v = el.getAttribute("data-cursor") || ""; } catch (_) {}
@@ -359,10 +359,10 @@
     document.addEventListener("pointerover", function (e) {
       if (cursorOff) return;              /* toggle off = fully native mouse behaviour */
       if (e.isTrusted === false) return;  /* our own kb-parity synthetic hover events must never loop back */
-      if (kbActive) return;            /* scrolling under a stationary mouse fires pointerover — don't let it steal a keyboard selection */
+      if (kbActive) return;            /* scrolling under a stationary mouse fires pointerover, don't let it steal a keyboard selection */
       var t = e.target;
       if (!t || t.nodeType !== 1) { queueClear(false); return; }
-      /* Cross-origin embeds (HubSpot / Jotform forms) own the pointer — the browser stops
+      /* Cross-origin embeds (HubSpot / Jotform forms) own the pointer, the browser stops
          reporting the mouse inside them, so the custom cursor HANDS OFF: unmorph + fade out
          immediately (never parks at the edge), native cursor takes over inside the form,
          and ours fades back in on the first move outside. A watchdog in tick() catches the
@@ -371,7 +371,7 @@
       var el = null;
       try { el = t.closest(SEL); } catch (_) {}
       if (!el) {
-        /* fallback: anything styled cursor:pointer counts — future components auto-adhere */
+        /* fallback: anything styled cursor:pointer counts, future components auto-adhere */
         var n = t, i = 0;
         while (n && n.nodeType === 1 && i < 5) {
           try { if (getComputedStyle(n).cursor === "pointer") { el = n; break; } } catch (_) { break; }
@@ -393,7 +393,7 @@
 
     /* Hover-out GRACE: when the pointer leaves one target, wait ~120ms before relaxing to the
        circle. Crossing the small gap between two adjacent buttons then morphs DIRECTLY from
-       one rectangle to the next — no shrink-to-circle blink in between. */
+       one rectangle to the next, no shrink-to-circle blink in between. */
     function queueClear(txt) {
       textish = !!txt;
       ring.classList.toggle("textish", textish);
@@ -410,7 +410,7 @@
       tiltEl = null; tiltP = 0;
     }
     /* HUG SHAPE SCAN: strongest border-radius among the element and its near-full-size
-       descendants (2 levels) — the visible rounding often lives on an inner card (project
+       descendants (2 levels), the visible rounding often lives on an inner card (project
        bubble > circular image). Layers marked data-cursor~="noscan" (decorative cast-shadow /
        glow OVALS sitting behind the visible surface, e.g. the RP carousel's .cdrop/.cglow)
        never drive the outline: the outline must parallel the VISIBLE edge, not a backdrop.
@@ -418,7 +418,7 @@
        scan is re-run while a hugged element is in motion so an animated border-radius
        (.cbub's 50% → 13%/20% morph) is followed frame by frame. */
     /* FLOATING SURFACES: bob keyframes run on INNER layers (.cbub / .bubble-inner / .xb-core /
-       .orbi) while the ANCHOR element the engine hugs stays still — an outline drawn around
+       .orbi) while the ANCHOR element the engine hugs stays still, an outline drawn around
        the anchor sits frozen next to the bobbing visual, visibly disconnected. findBox picks
        the node the outline should draw around: the deepest CSS-animated descendant that
        covers (roughly) the anchor's box, skipping decorative noscan layers. The ring's
@@ -427,7 +427,7 @@
       var bx = el, rr = null;
       try { rr = el.getBoundingClientRect(); } catch (_) { return el; }
       if (!rr || !rr.width) return el;
-      /* only INFINITE animations mark a floating surface — a finished one-shot entrance
+      /* only INFINITE animations mark a floating surface, a finished one-shot entrance
          animation (the carousel items keep their animationName after settling) must not
          claim the box, or the outline pins to the static anchor while the inner bob layer
          floats. */
@@ -498,7 +498,7 @@
       if (kbSelEl && kbSelEl !== el) {
         try {
           kbSelEl.classList.remove("rpc-kbsel");
-          /* kbEngage focused it and .rpc-kbsel suppressed the UA outline — dropping the class
+          /* kbEngage focused it and .rpc-kbsel suppressed the UA outline, dropping the class
              while it stays document.activeElement re-exposes the native focus RECTANGLE (the
              "white square" glitch). Release focus with the selection. */
           if (document.activeElement === kbSelEl) kbSelEl.blur();
@@ -520,14 +520,14 @@
         var best = sres.best, rr = sres.rr;
         hoverBoxEl = findBox(el);
         lookApply(lookRead(el));   /* the hug adopts the project's color look immediately */
-        /* SPECIAL objects never get the ring outline — the object reacts instead.
+        /* SPECIAL objects never get the ring outline, the object reacts instead.
            Auto: any large circular target (project bubbles / carousel side circles / JC hbubs;
            % radius ≥45 and ≥64px). Explicit: data-cursor="glow" (wordmarks) or "special".
            Force the outline back on a big circle if ever needed: data-cursor="link" + a
-           non-% radius, or ask — small circles (social icons) keep the outline. */
+           non-% radius, or ask, small circles (social icons) keep the outline. */
         hoverSpecial = !!attrSp || (best.pct && best.px >= 45 && rr && rr.width >= 64 && rr.height >= 64);
         /* FOCUS-vs-ENTER RULE (mouse): if clicking this element only brings it to the
-           FOREGROUND (it does not enter/open anything), the cursor circle LOSES its glow —
+           FOREGROUND (it does not enter/open anything), the cursor circle LOSES its glow,
            the ring staying lit means "this can be entered". Opt in explicitly with
            data-cursor~="focus", and AUTOMATICALLY for any off-centre option of a click-mode
            carousel (data-kb-carousel="click": clicking a side option rotates it to centre).
@@ -543,7 +543,7 @@
             if (fOnly) hoverSpecial = true;   /* ring fades exactly like a special: no glow = focus-only */
           } catch (_) {}
         }
-        /* KEYBOARD engagement: the hug IS the focus indicator, so specials hug too — the shape
+        /* KEYBOARD engagement: the hug IS the focus indicator, so specials hug too, the shape
            CONFORMS (bubbles → encompassing circle via the %-radius scan; irregular logos → a
            consistent rounded rectangle with breathing room) instead of the browser's square
            outline, and the object's own selection glow is mirrored via .rpc-kbsel site CSS. */
@@ -559,7 +559,7 @@
           hoverSpecial = false;
           if (!best.pct) { hoverRad = 16; hoverPad = 6; hoverRadY = 0; }
         }
-        /* Engaged states — in BOTH the glow reads as "transferred" to the object, and the faint
+        /* Engaged states, in BOTH the glow reads as "transferred" to the object, and the faint
            ghost ring (.rpc-mini) marks the pointer:
            - ordinary elements: ring MORPHS onto the element ("hover" hug)
            - special elements (mouse): ring keeps its shape but its colour FADES OUT ("faded")
@@ -572,13 +572,13 @@
            never read tighter than the rest of the hug outlines */
         if (!hoverPad) { try { if (el.matches && el.matches("a[data-net]")) hoverPad = 5; } catch (_) {} }
         /* ELEMENT REACTION (like the home-page bubbles): perspective tilt toward the mouse.
-           Ownership rules: if the element natively drives its own tilt (defines --tiltx —
+           Ownership rules: if the element natively drives its own tilt (defines --tiltx,
            the RP bubbles do, in CSS or via their pointermove handlers), the cursor stays
            hands-off so the two never fight. If it's inline-transform-driven by other JS,
            also hands-off. Otherwise the cursor tilts it, COMPOSITING on top of the element's
            computed base transform (so transform-positioned elements never jump), and specials
            additionally scale up slightly. Opt out: data-cursor="notilt". */
-        if (!dcHas(el, "notilt") && !kb) {   /* keyboard has no pointer to tilt toward — site .rpc-kbsel CSS provides the reaction */
+        if (!dcHas(el, "notilt") && !kb) {   /* keyboard has no pointer to tilt toward, site .rpc-kbsel CSS provides the reaction */
           /* if this element was mid-ease-out (re-entered quickly), adopt it back with its
              progress + its ORIGINAL base/orig (its current inline transform is our own). */
           var fromRel = null, ri;
@@ -614,13 +614,13 @@
     /* ---- KEYBOARD SPATIAL NAVIGATION -------------------------------------------------
        Engages from a hover context: with the pointer over an interactive element (stills
        grid, buttons, bubbles...), the ARROW KEYS move the selection to the nearest
-       interactive element in that direction — the hug outline / object reaction travels
-       with it — and ENTER activates it. The selected element also receives real focus
+       interactive element in that direction, the hug outline / object reaction travels
+       with it, and ENTER activates it. The selected element also receives real focus
        (accessibility + native Enter on links/buttons). The first genuine mouse move hands
        control back to the pointer. Arrows scroll the page normally when no element is
        engaged; typing in text fields is never intercepted. */
     /* KB HOVER PARITY: sites tie real behaviour (preview-reel play/pause on the JC wall and the
-       RP bubbles, marquee pausing, tilt resets) to genuine hover EVENTS on the element — so the
+       RP bubbles, marquee pausing, tilt resets) to genuine hover EVENTS on the element, so the
        keyboard selection mirrors them with synthetic enter/leave events. They are untrusted
        (isTrusted=false) and our own delegated listeners skip those, so nothing loops back. */
     var kbSynthEl = null;
@@ -638,16 +638,16 @@
       if (el) { kbFire(el, "pointerover", true); kbFire(el, "pointerenter", false); kbFire(el, "mouseover", true); kbFire(el, "mouseenter", false); }
     }
     /* Keyboard candidates are broader than mouse targets:
-       - [tabindex="0"] joins in (kb-only stops like the RP "More to come" bubble — the mouse
+       - [tabindex="0"] joins in (kb-only stops like the RP "More to come" bubble, the mouse
          detector still ignores them unless they match SEL / cursor:pointer);
        - data-cursor="off" only excludes kb when the element is NOT explicitly interactive:
-         an "off" element carrying role=button/tabindex (rentals item cards — the mouse hug is
+         an "off" element carrying role=button/tabindex (rentals item cards, the mouse hug is
          deliberately off, the card glows natively) must still be reachable and Enter-able. */
     var SELKB = SEL + ',[tabindex="0"]';
     /* ===== MODAL KEYBOARD TRAP (framework rule) =====
        While a popup owns the screen (image lightbox, contact modal, rental item menu / cart /
        request form, any future overlay), the keyboard may ONLY reach that popup's own controls
-       (its prev/next arrows, its close X, its form fields) — never the page behind it, and
+       (its prev/next arrows, its close X, its form fields), never the page behind it, and
        never off-screen background elements. A popup declares itself by putting data-kb-modal
        on its OUTERMOST container (the rule every future site follows); as a safety net, any
        FIXED overlay covering >=55% of the viewport at z-index >= 10 is trapped automatically,
@@ -711,7 +711,7 @@
         try { cs = getComputedStyle(el); } catch (_) { continue; }
         if (cs.visibility === "hidden" || cs.display === "none" || parseFloat(cs.opacity) === 0) continue;
         /* OCCLUSION: an option sitting BEHIND an open popup/lightbox/menu must be neither
-           selectable nor haloed THROUGH the overlay — probe the stacking order at its centre.
+           selectable nor haloed THROUGH the overlay, probe the stacking order at its centre.
            Only what is actually on top (the element itself, its own children, or an ancestor
            wrapper) keeps it eligible; anything else covering it removes it from play. */
         try {
@@ -749,20 +749,20 @@
     /* JOG-STRIP ONE-BY-ONE (JC wall / BTS type): horizontal arrows walk the strip ITEM BY ITEM.
        If the next option in line sits (partly) outside the strip's visible box, the strip is
        shifted by JUST enough to reveal it (custom event "rpc-kb-jog", handled by the site's
-       marquee) — the selection is always on screen and rides the slide (motion tracking).
+       marquee), the selection is always on screen and rides the slide (motion tracking).
        The strip's own Prev/Next chrome never steals a horizontal step; it is reached with
        the UP arrow, where Enter / left / right page a full view at a time. */
     function kbJogStep(car, navId, dx, cx, cy) {
       var nav = document.getElementById(navId);
       var cb; try { cb = car.getBoundingClientRect(); } catch (_) { return false; }
       var pad = 14;
-      /* WRAP / OVERSHOOT RECOVERY: looped strips are DOUBLED content — when the marquee
+      /* WRAP / OVERSHOOT RECOVERY: looped strips are DOUBLED content, when the marquee
          position wraps, every element teleports by half the track in a single frame, and
          rapid presses measure mid-flight rects. So the current selection's coordinates are
          never trusted beyond the strip's visible box: the step's reference point is the
          selection CLAMPED into the box, candidates are only options in/near the box (far-off
          loop duplicates can never be picked), and a "lost" selection (teleported outside)
-         re-engages the nearest on-screen option first — the selector is always back on
+         re-engages the nearest on-screen option first, the selector is always back on
          screen after ONE press, never a march across the page. */
       var hr = null; try { hr = hoverEl ? hoverEl.getBoundingClientRect() : null; } catch (_) {}
       var hcx = hr ? hr.left + hr.width / 2 : cx;
@@ -789,7 +789,7 @@
       }
       if (!cand) return false;
       if (!lost) {
-        /* reveal it before selecting: shift the strip only as far as needed — and a single
+        /* reveal it before selecting: shift the strip only as far as needed, and a single
            step is CAPPED at ~one option's width, so no measurement glitch can ever inflate
            it into a page-sized jump */
         try {
@@ -808,7 +808,7 @@
       var cr; try { cr = hoverEl.getBoundingClientRect(); } catch (_) { return false; }
       var cx = cr.left + cr.width / 2, cy = cr.top + cr.height / 2;
       /* horizontal moves INSIDE a carousel stay inside it (its Prev/Next chrome and outside
-         elements don't steal the step) — reaching the edge falls through to kbAdvance, which
+         elements don't steal the step), reaching the edge falls through to kbAdvance, which
          pushes the carousel so the next option shifts into place. Vertical moves exit freely. */
       var car = dx ? (hoverEl.closest && hoverEl.closest("[data-kb-carousel]")) : null;
       if (car) {
@@ -827,7 +827,7 @@
         var score = fwd + ortho * 2;                       /* nearest, preferring in-line targets */
         if (score < bs) { bs = score; best = c; }
       });
-      /* MODAL FALLBACK: a popup has FEW controls in extreme corners (lightbox ‹ › X) — the
+      /* MODAL FALLBACK: a popup has FEW controls in extreme corners (lightbox ‹ › X), the
          normal ~65° cone can reject them all (↑ from the LEFT arrow to a TOP-RIGHT X is a
          long diagonal). Inside a modal a directional press must still land somewhere: retry
          without the cone, nearest candidate with ANY progress in the pressed direction. */
@@ -844,9 +844,9 @@
       if (!best) return false;
       var ok = kbEngage(best.el);
       /* CLICK-mode carousels (RP home): choosing an OFF-CENTRE option also ROTATES it into the
-         centre — the selection + hug RIDE the moving element (element-motion tracking glues the
+         centre, the selection + hug RIDE the moving element (element-motion tracking glues the
          outline to it), so "arrow right onto Geri-Action" ends with Geri-Action centred and
-         still selected. A CENTRED option is never clicked — that would ACTIVATE it (open it). */
+         still selected. A CENTRED option is never clicked, that would ACTIVATE it (open it). */
       if (ok && dx && car && (car.getAttribute("data-kb-carousel") || "click") === "click") {
         try {
           var cb = car.getBoundingClientRect(), eb = best.el.getBoundingClientRect();
@@ -873,13 +873,13 @@
       }
       if (mode === "click") {
         /* the selection RIDES the rotation: click the (off-centre) selection so it rotates to
-           the centre and STAYS selected — no reseek to a different item. A centred selection
+           the centre and STAYS selected, no reseek to a different item. A centred selection
            is never clicked here (that would activate/open it). */
         try {
           var cb2 = car.getBoundingClientRect(), eb2 = hoverEl.getBoundingClientRect();
           if (Math.abs((eb2.left + eb2.width / 2) - (cb2.left + cb2.width / 2)) <= cb2.width * .18) return false;
           hoverEl.click();
-          kbEngage(hoverEl);   /* the selection was a mouse hover until now — take kb ownership (kbsel glow, focus, hover parity) so it visibly rides */
+          kbEngage(hoverEl);   /* the selection was a mouse hover until now, take kb ownership (kbsel glow, focus, hover parity) so it visibly rides */
         } catch (_) { return false; }
         return true;
       }
@@ -928,7 +928,7 @@
         /* The page's own handler consumed this key (a lightbox paging photos on ←/→).
            The SELECTION still mirrors the action: inside an open modal, a consumed left/right
            lands the halo on the modal control annotated data-kb-dir="-1"/"1" (the ‹ or ›
-           arrow that just fired) — so the visible selection BOUNCES between the two arrows
+           arrow that just fired), so the visible selection BOUNCES between the two arrows
            as the user toggles through photos, and ↑ from there reaches the close X. */
         var mdx = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
         if (mdx) {
@@ -945,14 +945,14 @@
       var t = e.target;
       if (t && t.nodeType === 1 && (isTextField(t) || t.isContentEditable)) return;   /* typing owns the keys */
       /* MODAL TRAP, key-time: a popup just opened OVER the current selection (Enter on a
-         photo while the strip behind keeps auto-drifting — the motion-tracking watchdog
+         photo while the strip behind keeps auto-drifting, the motion-tracking watchdog
          exemption meant the stale hug could linger). The stale selection must never receive
          another key: drop it NOW, so this very press falls through to the no-hover branch
          and engages the popup's own nearest control instead. */
       var kmod = kbModal();
       if (kmod && hoverEl && !kmod.contains(hoverEl)) applyHover(null, false);
       if (e.key === "Enter" && kbActive && hoverEl) {
-        /* natively-activating elements handle Enter themselves once focused — only click the rest */
+        /* natively-activating elements handle Enter themselves once focused, only click the rest */
         var tg = hoverEl.tagName;
         var nativeAct = (tg === "A" && hoverEl.hasAttribute("href")) || tg === "BUTTON" || tg === "INPUT" || tg === "SELECT" || tg === "SUMMARY";
         if (!(nativeAct && document.activeElement === hoverEl)) { try { hoverEl.click(); } catch (_) {} e.preventDefault(); }
@@ -962,7 +962,7 @@
       var dy = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0;
       if (!dx && !dy) return;
       /* ON a jog-strip's Prev/Next arrow: left/right (or Enter, natively) pages the strip a
-         FULL view in that direction — the deliberate "skip a whole page" gesture. */
+         FULL view in that direction, the deliberate "skip a whole page" gesture. */
       if (dx && kbActive && hoverEl && hoverEl.dataset && hoverEl.dataset.dir) {
         var pnav = hoverEl.parentElement;
         if (pnav && pnav.id && document.querySelector('[data-kb-carousel="' + pnav.id + '"]')) {
@@ -975,7 +975,7 @@
         }
       }
       if (!hoverEl) {
-        /* ACCESSIBILITY: no hover prerequisite — the FIRST arrow press engages the nav by
+        /* ACCESSIBILITY: no hover prerequisite, the FIRST arrow press engages the nav by
            selecting the candidate nearest the pointer's last known position (viewport centre
            if the mouse hasn't been seen yet). The next real mouse move hands control back. */
         var sx = mx >= 0 ? mx : innerWidth / 2, sy = my >= 0 ? my : innerHeight / 2;
@@ -983,7 +983,7 @@
           var nx = c.r.left + c.r.width / 2 - sx, ny = c.r.top + c.r.height / 2 - sy;
           return { el: c.el, d: nx * nx + ny * ny };
         }).sort(function (a, b2) { return a.d - b2.d; });
-        /* nearest first, but keep trying — the closest match can be an OVERSIZED wrapper
+        /* nearest first, but keep trying, the closest match can be an OVERSIZED wrapper
            kbEngage refuses (>62% viewport), and one refusal must not kill the activation */
         for (var ci = 0; ci < cands.length && ci < 8; ci++) {
           if (kbEngage(cands[ci].el)) { kbActive = true; e.preventDefault(); break; }
@@ -1036,7 +1036,7 @@
 
     /* ---- the one rAF loop ---- */
     /* Wrapped in try/finally: a one-off exception (e.g. a hovered element getting replaced
-       mid-frame by the SPA) can NEVER kill the loop — worst case that frame is skipped, the
+       mid-frame by the SPA) can NEVER kill the loop, worst case that frame is skipped, the
        error is captured on window.__rpcErr, and the next frame heals. */
     function tick(now) {
       var keep = true;
@@ -1069,7 +1069,7 @@
         } catch (_) {}
       }
       /* KB OCCLUSION WATCHDOG: a popup/lightbox can open OVER the keyboard selection (Enter on
-         a photo) — the hug and its glow must never keep shining THROUGH the overlay. If the
+         a photo), the hug and its glow must never keep shining THROUGH the overlay. If the
          selection's centre is now covered by an unrelated element, release the hug; the next
          arrow press re-engages among the overlay's own (visible) controls. */
       if (frame % 12 === 6 && hoverEl) {
@@ -1077,7 +1077,7 @@
           if (!hoverEl.isConnected) applyHover(null, false);   /* SPA re-render removed it */
           else if (kbActive) {
             /* MODAL first, and NOT exempted by motion tracking: the JC strips auto-drift, so a
-               selection there is permanently "in motion" — the old trackN exemption let its hug
+               selection there is permanently "in motion", the old trackN exemption let its hug
                and glow linger under an opened lightbox. Popup open + selection outside => release. */
             var mod2 = kbModal();
             if (mod2 && !mod2.contains(hoverEl)) applyHover(null, false);
@@ -1091,7 +1091,7 @@
             }
           } else if (trackN <= 0) {
             /* MOUSE hugs get the same staleness probe: leaving a project page swaps the whole
-               section under a stationary pointer — no pointerout ever fires, the button keeps
+               section under a stationary pointer, no pointerout ever fires, the button keeps
                its old rect (fixed, now invisible), and the hug outline GHOSTED there until the
                mouse moved. If the point where the element sits is now painted by something
                unrelated, the hug is over. */
@@ -1108,7 +1108,7 @@
         } catch (_) {}
       }
 
-      /* springy velocity stretch (from real pointer deltas) — bouncy, liquid.
+      /* springy velocity stretch (from real pointer deltas), bouncy, liquid.
          Fast mouse pulls the ring into a clear OVAL along the travel direction; the spring
          relaxes it back to a perfect circle when the mouse stops. */
       var dxm = mx - pmx, dym = my - pmy;
@@ -1119,7 +1119,7 @@
       kV *= .78;                          /* damping = a little overshoot/bounce */
       kS = Math.max(0, Math.min(.72, kS + kV));
       /* orientation: an ellipse is 180°-symmetric, so take the SHORTEST path modulo π.
-         (The old raw-atan2 smoothing spun the long way around on direction reversals —
+         (The old raw-atan2 smoothing spun the long way around on direction reversals,
          that was the "pops in unnatural directions" glitch.) Ignore micro-jitter (<2px). */
       if (sp > 2) {
         var a = Math.atan2(dym, dxm), dA = a - angS;
@@ -1137,18 +1137,18 @@
         else {
           var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
           if (hoverSpecial) {
-            /* special objects: the ring never outlines them — it stays the free ring
+            /* special objects: the ring never outlines them, it stays the free ring
                following the pointer; the OBJECT is what reacts (below). */
             tx = mx; ty = my; tw = 50; th = 50; tr = "50%";
           } else {
             /* ELEMENT-MOTION TRACKING: a carousel rotation moves/resizes the hugged element
-               while the ring's own 0.22s size transition restarts every frame — the outline
+               while the ring's own 0.22s size transition restarts every frame, the outline
                warped into shapes that conformed to nothing. While the element is in motion
                the ring is GLUED to it (transitions off, near-zero lag); once it settles the
                transitions return and the hug shape is re-scanned for the grown card. */
             var pR = hoverEl.__rpcR;
             /* LOOP-WRAP TELEPORT: a looped strip's wrap moves elements by HALF THE TRACK in one
-               frame — the selection must snap to its on-screen equivalent immediately instead
+               frame, the selection must snap to its on-screen equivalent immediately instead
                of riding off into the void (kbJogStep with dx=0 = lost-recovery: re-engage the
                nearest option inside the strip's visible box). */
             if (kbActive) {
@@ -1179,17 +1179,17 @@
             if (elMoving) {
               trackN = 8; ring.classList.add("tracking");
               /* the visible surface's border-radius can be MORPHING too (.cbub 50% → 13%/20%
-                 over .6s) — follow it live so the outline parallels the visible edge exactly */
+                 over .6s), follow it live so the outline parallels the visible edge exactly */
               if (frame % 2 === 0) scanShape(hoverEl);
             } else if (trackN > 0 && --trackN === 0) {
               ring.classList.remove("tracking");
               scanShape(hoverEl);   /* settled re-scan: final radius for the grown card */
             }
             /* the outline is ATTACHED to the element's edges: exact box, exact radius,
-               zero magnetic drift — moving inside the button moves the BUTTON (tilt),
+               zero magnetic drift, moving inside the button moves the BUTTON (tilt),
                never the outline. */
             /* the outline draws around the VISIBLE SURFACE (findBox): a bobbing inner layer
-               floats while the anchor stays still — the ring must bob WITH the visual. */
+               floats while the anchor stays still, the ring must bob WITH the visual. */
             var vb = r;
             if (hoverBoxEl && hoverBoxEl !== hoverEl) {
               try { var vb2 = hoverBoxEl.getBoundingClientRect(); if (vb2 && vb2.width) vb = vb2; } catch (_) {}
@@ -1199,7 +1199,7 @@
             /* +3px per side = the .rpc-bord band's own width: the band is drawn INSIDE the
                ring box, so an exact-size box put the visible line slightly WITHIN the button.
                Growing the box by one band-width sets the line's inner edge ON the element's
-               edge — the outline sits on the rim, never inside it. */
+               edge, the outline sits on the rim, never inside it. */
             tw = vb.width + hoverPad * 2 + 6; th = vb.height + hoverPad * 2 + 6;
             if (hoverPct) tr = hoverRad >= 45 ? "50%" :
               (hoverRadY && Math.abs(hoverRadY - hoverRad) > .5 ? hoverRad + "% / " + hoverRadY + "%" : hoverRad + "%");
@@ -1243,7 +1243,7 @@
       ry += (ty - ry) * ease;
 
       /* RELEASE TRAVEL (hug → free): override the centre with an eased glide from the release
-         point to the LIVE pointer — ~14 frames, matching the 0.22s size shrink — so the whole
+         point to the LIVE pointer (~14 frames, matching the 0.22s size shrink) so the whole
          shrinking outline visibly travels the button→dot distance instead of snapping. */
       if (travT > 0 && free) {
         travT -= 1 / 14;
@@ -1254,9 +1254,9 @@
       } else if (travT > 0) travT = 0;
 
       /* CONTAINMENT: the dot must always sit INSIDE the ring. In free/special mode the ring
-         trails the pointer, so on fast moves the dot could exit — clamp the lag against the
+         trails the pointer, so on fast moves the dot could exit, clamp the lag against the
          ring's current ELLIPSE (rotated by angS, squashed by kS) and pull the ring along. */
-      if (free && travT <= 0) {   /* suspended during release travel — the glide owns the centre */
+      if (free && travT <= 0) {   /* suspended during release travel, the glide owns the centre */
         var cdx = mx - rx, cdy = my - ry;
         var cca = Math.cos(angS), csa = Math.sin(angS);
         var ex = cdx * cca + cdy * csa, ey = -cdx * csa + cdy * cca;
@@ -1271,9 +1271,9 @@
       var moved = Math.abs(tx - rx) + Math.abs(ty - ry) + Math.abs(kS);
       var tf = "translate(" + rx.toFixed(2) + "px," + ry.toFixed(2) + "px) translate(-50%,-50%)";
       var sc = down ? " scale(.9)" : "";
-      if (free && kS > .012 && travT <= 0) {   /* no stretch-rotate mid-travel — the shrinking outline must stay true to its shape */
+      if (free && kS > .012 && travT <= 0) {   /* no stretch-rotate mid-travel, the shrinking outline must stay true to its shape */
         ring.style.transform = tf + " rotate(" + angS.toFixed(3) + "rad) scale(" + (1 + kS).toFixed(3) + "," + (1 - kS * .62).toFixed(3) + ")" + sc;
-        /* the stretch ROTATES the ring element — without compensation the conic gradient spins
+        /* the stretch ROTATES the ring element, without compensation the conic gradient spins
            with it and mouse shakes read as the colours FLIPPING (the smoothed angle jumps by
            ~pi on direction reversals). The gradient's from-angle counter-rotates so the colour
            band stays FIXED in screen space no matter how the oval turns. */
@@ -1293,10 +1293,10 @@
 
       /* sleep when idle (nothing moving, loading, tilted, or easing back out).
          NEVER while hugging a FLOATING surface (hoverBoxEl != anchor): its ease-in-out bob
-         dwells ~0-velocity at the extremes long enough to trip the 90-frame idle threshold —
+         dwells ~0-velocity at the extremes long enough to trip the 90-frame idle threshold,
          the loop slept mid-bob and the outline froze while the visual floated on. */
       /* ...and never while ANYTHING is hovered: the staleness watchdog, look re-poll and
-         bob-follow all live in this loop — sleeping mid-hug froze them (the ghost outline
+         bob-follow all live in this loop, sleeping mid-hug froze them (the ghost outline
          after leaving a project page survived precisely because the loop slept before the
          section swap finished). Sleep only in the free-ring idle state. */
       var floating = !!(hoverEl && hoverBoxEl && hoverBoxEl !== hoverEl);
@@ -1304,7 +1304,7 @@
     }
     function wake() {
       if (running || cursorOff) return;
-      /* the loop may have slept for seconds — a stale previous-pointer would read as one
+      /* the loop may have slept for seconds, a stale previous-pointer would read as one
          giant instantaneous delta and detonate the stretch ("pops"). Resync first. */
       pmx = mx; pmy = my;
       running = true;

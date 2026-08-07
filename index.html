@@ -18,12 +18,12 @@
   window.__setThemeColor=function(c){try{clearTimeout(t);t=null;meta().setAttribute('content',c||BASE);}catch(e){}};
   window.__resetThemeColor=function(delay){try{clearTimeout(t);t=setTimeout(function(){meta().setAttribute('content',BASE);t=null;},delay||0);}catch(e){}};
   /* The bright load veil is covering at first paint, so start the chrome tinted to it and let
-     __revealPage reset to dark when the veil lifts — otherwise an incoming page (e.g. the second
+     __revealPage reset to dark when the veil lifts, otherwise an incoming page (e.g. the second
      half of a cross-page cross-fade) would flash dark bars around the bright veil. */
   meta().setAttribute('content',"#3f6bff");
 })();
 </script>
-<!-- Dev perf HUD — dormant unless ?fps is in the URL or Ctrl+` toggles it (choice persists for the
+<!-- Dev perf HUD, dormant unless ?fps is in the URL or Ctrl+` toggles it (choice persists for the
      tab). Live FPS, worst frame in the window, frame time, jank% (frames slower than 50fps),
      long-task count and viewport@DPR, so real device performance is visible during scroll and
      transitions on desktop AND mobile. pointer-events:none; a single cheap check when off. -->
@@ -202,7 +202,7 @@ html.xw-active{overflow:hidden}
   @media(max-width:780px){.xsite{padding:7px 11px;font-size:13px}}
   @media(max-width:600px){.hright2 .xsite{display:none}}
   @media(max-width:780px){.nav a{padding:8px 10px;font-size:13px}.brandname{display:none}}   /* icon sizes: /assets/chrome.css */
-  /* ===== mobile hamburger menu (nav + socials) — shown <=720px in place of the inline nav/socials ===== */
+  /* ===== mobile hamburger menu (nav + socials), shown <=720px in place of the inline nav/socials ===== */
   .hmenu-btn{display:none;flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:12px;border:1px solid rgba(40,95,180,.32);background:rgba(255,255,255,.6);cursor:pointer;align-items:center;justify-content:center;transition:.18s}
   .hmenu-btn:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
   .hmenu-btn>span,.hmenu-btn>span::before,.hmenu-btn>span::after{content:"";display:block;width:20px;height:2px;border-radius:2px;background:#13325e;transition:transform .25s,opacity .2s}
@@ -554,7 +554,7 @@ html.xw-active{overflow:hidden}
   .bubble:hover>.bubble-logo{opacity:0;transform:translateX(-50%) translateY(-12px) scale(.95)}
   .bubble:hover .caption .t{opacity:1;transform:translateY(0)}
   /* keyboard selection (.rpc-kbsel, applied by assets/cursor.js) mirrors the hover glow so the
-     object visibly reacts to being selected — same "selection glow" as a mouse hover. */
+     object visibly reacts to being selected, same "selection glow" as a mouse hover. */
   .bubble.rpc-kbsel{transform:translateZ(40px) scale(1.06)}
   .bubble.rpc-kbsel .caption .t{opacity:1;transform:translateY(0)}
   /* v19 (Jack): no ring band on RP bubbles - the kb indicator is the bubble's own standard
@@ -639,7 +639,7 @@ html.xw-active{overflow:hidden}
   .u-vid.on{opacity:1}
   /* base scrim reads BOTH look washes: --scrim-1 (main/mainAlpha) top + --scrim-2 (tint/tintAlpha)
      bottom-right, matching jackcarlsen's .pj-scrim and the /admin/colorlooks mock. This is the
-     ONE shared, token-driven treatment EVERY film uses — there are no per-film scrim overrides.
+     ONE shared, token-driven treatment EVERY film uses, there are no per-film scrim overrides.
      --scrim-2 falls back to transparent, so films whose look sets no tint are unchanged. */
   .u-scrim{position:fixed;inset:0;z-index:1;background:radial-gradient(90% 70% at 50% 0%,var(--scrim-1,#ffffff),transparent 60%),radial-gradient(70% 60% at 88% 92%,var(--scrim-2,transparent),transparent 60%),linear-gradient(180deg,rgba(6,8,20,.6),rgba(4,6,16,.92))}
   /* ===== THE ZOOM-IN FLASH ==========================================================
@@ -679,11 +679,11 @@ html.xw-active{overflow:hidden}
      under the header but well above universe content, and tap size is unchanged. */
   /* translateZ(0) pins the button to its OWN compositor layer so its backdrop-filter blur
      stays stable while the .universe scroll container scrolls behind it (without it the blur
-     re-sampled into layout and shimmered). There is deliberately NO transform on :hover — see
+     re-sampled into layout and shimmered). There is deliberately NO transform on :hover, see
      the note on the hover rule below for why moving this fixed pill caused the flicker.
      Transition is scoped to the exact properties that change (never `all`). */
   .back{position:fixed;top:calc(var(--header-h) + 8px);left:clamp(14px,5vw,54px);z-index:900;/* above every universe layer - kicker/eyebrow text can scroll under it, never over it */display:inline-flex;align-items:center;gap:9px;cursor:pointer;border-radius:50px;padding:11px 18px;font-weight:700;font-size:14px;color:#fff;background:rgba(10,22,46,.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 22px rgba(0,0,0,.35);transform:translateZ(0);backface-visibility:hidden;transition:background .2s ease,border-color .2s ease,box-shadow .2s ease}
-  /* Hover feedback is background/border/shadow ONLY — never a transform that moves the button.
+  /* Hover feedback is background/border/shadow ONLY, never a transform that moves the button.
      A -2px translate slid this fixed pill 2px under the cursor, so at its edges the pointer kept
      crossing in and out as the button moved, firing hover on/off every frame = the flicker Jack
      saw when moving the mouse around it. The hit area now stays put, so hover is stable. */
@@ -702,7 +702,7 @@ html.xw-active{overflow:hidden}
   .u-title{line-height:.92;margin:0 0 14px;font-weight:800}
   .u-tagline{font-size:clamp(17px,2.4vw,26px);font-weight:600;margin:0 0 22px;opacity:.95;color:var(--tagline-color,#ffffff);font-style:var(--tagline-style,normal)}
   .u-logline{font-size:clamp(15px,1.7vw,19px);line-height:1.6;max-width:680px;color:#e7eefb}
-  /* ===== "Hear our thoughts" — expandable note below the logline (NocoDB rp_thoughts).
+  /* ===== "Hear our thoughts", expandable note below the logline (NocoDB rp_thoughts).
      The box grows OUT of the button: pill button on top, panel unfolds beneath it sharing the
      same glass chrome; grid-template-rows 0fr↔1fr = fluid height animation at any text length. */
   .u-thoughts{margin:18px 0 0;max-width:680px}
@@ -1311,13 +1311,13 @@ try{
 
 
 
-/* ===== SHARED PLATFORM MAP — single source: data/platforms.json =====================
+/* ===== SHARED PLATFORM MAP, single source: data/platforms.json =====================
    platforms.json (exported from the shared backend) is now the ONE place every platform's real
-   brand logo + colour lives — previously duplicated across both sites' index.html, this file's
+   brand logo + colour lives, previously duplicated across both sites' index.html, this file's
    socials.js and admin/colorlooks.html. We start from assets/socials.js (RP_SOCIAL_ICONS, the
    offline fallback set) and OVERLAY the real logos from platforms.json on top, so the runtime
    artwork comes from the single shared source but the site still renders if the fetch fails.
-   Duals (YouTube, Vimeo) are ONE platforms.json record with contexts ['social','watch'] — the
+   Duals (YouTube, Vimeo) are ONE platforms.json record with contexts ['social','watch'], the
    same record feeds the header social icon AND the Where-to-Watch button. */
 const SOCIAL_SVG = Object.assign({}, window.RP_SOCIAL_ICONS || {});
 const PLAT=(__d[7]&&Array.isArray(__d[7].platforms))?__d[7].platforms:[];
@@ -1337,7 +1337,7 @@ function watchMatch(u){
   }
   return null;
 }
-/* generic play glyph — unknown-host watch fallback only (real services use their logo) */
+/* generic play glyph, unknown-host watch fallback only (real services use their logo) */
 const PLAY_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
 
 /* Header/footer social icon: prefer the colour-look's swappable logo file rendered as a MASK
@@ -1392,7 +1392,7 @@ try{
          render a dead <a> with no destination. This keeps the link working from
          the label alone. */
       const KNOWN_PATHS={rentals:'/rentals'};
-      /* Every footer link gets a real href (SPA targets use their path — the router still
+      /* Every footer link gets a real href (SPA targets use their path, the router still
          intercepts via data-go, and the custom cursor requires a[href] to engage) plus
          data-cursor-pad so the hover outline forms with breathing room around the text. */
       const PAD=' data-cursor-pad="6"';
@@ -1577,7 +1577,7 @@ makeBgBubbles(document.getElementById('projects-page'),BG_BUBBLES,'fade-b');
 
 const ABOUT_ORB_POS=[[-172,-96,86],[-202,72,76],[-130,166,80],[10,196,72],[126,150,70],[150,-92,72],[-52,-188,72]];
 (function buildOrbits(){const host=document.querySelector('.about-logo');if(!host)return;
-/* Orbit images are PLAIN PATH STRINGS in the CMS now — paste a /media/... path straight from
+/* Orbit images are PLAIN PATH STRINGS in the CMS now, paste a /media/... path straight from
    the NocoDB stills/BTS attribute and the SAME file the project already uses populates the
    bubble (no duplicate uploads). Normalize whatever gets pasted: full URL → its path;
    missing leading slash → added. */
@@ -1996,7 +1996,7 @@ function buildUniverse(key){
   const uVid=s.focusVideo?`<video class="u-vid" data-src="${s.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
   sec.innerHTML=`<button class="back">‹ Back</button><div class="u-bg" style="background-image:url('${uBg}')"></div>${uVid}<div class="u-scrim"></div><div class="u-flash"></div><div class="u-inner"><div class="u-top"><span class="u-eyebrow">${fillVars(EYEBROW_TPL,s.vars)}</span></div><div class="u-hero"><div class="u-kicker">${fillVars(s.kicker,s.vars)}</div>${titleEl}<div class="u-tagline">${fillVars(s.tagline,s.vars)}</div><p class="u-logline">${fillVars(s.logline,s.vars)}</p>${(s.rpShowThoughts&&String(s.rpThoughts||'').trim())?`<div class="u-thoughts"><button class="u-thoughts-btn" type="button" aria-expanded="false"><span class="u-thoughts-label">Hear our thoughts</span><svg class="u-thoughts-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="u-thoughts-body"><div class="u-thoughts-clip"><div class="u-thoughts-text">${String(s.rpThoughts).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</div></div></div></div>`:''}<div class="u-meta">${(s.type&&String(s.type).trim())?`<span class="chip type-chip">${String(s.type).trim().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</span>`:''}${(s.medium&&String(s.medium).trim())?`<span class="chip type-chip medium-chip">${String(s.medium).trim().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</span>`:''}${s.genre.map(c=>`<span class="chip">${c}</span>`).join('')}</div>${watchHTML}<div class="u-credits">${renderCredits(s.credits,s.vars)}</div></div>${stillsHTML}${btsHTML}</div>`;
   sec.querySelector('.back').addEventListener('click',()=>history.back());
-  /* "Hear our thoughts" — fluid expand/collapse (grid-template-rows 0fr↔1fr, same pattern as
+  /* "Hear our thoughts", fluid expand/collapse (grid-template-rows 0fr↔1fr, same pattern as
      the rentals package box). Text originates from the NocoDB rp_thoughts field. */
   const _tw=sec.querySelector('.u-thoughts');
   if(_tw){const _tb=_tw.querySelector('.u-thoughts-btn');_tb.addEventListener('click',()=>{const open=_tw.classList.toggle('open');_tb.setAttribute('aria-expanded',open?'true':'false');});}
@@ -2236,7 +2236,7 @@ let activeView='home';
 const viewHome=document.getElementById('view-home'),viewProjects=document.getElementById('view-projects'),viewTeam=document.getElementById('view-team');
 const viewPage=document.getElementById('view-page');
 /* INSTANT scroll reset (no smooth glide). html{scroll-behavior:smooth} turns a bare
-   window.scrollTo(0,0) into an ANIMATED scroll — so arriving on a new view visibly
+   window.scrollTo(0,0) into an ANIMATED scroll, so arriving on a new view visibly
    "landed at the bottom and scrolled up" (worst from links far down the page, e.g. the
    about CTAs / footer). Suspend the CSS behavior for the jump, then restore. */
 function __instTop(){const de=document.documentElement;const p=de.style.scrollBehavior;de.style.scrollBehavior='auto';try{window.scrollTo({top:0,left:0,behavior:'instant'});}catch(_){window.scrollTo(0,0);}de.style.scrollBehavior=p;}
@@ -2336,7 +2336,7 @@ function __pageFade(swap){
   var did=false;
   function go(){ if(did)return;did=true; try{swap();}catch(e){}
     /* REVEAL. Two hard-won rules live here:
-       1. Start the fade-out on the next PAINTED frame (double-rAF), not a fixed timeout — the
+       1. Start the fade-out on the next PAINTED frame (double-rAF), not a fixed timeout, the
           swapped view can block the main thread for hundreds of ms (image decode/layout), and a
           transition requested during that jank doesn't visually start until it clears.
        2. Never force-finish mid-animation. The old fixed 650ms safety was scheduled from the
@@ -2382,7 +2382,7 @@ addEventListener('hashchange',routeHash);
   const mark=()=>{userMoved=true;};
   ['wheel','touchstart','pointerdown','keydown'].forEach(ev=>
     addEventListener(ev,mark,{once:true,passive:true}));
-  const top=()=>{ if(!userMoved) __instTop(); };   /* instant — html{scroll-behavior:smooth} would animate a bare scrollTo */
+  const top=()=>{ if(!userMoved) __instTop(); };   /* instant, html{scroll-behavior:smooth} would animate a bare scrollTo */
   top();
   requestAnimationFrame(top);
   addEventListener('load',()=>{ top(); setTimeout(top,150); },{once:true});

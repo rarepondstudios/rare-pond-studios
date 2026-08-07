@@ -1,4 +1,4 @@
-/* Rare Pond Rentals — live availability overlay  (assets/availability.js)
+/* Rare Pond Rentals, live availability overlay  (assets/availability.js)
    ---------------------------------------------------------------------------
    Loaded RIGHT AFTER app.js, so RENTALS, cart, render(), renderResults(),
    openDP(), addCart(), inc() and window.RPDates already exist in the shared
@@ -17,20 +17,20 @@
    The catalog is re-rendered from scratch by several code paths in app.js
    (renderResults on search + after every cart change via refresh(); openDP for
    the detail popup). A pure "annotate the DOM after render()" overlay lost its
-   marks the instant any of those fired — which is exactly the reported bug:
+   marks the instant any of those fired, which is exactly the reported bug:
    click/add on one item and every booked-out item looked free again with full
    quantity. And nothing enforced availability on the CART, so a wrong count
    flowed straight into the quote e-mail + HubSpot deal.
 
    So this file makes availability AUTHORITATIVE, in three layers:
-     1. DATA  — capOf(item) is the single truth (serviceable when no dates are
+     1. DATA , capOf(item) is the single truth (serviceable when no dates are
                 chosen, booking-aware once they are). Packages use the RPC's own
                 per-package numbers (min over components), no JS math needed.
-     2. CART  — addCart()/inc() are wrapped to hard-cap at capOf(); a booked-out
+     2. CART , addCart()/inc() are wrapped to hard-cap at capOf(); a booked-out
                 or in-repair item can never enter the cart, and quantities can
                 never exceed what is actually free. Picking tighter dates trims
                 any now-over-cap lines so the quote is always correct.
-     3. VIEW  — apply() re-marks the grid after EVERY render path (render,
+     3. VIEW , apply() re-marks the grid after EVERY render path (render,
                 renderResults, refresh), and applyDP() enforces the detail popup
                 (status text + Add button). Repair shows even before dates are
                 picked, because serviceable_units is date-independent.

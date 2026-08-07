@@ -1,4 +1,4 @@
-# jackcarlsen.com — Build Brief (Jack's spec)
+# jackcarlsen.com, Build Brief (Jack's spec)
 
 The target design for the combined jackcarlsen.com. Read alongside `HANDOFF.md` (infra +
 data model + gotchas) and `JACKCARLSEN-ROADMAP.md` (shared-platform strategy). This file is
@@ -6,52 +6,52 @@ the **desired new layout**; the current Wix site is captured separately via the 
 (site id `a7f0f9a8-3869-4ff6-929e-c5042e928e05`) as the build chat's first step.
 
 **Concept:** marry the *personal-portfolio* content/branding of the current (Wix)
-jackcarlsen.com with the *project system + interactive carousel* of rarepond.com — rebuilt on
+jackcarlsen.com with the *project system + interactive carousel* of rarepond.com, rebuilt on
 the rarepond stack (static Cloudflare Pages SPA, film data from the shared NocoDB DB via
 `sites: jackcarlsen`). Discipline framing (Director / Cinematographer / Gaffer / VFX) comes
 from the `roles` field.
 
 ---
 
-## Homepage layout — top to bottom
+## Homepage layout, top to bottom
 
-### 1. Hero — interactive showreel + synced project selector  *(the signature new piece)*
+### 1. Hero, interactive showreel + synced project selector  *(the signature new piece)*
 - **Top:** a large "video" view that plays footage from Jack's work. It is **not one
-  pre-rendered reel** — it's a dynamic player that cycles through the featured projects' clips,
+  pre-rendered reel**, it's a dynamic player that cycles through the featured projects' clips,
   one at a time.
 - **Below it:** a **smaller version of the rarepond bubble carousel**. The bubble that's
   active corresponds to the project whose footage is currently playing above. As the showreel
   cycles, the carousel toggles to match; the user can also **click a bubble to jump** the
   player to that project's clip.
 - **Call to action:** when a clip catches someone's eye, a button on it takes them to **that
-  project's page** — the same project-page route/behavior as rarepond (slugified title).
+  project's page**, the same project-page route/behavior as rarepond (slugified title).
 - **Which projects appear here** is controlled per-project by a **jackcarlsen "front-page
   carousel" toggle** (separate from rarepond's `rp_in_carousel`, and separate from the poster
-  wall below — see §4 data model).
+  wall below, see §4 data model).
 - **Performance is a hard requirement** (Jack called this out): don't mount many simultaneous
-  `<video>`s. Suggested approach — one (or two, for crossfade) muted/inline/looping video
+  `<video>`s. Suggested approach, one (or two, for crossfade) muted/inline/looping video
   element(s), swap `src`/poster on selection, lazy-load, preload only the next clip, pause
   offscreen. Respect the rarepond perf traps (see `OPERATIONS.md`: blur/box-shadow re-raster;
   `prefers-reduced-motion`).
 
-### 2. About — "who is Jack"
+### 2. About, "who is Jack"
 - The section with **Jack's face/photo** and a bio/intro about him (Director + Cinematographer
   + Gaffer + VFX; LA/Burbank; LMU BFA; the "I love crafting worlds…" statement). Résumé link.
   Pull current copy from Wix; headshots from the brand kit (`HANDOFF.md` §15.3).
 
-### 3. "What I've Been Working On" — auto-scrolling POSTER wall
+### 3. "What I've Been Working On", auto-scrolling POSTER wall
 - A horizontally **auto-scrolling carousel of film POSTERS** (portrait poster aspect ratio,
-  **not** the square bubbles — reuse the carousel mechanics but with poster tiles).
+  **not** the square bubbles, reuse the carousel mechanics but with poster tiles).
 - Populated from the projects DB, controlled by a **separate jackcarlsen "work wall" toggle**,
   independent of the hero carousel toggle in §1. (So Jack can put a project in the hero reel,
   the poster wall, both, or neither.)
 - Poster tiles presumably link to the project page too (confirm).
 
-### 4. BTS collage — auto-scrolling behind-the-scenes photos  *(jackcarlsen-only, NOT in NocoDB)*
+### 4. BTS collage, auto-scrolling behind-the-scenes photos  *(jackcarlsen-only, NOT in NocoDB)*
 - An automatically-scrolling **collage of curated BTS photos**, brought over from the current
   Wix site.
 - **Storage:** its own media folder in the jackcarlsen repo (e.g. `/media/bts/`), managed via
-  **Pages CMS / Cloudflare Pages only** — deliberately NOT a NocoDB/database thing (it's
+  **Pages CMS / Cloudflare Pages only**, deliberately NOT a NocoDB/database thing (it's
   personal to this one site).
 - **Editability:** Jack must be able to **add/remove BTS photos** and have the collage update.
   A `data/bts.json` (or CMS list) drives it; the front-end must **auto-compensate for any
@@ -61,7 +61,7 @@ from the `roles` field.
 
 ---
 
-## Data-model implications (proposed — for the build chat to finalize with Jack)
+## Data-model implications (proposed, for the build chat to finalize with Jack)
 
 The current DB has rarepond-scoped flat columns (`rp_color_look`, `rp_bubble_glow`,
 `rp_in_carousel`). jackcarlsen needs its own presentation flags/media, extending that same
@@ -82,7 +82,7 @@ from the existing schema. Confirm exact names against live NocoDB before coding.
 ---
 
 ## Assets to source before/while building
-- **Hero clips:** short, seamless, muted loop clips per featured project — exported from NAS
+- **Hero clips:** short, seamless, muted loop clips per featured project, exported from NAS
   masters (`/Volumes/RarePondNAS/Current Projects/...`). Keep them small/optimized (web).
 - **Posters:** portrait poster art per film (the ones on the current Wix "What I've Been
   Working On"). Grab via the Wix media pull; originals may be on the NAS / brand kit.
@@ -97,10 +97,10 @@ from the existing schema. Confirm exact names against live NocoDB before coding.
    homepage + project pages? (The `roles` field can drive discipline filtering either way.)
 2. **Hero clip source & format** (new `hero_clip` field vs reuse `focus_video`; who exports the
    loops).
-3. **Per-site colour look** — same palette as rarepond, or jackcarlsen-specific.
+3. **Per-site colour look**, same palette as rarepond, or jackcarlsen-specific.
 4. **Poster tiles link target** (project page? external? nothing).
 5. **Export mechanism** for jackcarlsen's `projects.json` (2nd n8n workflow vs GitHub Action in
-   the personal repo — `HANDOFF.md` §15.5). Recommend the Action for clean separation.
+   the personal repo, `HANDOFF.md` §15.5). Recommend the Action for clean separation.
 6. **Contact form** (Wix form → what? HubSpot like rarepond, or a simple mailto/Formspree).
 
 ---
@@ -127,9 +127,9 @@ from the existing schema. Confirm exact names against live NocoDB before coding.
   bottom of the home page).
 - **Social icons in the header** (same as rarepond).
 
-### Projects page (dedicated) — discipline portfolio
+### Projects page (dedicated), discipline portfolio
 - Behaves like rarepond's Projects page, **plus discipline sorting**.
-- **Top of the page: three Reels** — Directing Reel, Cinematography Reel, VFX Reel. The
+- **Top of the page: three Reels**, Directing Reel, Cinematography Reel, VFX Reel. The
   **selected** discipline's reel is highlighted with a **glow and shown full-size**; the other
   two stay interactable but are **slightly smaller** to focus attention. **Default = Director.**
   Selecting a different discipline **animates the focus/glow moving** from the old reel to the
@@ -151,18 +151,18 @@ from the existing schema. Confirm exact names against live NocoDB before coding.
 
 ### Color looks
 - The **color-look system carries over** to jackcarlsen (it must exist there).
-- **Palettes are shared in content** between the two sites — **except `signature`**, which on
+- **Palettes are shared in content** between the two sites, **except `signature`**, which on
   jackcarlsen follows the **jackcarlsen** colour scheme (not rarepond's).
 - **Hero-clip-favored-over-still** (poster as the fallback) carries over from rarepond.
 - **Bonus goal:** have the two sites **share one canonical color-look system** (single source
-  auto-mirrored to both — matches the `colorlooks.json` auto-transfer idea in
+  auto-mirrored to both, matches the `colorlooks.json` auto-transfer idea in
   `JACKCARLSEN-ROADMAP.md`).
 
 ### Role → discipline-category mapping (Projects page)
 | `roles` value | Category | Sub-order |
 |---|---|---|
-| Director | Director | — |
-| Animation Director | Director *(confirm — used on Pity Party intro)* | — |
+| Director | Director |, |
+| Animation Director | Director *(confirm (used on Pity Party intro)* |) |
 | Cinematographer | Cinematography | top |
 | Gaffer | Cinematography | after divider |
 | VFX Supervisor | Visual Effects | top |
@@ -192,14 +192,14 @@ online research for high-res posters + details.
 
 **Status:** rows are created in NocoDB tagged `sites: jackcarlsen` with `roles` set (skeleton).
 **Still needs a focused enrichment pass:** per-film `blurb`/`year`/`production`/full `credits`,
-`poster_image`, `hero_clip`, and stills — pulled from the NAS folders (locate each under the
+`poster_image`, `hero_clip`, and stills, pulled from the NAS folders (locate each under the
 nested `01/02/03` archive) + online research. Save Jack's Buried-Treasure poster into
 `/media/posters/`.
 
 
 ---
 
-## SESSION LOG — data enrichment is DONE (2026-07-16)
+## SESSION LOG, data enrichment is DONE (2026-07-16)
 A separate focused chat enriched all 11 `sites: jackcarlsen` project rows in NocoDB. Full
 per-film detail (found vs. missing) is in **`JACKCARLSEN-ENRICHMENT-REPORT.md`** (same folder).
 Summary for the build chat:
@@ -211,39 +211,39 @@ Summary for the build chat:
   at `media/posters/<key>.jpg` (swap for real portrait key art when available); real stills at
   `media/projects/<key>/still*.jpg`.
 - The four new columns (`poster_image`, `hero_clip`, `jc_in_carousel`, `jc_in_workwall`) were
-  deliberately NOT created — this brief still owns them. Their staged paths, suggested
+  deliberately NOT created, this brief still owns them. Their staged paths, suggested
   carousel/work-wall picks, and per-film hero-clip **source masters on the NAS** are listed in the
   report. Add the columns (schema-change ON → add → OFF per HANDOFF §11) and wire them.
 - `watch`: **LoveBug is done** (Prime Video link). The other 10 still need links (Jack will paste
   his YouTube/Vimeo URLs, or supply as found).
 
-## SCOPE ADDITION — `watch` must support major streaming services, not just YouTube/Vimeo
+## SCOPE ADDITION, `watch` must support major streaming services, not just YouTube/Vimeo
 Rarepond's current watch handling (`parseWatchLinks()` / `buildWatch()` / `renderWatch()` in
 `index.html`, ~lines 1340–1415, sharing `_wEsc()`) auto-detects **YouTube and Vimeo per line** and
 renders a click-to-load **embed** (play button → iframe). For jackcarlsen, carry that over AND
 extend it:
 
-1. **Keep the YouTube + Vimeo click-to-load embed behavior** — and explicitly **verify Vimeo
+1. **Keep the YouTube + Vimeo click-to-load embed behavior**, and explicitly **verify Vimeo
    works** on jackcarlsen (Jack asked to be sure it's set up, same as YouTube: play button →
    lazy iframe, not mounted until clicked).
 2. **Add recognition for major streaming / VOD services.** These CANNOT be iframe-embedded, so for
    them render a **branded external "Watch on X" button** (opens in a new tab,
    `rel="noopener noreferrer"`), styled like the existing platform buttons, one per link,
    auto-detected from the URL host:
-   - Amazon Prime Video — hosts `amazon.com` (a `/dp/` or `/gp/video/` path) and `primevideo.com`
-   - Netflix — `netflix.com`
-   - Hulu — `hulu.com`
-   - Disney+ — `disneyplus.com`
-   - Max / HBO Max — `max.com`, `hbomax.com`
-   - Apple TV+ — `tv.apple.com`
-   - Peacock — `peacocktv.com`
-   - Paramount+ — `paramountplus.com`
+   - Amazon Prime Video, hosts `amazon.com` (a `/dp/` or `/gp/video/` path) and `primevideo.com`
+   - Netflix, `netflix.com`
+   - Hulu, `hulu.com`
+   - Disney+, `disneyplus.com`
+   - Max / HBO Max, `max.com`, `hbomax.com`
+   - Apple TV+, `tv.apple.com`
+   - Peacock, `peacocktv.com`
+   - Paramount+, `paramountplus.com`
    - Fallback: any other `http(s)` link → a generic **"Watch"** external button (never break).
 3. Give each service its **own icon + brand-colour hover glow**, mirroring the social auto-detect
    pattern (`detectNet()` / `renderSocials()`) that already assigns per-network colours/glows.
 4. Keep `watch` as a single `LongText` field (one URL per line); the **front-end decides per link**
    whether to embed (YouTube/Vimeo) or show an external button (everything else) based on host.
-5. **First test case already in the DB:** LoveBug's `watch` = its Prime Video URL — use it to build
+5. **First test case already in the DB:** LoveBug's `watch` = its Prime Video URL, use it to build
    and verify the Amazon "Watch on Prime Video" button.
 
 Respect the rarepond perf + zero-downtime rules (OPERATIONS.md / HANDOFF §11): lazy-load embeds,
@@ -252,7 +252,7 @@ unknown host renders the safe external button rather than throwing).
 
 ---
 
-## BUILD SESSION LOG — v1 BUILT AND LIVE (2026-07-16)
+## BUILD SESSION LOG, v1 BUILT AND LIVE (2026-07-16)
 The build chat executed this brief end to end. Live at https://jackcarlsen-website.pages.dev
 (domain still on Wix; repoint at launch). Wix capture notes: `JACKCARLSEN-WIX-CAPTURE.md`.
 
@@ -263,9 +263,9 @@ DONE:
 - Assets in the personal repo: 11 posters (REAL key art swapped in for lovebug/missfortune/
   theanimator from Wix full-res), 11 hero loop clips cut from the NAS masters (8s, 720p, muted),
   3 discipline reels in /media/reels/ (NOTE: no dedicated Directing Reel export existed on the
-  NAS — the 2025 Full Reel Slideshow is standing in; swap when Jack exports one),
+  NAS, the 2025 Full Reel Slideshow is standing in; swap when Jack exports one),
   10 BTS photos + data/bts.json, brand logo/headshot/résumé, purple bg-wires background.
-- Pipeline: GitHub Action `.github/workflows/export-projects.yml` every 15 min — Supabase
+- Pipeline: GitHub Action `.github/workflows/export-projects.yml` every 15 min, Supabase
   read-only → data/projects.json (sites=jackcarlsen, exports roles + the jc fields) → validator
   gate → commit-on-change; mirrors canonical colorlooks.json from the rarepond repo with the
   jackcarlsen `signature` (purple #a359ee) kept via data/colorlooks-overrides.json.
@@ -274,7 +274,7 @@ DONE:
   seed (generated this session from NocoDB) keeps serving. Workflow verified green.
 - SPA per this brief: hero showreel (2-video crossfade, preload-next-only, offscreen pause,
   reduced-motion → posters) + synced bubble selector; About; auto-scrolling poster work wall;
-  seamless BTS collage (any photo count); HubSpot contact (REUSING rarepond's form id per Jack —
+  seamless BTS collage (any photo count); HubSpot contact (REUSING rarepond's form id per Jack,
   swap in site.json→hubspot when a jackcarlsen form exists); Projects page with 3 reels +
   animated focus/glow + All/Director/Cinematography/VFX sorting incl. labeled Gaffer / VFX
   Artist dividers; project pages (heroClip bg → still → poster fallbacks); watch system extended:

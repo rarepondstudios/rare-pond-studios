@@ -17,10 +17,10 @@ rare-pond-rentals/
 
 > **Form config moved to the shared `/assets/form-config.js`** (site‑level, not
 > `rentals/assets/`). It is loaded by BOTH the studio home (crew form) and the rentals
-> cart, and it must stay reachable even while the rentals page is temporarily closed —
+> cart, and it must stay reachable even while the rentals page is temporarily closed,
 > anything under `/rentals/` is replaced by the "back soon" cover when closed, which would
 > otherwise hand the studio HTML instead of the script. `/assets/` is never covered.
-> **It is still THE ONLY FILE YOU EDIT to change the forms** — just at the new path.
+> **It is still THE ONLY FILE YOU EDIT to change the forms**, just at the new path.
 
 The gear photos are real image files (not embedded), so browsers cache them and the page loads fast on phones. Off‑screen images lazy‑load.
 
@@ -94,7 +94,7 @@ kept in sync automatically and should be treated as read-only.
 1. **Add the ITEM row** in NocoDB → base **Rare Pond Rentals** → **items**
    (set name, category, section, price, photo, etc.). Leave `parent_id` empty
    and `kind` = `item` for a standalone rentable item.
-   → It will **NOT appear on the website yet** — a new item with zero units is
+   → It will **NOT appear on the website yet**, a new item with zero units is
    hidden on purpose.
 2. **Add one UNIT row per physical copy** in the **units** table, with
    `item_id` set to the new item's id. The site then shows **"N available"**
@@ -109,27 +109,27 @@ kept in sync automatically and should be treated as read-only.
    not manage that by hand.
 
 **Sub-items / package components are unit-tracked too.** Every physical thing
-the studio owns gets a unit row — including the components **inside** a package
+the studio owns gets a unit row, including the components **inside** a package
 or kit (the sub-items, where `parent_id` points at the parent item). So when you
 build a kit, add **one unit row per physical copy of each component** (e.g. a kit
 that contains two identical straps → give that strap sub-item two units). A
 normal one-of component gets a single unit. This does **not** change what the
-website shows for a package yet — the package-availability RPC is separate and
-still keys off the package, not its component units — but it keeps the units
+website shows for a package yet, the package-availability RPC is separate and
+still keys off the package, not its component units, but it keeps the units
 table a complete physical inventory and keeps every sub-item's `qty` accurate.
 For a **shared** component (one physical piece listed under several kits via
-`shared_parent_ids`), create units **once** for that row — do not multiply by the
+`shared_parent_ids`), create units **once** for that row, do not multiply by the
 number of kits it appears in.
 
 > Tip for data entry: the **units** table has a grid view named **"Component
 > units"** grouped by `unit_class` (a computed field), so standalone-item units
 > and package-component units show as two separate groups. The `item_parent_id`
-> and `unit_class` columns are computed helpers — they are read-only and do not
+> and `unit_class` columns are computed helpers, they are read-only and do not
 > change any data.
 
 **How the sync works:** a headless job,
 `~/bts-automation/rentals_units_sync.py`, recomputes each **non-package** item's
-`qty` = its unit count — both standalone items **and** sub-items — and PATCHes
+`qty` = its unit count (both standalone items **and** sub-items) and PATCHes
 NocoDB only when it changed (**packages are never touched**, since a bundle has
 no physical unit). It runs on login and every few minutes via the launchd agent
 `com.rarepond.rentalsunitssync`, and logs to
@@ -137,5 +137,5 @@ no physical unit). It runs on login and every few minutes via the launchd agent
 minutes) delay between adding/removing units and the count updating; you can
 force it immediately by running the script once.
 
-**Packages** (`kind` = `package`) are bundles and are **not** unit-driven — they
+**Packages** (`kind` = `package`) are bundles and are **not** unit-driven, they
 keep showing regardless of unit count, so leave their `qty` alone.

@@ -1,5 +1,5 @@
 /* ============================================================================
-   Rare Pond / Jack Carlsen — SHARED social UI  (assets/social_ui.js)
+   Rare Pond / Jack Carlsen, SHARED social UI  (assets/social_ui.js)
    ----------------------------------------------------------------------------
    ONE source of truth for BOTH sites. Master lives in bts-automation/social_ui.js
    and is published to each repo's assets/social_ui.js by social_ui_sync.py
@@ -14,8 +14,8 @@
       circle centred on the badge) to fill the whole box; on mouse-away it
       retracts back into the logo circle.
 
-   2. SOCIAL TRANSPORT (#3). Clicking ANY social link — header, footer, or a
-      contact bubble, on either site — plays a full-screen circular wipe in that
+   2. SOCIAL TRANSPORT (#3). Clicking ANY social link, header, footer, or a
+      contact bubble, on either site, plays a full-screen circular wipe in that
       social's gradient, growing from the clicked icon, then opens the link in a
       NEW TAB and retracts (the site stays underneath). Header/footer icons carry
       no colour of their own, so we borrow the matching contact bubble's colours
@@ -70,7 +70,7 @@
       /* The gradient radiates from the SAME point the clip circle grows from (--scx/--scy = the
          user's actual click), so the wipe always reads as blooming out of the click: the innermost
          colour (c1 = the brand colour already on the clicked icon) appears first at radius 0 and
-         c2/c3 unfold outward — no hard cut between the button's gradient and the wipe's. */
+         c2/c3 unfold outward, no hard cut between the button's gradient and the wipe's. */
       ".rp-soctransport{position:fixed;inset:0;height:100vh;height:100lvh;z-index:2147483000;pointer-events:none;opacity:1;" +
       "background:radial-gradient(circle at var(--scx,50%) var(--scy,44%),var(--sc1,#3f6bff),var(--sc2,#3f6bff) 52%,var(--sc3,#9b5cff) 100%);" +
       "clip-path:circle(0px at var(--scx,50%) var(--scy,50%));-webkit-clip-path:circle(0px at var(--scx,50%) var(--scy,50%));" +
@@ -110,11 +110,11 @@
   var IS_TOUCH = false;
   try { IS_TOUCH = (window.matchMedia && matchMedia("(pointer:coarse)").matches) || ("ontouchstart" in window) || navigator.maxTouchPoints > 0; } catch (e) {}
   var busy = false;
-  /* CORE wipe runner — the ONE implementation of the click-origin radial-gradient transport.
-     o = { x, y            : origin in viewport px (click point) — clip circle AND gradient centre
+  /* CORE wipe runner, the ONE implementation of the click-origin radial-gradient transport.
+     o = { x, y            : origin in viewport px (click point), clip circle AND gradient centre
            c1, c2, c3      : gradient colours, innermost→outermost
            open            : function that performs the navigation once fully covered
-           hold            : true = never retract/fade — stay covering through a same-tab
+           hold            : true = never retract/fade, stay covering through a same-tab
                              navigation so the wipe hands off to the destination's load veil }
      Also exported as window.__rpTransport({x,y,c1,c2,c3,href,sameTab,hold}) so OTHER effects
      (e.g. the JC "go to Rare Pond" bubble) reuse this exact code instead of re-implementing it. */
@@ -170,7 +170,7 @@
   }
   /* HANDOFF (cross-site seamlessness): a HELD same-tab wipe covers this page right up to the
      unload, but the DESTINATION used to hard-cut in. Now the click origin + gradient colours
-     travel WITH the navigation in the URL hash (#rpt=x%|y%|c1|c2|c3 — sessionStorage can't
+     travel WITH the navigation in the URL hash (#rpt=x%|y%|c1|c2|c3, sessionStorage can't
      cross the jackcarlsen.com ⇄ rarepond.com origin boundary), the destination's pre-paint
      snippet paints the SAME gradient before first paint, and shared social_ui.js on that side
      retracts it to the carried click point (centre if the coords are missing/invalid). */
@@ -273,7 +273,7 @@
     arrivalRetract();
     document.addEventListener("click", onClick, false);
     /* Back/bfcache: a HELD same-tab wipe is still painted when the page is restored from the
-       back-forward cache — clear any leftover transport so Back always shows the real page. */
+       back-forward cache, clear any leftover transport so Back always shows the real page. */
     addEventListener("pageshow", function (e) {
       if (!e.persisted && !document.querySelector(".rp-soctransport")) return;
       document.querySelectorAll(".rp-soctransport").forEach(function (d) { if (d.parentNode) d.parentNode.removeChild(d); });

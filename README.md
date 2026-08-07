@@ -1,7 +1,7 @@
 # Rare Pond Studios - Cloudflare Pages site
 
 > **📌 THE source of truth for the whole cross-site system is the master handoff doc:**
-> **`~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md`** (local, non-public — full internal detail,
+> **`~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md`** (local, non-public, full internal detail,
 > no secrets). Read it first for architecture, the sources of truth, the golden rule, the pipeline,
 > the colour-look/media models, safe-change procedures, automations, and open flags. This public
 > README is a repo-side summary of that same system.
@@ -25,10 +25,10 @@ index.html            Studio site (HTML + CSS + JS). Reads the data files below 
 rentals/index.html    Rentals site. Shares the header/footer/socials data.
 data/
   site.json           Logos, hero, About, SOCIAL LINKS, HubSpot form ids, event banner
-  projects.json       One entry per project (home bubble + project page). GENERATED from NocoDB — never hand-edit.
+  projects.json       One entry per project (home bubble + project page). GENERATED from NocoDB, never hand-edit.
   team.json           Team members
   rentals.json        Rentals page copy + logos
-  colorlooks.json     Every colour look. GENERATED from the NocoDB color_looks table — never hand-edit.
+  colorlooks.json     Every colour look. GENERATED from the NocoDB color_looks table, never hand-edit.
   pages.json          Custom pages (see CUSTOM_PAGES.md)
   stills-hd.json      Which stills have high-res versions, and at which widths (see STILLS.md)
   form-fields.json    Input type per form field (text/email/number/tel/url)
@@ -49,10 +49,10 @@ Saving commits to GitHub, which auto-redeploys Cloudflare Pages - live in about 
 Sections: **Site Settings · Color Looks · Projects · Team · Rentals page · Form input types ·
 Custom Pages.**
 
-### Colour convention (foreground vs. glow) — for anyone editing `index.html` / `looks.js`
+### Colour convention (foreground vs. glow), for anyone editing `index.html` / `looks.js`
 `--g1/--g2/--g3` are the **bubble-glow colours ONLY** (signature stops on `:root`; a project's
-opt-in bubble hover uses `--h1/--h2/--h3`). Every **foreground** look colour — carousel/project
-kicker, date/meta, section label, type/genre chip, accent text, accent borders/hovers — must read
+opt-in bubble hover uses `--h1/--h2/--h3`). Every **foreground** look colour, carousel/project
+kicker, date/meta, section label, type/genre chip, accent text, accent borders/hovers, must read
 a **semantic token**: `var(--kicker-color)` for kickers, `var(--accent)` for everything else. The
 shared resolver `assets/looks.js` `filmCss()` sets those per project on the `.theme-<key>` scope
 (and sets `--accent` inline on every `.citem` carousel card), so each film's own accent is
@@ -74,24 +74,24 @@ beats a soft fake 2560.
 
 Social accounts now live in the **NocoDB `socials` table** (id `ma4lkbfxa7xa6ot`), NOT in
 `site.json`. Each row: `name`, `on_rarepond`/`on_jackcarlsen` (per-site membership), `blurb` (the
-contact-bubble label, e.g. "See our YouTube films"), `color_look` (a shared per-platform look —
+contact-bubble label, e.g. "See our YouTube films"), `color_look` (a shared per-platform look,
 `youtube`/`vimeo`/`instagram`/`linkedin`/`facebook`/`imdb`), and `link`. `socials_sync.py` writes
 `data/socials.json` for both sites; the header, footer AND the new contact-page bubbles all read it.
 
 Logos come from the look's **`icon`** (a swappable 1080×1080 PNG at `/media/brand/social/<key>.png`,
-mastered in `Website Repository/Color Looks (Web)/<key>/logo.png`) rendered as a CSS mask — replace
+mastered in `Website Repository/Color Looks (Web)/<key>/logo.png`) rendered as a CSS mask, replace
 that one file to change a logo everywhere. Header/footer icons stay monochrome (brand-on-hover); the
 contact bubbles use the platform's colour. Edit accounts in NocoDB; the Pages CMS no longer lists them.
 
 The logos + brand colours all come from the **shared `data/platforms.json`** (see *The shared
-cross-site backend* below) — ONE source for both sites, feeding both the header/footer social
+cross-site backend* below), ONE source for both sites, feeding both the header/footer social
 icons AND the project-page "Watch on" buttons (YouTube and Vimeo are a single dual record).
 Enabling an icon already defined there needs no code change; adding a brand-new platform means
 adding it to the shared platform source, which then exports to every repo.
 
 ## Adding or editing a project
 
-The film list lives in **NocoDB**, not in Pages CMS — see *The shared cross-site backend* below.
+The film list lives in **NocoDB**, not in Pages CMS, see *The shared cross-site backend* below.
 Add a row (or edit one), tick `on_rarepond` (and/or `on_jackcarlsen`), set its colour look, order
 and per-film text, and the background sync rebuilds `data/projects.json` and redeploys. A bubble
 appears on the home carousel and the Projects grid, with its own page. Never hand-edit
@@ -122,7 +122,7 @@ python3 -m http.server 8080
 ## The shared cross-site backend (rarepond.com ↔ jackcarlsen.com)
 
 rarepond.com and **jackcarlsen.com** are two static sites that **share one backend**. The film
-catalogue and the colour looks are not stored in either repo by hand — they flow from a single
+catalogue and the colour looks are not stored in either repo by hand, they flow from a single
 database, through per-site exporters, into each repo's `data/*.json`, which the site reads at
 load. Both READMEs describe this same system; the authoritative master doc is
 `~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md` (local, not public). *(The former
@@ -131,10 +131,10 @@ load. Both READMEs describe this same system; the authoritative master doc is
 ### 1. NocoDB = the single source of truth
 On the Mac Mini, **NocoDB** (a spreadsheet-style UI over a Supabase Postgres database) holds the
 two tables both sites depend on:
-- **`projects`** — one row per film. Per-film site membership is the **`on_rarepond` /
+- **`projects`**, one row per film. Per-film site membership is the **`on_rarepond` /
   `on_jackcarlsen`** checkboxes.
-- **`color_looks`** — one row per colour look (palettes that theme film pages + glow the bubbles).
-NocoDB is **local-only** (loopback + Tailscale, `http://localhost:8080`) — never exposed
+- **`color_looks`**, one row per colour look (palettes that theme film pages + glow the bubbles).
+NocoDB is **local-only** (loopback + Tailscale, `http://localhost:8080`), never exposed
 publicly, so it is described here, not linked.
 
 ### 2. Per-site exporters + the sites registry
@@ -143,10 +143,10 @@ and **regenerate each site's `data/*.json`, then commit + push** so Cloudflare P
 - **`projects.json` (BOTH sites)** ← one shared Python exporter **`projects_sync.py`** on
   launchd. It loops `sites.json` and emits each site's exact shape. rarepond runs it via
   `com.rarepond.rpprojsync` (every 5 min). *(This **replaced the n8n** workflow "Projects: DB to
-  site (rarepond)", now retired — n8n no longer builds site content.)* jackcarlsen currently still
+  site (rarepond)", now retired, n8n no longer builds site content.)* jackcarlsen currently still
   publishes via the equivalent **`jc_projects_sync.py`** (launchd `com.rarepond.jcprojsync`);
   `projects_sync.py` reproduces its output byte-for-byte and can subsume it by flipping that job.
-  The old JC GitHub-Action export is retired — ONE pipeline per site.
+  The old JC GitHub-Action export is retired, ONE pipeline per site.
 - **`colorlooks_sync.py`** → every repo's `data/colorlooks.json` from `color_looks` (JC keeps its
   own purple `signature` via `data/colorlooks-overrides.json`; rarepond is the colour-look owner).
 - **`platforms_export.py`** → every repo's `data/platforms.json` from the shared platform source.
@@ -172,31 +172,31 @@ The **Focus Image is ALWAYS the FIRST still** on every project page (both sites)
 Project Stills in order; the `Focus Image/` folder only overrides that. Drop a file in a folder
 and it appears with that folder's role next sync; move it and it re-homes cleanly. **The `stills`
 list and the `focus_video` reel path are written into NocoDB automatically from the folder**
-(auto-fill on drop, clear on removal, idempotent) — so a new film's reel goes live from the
+(auto-fill on drop, clear on removal, idempotent), so a new film's reel goes live from the
 folder alone, with no path typed into the database. **Unsorted /
 general BTS:** the `Unsorted Photo and Video` folder is split into `jackcarlsen.com/` and
-`rarepond.com/` subfolders — a file's enclosing subfolder decides which site's general BTS scroll
+`rarepond.com/` subfolders, a file's enclosing subfolder decides which site's general BTS scroll
 it shows on.
 
 ### 3a. Folder auto-provision & #recycling (adding / removing a film)
-Project folders stay **1:1** with the NocoDB projects table automatically — never hand-make or
+Project folders stay **1:1** with the NocoDB projects table automatically, never hand-make or
 hand-delete one. `projects_folder_sync.py` (launchd `com.rarepond.projfoldersync`, every 5 min):
 - **New row → new folder.** A project row with no matching folder gets a folder named by its
   **title** (fallback `key`), pre-built with the six D1 subfolders above (+ `Logo/.noletterbox`).
-  Then drop media in and the media syncs take over — the row flows to both sites via the exports.
+  Then drop media in and the media syncs take over, the row flows to both sites via the exports.
 - **Deleted row → recycled folder.** When a row is deleted, its previously-linked folder is
   **moved to `Website Repository/Projects (Web)/#recycling/`** (never deleted; restore by moving it back).
 - **Matching:** `slug(folder) == slug(title)` or `slug(key)` (`slug` = lowercase, strip
-  non-alphanumerics) — the same rule the media syncs use.
+  non-alphanumerics), the same rule the media syncs use.
 - **Safety:** aborts if NocoDB is unreachable or returns 0 rows; only recycles folders that were
   linked in its state file (`bts-automation/projects_folder_state.json`), so pre-existing unmapped
   folders (e.g. `Stolen Heart`) and the BTS pool are never touched; placeholder rows get no folder.
-  (`color_look` blank ⇒ each site still exports `"signature"` — that default is applied at export,
+  (`color_look` blank ⇒ each site still exports `"signature"`, that default is applied at export,
   unchanged.)
 
 ### 4. Shared platform map, 5. colour-look flow, 6. cache-busting
 - **Platforms:** all social + "watch on" branding (real logos + brand colours) lives in one
-  shared source → `data/platforms.json` in every repo. **YouTube and Vimeo are dual** — one
+  shared source → `data/platforms.json` in every repo. **YouTube and Vimeo are dual**, one
   record with `contexts: ["social","watch"]` feeds both the header icon and the watch button.
   IMDb is defined once (enabled on JC's header; can be turned on for RP with no code change).
 - **Colour looks:** a look holds `c1/c2/c3` and, for a `film` look, tokens saying which colour
@@ -207,10 +207,10 @@ hand-delete one. `projects_folder_sync.py` (launchd `com.rarepond.projfoldersync
 - **Cache-busting:** exporters append `?h=<short sha1 of the file bytes>` to changed media paths,
   so a replaced file always gets a fresh URL and never serves stale; unchanged files stay cached.
 
-### ⚠️ The one structural rule (D7 — no frontend bandaids)
+### ⚠️ The one structural rule (D7, no frontend bandaids)
 **Every change to films, colour looks, platforms, or media is made at the DATABASE / SYNC SOURCE
 layer, and BOTH sites are regenerated from it.** Never hand-edit a rendered value in one site's
-`data/*.json`, `index.html`, or `colorlooks.json` to "fix" what shows on screen — fix the NocoDB
+`data/*.json`, `index.html`, or `colorlooks.json` to "fix" what shows on screen, fix the NocoDB
 row / the shared source file / the sync, then let the exporter rewrite every repo. This keeps the
 two sites (and any future third) identical-by-construction. If something looks wrong on only one
 site, the bug is in the source or the sync, not the frontend.
@@ -225,27 +225,27 @@ site, the bug is in the source or the sync, not the frontend.
 
 ### n8n vs Python (the split)
 Two automation runtimes, one clear division of labour:
-- **Python (macOS `launchd`) BUILDS SITE CONTENT** — it turns the database / source layer into
+- **Python (macOS `launchd`) BUILDS SITE CONTENT**, it turns the database / source layer into
   each repo's `data/*.json` + media (`projects_sync.py`, `jc_projects_sync.py`, `colorlooks_sync.py`,
   `platforms_export.py`, the media + BTS syncs, `projects_folder_sync.py`, `rentals_units_sync.py`).
-- **n8n is EVENT-DRIVEN GLUE ONLY** — the rentals HubSpot↔DB sync (both directions), third-party
+- **n8n is EVENT-DRIVEN GLUE ONLY**, the rentals HubSpot↔DB sync (both directions), third-party
   integrations (Apple / ClickUp / HubSpot / iMessage / Gemini), failure alerts + watchdog, and
   weekly backups. **n8n no longer builds any site content** (the "Projects: DB to site (rarepond)"
   workflow was retired 2026-08-03) **and no longer processes website forms.**
 - **Website forms run natively through Jotform.** The rental-quote and crew-inquiry forms submit
   directly via Jotform's own integrations (**Jotform → HubSpot + Calendar**); n8n does NOT handle
   form intake. The legacy n8n form workflows were **removed** (deleted 2026-08-03 after a live test through each form proved
-native delivery end-to-end — HubSpot contact + deal, Calendar event(s), and for the rental form
+native delivery end-to-end, HubSpot contact + deal, Calendar event(s), and for the rental form
 the downstream Supabase order + booking, all via Jotform's native integrations; duplicating them in n8n previously
   caused duplicate deals + duplicate calendar events).
 
-**Automation inventory — ONE monitor, ONE doc.** A single host-side monitor
+**Automation inventory, ONE monitor, ONE doc.** A single host-side monitor
 (`bts-automation/automation_health_launchd.py`, launchd `com.rarepond.pyhealthmon`, every 15 min)
 inventories EVERYTHING and writes the one ClickUp doc **"[Monitor] Automation Health"**: one page
 lists every **n8n workflow** (enabled + last-run status, read from the n8n DB) and a companion page
 lists every **Python launchd job** (purpose, schedule, last-run exit status). The three older
-overlapping monitors — the n8n "Automation Health" workflow, the standalone
-`automation-health-monitor.js`, and its duplicate ClickUp doc — were consolidated into this one on
+overlapping monitors, the n8n "Automation Health" workflow, the standalone
+`automation-health-monitor.js`, and its duplicate ClickUp doc, were consolidated into this one on
 2026-08-03. The two `[Alerts]` workflows (failure email + silence watchdog) are the safety net and
 remain. Each entry shows purpose, schedule, and last-run status.
 
@@ -264,7 +264,7 @@ the secondary accent colour), and is the sort key the jackcarlsen portfolios wil
 was **migrated out of `genre`** (2026-08): the medium tokens (`Live Action` / `Live-Action` /
 `Animation` / `Mixed Media`) were stripped from `genre`, which now holds **story genre only**.
 **`color_looks`** (NocoDB): `key`, `name`, `kind` (`basics` / `special` / `category` / `film`),
-`c1` `c2` `c3`; and — for a `film` look only — `accent`, `main` + `main_alpha`, `tint` +
+`c1` `c2` `c3`; and (for a `film` look only) `accent`, `main` + `main_alpha`, `tint` +
 `tint_alpha`, `kicker_color`, `kicker_tracking`, `tagline_color`, `tagline_italic`,
 `title_style`, `title_gradient_from` / `title_gradient_to`, plus `note`.
 

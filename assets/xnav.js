@@ -75,7 +75,7 @@
      Same behavior as the wordmark / same-page nav links: smooth scroll to the top (instant
      under reduced motion), reset an SPA surface to its home view via __samePageHome, and
      dispatch Escape so an open burger/hamburger closes. The chip is a <span> (no href), so
-     the SAME-PAGE NAV snippet can't see it — wired here for all three surfaces at once. */
+     the SAME-PAGE NAV snippet can't see it, wired here for all three surfaces at once. */
   (function(){
     function act(){
       var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;

@@ -4,12 +4,12 @@ Written for the next person - human or AI - who has to keep this working.
 
 > **⚠️ 2026-08-04 refresh.** The cross-site backend has evolved since parts of this doc were
 > written: site content is now built by **Python exporters on macOS launchd** (in
-> `~/bts-automation`, looping the `sites.json` registry), **not** by n8n — the old n8n
+> `~/bts-automation`, looping the `sites.json` registry), **not** by n8n, the old n8n
 > "Projects: DB to site (rarepond)" workflow was retired 2026-08-03. n8n remains event-driven
 > glue only (rentals HubSpot↔DB sync, integrations, alerts, backups). There is also a THIRD
 > surface, **`media/index.html` → rarepond.com/media**, and a separate jackcarlsen.com repo
 > sharing the same backend. The canonical current-state master is
-> **`~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md`** (local, non-public) — trust it over any
+> **`~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md`** (local, non-public), trust it over any
 > stale wording below. The n8n-specific sections here have been corrected; the rentals pipeline,
 > Supabase, alerting, and "things that have bitten us" sections remain fully current.
 
@@ -36,18 +36,18 @@ Push to `main` → live in about a minute. There is no staging environment.
 **`_headers`** sets no-cache on `/data/*` so CMS edits appear immediately.
 **`_redirects`** does the SPA rewrite so deep links like `/geriaction` work.
 
-**Editing — two places, one for each kind of thing:**
+**Editing, two places, one for each kind of thing:**
 
 - **Projects (the film catalogue)** live in the **shared database**, edited through **NocoDB**
   (`http://localhost:8080`). This is the single source of truth for every project: its content,
   and which sites show it (the `on_rarepond` / `on_jackcarlsen` checkboxes). The background
   **Python exporter `projects_sync.py`** (launchd `com.rarepond.rpprojsync`, every 5 min)
-  rebuilds `data/projects.json` from the database and commits it — see "The projects
+  rebuilds `data/projects.json` from the database and commits it, see "The projects
   pipeline" below.
 - **Everything else** stays in **[Pages CMS](https://app.pagescms.org)** (reads `.pages.yml`,
   saving commits to GitHub → redeploys): **Color Looks**, Team, Site Settings, Rentals page,
   Form input types, Custom Pages, Maintenance. The **Projects** section in Pages CMS is now just
-  the site-wide *"projects page open/closed"* switch plus a **read-only mirror** of the catalogue —
+  the site-wide *"projects page open/closed"* switch plus a **read-only mirror** of the catalogue,
   edit projects in NocoDB, not there (anything typed into the mirror is overwritten by the sync).
 
 **Why the split:** projects change often and are shared across sites, so they belong in one
@@ -56,7 +56,7 @@ and benefit from git history, so they stay in Pages CMS. A project references a 
 name** (`colorLook`), so the two never fight: the palette lives in Color Looks, the assignment
 lives on the project.
 
-**Recurring maintenance — the exporters' GitHub credentials expire.** The Python exporters
+**Recurring maintenance, the exporters' GitHub credentials expire.** The Python exporters
 commit to this repo (and the jackcarlsen repo) using stored GitHub credentials (askpass
 helpers in `~/bts-automation`) that can lapse. When one lapses, that site's export silently
 stops committing. A desktop reminder fires ~8 days before expiry, and the rotation procedure
@@ -94,7 +94,7 @@ commit). *(This exporter replaced the old n8n "Projects: DB to site (rarepond)" 
   palette, add a *film* look in the NocoDB `color_looks` table and put its key in the project's
   `color_look` field (with `rp_use_look` on). Within ~5 min it's live.
 - **Take a project off Rare Pond (or put it back):** just untick/tick `on_rarepond` on that row.
-  **Nothing is lost** — the row, all its content, and its per-site settings stay in the
+  **Nothing is lost**, the row, all its content, and its per-site settings stay in the
   database. Re-ticking brings it back exactly as it was. (The same row can be on jackcarlsen
   independently via `on_jackcarlsen`.)
 - **Change a film's colours:** edit that film's look in the NocoDB `color_looks` table. Every
@@ -104,7 +104,7 @@ commit). *(This exporter replaced the old n8n "Projects: DB to site (rarepond)" 
 - **Reorder the carousel:** the `rp_sort_order` column in NocoDB (**higher = shown first**; leave
   gaps like 30/20/10 so new films slot in without renumbering).
 
-**One source of truth:** never edit the project list inside Pages CMS — it's a read-only mirror and
+**One source of truth:** never edit the project list inside Pages CMS, it's a read-only mirror and
 the sync overwrites it. Projects + colour looks = NocoDB; team, settings, page copy = Pages CMS.
 
 ---
@@ -277,7 +277,7 @@ this, so tightening these grants never affects the automations.
 A page can be temporarily closed from Pages CMS. Rentals is the first one:
 **Pages CMS → Rentals page → "Rentals page is OPEN to the public"** (default ON).
 
-Off, `/rentals` serves `maintenance.html` — a "back soon" page that picks one of the
+Off, `/rentals` serves `maintenance.html`, a "back soon" page that picks one of the
 variations in `data/maintenance.json` (Pages CMS → **Maintenance Cover**) at random on
 every load, and generates its own "come back to *Rentals* later" line from the name of the
 page it is covering.
@@ -286,12 +286,12 @@ Three things about the design are deliberate:
 
 - **It is decided at the EDGE**, in `functions/_middleware.js`, not in the browser. The
   rentals page renders its gear immediately from a built-in catalogue, so a client-side
-  check would paint the real page first and only then cover it — every visitor would see a
+  check would paint the real page first and only then cover it, every visitor would see a
   flash of the thing you just closed.
 - **The URL does not change.** `/rentals` stays `/rentals`; there is no redirect. Refresh
   works, shared links still work, and flipping the switch back on makes the same URL the
   real page again. The cover is a *state* of the page, not a different page.
-- **It fails OPEN.** Missing switch file, broken JSON, absent key, missing cover page — all
+- **It fails OPEN.** Missing switch file, broken JSON, absent key, missing cover page, all
   serve the REAL page. Wrongly showing the page is far cheaper than wrongly hiding it. All
   of those paths are covered by `tools/test-maintenance.mjs`.
 
@@ -310,14 +310,14 @@ file holds the switch, which key, and an id) and a matching entry in `PAGES` in
   the real file is missing -> return a real 404. (2026-08-06)
 - **Cloudflare Pages 308-redirects `/foo.html` to `/foo`.** A 308 is not `ok`, so a
   `fetch('/maintenance.html')` inside the middleware silently failed and fell through to the
-  real page — in production only, while every test passed, because the test fixture served
+  real page, in production only, while every test passed, because the test fixture served
   `.html` with a 200. Ask for the extensionless path. The test now models the 308.
 - **A blurred layer on a resizing element is re-rasterised every frame.** This is the single
   biggest frame-rate trap on this site. `filter: blur()` *and* `box-shadow` both do it, and
   the blur radius is irrelevant (12px costs the same as 40px). It is why the carousel's cast
   shadow is a plain gradient on a fixed-size, transform-scaled layer, and why the hover glow
   is `visibility:hidden` rather than merely `opacity:0` when idle. Measure against a
-  **no-effect control** before believing any of it — see the comments in `index.html`.
+  **no-effect control** before believing any of it, see the comments in `index.html`.
 - **The studio paints before its data arrives.** `__main()` awaits five JSON fetches, so
   whatever the *stylesheet* says is what the visitor sees first. The views used to default to
   `display:block`, so the first paint was Home + Projects + Team stacked (6872px in an 872px

@@ -117,10 +117,10 @@
     return "";
   }
 
-  /* CONVENTION (shared by rarepond + jackcarlsen — do not break):
+  /* CONVENTION (shared by rarepond + jackcarlsen, do not break):
      FOREGROUND look colours (kicker, date/meta, section label, chip, accent text,
-     accent borders/hovers) MUST read a SEMANTIC token — var(--kicker-color) for
-     kickers, var(--accent) for everything else — which this filmCss() sets per
+     accent borders/hovers) MUST read a SEMANTIC token, var(--kicker-color) for
+     kickers, var(--accent) for everything else, which this filmCss() sets per
      project on the .theme-<key> scope (and looks.js also sets --accent inline on
      each .citem carousel card). --g1/--g2/--g3 are the BUBBLE GLOW colours ONLY
      (signature stops on :root; per-project bubble hover uses --h1/--h2/--h3). Never

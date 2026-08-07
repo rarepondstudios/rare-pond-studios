@@ -107,10 +107,10 @@ function fillVars(str,vars){
 }
 var VAR_NAMES=['production','year','status','released','title','kicker','tagline','genre','blurb'];
 var SECTION_TPLS=[
-  {key:'eyebrowTemplate',def:'{production} · {released}',label:'Project page — eyebrow (top-right label)'},
-  {key:'cardEyebrowTemplate',def:'{kicker}',label:'Home featured card — small line above title'},
-  {key:'cardLoglineTemplate',def:'{blurb}',label:'Home featured card — one-liner under title'},
-  {key:'gridCaptionTemplate',def:'{kicker}',label:'Projects grid — caption under each tile'}
+  {key:'eyebrowTemplate',def:'{production} · {released}',label:'Project page, eyebrow (top-right label)'},
+  {key:'cardEyebrowTemplate',def:'{kicker}',label:'Home featured card, small line above title'},
+  {key:'cardLoglineTemplate',def:'{blurb}',label:'Home featured card, one-liner under title'},
+  {key:'gridCaptionTemplate',def:'{kicker}',label:'Projects grid, caption under each tile'}
 ];
 function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
 var projects=[],site={};

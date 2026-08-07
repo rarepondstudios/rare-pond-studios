@@ -253,7 +253,7 @@ export async function onRequest(context) {
       if (ct.startsWith('text/html')) {
         return new Response(
           '<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex">' +
-          '<title>Not found \u2014 Rare Pond Studios</title>' +
+          '<title>Not found | Rare Pond Studios</title>' +
           '<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;' +
           'background:#0a1f3c;color:#eaf1ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;text-align:center">' +
           '<div><h1 style="margin:0 0 .5rem">Page not found</h1>' +

@@ -202,7 +202,7 @@
     <h1>Color Looks</h1>
     <p class="lead">A live, read-only preview of every color look, rendered <b>exactly as the two sites render it</b> from the shared <b>data/colorlooks.json</b>.
        Each look is shown the way the site actually applies it for its <b>kind</b>: a <b>Film</b> look shows the full themed film-page treatment (accent, background washes, kicker, tagline and title) that the film page applies; <b>Basics</b> and <b>Special</b> looks show the bubble / banner glow they drive (Pinwheel for bubbles, Stream for wide headers); a <b>Rentals category</b> shows its single flat colour. So what you see here is what a visitor sees.
-       <b>Color looks are now edited in NocoDB</b> (the <code>color_looks</code> table) &mdash; changes publish to both sites automatically. This page is view-only. Hit <b>Reload</b> to pull the latest published values.</p>
+       <b>Color looks are now edited in NocoDB</b> (the <code>color_looks</code> table), changes publish to both sites automatically. This page is view-only. Hit <b>Reload</b> to pull the latest published values.</p>
     <button class="reload" onclick="load()">&#8635; Reload</button>
   </div>
   <div class="picker">
@@ -244,7 +244,7 @@
     return '<div class="c">'
       +'<div class="chip"><div style="position:absolute;inset:0;background:'+esc(safe)+'"></div></div>'
       +'<div class="lab"><div class="role">'+esc(role)+'</div>'
-      +'<div class="hexrow"><span class="hex" style="display:inline-block">'+esc(hex||'—')+'</span>'
+      +'<div class="hexrow"><span class="hex" style="display:inline-block">'+esc(hex||'-')+'</span>'
       +'<button class="cpy" title="Copy hex" data-hex="'+esc(hex)+'">&#10697;</button></div>'
       +'</div></div>';
   }
@@ -587,8 +587,8 @@
       if(soc) soc.innerHTML=SOCIAL.map(function(p){return card(p,ICON[p.icon]||ICON.web);}).join('');
       if(str) str.innerHTML=STREAM.map(function(p){return card(p,ICON.play);}).join('');
     }
-    /* SINGLE SOURCE OF TRUTH: read the shared data/platforms.json — the very same file both live
-       sites consume — so every platform's real logo + brand colour shown here is exactly what a
+    /* SINGLE SOURCE OF TRUTH: read the shared data/platforms.json, the very same file both live
+       sites consume, so every platform's real logo + brand colour shown here is exactly what a
        visitor sees. The inline SOCIAL/STREAM/ICON arrays above are kept ONLY as an offline
        fallback if the fetch fails. Duals (YouTube, Vimeo) carry contexts ['social','watch'] and so
        correctly appear in BOTH groups. */
