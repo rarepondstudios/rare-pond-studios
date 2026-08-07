@@ -126,7 +126,7 @@ function renderResults(){
  var html='';
  if(pkgs.length){var open=pkgOpen[c];
   html+='<div class="rp-pkgbox'+(open?'':' closed')+'" id="rppkgbox" style="--pc:'+col+';--pcg:'+hx(col,.42)+';--pcb1:'+hx(col,.16)+';--pcb2:'+hx(col,.07)+'">'
-   +'<button class="rp-pkgbox-h" id="rppkgh" aria-expanded="'+(open?'true':'false')+'" aria-controls="rppkgbody" data-cursor="off">'+rpBoxSvg()+'<span class="rp-pkgbox-lbl" data-cursor="link notilt"><span class="rp-pkgbox-t">Packages</span><span class="rp-pkgbox-n">'+pkgs.length+'</span></span><svg class="rp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>'
+   +'<button class="rp-pkgbox-h" id="rppkgh" aria-expanded="'+(open?'true':'false')+'" aria-controls="rppkgbody" data-cursor="off"><span class="rp-pkgbox-lbl" data-cursor="link notilt" data-cursor-pad="10">'+rpBoxSvg()+'<span class="rp-pkgbox-t">Packages</span><span class="rp-pkgbox-n">'+pkgs.length+'</span></span><svg class="rp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>'
    +'<div class="rp-pkgbox-body" id="rppkgbody"><div><div class="grid rp-pkgbox-grid">'+pkgs.map(p=>card(p,col)).join('')+'</div></div></div></div>';
  }
  if(items.length){html+=_sections(items);}
@@ -254,7 +254,7 @@ var RP_PKG_CSS=
 /* fix3: collapsible Packages sub-box (open by default) */
 ".rp-pkgbox{margin:2px 0 6px;border:1.5px solid var(--pc);border-radius:16px;background:linear-gradient(180deg,var(--pcb1),var(--pcb2));box-shadow:0 7px 24px 1px var(--pcg);overflow:hidden}"+
 ".rp-pkgbox-h{width:100%;display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 16px;background:transparent;border:0;cursor:pointer;font:800 15px/1 Heebo,sans-serif;letter-spacing:.4px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.35);text-align:left}"+
-".rp-pkgbox-h>svg:first-child{width:19px;height:19px;flex:none}"+
+".rp-pkgbox-lbl>svg{width:19px;height:19px;flex:none}"+
 ".rp-pkgbox-n{background:var(--pc);color:#fff;font:800 12px/1 Heebo,sans-serif;padding:4px 9px;border-radius:20px;min-width:12px;text-align:center}"+
 ".rp-pkgbox-h .rp-chev{margin-left:auto;width:20px;height:20px;flex:none;transition:transform .3s cubic-bezier(.4,.85,.35,1)}"+
 ".rp-pkgbox.closed .rp-pkgbox-h .rp-chev{transform:rotate(-90deg)}"+

@@ -1,0 +1,82 @@
+/* LEGAL PAGES CHROME (Terms + Privacy), shared by both so they can never drift apart.
+ *
+ * These are standalone pages (like the maintenance cover), so they carry the site chrome the
+ * same way it does: /assets/chrome.css for the social icons + footer, /assets/socials.js to
+ * fill the footer from data/site.json, and the markup below. The header here is the MUTED,
+ * dark-blue treatment from Rare Pond Media (light wordmark on a dark gradient) rather than the
+ * white studio header, and the pond caustics sit behind the content for some visual life.
+ *
+ * Font families (Heebo + Kaushan Script) and the two data files are loaded by each page.
+ */
+
+:root{--lg-h:86px;--lg-max:820px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;position:relative;overflow-x:hidden;
+  font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:17px;line-height:1.65;color:#eaf1ff;
+  background:linear-gradient(180deg,#0e2f57 0%,#0b2748 34%,#0a1f3c 100%);background-attachment:fixed}
+a{color:#7aa2ff}
+
+/* ---------- caustics: a bright watery wash at the top that fades into the page, plus a very
+   faint full-page texture. Both are non-interactive and sit beneath the content, so the legal
+   text stays fully readable. ---------- */
+.lg-caustics,.lg-caustics-top{position:fixed;left:0;right:0;pointer-events:none;z-index:0;
+  background:url("/media/site/water.jpg") center/cover no-repeat;mix-blend-mode:screen}
+.lg-caustics{inset:0;opacity:.06}
+.lg-caustics-top{top:0;height:520px;opacity:.20;background-position:center top;
+  -webkit-mask:linear-gradient(180deg,#000 0%,rgba(0,0,0,.5) 46%,transparent 100%);
+          mask:linear-gradient(180deg,#000 0%,rgba(0,0,0,.5) 46%,transparent 100%)}
+@media(prefers-reduced-motion:no-preference){
+  .lg-caustics-top{animation:lgDrift 26s ease-in-out infinite alternate}
+}
+@keyframes lgDrift{from{background-position:center top}to{background-position:right top}}
+
+/* ---------- header: Rare Pond Media's muted dark treatment (light wordmark, dark gradient
+   semicircle) instead of the white studio header. ---------- */
+.lg-hdr{position:fixed;top:0;left:0;right:0;z-index:300;height:var(--lg-h);display:flex;align-items:center;gap:18px;padding:0 clamp(16px,4vw,46px)}
+.lg-hdr .hdr-bg{position:absolute;left:0;right:0;top:0;height:170px;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,#0b2545 0%,#0b2545 52%,rgba(11,37,69,0) 100%);
+  -webkit-mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%);
+          mask:radial-gradient(150% 130% at 50% -28%,#000 60%,transparent 85%)}
+.lg-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.lg-logo img{height:58px;width:auto;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}
+.lg-brand{display:flex;flex-direction:column;justify-content:center;line-height:.9}
+.lg-brand .bn-rare{font-family:"Kaushan Script",cursive;font-size:36px;color:#eaf2ff;margin-bottom:2px}
+.lg-brand .bn-sub{font-family:"Heebo",sans-serif;font-weight:700;font-size:14px;letter-spacing:.36em;text-transform:uppercase;padding-left:3px;color:#9db9e6}
+.lg-nav{display:flex;gap:2px;margin-left:14px}
+.lg-nav a{padding:9px 14px;border-radius:50px;font-weight:700;font-size:14.5px;color:#cfe0ff;text-decoration:none;transition:.18s;white-space:nowrap}
+.lg-nav a:hover{background:rgba(255,255,255,.1);color:#fff}
+.lg-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+@media(max-width:1040px){.lg-nav{display:none}}
+@media(max-width:780px){:root{--lg-h:78px}.lg-brand .bn-rare{font-size:30px}.lg-logo img{height:48px}}
+@media(max-width:520px){.lg-brand{display:none}.lg-right .rp-soc{display:none}}
+
+/* ---------- content ---------- */
+main.lg-main{position:relative;z-index:1;max-width:var(--lg-max);margin:0 auto;
+  padding:calc(var(--lg-h) + clamp(30px,6vw,66px)) clamp(18px,5vw,40px) 90px}
+.lg-main h1{font-size:clamp(2rem,5vw,2.7rem);font-weight:800;letter-spacing:-.02em;margin:0 0 6px;
+  text-shadow:0 4px 20px rgba(0,10,40,.4)}
+.lg-eff{color:#a9c2e8;font-size:15px;margin:0 0 8px}
+.lg-lead{color:#c6d8f5;font-size:18px;margin:0 0 8px}
+.lg-main h2{font-size:1.28rem;font-weight:700;margin:38px 0 10px;padding-top:8px;color:#eaf2ff}
+.lg-main h3{font-size:1.05rem;font-weight:700;margin:22px 0 6px;color:#cfe0ff}
+.lg-main p,.lg-main li{color:#dbe7fb}
+.lg-main ul{padding-left:1.2em;margin:8px 0}
+.lg-main li{margin:6px 0}
+.lg-main code{background:rgba(122,162,255,.14);border-radius:5px;padding:1px 6px;font-size:.92em}
+.lg-note{background:rgba(122,162,255,.10);border-left:3px solid #7aa2ff;border-radius:10px;padding:14px 18px;margin:16px 0;color:#cfe0ff;backdrop-filter:blur(2px)}
+.lg-todo{background:rgba(255,196,90,.13);border-left:3px solid #ffc45a;border-radius:8px;padding:2px 8px;color:#ffe4ad;font-weight:600}
+.lg-card{background:rgba(14,39,74,.66);border:1px solid rgba(122,162,255,.22);border-radius:14px;padding:18px 20px;margin:14px 0;backdrop-filter:blur(3px)}
+.lg-card table{width:100%;border-collapse:collapse;font-size:15.5px}
+.lg-card th,.lg-card td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid rgba(122,162,255,.2)}
+.lg-card th{color:#cfe0ff;font-weight:700;white-space:nowrap}
+.lg-card tr:last-child td{border-bottom:0}
+
+/* ---------- footer: the studio's own footer (chrome.css) with the caustic water fade,
+   exactly like the maintenance cover. ---------- */
+.mfootwrap{position:relative;z-index:1;background:linear-gradient(180deg,rgba(9,32,66,0) 0%,#0c2c57 42%,#08203f 100%)}
+.deepwater{position:absolute;left:0;right:0;bottom:0;height:82%;z-index:0;pointer-events:none;opacity:.45;
+  background-size:cover;background-position:center bottom;
+  -webkit-mask:linear-gradient(180deg,transparent 0%,#000 62%);mask:linear-gradient(180deg,transparent 0%,#000 62%)}
+footer.site-footer{position:relative;z-index:1;margin-top:clamp(24px,4vh,54px);padding:46px clamp(18px,5vw,60px) 34px;text-align:center}
+@media(max-width:900px){.lg-right .rp-soc{display:none}}
