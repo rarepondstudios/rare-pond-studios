@@ -15,12 +15,73 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-08 (the 2026-08-07 test booking scrubbed from all six surfaces, two funnel
-> bugs logged unfixed; see 0.0.-20).
+> Last updated: 2026-08-08 (order totals now push to HubSpot, `bookings.status` hidden in NocoDB,
+> Supabase function-grant trap documented; see 0.0.-21. Test-booking cleanup in 0.0.-20).
 
 ---
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+
+### 0.0.-21 RENTALS: ORDER TOTALS NOW REACH HUBSPOT + `status` HIDDEN IN NOCODB (2026-08-08)
+
+**The bug, stated plainly: HubSpot only ever knew the price from the original web submission.**
+`rp_recompute_order()` rebuilds `orders.total_price` from the real `bookings` rows on every change
+and always did so correctly. But the n8n workflow `Rental DB → HubSpot Stage Push`
+(`cjav2Eobu0LZR70p`) PATCHed exactly one property, `dealstage`. Nothing wrote `amount`, ever. So
+edit gear in NocoDB after the deal exists and Supabase reprices while HubSpot keeps the old figure
+silently and forever. **HubSpot is the side invoices are raised from, so this could overcharge a
+client.** Confirmed by the 2026-08-07 test: HubSpot $88.00 against Supabase $48.00, and $48.00 was
+the correct number.
+
+**The fix mirrors the stage dirty-flag pattern exactly, so there is one mechanism to understand,
+not two.** `hs_last_synced` already tracked the last stage label pushed; new column
+`orders.hs_last_price` tracks the last amount pushed.
+
+- `orders_pending_hs_push()` now also returns a row when
+  `total_price is distinct from hs_last_price`, and hands back a ready-made `hs_properties` jsonb.
+- `mark_hs_pushed()` now clears both flags.
+- The n8n PATCH body is now just `={{ JSON.stringify({ properties: $json.hs_properties }) }}`, so
+  the JSON is assembled in SQL where it can be tested, not in an n8n expression.
+- SQL lives in `bts-automation/migrations/20260808_hs_price_push.sql`. No backfill was needed: every
+  existing order has `total_price` NULL, and the price branch requires NOT NULL, so applying it
+  queued zero pushes.
+
+**TRAP, and it bit during this very migration.** `DROP` + `CREATE FUNCTION` in Supabase's `public`
+schema does NOT come back locked down. Supabase ships `ALTER DEFAULT PRIVILEGES` granting EXECUTE
+to `anon` and `authenticated` on every new function, and those are direct grants, so
+`revoke ... from public` does not remove them. `orders_pending_hs_push()` was briefly executable by
+the published anon key, which would have leaked deal ids, stages and prices for every order. Caught
+and closed in the same session. **Any CREATE FUNCTION here must be followed by
+`revoke all on function ... from anon, authenticated, public`.** The 2026-08-07 table-grant lockdown
+protects tables; this is the function-level equivalent and it re-opens itself on every rebuild.
+Audited afterwards: only `catalog_availability()` is intentionally anon-executable. The trigger
+functions `rp_sync_accessory_ids` and `rp_sync_member_ids` still carry anon/authenticated EXECUTE,
+which is harmless because PostgREST will not expose a `trigger`-returning function, but they are
+inconsistent with the lockdown and worth tidying.
+
+**`bookings.status` is now hidden in NocoDB and unchanged in Postgres.** The audit that settles the
+question left open by 0.0.-19a: `status` is inert as a decision input (every row is `confirmed`,
+nothing can produce `held`, so all four predicates that read it are permanently true) but it is
+structurally load-bearing. It appears in the `WHERE` predicate of the `bookings_no_overlap` EXCLUDE
+constraint and its GiST index, in `catalog_availability()`, `reserve_order()` and
+`rp_booking_validate()`, and in the `UPDATE OF` list of `rp_booking_validate_trg`. No view or
+generated column touches it. **Dropping the column would therefore mean dropping and rebuilding the
+live double-booking guard for zero user-visible gain**, so it stays. Only the NocoDB grid column
+was hidden (view `vw3my5yphqklbbgq`, view-column `ncazu38nrqxn09dc`, `show=false`), which matches
+how `id`, `order_id` and `unit_id` were already handled on that table. The SingleSelect options and
+the `confirmed` default were verified intact afterwards. Note this is a *view* column change, so
+the 0.0.-19a `colOptions` wipe trap does not apply.
+
+**n8n gotcha worth keeping.** `n8n import:workflow` deactivates the workflow it imports, and a
+running n8n instance can overwrite the import. Worse, verifying by copying only `database.sqlite`
+out of the container reads stale data, because recent writes sit in `database.sqlite-wal`. Copy all
+three files (`.sqlite`, `-wal`, `-shm`) or you will chase a change that already landed. Verified
+after: 11 of 11 workflows active, new body live, two clean runs, zero errors.
+
+*Verification:* the whole add/remove/reprice/requeue cycle was exercised against the live database
+inside a transaction that was rolled back, so n8n never observed it. $42.00 for two units, $40.00
+after removing the $1 unit, requeued at $42.00 when it was added back with no stage change. Backups:
+`bts-automation/backups/n8n_20260808/`.
 
 ### 0.0.-20 RENTALS: THE 2026-08-07 TEST BOOKING SCRUBBED FROM ALL SIX SURFACES (2026-08-08)
 
@@ -52,15 +113,15 @@ her deal count changed, 3 to 2. No confirmation email ever reached her; the only
 the internal Jotform notification to rentals@. No QuickBooks invoice was created despite the deal
 sitting in "Start Invoice Sent", so that stage label is decoration in the same way `held` was.
 
-**Two real bugs this exposed, neither fixed, both worth a session:**
+**Two anomalies this exposed. BOTH were diagnosed on 2026-08-08 and only one was a bug.
+See 0.0.-21 above for the resolution; the paragraph below is kept because the symptom is what
+a future session will notice first.**
 
-1. **The totals disagree across the funnel.** HubSpot recorded $88.00, Supabase recorded $48.00 for
-   the same order. One of the two price calculations is wrong.
-2. **A booking silently went missing at write time.** The submitted gear list has six units
-   (1 SHAPE Tripod, 1 Aputure INFINIBAR PB6, 2 PB6 Grid, 2 A-Clamp) but only five bookings were
-   ever created. The gap in the id sequence is `51`, which lines up with the PB6 itself, the one
-   item with no booking row. A unit that fails to book is a double-booking waiting to happen,
-   so this is the more serious of the two.
+1. **The totals disagreed across the funnel.** HubSpot recorded $88.00, Supabase recorded $48.00
+   for the same order. REAL BUG, now fixed: Supabase was right and HubSpot was stale.
+2. **Only five bookings existed for six submitted units**, with `51` missing from the id sequence,
+   matching the Aputure INFINIBAR PB6. NOT a bug: that booking was deliberately deleted in NocoDB
+   during the same test session. `rp_recompute_order()` correctly repriced the order afterwards.
 
 *Rollback:* `bts-automation/backups/testorder_cutie_backup_20260808.json` holds the full `orders`
 and `bookings` rows plus the raw Jotform submission. The HubSpot deal is in the portal's recycling
