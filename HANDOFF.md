@@ -15,13 +15,46 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-08 (Terms + Privacy on both sites now edited in Pages CMS with shared
-> variables, see 0.0.-23. Carousel hug-outline glitch fixed at the SHARED cursor master in
-> 0.0.-22. Order totals now push to HubSpot and `bookings.status` hidden in NocoDB in 0.0.-21).
+> Last updated: 2026-08-08 (em-dash scrub finished in the Pages CMS strings, and the mailing
+> address split off from the legal jurisdiction, see 0.0.-24. Terms + Privacy on both sites now
+> edited in Pages CMS with shared variables in 0.0.-23. Carousel hug-outline glitch fixed at the
+> SHARED cursor master in 0.0.-22).
 
 ---
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+
+### 0.0.-24 EM-DASH SCRUB FINISHED, AND THE ADDRESS SPLIT OFF FROM THE JURISDICTION (2026-08-08)
+
+**The 2026-08-07 scrub never reached the Pages CMS strings.** Site copy, `index.html` and every
+`.md` in both repos were clean. `.pages.yml` was not: **50 em dashes** across the two files, all
+inside the `label:` and `description:` text Jack reads inside the CMS. Plus 8 more in two
+`_headers` comments, both `tools/check-media-refs.mjs` headers, and three console strings in
+`jackcarlsen-website/tools/validate-projects.mjs`. All 58 are gone. **A repo-wide sweep of both
+repos now returns nothing outside binary media files.**
+
+**Replaced case by case, not by blanket swap**, because an em dash does three different jobs in
+these strings: a label separator wants a colon (`"Brand: line 1"`), an aside wants a comma, and
+two sentences bolted together want a full stop and a capital. A single global replace would have
+read wrong in roughly a third of them. `~/bts-automation/_scrub_emdash_pagesyml.py` holds every
+pair explicitly, asserts each needle is found the exact expected number of times, and **refuses
+to write anything at all** if one count is off or if a single em dash is left uncovered.
+
+**Proof it changed nothing functional:** both files were parsed before and after, every `label`
+and `description` stripped out, and the remaining schema compared. Identical. The only values
+that differ, 26 in RP and 14 in JC, are all `label` or `description`. Pages CMS behaviour, field
+names, types, patterns and defaults are untouched. Repo test suites pass.
+
+**Separately: the mailing address now carries its own city and state.** The contact block used to
+read `[mailingAddress], [city], [state]`, and `[state]` ALSO drove the Governing law section and
+the `"[state] residents"` heading in the privacy policy. Same value today, two different facts.
+**Moving the postal address would have silently rewritten which state's law the documents claim
+to run under.** The address is now `[mailingStreet]` / `[mailingCity]` / `[mailingState]`, and
+`[state]` and `[county]` mean only the governing law and the venue. `[city]` is gone; use
+`[mailingCity]`, or `[region]` for the "based in the ... area" phrase.
+
+Verified by setting the address to Portland, Oregon on a scratch copy: the contact line moved,
+Governing law stayed California, and the CCPA heading stayed "California residents".
 
 ### 0.0.-23 TERMS + PRIVACY MOVED INTO PAGES CMS, WITH VARIABLES (2026-08-08)
 
