@@ -33,6 +33,7 @@
        legal ones (Governing law, "[state] residents"), so moving the office cannot quietly
        change which state's law the documents claim to run under. */
     mailingStreet: 'street address', mailingCity: 'city', mailingState: 'state',
+    mailingZip: 'ZIP code',
     state: 'state', county: 'county', region: 'region',
     siteDomain: 'site domain', siteName: 'site name'
   };

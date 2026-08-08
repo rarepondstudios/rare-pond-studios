@@ -1,5 +1,5 @@
 {
-  "varsKey": "Type a variable in square brackets anywhere in a heading or a text box below and the page fills in its value from SHARED VALUES. Change it in one place, every page changes. The ones that always exist: [businessName] [ownerName] [siteName] [siteDomain] [contactEmail] [privacyEmail] [phone] [mailingStreet] [mailingCity] [mailingState] [state] [county] [region]. NOTE the mailing address carries its OWN city and state: [mailingCity] and [mailingState] are where post is sent, while [state] and [county] are the law the site runs under and where a dispute would be heard. They read the same today, and they are separate so that moving the address never quietly rewrites the Governing law section. Anything you add under YOUR OWN VARIABLES works the same way: name one bookingEmail and type [bookingEmail]. A variable you have not filled in yet shows on the page as an amber [... to be added] note instead of vanishing, so a blank can never read as a finished sentence. A word in brackets that is not one of your variables is left exactly as typed.",
+  "varsKey": "Type a variable in square brackets anywhere in a heading or a text box below and the page fills in its value from SHARED VALUES. Change it in one place, every page changes. The ones that always exist: [businessName] [ownerName] [siteName] [siteDomain] [contactEmail] [privacyEmail] [phone] [mailingStreet] [mailingCity] [mailingState] [mailingZip] [state] [county] [region]. NOTE the mailing address carries its OWN city, state and ZIP: [mailingCity], [mailingState] and [mailingZip] are where post is sent, while [state] and [county] are the law the site runs under and where a dispute would be heard. They read the same today, and they are separate so that moving the address never quietly rewrites the Governing law section. Anything you add under YOUR OWN VARIABLES works the same way: name one bookingEmail and type [bookingEmail]. A variable you have not filled in yet shows on the page as an amber [... to be added] note instead of vanishing, so a blank can never read as a finished sentence. A word in brackets that is not one of your variables is left exactly as typed.",
   "vars": {
     "businessName": "Rare Pond Studios",
     "ownerName": "Jack Carlsen",
@@ -11,6 +11,7 @@
     "mailingStreet": "",
     "mailingCity": "Burbank",
     "mailingState": "California",
+    "mailingZip": "",
     "state": "California",
     "county": "Los Angeles County",
     "region": "Los Angeles / Burbank, California",
@@ -145,7 +146,7 @@
           },
           {
             "type": "card",
-            "text": "<strong>[businessName]</strong>\n\nEmail: [contactEmail]\n\nMailing address: [mailingStreet], [mailingCity], [mailingState]"
+            "text": "<strong>[businessName]</strong>\n\nEmail: [contactEmail]\n\nMailing address: [mailingStreet], [mailingCity], [mailingState] [mailingZip]"
           }
         ]
       }
@@ -332,7 +333,7 @@
           },
           {
             "type": "card",
-            "text": "<strong>[businessName]</strong>\n\nEmail: [contactEmail]\n\nMailing address: [mailingStreet], [mailingCity], [mailingState]"
+            "text": "<strong>[businessName]</strong>\n\nEmail: [contactEmail]\n\nMailing address: [mailingStreet], [mailingCity], [mailingState] [mailingZip]"
           }
         ]
       }
