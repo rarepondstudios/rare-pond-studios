@@ -22,10 +22,6 @@
        (its own native glow/tilt if it has one, else cursor-driven tilt+scale),
        and fades back in on leave. While ANY element is engaged, a faint
        auto-contrast ghost ring (60% dot opacity) marks the pointer position.
-       data-cursor="nohug" is the third setting: NEVER an outline, but the ring
-       KEEPS its own glow at the pointer (it does not fade and it does not morph),
-       for glow-only objects that are still ENTERABLE. See the nohug block in
-       applyHover for why the RP project bubbles/cards need it.
      - KEYBOARD: from a hover context, arrow keys move the selection spatially
        between interactive elements (the hug/reaction travels), Enter activates;
        the first real mouse move hands control back to the pointer.
@@ -389,12 +385,7 @@
       if (el) {
         attrSp = dcHas(el, "glow") || dcHas(el, "special");   /* "glow" kept for back-compat markup */
         var r = el.getBoundingClientRect();
-        /* the oversize cutoff exists so a full-bleed link cannot morph into a screen-sized
-           blob. Objects that never morph in the first place (attrSp, nohug) are exempt, or
-           their treatment would flip purely on viewport size: the RP featured card is 69vw
-           on a narrow window (over the cutoff, disengaged) and clamps to 1010px on a wide
-           one (under it, engaged), which is exactly how the hug outline came back. */
-        if (r.width < 4 || r.height < 4 || (!attrSp && !dcHas(el, "nohug") && (r.width > innerWidth * .62 || r.height > innerHeight * .62))) el = null;
+        if (r.width < 4 || r.height < 4 || (!attrSp && (r.width > innerWidth * .62 || r.height > innerHeight * .62))) el = null;
       }
       if (el) applyHover(el, txt, attrSp); else queueClear(txt);
       wake();
@@ -552,23 +543,6 @@
             if (fOnly) hoverSpecial = true;   /* ring fades exactly like a special: no glow = focus-only */
           } catch (_) {}
         }
-        /* NOHUG, glow-only but still ENTERABLE (data-cursor~="nohug").
-           The two rules above only recognise glow-only objects that are big CIRCLES
-           (%-radius >= 45) or say so with glow/special. A bubble that MORPHS into a
-           rounded card fails both the moment its radius drops: the RP home carousel's
-           featured card is .cbub at 13%/20%, so following it with the mouse as it grew
-           into the feat slot brought the hard hug outline back on a surface that is
-           meant to be glow-only. Radius and size are the wrong things to infer intent
-           from, so the object states it: nohug is never outlined, at any radius, in any
-           slot, at any window size.
-           It differs from glow/special in one way, and that is the point of having it:
-           the ring KEEPS its glow instead of fading. The FOCUS-vs-ENTER rule (v18) says a
-           lit ring means "clicking ENTERS this", and the featured card does open its
-           project. Only elements the rules above left as a HUG reach this branch, so the
-           side bubbles (focus-only) and the Projects grid bubbles (auto-circle) keep
-           fading exactly as they do today. */
-        var noHug = dcHas(el, "nohug"), keepGlow = false;
-        if (!hoverSpecial && noHug) { hoverSpecial = true; keepGlow = !kb; }
         /* KEYBOARD engagement: the hug IS the focus indicator, so specials hug too, the shape
            CONFORMS (bubbles → encompassing circle via the %-radius scan; irregular logos → a
            consistent rounded rectangle with breathing room) instead of the browser's square
@@ -581,11 +555,7 @@
              specials AND ordinary elements alike: LOGOS ALWAYS RENDER ON TOP of selection
              indicators; popups/transitions still cover them (they are page content above). */
           hoverSpecial = true;
-        } else if (kb && hoverSpecial && !noHug) {
-          /* nohug is excluded here on purpose: keyboard normally CONFORMS a special into a
-             hug because the hug is the focus indicator, but nohug means the object is never
-             outlined by either input. Its own .rpc-kbsel glow is the indicator instead (the
-             RP bubbles/cards also carry kbnative, which takes the branch above). */
+        } else if (kb && hoverSpecial) {
           hoverSpecial = false;
           if (!best.pct) { hoverRad = 16; hoverPad = 6; hoverRadY = 0; }
         }
@@ -595,11 +565,8 @@
            - special elements (mouse): ring keeps its shape but its colour FADES OUT ("faded")
              while the object's own glow/reaction fades in; it fades back in on leave. */
         ring.classList.toggle("hover", !hoverSpecial);
-        ring.classList.toggle("faded", hoverSpecial && !keepGlow);
-        /* the ghost ring marks where the outline collapses back to, so it only belongs to a
-           state that HAS an outline or a transferred glow. On a keepGlow object the ring
-           itself is still lit at the pointer and a ghost on top of it just reads as doubled. */
-        root.classList.toggle("hugging", !keepGlow);
+        ring.classList.toggle("faded", hoverSpecial);
+        root.classList.add("hugging");
         hoverPad = hoverPad || parseFloat(el.getAttribute("data-cursor-pad")) || 0;   /* extra breathing room around the hug (footer nav links) */
         /* social icons (a[data-net], every site) get default breathing room so their circles
            never read tighter than the rest of the hug outlines */
@@ -761,9 +728,7 @@
     function kbEngage(el) {
       var attrSp = dcHas(el, "glow") || dcHas(el, "special");
       var r; try { r = el.getBoundingClientRect(); } catch (_) { return false; }
-      /* same oversize exemption as the mouse path: non-morphing objects stay selectable at
-         every window size, so keyboard reach never depends on the viewport either. */
-      if (r.width < 4 || r.height < 4 || (!attrSp && !dcHas(el, "nohug") && (r.width > innerWidth * .62 || r.height > innerHeight * .62))) return false;
+      if (r.width < 4 || r.height < 4 || (!attrSp && (r.width > innerWidth * .62 || r.height > innerHeight * .62))) return false;
       applyHover(el, false, attrSp, true);
       try { el.classList.add("rpc-kbsel"); kbSelEl = el; } catch (_) {}
       try { el.focus({ preventScroll: true }); } catch (_) {}
