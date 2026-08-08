@@ -49,12 +49,19 @@ names, types, patterns and defaults are untouched. Repo test suites pass.
 read `[mailingAddress], [city], [state]`, and `[state]` ALSO drove the Governing law section and
 the `"[state] residents"` heading in the privacy policy. Same value today, two different facts.
 **Moving the postal address would have silently rewritten which state's law the documents claim
-to run under.** The address is now `[mailingStreet]` / `[mailingCity]` / `[mailingState]`, and
-`[state]` and `[county]` mean only the governing law and the venue. `[city]` is gone; use
-`[mailingCity]`, or `[region]` for the "based in the ... area" phrase.
+to run under.** The address is now `[mailingStreet]` / `[mailingCity]` / `[mailingState]` /
+`[mailingZip]`, and `[state]` and `[county]` mean only the governing law and the venue. `[city]`
+is gone; use `[mailingCity]`, or `[region]` for the "based in the ... area" phrase.
+
+The ZIP renders after the state with a **space, not a comma**, the way an address is actually
+written: `Burbank, California 91502`. A blank ZIP shows the amber chip like any other value. A
+document that should carry no ZIP at all drops `[mailingZip]` from its contact block in the CMS
+rather than emptying the field, which keeps the "a blank is visible" rule intact everywhere.
 
 Verified by setting the address to Portland, Oregon on a scratch copy: the contact line moved,
-Governing law stayed California, and the CCPA heading stayed "California residents".
+Governing law stayed California, and the CCPA heading stayed "California residents". Then with a
+full address filled in: `1234 Somewhere Ave, Suite 5, Burbank, California 91502`, zero amber
+chips left on the page.
 
 ### 0.0.-23 TERMS + PRIVACY MOVED INTO PAGES CMS, WITH VARIABLES (2026-08-08)
 
