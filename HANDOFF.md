@@ -15,11 +15,153 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-07 (legal-page chrome, JC contact popup, robots AI-blocks, site-wide em-dash scrub).
+> Last updated: 2026-08-08 (the 2026-08-07 test booking scrubbed from all six surfaces, two funnel
+> bugs logged unfixed; see 0.0.-20).
 
 ---
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+
+### 0.0.-20 RENTALS: THE 2026-08-07 TEST BOOKING SCRUBBED FROM ALL SIX SURFACES (2026-08-08)
+
+A live end-to-end test of the rentals funnel on 2026-08-07 (project name "Jack you are a Cutie")
+left real records in every downstream system. All of it is now removed. **The rentals database
+holds zero bookings and seven orders as a result, and that is correct, not data loss.** Section
+0.0.-19a below describes "booking 50, order 33, SHAPE Tripod #1" as the last `held` row: that row
+WAS this test booking, so the claim there is now historical.
+
+**What one test submission produced, and where it had to be deleted from:**
+
+| Surface | Artifact | Method |
+|---|---|---|
+| Supabase | `orders` id 33, `bookings` 50/52/53/54/55 | `DELETE` via `_rp_db.py` |
+| HubSpot | deal `340542685883` "Rental: Jack you are a Cutie", $88, Start Invoice Sent | `DELETE /crm/v3/objects/deals` |
+| Google Calendar | `Rental Pickup:` 08-12 + `Rental Return:` 08-13 on studio@ | Calendar API |
+| Jotform | submission `6619607544216970356` on Rental Quote Request (`261817432074052`) | `DELETE /submission` |
+| Gmail | the rentals@ notification thread | moved to Trash |
+| n8n | ~60 execution logs referencing the deal | left to self-prune |
+
+**DELETION ORDER IS NOT OPTIONAL. Delete the HubSpot deal FIRST.** `orders.source` is `hubspot`
+and the active n8n workflow `HubSpot → Rental DB Sync` (`Gazw7lunDNNd9HO2`) recreates the Supabase
+order from the deal on a schedule. Clearing Supabase while the deal still exists just puts the row
+back a few minutes later. Verified clean twice, with a sync window in between.
+
+**The contact was NOT test data and was deliberately left alone.** The test used Karina Salerno
+(kvsalerno@gmail.com), a real HubSpot contact since 2026-04-23 and QuickBooks customer 122. Only
+her deal count changed, 3 to 2. No confirmation email ever reached her; the only mail generated was
+the internal Jotform notification to rentals@. No QuickBooks invoice was created despite the deal
+sitting in "Start Invoice Sent", so that stage label is decoration in the same way `held` was.
+
+**Two real bugs this exposed, neither fixed, both worth a session:**
+
+1. **The totals disagree across the funnel.** HubSpot recorded $88.00, Supabase recorded $48.00 for
+   the same order. One of the two price calculations is wrong.
+2. **A booking silently went missing at write time.** The submitted gear list has six units
+   (1 SHAPE Tripod, 1 Aputure INFINIBAR PB6, 2 PB6 Grid, 2 A-Clamp) but only five bookings were
+   ever created. The gap in the id sequence is `51`, which lines up with the PB6 itself, the one
+   item with no booking row. A unit that fails to book is a double-booking waiting to happen,
+   so this is the more serious of the two.
+
+*Rollback:* `bts-automation/backups/testorder_cutie_backup_20260808.json` holds the full `orders`
+and `bookings` rows plus the raw Jotform submission. The HubSpot deal is in the portal's recycling
+bin for 90 days. Calendar events and the Gmail thread are recoverable from Trash for 30 days.
+
+*If you test the funnel again,* use an obviously fake contact rather than a real one, and expect to
+clean six surfaces, not one.
+
+### 0.0.-19 RENTALS: `held` STATUS RETIRED + ANON DB GRANTS LOCKED DOWN + WEEKLY SCHEMA SNAPSHOT (2026-08-07)
+
+Three related things, all in one session. The `held` audit is what exposed the other two.
+
+**PUBLIC DB PERMISSIONS WERE WIDE OPEN AT THE GRANT LEVEL (fixed).** The July RPC audit tightened
+function EXECUTE but never looked at *table* grants. `anon` and `authenticated` held
+`SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER` on all six rentals tables
+(`items`, `units`, `bookings`, `orders`, `damage_events`, `item_accessories`). Row-level security
+was the only thing standing between the published anon key and truncating the bookings table.
+Verified what the browser actually needs: exactly `GET /rest/v1/items` and
+`POST /rest/v1/rpc/catalog_availability`, nothing else, in either repo. So:
+
+```sql
+revoke all on table public.bookings, public.orders, public.damage_events,
+                   public.units, public.item_accessories
+  from anon, authenticated, public;
+revoke all on table public.items from anon, authenticated, public;
+grant select on table public.items to anon, authenticated;
+```
+
+`anon` now holds `SELECT` on `items` and nothing else. Verified live before and after: items 365,
+availability rows 77, identical. `/rest/v1/bookings`, `/orders` and `/units` now return
+`401 42501 permission denied` to the anon key instead of relying on RLS. **RLS is still on and
+still correct, this is the second lock, not a replacement.** If a future feature needs the browser
+to read another table, grant `SELECT` on that one table only, never the whole set.
+
+**WEEKLY SCHEMA SNAPSHOT (new job).** `bts-automation/schema_snapshot.py`, launchd
+`com.rarepond.schemasnapshot`, Mondays 04:20, registered in the ClickUp Automation Health doc.
+Reads the live database and writes structure only (tables, constraints, indexes, triggers,
+function bodies, enums, RLS, grants; no rows, no secrets) to
+`bts-automation/backups/schema/rentals_schema_LATEST.md` plus a dated copy, keeping 12. It also
+mirrors into `AI_System_Context/project-docs/rentals_schema_LATEST.md`, so any future session can
+read the true schema from the Google Drive mirror with no device access. It exists because
+`Desktop/Archived Backups/rentals-build-archive/migrations/` had quietly stopped being true:
+`rp_booking_validate()`, a live double-booking guard, runs in production with no migration for it.
+Anything changed in the Supabase SQL editor never reaches a file, so the record now refreshes
+itself instead of depending on someone remembering. Credentials for it live in
+`~/.config/rarepond/rentals_db.json` (mode 600), read via the new shared `bts-automation/_rp_db.py`.
+
+**STILL OPEN, NEEDS JACK:** the Supabase database password is stored unencrypted in
+`~/nocodb-data/noco.db`. Rotating it needs the Supabase dashboard, and NocoDB's connection
+encryption needs the container recreated with a key that must never be lost. Both were left for a
+session where Jack can watch the rentals page. See the journal entry for the exact steps.
+
+### 0.0.-19a THE `held` BOOKING STATUS, WHY IT WAS DECORATION (2026-08-07)
+
+`bookings.status` was a two-value Postgres enum (`booking_status = 'held' | 'confirmed'`). The
+phase-1 design intended a two-tier system where `held` was tentative and only `confirmed` counted
+against availability. Phase 4 (2026-07-06) never implemented that split: it wrote
+`status in ('held','confirmed')` into every consumer, so the two values became functionally
+identical. A full live audit of the Supabase database on 2026-08-07 confirmed there is no code
+path anywhere in which they differ.
+
+Everything that reads `bookings.status`, and what it does with it:
+
+| Where | Behaviour |
+|---|---|
+| `catalog_availability()` | `status in ('held','confirmed')`, both block |
+| `reserve_order()` | `status in ('held','confirmed')`, both block |
+| `rp_booking_validate()` trigger | `status in ('held','confirmed')`, both block |
+| `bookings_no_overlap` constraint + GiST index | `WHERE status = ANY(ARRAY['held','confirmed'])` |
+| `on_order_stage()`, `rp_order_reserve_sync()` | delete by `order_id`, status-blind |
+| `on_damage_event()` | its `status` is `damage_events.status`, unrelated |
+| `hubspot_sync_order()` | its `'held'` is a JSON response key, unrelated |
+
+No view, matview, RLS policy, check constraint or generated column references the value.
+
+**What changed.** The one remaining `held` row (booking 50, order 33, SHAPE Tripod #1,
+2026-08-12 to 2026-08-13) was set to `confirmed`, and `held` was removed from the NocoDB
+single-select options for `bookings.status`, so it can no longer be picked in the UI. Verified:
+`catalog_availability('2026-08-12','2026-08-13')` returns byte-identical results before and after
+(77 items, same four blocked), all constraints/triggers/functions intact, all 5 bookings
+`confirmed`.
+
+**What deliberately did NOT change.** The Postgres enum still contains the label `held`, because
+Postgres has no `ALTER TYPE ... DROP VALUE` and removing it would mean rebuilding the type and
+re-pointing the exclusion constraint, its index, and three functions on a live database for zero
+user-visible gain. Nothing can produce the value any more: the column default is `confirmed`,
+`reserve_order()` inserts `confirmed`, n8n never writes it, and the UI no longer offers it. If the
+tentative tier is ever wanted, drop `'held'` out of `catalog_availability()` only (keeping it in
+`bookings_no_overlap`) so a held row stops hiding gear from the public catalogue while still
+preventing a double-book.
+
+**The mental model, stated plainly:** a booking row IS the hold. Availability keys off the row
+existing, not off its status. Status was decoration.
+
+*Rollback:* `bts-automation/backups/bookings_status_backup_20260807_220955.json` (rows + column
+meta) and `bts-automation/backups/noco.db.bak_beforeheldremoval_20260807_221140`.
+
+*Note for whoever edits NocoDB select options next:* PATCHing `colOptions` on an enum-backed
+SingleSelect via the NocoDB REST API wipes ALL options rather than the one you removed. The
+working method is to stop the container, edit `nc_col_select_options_v2` in
+`~/nocodb-data/noco.db` directly, and restart.
 
 ### 0.0.-18 LEGAL-PAGE CHROME + JC CONTACT POPUP + AI-BLOCKS + EM-DASH SCRUB (2026-08-07)
 
