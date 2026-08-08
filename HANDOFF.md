@@ -15,12 +15,65 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-08 (order totals now push to HubSpot, `bookings.status` hidden in NocoDB,
-> Supabase function-grant trap documented; see 0.0.-21. Test-booking cleanup in 0.0.-20).
+> Last updated: 2026-08-08 (carousel hug-outline glitch fixed at the SHARED cursor master, see
+> 0.0.-22. Order totals now push to HubSpot and `bookings.status` hidden in NocoDB in 0.0.-21;
+> test-booking cleanup in 0.0.-20).
 
 ---
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+
+### 0.0.-22 THE CAROUSEL HUG-OUTLINE GLITCH, AND WHY IT CAME BACK (2026-08-08)
+
+From Jack's OBS recording (`~/Movies/2026-08-08 12-05-20.mov`). Click a side bubble on the home
+carousel and **follow it with the mouse** as it expands into the featured slot: the hard hug
+outline draws itself around the card. Click and move the pointer away and it never appears. That
+asymmetry is the whole bug, and it is why the glow-only pass (0.0.-14, v19) looked complete.
+
+**Cause: the engine inferred "this object is glow-only" from its SHAPE.** `hoverSpecial` was set
+for big circles (`%`-radius >= 45 and >= 64px). `.cbub` is `border-radius:50%` in the side slots
+and passes; `.citem.feat .cbub` morphs to `13%/20%` and stops passing. Same element, same intent,
+different radius. So the treatment flipped mid-animation and the `.rpc-bord` band appeared on a
+surface that was never meant to carry one.
+
+**Two things kept it hidden.** The pointer has to LAND on the card after it has grown (a fresh
+`applyHover`); staying still or leaving re-uses the cached special state. And `.citem.feat` is
+`clamp(360px,69vw,1010px)`, which sits ABOVE the engine's 62%-of-viewport oversize cutoff on a
+narrow window (never engaged at all) and drops below it once the 1010px clamp takes over, **so
+the bug only existed above roughly 1760px of viewport width.** A single-width check would have
+missed it entirely.
+
+**Fix: the markup states the intent instead of the engine guessing at it.**
+`data-cursor~="nohug"` is never outlined, at any radius, in any slot, at any window size, and it
+is exempt from the oversize cutoff for the same reason (nothing that never morphs can become a
+screen-sized blob). Carried by the home carousel items (`.citem`) and the Projects grid bubbles
+(`.bubble`); the grid ones are circles today and are unchanged in behaviour, the token is what
+keeps them that way if their shape ever moves.
+
+**`nohug` keeps the ring's own glow rather than fading it.** That is the one way it differs from
+`glow`/`special`, and it is deliberate: the FOCUS-vs-ENTER rule (0.0.-13, v18) reads a lit ring as
+"clicking ENTERS this", and the featured card does open its project. Only elements the existing
+rules left as a HUG reach the new branch, so the side bubbles (focus-only) and the grid bubbles
+(auto-circle) keep fading exactly as before. Jack chose this over the fully-faded option.
+
+**Keyboard is untouched by design.** `keepGlow` is mouse-only, `kbnative` still takes its own
+branch, and `nohug` additionally blocks the kb path that CONFORMS a special back into a hug
+outline. Verified live: arrows select and rotate the carousel, Enter opens the project, no errors.
+
+**THE PART THAT MATTERS FOR NEXT TIME: `assets/cursor.js` IS NOT EDITABLE IN THIS REPO.** It is a
+shared module whose master is `~/bts-automation/cursor.js`, published to BOTH site repos by
+`social_ui_sync.py`. The first attempt at this fix edited the repo copy, pushed it, and the sync
+job silently reverted it in the very next commit (`chore(shared): sync shared UI modules from
+master`). Same applies to `contact.js`, `contact.css` and `social_ui.js`. **Edit the master,
+commit `bts-automation`, then run `python3 ~/bts-automation/social_ui_sync.py --publish`**, which
+copies into both repos and pushes both. Commits: master `7389918`, RP markup + test `757da64`.
+
+**Regression guard: `tools/test-bubble-glow-only.mjs`.** Sweeps 1280 to 2200px, drives the exact
+recorded gesture, and asserts the things a lazy fix would break: nav links still get their
+outline, side bubbles still fade, the featured card still glows, keyboard still selects and
+activates. Confirmed it FAILS on the old markup (6 failures, all at >= 1760px) and passes on the
+new, locally and against live www. Run it with `BASE=https://www.rarepond.com` to check the
+deployed site, or against `tools/serve-like-cloudflare.mjs` on :8899 for local.
 
 ### 0.0.-21 RENTALS: ORDER TOTALS NOW REACH HUBSPOT + `status` HIDDEN IN NOCODB (2026-08-08)
 
