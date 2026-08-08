@@ -28,9 +28,13 @@
   /* Friendly names for the amber "not filled in yet" placeholder. */
   var LABELS = {
     businessName: 'business name', ownerName: 'owner name', contactEmail: 'contact email',
-    privacyEmail: 'privacy email', mailingAddress: 'mailing address', city: 'city',
-    state: 'state', county: 'county', region: 'region', siteDomain: 'site domain',
-    siteName: 'site name', phone: 'phone number'
+    privacyEmail: 'privacy email', phone: 'phone number',
+    /* The postal address carries its own city and state. [state] and [county] below are the
+       legal ones (Governing law, "[state] residents"), so moving the office cannot quietly
+       change which state's law the documents claim to run under. */
+    mailingStreet: 'street address', mailingCity: 'city', mailingState: 'state',
+    state: 'state', county: 'county', region: 'region',
+    siteDomain: 'site domain', siteName: 'site name'
   };
 
   /* ---------- variables ---------- */

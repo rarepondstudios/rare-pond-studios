@@ -22,7 +22,7 @@
 /media/*
   Cache-Control: public, max-age=604800
 
-# The HTML entry points must always revalidate — heuristic browser caching served a STALE
+# The HTML entry points must always revalidate. Heuristic browser caching served a STALE
 # page shell after deploys (seen on /media: new features "missing" until a hard refresh).
 # These come LAST so they override the /media/* cache rule for the /media page itself.
 /

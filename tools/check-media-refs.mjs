@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* check-media-refs.mjs — verify every /media/... path referenced in data/*.json exists on disk.
+/* check-media-refs.mjs: verify every /media/... path referenced in data/*.json exists on disk.
    WHY: the SPA rewrite in _redirects serves index.html with HTTP 200 for ANY missing file,
    so a broken media reference is invisible to status-code checks (the <img> just fails to
    decode). This catches the whole class at the source. Run:  node tools/check-media-refs.mjs

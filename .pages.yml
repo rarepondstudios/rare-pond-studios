@@ -91,7 +91,7 @@ content:
       # Social links moved to NocoDB (the `socials` table) 2026-08-04 - edit accounts, links,
       # bubble blurbs and colours there; socials_sync.py writes data/socials.json for BOTH sites.
       # (No longer edited here or in site.json.)
-      - { name: orbits, label: "About-logo floating images (paste /media/... paths)", type: string, list: true, description: "The little film-still bubbles that orbit the logo. Each entry is a PATH into the shared media library — paste the generated file path straight from the stills or BTS attribute in NocoDB (e.g. /media/projects/geriaction/stills/ga-1-800.webp). The bubble then shows the SAME file the project already uses — no re-upload, no duplicate copies. A full https:// URL or a path without the leading slash also works. They are masked into circles, so pick stills with a centred subject." }
+      - { name: orbits, label: "About-logo floating images (paste /media/... paths)", type: string, list: true, description: "The little film-still bubbles that orbit the logo. Each entry is a PATH into the shared media library. Paste the generated file path straight from the stills or BTS attribute in NocoDB (e.g. /media/projects/geriaction/stills/ga-1-800.webp). The bubble then shows the SAME file the project already uses, no re-upload, no duplicate copies. A full https:// URL or a path without the leading slash also works. They are masked into circles, so pick stills with a centred subject." }
       - name: header
         label: Header (shared - studio + rentals)
         type: object
@@ -162,10 +162,10 @@ content:
     path: data/media.json
     fields:
       - name: cmsNote
-        label: "✏️ Rare Pond Media — the /media pitch site"
+        label: "✏️ Rare Pond Media, the /media pitch site"
         type: string
         readonly: true
-        description: "Everything on rarepond.com/media. Edit the text and swap the main images here. The cinematic showcase + on-set photos default to existing project stills/BTS, but you can replace any of them. Images you upload go to the shared media library and are referenced as /media/... . In each heading, the 'accent' field is the word shown in the signature gradient — it must appear (spelled + cased) exactly within that heading, or nothing is highlighted. Leaving a text box blank keeps the page's built-in default for that item. IMAGE SPECS: export sRGB, 8-bit (never Display P3 / Adobe RGB). Backgrounds + stills 2560x1440 (16:9); on-set photos 16:9 or 4:3; keep every file under 600 KB; never upscale."
+        description: "Everything on rarepond.com/media. Edit the text and swap the main images here. The cinematic showcase + on-set photos default to existing project stills/BTS, but you can replace any of them. Images you upload go to the shared media library and are referenced as /media/... . In each heading, the 'accent' field is the word shown in the signature gradient. It must appear (spelled + cased) exactly within that heading, or nothing is highlighted. Leaving a text box blank keeps the page's built-in default for that item. IMAGE SPECS: export sRGB, 8-bit (never Display P3 / Adobe RGB). Backgrounds + stills 2560x1440 (16:9); on-set photos 16:9 or 4:3; keep every file under 600 KB; never upscale."
       - name: navBlurb
         label: "🏷️ Header hover blurb (what Rare Pond Media is)"
         type: string
@@ -182,46 +182,46 @@ content:
         fields:
           - { name: eyebrow, label: Eyebrow (small label above the headline), type: string }
           - { name: headline, label: Headline, type: string }
-          - { name: accent, label: "Headline — gradient-highlighted word (must appear in the headline)", type: string }
+          - { name: accent, label: "Headline: gradient-highlighted word (must appear in the headline)", type: string }
           - { name: subtitle, label: Subtitle, type: text }
-          - { name: image, label: "Hero background image (image path — paste from NocoDB or pick an existing /media file)", type: string, description: "A /media/... path into the shared media library. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB — the page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. Darker reads best — the white headline sits on top of it." }
+          - { name: image, label: "Hero background image (image path, paste from NocoDB or pick an existing /media file)", type: string, description: "A /media/... path into the shared media library. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB. The page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. Darker reads best. The white headline sits on top of it." }
       - name: statement
         label: Statement (big centered line)
         type: object
         fields:
           - { name: kicker, label: Kicker (small label above), type: string }
           - { name: heading, label: Heading, type: string }
-          - { name: accent, label: "Heading — gradient-highlighted word", type: string }
+          - { name: accent, label: "Heading: gradient-highlighted word", type: string }
           - { name: body, label: Body, type: text }
       - name: showcase
         label: Cinematic showcase (grid of stills)
         type: object
         list: true
-        description: "The five cinematic stills under the statement (2 large + 3 smaller). Replace any of them, and reorder by reordering this list — the five slots on the page fill in this order. Defaults to existing film stills. (Adding a sixth or removing one is a quick code tweak — ask to wire it up.)"
+        description: "The five cinematic stills under the statement (2 large + 3 smaller). Replace any of them, and reorder by reordering this list. The five slots on the page fill in this order. Defaults to existing film stills. (Adding a sixth or removing one is a quick code tweak, ask to wire it up.)"
         fields:
-          - { name: image, label: "Still (image path — paste from NocoDB)", type: string, description: "A /media/... path into the shared media library. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB — the page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 16:9, JPG/WebP, sRGB 8-bit, under 600 KB." }
+          - { name: image, label: "Still (image path, paste from NocoDB)", type: string, description: "A /media/... path into the shared media library. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB. The page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 16:9, JPG/WebP, sRGB 8-bit, under 600 KB." }
           - { name: alt, label: Alt text (describes the image for accessibility), type: string }
       - name: sections
         label: Story sections (image + text)
         type: object
         list: true
-        description: "The three alternating image/text blocks ('Why us / Collaboration / We're Human'). Edit any of them, and reorder by reordering this list — the three slots fill in this order and alternate image-side automatically. (Adding a fourth or removing one is a quick code tweak — ask to wire it up.)"
+        description: "The three alternating image/text blocks ('Why us / Collaboration / We're Human'). Edit any of them, and reorder by reordering this list. The three slots fill in this order and alternate image-side automatically. (Adding a fourth or removing one is a quick code tweak, ask to wire it up.)"
         fields:
           - { name: badge, label: Badge (small pill label), type: string }
           - { name: heading, label: Heading, type: string }
-          - { name: accent, label: "Heading — gradient-highlighted word", type: string }
+          - { name: accent, label: "Heading: gradient-highlighted word", type: string }
           - { name: body, label: Body, type: text }
-          - { name: image, label: "Photo (image path — paste from NocoDB)", type: string, description: "A /media/... path into the shared media library — on-set / BTS photos read best here. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB — the page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 4:3 or 16:9, JPG/WebP, sRGB 8-bit, under 600 KB." }
+          - { name: image, label: "Photo (image path, paste from NocoDB)", type: string, description: "A /media/... path into the shared media library. On-set / BTS photos read best here. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB. The page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 4:3 or 16:9, JPG/WebP, sRGB 8-bit, under 600 KB." }
       - name: cta
         label: Call to action (bottom)
         type: object
         fields:
           - { name: heading, label: Heading, type: string }
-          - { name: accent, label: "Heading — gradient-highlighted word", type: string }
+          - { name: accent, label: "Heading: gradient-highlighted word", type: string }
           - { name: body, label: Body, type: text }
           - { name: buttonLabel, label: Button label, type: string }
           - { name: buttonHref, label: "Button link (e.g. /#contact, a /path, or a full https:// URL)", type: string }
-          - { name: image, label: "Background image (image path — paste from NocoDB)", type: string, description: "A /media/... path into the shared media library. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB — the page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. Darker reads best." }
+          - { name: image, label: "Background image (image path, paste from NocoDB)", type: string, description: "A /media/... path into the shared media library. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB. The page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. Darker reads best." }
 
   - name: contact
     label: "Contact popup (all sites)"
@@ -229,7 +229,7 @@ content:
     path: data/contact.json
     fields:
       - name: cmsNote
-        label: "✉️ The Contact popup — shared by Studio, Rentals + Media"
+        label: "✉️ The Contact popup, shared by Studio, Rentals + Media"
         type: string
         readonly: true
         description: "The 'Get in touch' popup that opens from the Contact button in the header (and the Get in touch buttons on the home pages) on all three sites. It's the SAME form everywhere, edited here once. The social bubbles beside the form + their blurbs come from the socials table in NocoDB. Below you control the heading text and the HubSpot form it embeds."
@@ -255,7 +255,7 @@ content:
         label: "▶ Live color preview page (open this URL in a new browser tab)"
         type: string
         readonly: true
-        description: "One page, two things. TOP: every colour look rendered EXACTLY as the two sites render it — a film look shows the full themed film-page treatment (accent, background washes, kicker, tagline, title); a basics/special look shows the bubble/banner glow it drives; a rentals category shows its one flat colour. BOTTOM (scroll down, or add #platform-colors): the read-only 'Platform colours' reference — the brand colour + real logo for every social platform (YouTube, Instagram, TikTok, X, Facebook, Threads, Vimeo, LinkedIn, IMDb) and every 'Watch on' streaming service (Prime Video, Netflix, Hulu, Disney+, Max, Apple TV+, Peacock, Paramount+, plus YouTube/Vimeo). Same login for both. This preview is VIEW-ONLY: colour looks are edited in NocoDB (the color_looks table), not here."
+        description: "One page, two things. TOP: every colour look rendered EXACTLY as the two sites render it. A film look shows the full themed film-page treatment (accent, background washes, kicker, tagline, title); a basics/special look shows the bubble/banner glow it drives; a rentals category shows its one flat colour. BOTTOM (scroll down, or add #platform-colors): the read-only 'Platform colours' reference. The brand colour + real logo for every social platform (YouTube, Instagram, TikTok, X, Facebook, Threads, Vimeo, LinkedIn, IMDb) and every 'Watch on' streaming service (Prime Video, Netflix, Hulu, Disney+, Max, Apple TV+, Peacock, Paramount+, plus YouTube/Vimeo). Same login for both. This preview is VIEW-ONLY: colour looks are edited in NocoDB (the color_looks table), not here."
       - name: previewUser
         label: "🔒 Username for that page"
         type: string
@@ -270,7 +270,7 @@ content:
         label: "🎨 Color looks are edited in NocoDB (this page is view-only + the live preview)"
         type: string
         readonly: true
-        description: "Colour looks now live in the shared database: NocoDB → the color_looks table (http://localhost:8080). A background sync publishes data/colorlooks.json to BOTH sites automatically, so there is nothing to edit here — this screen only keeps the preview link + login above. To change a look's colours, edit its row in NocoDB (each field has a description), then reload the preview page to check it. (The per-look colour fields used to live here; they moved to NocoDB so the two sites and the preview can never drift — see D7 in the system plan.)"
+        description: "Colour looks now live in the shared database: NocoDB → the color_looks table (http://localhost:8080). A background sync publishes data/colorlooks.json to BOTH sites automatically, so there is nothing to edit here. This screen only keeps the preview link + login above. To change a look's colours, edit its row in NocoDB (each field has a description), then reload the preview page to check it. (The per-look colour fields used to live here; they moved to NocoDB so the two sites and the preview can never drift, see D7 in the system plan.)"
 
   - name: projects
     label: "Projects"
@@ -278,27 +278,27 @@ content:
     path: data/section-templates.json
     fields:
       - name: cmsNote
-        label: "✏️ EDIT HERE — shared text templates for every film"
+        label: "✏️ EDIT HERE: shared text templates for every film"
         type: string
         readonly: true
         description: "The four boxes below are the SHARED templates for the lines of text the site builds around every film. Write each one ONCE and it applies to EVERY project - the site fills in each film's own values (from NocoDB) wherever you put a {variable} in curly braces. Change the wording of the LINE here; change each film's actual CONTENT (kicker, tagline, logline, credits) in NocoDB. AVAILABLE VARIABLES: {title}, {year}, {production}, {status}, {released} (smart: year if set, otherwise status), {kicker}, {tagline}, {genre}, {logline}. Empty variables - and any separator left dangling next to them, like a stray ' · ' - are dropped automatically. TIP: see any template rendered live against a real film at rarepond.com/admin/preview before you save."
       - name: eyebrowTemplate
-        label: "🏷️ Project page — eyebrow (top-right label)"
+        label: "🏷️ Project page: eyebrow (top-right label)"
         type: string
         default: "{production} · {released}"
         description: "The small uppercase label at the top-right of each film's own page. EXAMPLES: '{production} · {released}' shows 'Rare Pond Studios · 2026' (or '· In Post-Production' when there's no year yet); 'Finished in {year}' shows 'Finished in 2026'. Applies to every film; each fills in its own values."
       - name: cardEyebrowTemplate
-        label: "🏷️ Home featured card — small line above the title"
+        label: "🏷️ Home featured card: small line above the title"
         type: string
         default: "{kicker}"
         description: "The little uppercase line on the FEATURED (center) card of the home carousel. Default '{kicker}' shows each film's kicker. EXAMPLE: '{production} · {released}' would show 'Rare Pond Studios · 2026'."
       - name: cardLoglineTemplate
-        label: "🏷️ Home featured card — one-liner under the title"
+        label: "🏷️ Home featured card: one-liner under the title"
         type: string
         default: "{logline}"
-        description: "The sentence on the FEATURED (center) card of the home carousel. Default '{logline}' shows each film's logline. You can combine text and variables, e.g. '{genre} — {logline}'."
+        description: "The sentence on the FEATURED (center) card of the home carousel. Default '{logline}' shows each film's logline. You can combine text and variables, e.g. '{genre} · {logline}'."
       - name: gridCaptionTemplate
-        label: "🏷️ Projects grid — caption under each tile"
+        label: "🏷️ Projects grid: caption under each tile"
         type: string
         default: "{kicker}"
         description: "The small caption under each bubble in the Projects grid / carousel. Default '{kicker}' shows each film's kicker. EXAMPLE: '{genre} · {year}' would show 'Sci-Fi · 2026'."
@@ -567,7 +567,7 @@ content:
         label: "🔑 READ ME - the variables you can type into any text box on this page"
         type: text
         readonly: true
-        description: "Type a variable in square brackets anywhere in a heading or a text box below and the page fills in its value from SHARED VALUES. Change it in one place, every page changes. The ones that always exist: [businessName] [ownerName] [siteName] [siteDomain] [contactEmail] [privacyEmail] [phone] [mailingAddress] [city] [state] [county] [region]. Anything you add under YOUR OWN VARIABLES works the same way: name one bookingEmail and type [bookingEmail]. A variable you have not filled in yet shows on the page as an amber [... to be added] note instead of vanishing, so a blank can never read as a finished sentence. A word in brackets that is not one of your variables is left exactly as typed."
+        description: "Type a variable in square brackets anywhere in a heading or a text box below and the page fills in its value from SHARED VALUES. Change it in one place, every page changes. The ones that always exist: [businessName] [ownerName] [siteName] [siteDomain] [contactEmail] [privacyEmail] [phone] [mailingStreet] [mailingCity] [mailingState] [state] [county] [region]. NOTE the mailing address carries its OWN city and state: [mailingCity] and [mailingState] are where post is sent, while [state] and [county] are the law the site runs under and where a dispute would be heard. They read the same today, and they are separate so that moving the address never quietly rewrites the Governing law section. Anything you add under YOUR OWN VARIABLES works the same way: name one bookingEmail and type [bookingEmail]. A variable you have not filled in yet shows on the page as an amber [... to be added] note instead of vanishing, so a blank can never read as a finished sentence. A word in brackets that is not one of your variables is left exactly as typed."
 
       - name: vars
         label: "① SHARED VALUES - the things that repeat, set once here"
@@ -581,9 +581,10 @@ content:
           - { name: contactEmail, label: "Contact email  →  [contactEmail]", type: string, description: "The address people are told to write to. Typed anywhere in a text box it becomes a working mail link by itself, so you never need to write out a link." }
           - { name: privacyEmail, label: "Privacy email  →  [privacyEmail]", type: string, description: "Only needed if privacy requests should go somewhere different from the contact email. Leave blank and use [contactEmail] instead. Nothing on the page uses it until you type [privacyEmail] somewhere." }
           - { name: phone, label: "Phone  →  [phone]", type: string, description: "Optional. Nothing on the page uses it until you type [phone] somewhere." }
-          - { name: mailingAddress, label: "Mailing address  →  [mailingAddress]", type: string, description: "Street line only. The city and state are added after it by the contact block at the end of each document, so do not repeat them here. THIS IS THE ONE STILL BLANK: until it is filled in, both pages show an amber '[mailing address to be added]' where it belongs." }
-          - { name: city, label: "City  →  [city]", type: string }
-          - { name: state, label: "State  →  [state]", type: string, description: "Also drives the 'Governing law' section and the '[state] residents' heading in the privacy policy." }
+          - { name: mailingStreet, label: "Mailing address, street  →  [mailingStreet]", type: string, description: "The street line only, e.g. '1234 Somewhere Ave, Suite 5'. THIS IS THE ONE STILL BLANK: until it is filled in, both pages show an amber '[street address to be added]' where it belongs." }
+          - { name: mailingCity, label: "Mailing address, city  →  [mailingCity]", type: string, description: "The city post is sent to. Deliberately NOT the same field as the legal wording below: if the address ever moves, change it here and the Governing law section stays as it is." }
+          - { name: mailingState, label: "Mailing address, state  →  [mailingState]", type: string, description: "The state post is sent to. Same reason as the city above: this is the postal address, not the law the site runs under. Add a ZIP here after the state if you want one shown, or ask for its own field." }
+          - { name: state, label: "Legal state  →  [state]", type: string, description: "The state whose law governs the site. Drives the 'Governing law' section and the '[state] residents' heading in the privacy policy. Changing this changes which law the documents claim to run under, so it is not the field to touch when the office moves." }
           - { name: county, label: "County  →  [county]", type: string, description: "Used by the 'Governing law' section for where a dispute would be heard. Write it the way it reads in a sentence, e.g. 'Los Angeles County'." }
           - { name: region, label: "Region as it reads in a sentence  →  [region]", type: string, description: "The 'based in the ... area' phrase, e.g. 'Los Angeles / Burbank, California'." }
           - name: custom
