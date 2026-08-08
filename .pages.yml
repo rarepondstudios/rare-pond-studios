@@ -557,3 +557,122 @@ content:
               - name: formHeight
                 label: "Form height in pixels (optional - default 900)"
                 type: number
+
+  - name: legal
+    label: "Legal Pages (Terms + Privacy)"
+    type: file
+    path: data/legal.json
+    fields:
+      - name: varsKey
+        label: "🔑 READ ME - the variables you can type into any text box on this page"
+        type: text
+        readonly: true
+        description: "Type a variable in square brackets anywhere in a heading or a text box below and the page fills in its value from SHARED VALUES. Change it in one place, every page changes. The ones that always exist: [businessName] [ownerName] [siteName] [siteDomain] [contactEmail] [privacyEmail] [phone] [mailingAddress] [city] [state] [county] [region]. Anything you add under YOUR OWN VARIABLES works the same way: name one bookingEmail and type [bookingEmail]. A variable you have not filled in yet shows on the page as an amber [... to be added] note instead of vanishing, so a blank can never read as a finished sentence. A word in brackets that is not one of your variables is left exactly as typed."
+
+      - name: vars
+        label: "① SHARED VALUES - the things that repeat, set once here"
+        type: object
+        description: "Every one of these can be typed into any heading or text box further down as [name], and the page fills in the value. This is why an email address or an address is never typed twice: change it here and both rarepond.com/terms and rarepond.com/privacy update together."
+        fields:
+          - { name: businessName, label: "Business name  →  [businessName]", type: string, description: "The legal name that appears in the body of both documents. Currently 'Rare Pond Studios'." }
+          - { name: ownerName, label: "Owner name  →  [ownerName]", type: string, description: "The person behind the business, used where the documents say who operates the site." }
+          - { name: siteName, label: "Site name  →  [siteName]", type: string, description: "What the site is called in prose, if that ever differs from the business name." }
+          - { name: siteDomain, label: "Site address  →  [siteDomain]", type: string, description: "The bare domain, no https:// and no trailing slash. Currently 'rarepond.com'." }
+          - { name: contactEmail, label: "Contact email  →  [contactEmail]", type: string, description: "The address people are told to write to. Typed anywhere in a text box it becomes a working mail link by itself, so you never need to write out a link." }
+          - { name: privacyEmail, label: "Privacy email  →  [privacyEmail]", type: string, description: "Only needed if privacy requests should go somewhere different from the contact email. Leave blank and use [contactEmail] instead. Nothing on the page uses it until you type [privacyEmail] somewhere." }
+          - { name: phone, label: "Phone  →  [phone]", type: string, description: "Optional. Nothing on the page uses it until you type [phone] somewhere." }
+          - { name: mailingAddress, label: "Mailing address  →  [mailingAddress]", type: string, description: "Street line only. The city and state are added after it by the contact block at the end of each document, so do not repeat them here. THIS IS THE ONE STILL BLANK: until it is filled in, both pages show an amber '[mailing address to be added]' where it belongs." }
+          - { name: city, label: "City  →  [city]", type: string }
+          - { name: state, label: "State  →  [state]", type: string, description: "Also drives the 'Governing law' section and the '[state] residents' heading in the privacy policy." }
+          - { name: county, label: "County  →  [county]", type: string, description: "Used by the 'Governing law' section for where a dispute would be heard. Write it the way it reads in a sentence, e.g. 'Los Angeles County'." }
+          - { name: region, label: "Region as it reads in a sentence  →  [region]", type: string, description: "The 'based in the ... area' phrase, e.g. 'Los Angeles / Burbank, California'." }
+          - name: custom
+            label: "🧩 YOUR OWN VARIABLES - add anything else that repeats"
+            type: object
+            list: true
+            description: "Add a value here and it becomes usable as [name] in every text box on this page, exactly like the fixed ones above. Use it for anything that appears more than once and would be annoying to change in several places later: a booking email, a company number, an insurance requirement. Nothing else needs doing after you add one."
+            fields:
+              - { name: name, label: "Name (no spaces, e.g. bookingEmail)", type: string, pattern: '^[A-Za-z][A-Za-z0-9_-]*$', description: "Letters, numbers, dash and underscore only, starting with a letter. You then type it in brackets: bookingEmail becomes [bookingEmail]." }
+              - { name: value, label: "Value (what it should say on the page)", type: string }
+
+      - name: terms
+        label: "② TERMS OF USE  (rarepond.com/terms)"
+        type: object
+        description: "The whole of rarepond.com/terms. Everything below is the page, in the order it appears. Saving publishes it within about a minute; there is no build step and nothing else to press."
+        fields:
+          - { name: title, label: "Page heading (the big line at the top)", type: string }
+          - { name: effectiveDate, label: "Effective date", type: string, description: "Shown under the heading as 'Effective date: ...'. Change it whenever you make a real change to the wording, because the document itself promises a new date when it is updated. Write it the way you want it read, e.g. 'August 6, 2026'. Clear it to hide the line." }
+          - { name: intro, label: "Opening paragraph (the lighter text under the date)", type: text, description: "The one-paragraph summary before the numbered sections start. Variables and basic formatting work here like anywhere else." }
+          - { name: numberSections, label: "Number the sections automatically", type: boolean, default: true, description: "ON: sections are numbered 1, 2, 3 in the order they appear, and the numbers redo themselves whenever you drag, add or delete one. Leave this on. If you type your own numbers into the headings you will end up with '1. 1. Who we are' the first time you reorder." }
+          - name: sections
+            label: "SECTIONS - DRAG TO REORDER. The page reads top to bottom in this order."
+            type: object
+            list: true
+            description: "Each entry is one numbered section of the document. A section with nothing in it is skipped rather than shown, so a half-written one can never appear on the live page. Deleting a section deletes that part of the document, so if you only want it out of the way for now, empty the heading and its blocks instead."
+            fields:
+              - { name: heading, label: "Section heading (no number, it is added for you)", type: string, description: "Type 'Who we are', not '1. Who we are'." }
+              - name: blocks
+                label: "What this section says - DRAG TO REORDER"
+                type: object
+                list: true
+                description: "Add a block, pick its Type, then fill in ONLY the field that Type uses. The others are ignored, so a leftover value in the wrong field cannot show up on the page."
+                fields:
+                  - name: type
+                    label: Block type
+                    type: select
+                    default: paragraph
+                    options: { values: [paragraph, subheading, list, note, card, table] }
+                    description: "paragraph = ordinary body text (leave a blank line between paragraphs to get more than one). subheading = a smaller heading inside the section, not numbered. list = bullet points. note = the highlighted callout box used for the 'a request is not a reservation' warning. card = a bordered box, used for the contact details at the end. table = the two-column 'who processes your information' table. paragraph / subheading / note / card use TEXT. list uses BULLET POINTS. table uses TABLE ROWS."
+                  - { name: text, label: "Text  (paragraph / subheading / note / card)", type: text, description: "A blank line starts a new paragraph. You can use [variables], and basic formatting: <strong>bold</strong>, <em>italic</em>, <code>code</code>, <a href=\"/privacy/\">a link</a>, and <nobr>keep this on one line</nobr>. Anything else in angle brackets is shown as plain text rather than treated as formatting, so nothing you type here can break the page. Email addresses and https:// addresses turn into links on their own." }
+                  - { name: items, label: "Bullet points  (list)", type: string, list: true, description: "One bullet per entry. Drag to reorder. Same variables and formatting as the text box above." }
+                  - name: rows
+                    label: "Table rows  (table)"
+                    type: object
+                    list: true
+                    description: "Two columns. Drag to reorder."
+                    fields:
+                      - { name: label, label: "Left column (e.g. the company name)", type: string }
+                      - { name: text, label: "Right column (what they do with your information)", type: text }
+          - { name: browserTitle, label: "Browser tab title", type: string, description: "What shows in the browser tab and in a Google result. Variables work here too. Kept out of the way at the bottom because it rarely needs changing." }
+          - { name: metaDescription, label: "Search-result description", type: text, description: "The grey line under the title in a search result. Aim for about 150 characters. Variables work here too." }
+
+      - name: privacy
+        label: "③ PRIVACY POLICY  (rarepond.com/privacy)"
+        type: object
+        description: "The whole of rarepond.com/privacy. Same idea as the Terms above. Remember that this document makes promises about what happens to people's information, so if the site starts using a new service, add it to the table in 'Third parties who process your information' as well as anywhere else it belongs."
+        fields:
+          - { name: title, label: "Page heading (the big line at the top)", type: string }
+          - { name: effectiveDate, label: "Effective date", type: string, description: "Shown under the heading as 'Effective date: ...'. Change it whenever you make a real change to the wording, because the document itself promises a new date when it is updated. Write it the way you want it read, e.g. 'August 6, 2026'. Clear it to hide the line." }
+          - { name: intro, label: "Opening paragraph (the lighter text under the date)", type: text, description: "The one-paragraph summary before the numbered sections start. Variables and basic formatting work here like anywhere else." }
+          - { name: numberSections, label: "Number the sections automatically", type: boolean, default: true, description: "ON: sections are numbered 1, 2, 3 in the order they appear, and the numbers redo themselves whenever you drag, add or delete one. Leave this on. If you type your own numbers into the headings you will end up with '1. 1. Who we are' the first time you reorder." }
+          - name: sections
+            label: "SECTIONS - DRAG TO REORDER. The page reads top to bottom in this order."
+            type: object
+            list: true
+            description: "Each entry is one numbered section of the document. A section with nothing in it is skipped rather than shown, so a half-written one can never appear on the live page. Deleting a section deletes that part of the document, so if you only want it out of the way for now, empty the heading and its blocks instead."
+            fields:
+              - { name: heading, label: "Section heading (no number, it is added for you)", type: string, description: "Type 'Who we are', not '1. Who we are'." }
+              - name: blocks
+                label: "What this section says - DRAG TO REORDER"
+                type: object
+                list: true
+                description: "Add a block, pick its Type, then fill in ONLY the field that Type uses. The others are ignored, so a leftover value in the wrong field cannot show up on the page."
+                fields:
+                  - name: type
+                    label: Block type
+                    type: select
+                    default: paragraph
+                    options: { values: [paragraph, subheading, list, note, card, table] }
+                    description: "paragraph = ordinary body text (leave a blank line between paragraphs to get more than one). subheading = a smaller heading inside the section, not numbered. list = bullet points. note = the highlighted callout box used for the 'a request is not a reservation' warning. card = a bordered box, used for the contact details at the end. table = the two-column 'who processes your information' table. paragraph / subheading / note / card use TEXT. list uses BULLET POINTS. table uses TABLE ROWS."
+                  - { name: text, label: "Text  (paragraph / subheading / note / card)", type: text, description: "A blank line starts a new paragraph. You can use [variables], and basic formatting: <strong>bold</strong>, <em>italic</em>, <code>code</code>, <a href=\"/privacy/\">a link</a>, and <nobr>keep this on one line</nobr>. Anything else in angle brackets is shown as plain text rather than treated as formatting, so nothing you type here can break the page. Email addresses and https:// addresses turn into links on their own." }
+                  - { name: items, label: "Bullet points  (list)", type: string, list: true, description: "One bullet per entry. Drag to reorder. Same variables and formatting as the text box above." }
+                  - name: rows
+                    label: "Table rows  (table)"
+                    type: object
+                    list: true
+                    description: "Two columns. Drag to reorder."
+                    fields:
+                      - { name: label, label: "Left column (e.g. the company name)", type: string }
+                      - { name: text, label: "Right column (what they do with your information)", type: text }
+          - { name: browserTitle, label: "Browser tab title", type: string, description: "What shows in the browser tab and in a Google result. Variables work here too. Kept out of the way at the bottom because it rarely needs changing." }
+          - { name: metaDescription, label: "Search-result description", type: text, description: "The grey line under the title in a search result. Aim for about 150 characters. Variables work here too." }

@@ -80,3 +80,10 @@ main.lg-main{position:relative;z-index:1;max-width:var(--lg-max);margin:0 auto;
   -webkit-mask:linear-gradient(180deg,transparent 0%,#000 62%);mask:linear-gradient(180deg,transparent 0%,#000 62%)}
 footer.site-footer{position:relative;z-index:1;margin-top:clamp(24px,4vh,54px);padding:46px clamp(18px,5vw,60px) 34px;text-align:center}
 @media(max-width:900px){.lg-right .rp-soc{display:none}}
+
+/* Paragraph rhythm inside the note and card boxes. The copy used to carry inline margins in
+   the page HTML; now that these pages are drawn from data/legal.json the spacing lives here. */
+.lg-note p{margin:0 0 8px}
+.lg-note p:last-child{margin:0}
+.lg-card p{margin:0 0 4px}
+.lg-card p:last-child{margin:0}

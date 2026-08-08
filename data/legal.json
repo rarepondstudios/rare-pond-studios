@@ -1,0 +1,340 @@
+{
+  "varsKey": "Type a variable in square brackets anywhere in a heading or a text box below and the page fills in its value from SHARED VALUES. Change it in one place, every page changes. The ones that always exist: [businessName] [ownerName] [siteName] [siteDomain] [contactEmail] [privacyEmail] [phone] [mailingAddress] [city] [state] [county] [region]. Anything you add under YOUR OWN VARIABLES works the same way: name one bookingEmail and type [bookingEmail]. A variable you have not filled in yet shows on the page as an amber [... to be added] note instead of vanishing, so a blank can never read as a finished sentence. A word in brackets that is not one of your variables is left exactly as typed.",
+  "vars": {
+    "businessName": "Rare Pond Studios",
+    "ownerName": "Jack Carlsen",
+    "siteName": "Rare Pond Studios",
+    "siteDomain": "rarepond.com",
+    "contactEmail": "contact@rarepond.com",
+    "privacyEmail": "",
+    "phone": "",
+    "mailingAddress": "",
+    "city": "Burbank",
+    "state": "California",
+    "county": "Los Angeles County",
+    "region": "Los Angeles / Burbank, California",
+    "custom": []
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "browserTitle": "Terms of Use | [businessName]",
+    "metaDescription": "The terms that govern your use of [siteDomain], including the rentals and media pages, and how the rental request flow works.",
+    "effectiveDate": "August 6, 2026",
+    "numberSections": true,
+    "intro": "These terms govern your use of <strong>[siteDomain]</strong>, including the Studio, Rentals, and Media pages. By using the site, you agree to them. If you do not agree, please do not use the site.",
+    "sections": [
+      {
+        "heading": "Who we are",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "[businessName] is an independent film studio operated as a sole proprietorship by [ownerName], based in the [region] area (\"we,\" \"us,\" \"our\")."
+          }
+        ]
+      },
+      {
+        "heading": "The site is informational",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The content on this site (project descriptions, service information, equipment listings, prices, and availability) is provided for general information and may change at any time without notice. We make reasonable efforts to keep it accurate but do not guarantee that it is complete, current, or error-free."
+          }
+        ]
+      },
+      {
+        "heading": "Rental requests are requests, not reservations",
+        "blocks": [
+          {
+            "type": "note",
+            "text": "<strong>Submitting the rental form does not book equipment.</strong> The dates, items, and prices shown in the online rental flow are an <em>estimate and a request only</em>. No rental is reserved, priced, or confirmed until we and you agree in writing through a signed rental agreement and/or invoice.\n\nAvailability is not guaranteed until confirmed. The binding rental terms, including rates, deposits, insurance and certificate-of-insurance requirements, pickup and return, and any late, cleaning, loss, or damage fees, are set out in that separate rental agreement, which controls over anything shown on this site."
+          },
+          {
+            "type": "paragraph",
+            "text": "You are responsible for providing accurate information in any request. Estimated totals shown on the site are recalculated and confirmed by us before any agreement is finalized."
+          }
+        ]
+      },
+      {
+        "heading": "Contact and inquiry forms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When you submit a contact, rental, or crew inquiry form, you authorize us to contact you about your inquiry using the information you provide. Do not submit confidential information you do not want us to receive. Our handling of the information you submit is described in our <a href=\"/privacy/\">Privacy Policy</a>."
+          }
+        ]
+      },
+      {
+        "heading": "Intellectual property",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "All content on this site (films, images, video, logos, text, and design) is owned by [businessName] or its collaborators and licensors and is protected by copyright and other laws. You may view the site for your personal, non-commercial use. You may not copy, reproduce, distribute, publicly display, or create derivative works from any content without our prior written permission, except as allowed by law."
+          }
+        ]
+      },
+      {
+        "heading": "Acceptable use",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "You agree not to use the site to break the law, infringe anyone's rights, upload harmful or malicious content, attempt to gain unauthorized access to our systems, scrape or harvest data at scale, use the site or its content to train or develop machine-learning or artificial-intelligence systems, or interfere with the site's operation or security."
+          }
+        ]
+      },
+      {
+        "heading": "Third-party services and links",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The site uses third-party services (including HubSpot and Jotform for forms, Google Calendar for scheduling, and Cloudflare for hosting) and may link to third-party websites. We are not responsible for the content, policies, or practices of third parties. Your use of a third-party service is governed by that party's own terms and privacy policy."
+          }
+        ]
+      },
+      {
+        "heading": "No warranty",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The site is provided \"as is\" and \"as available,\" without warranties of any kind, express or implied, including any implied warranties of merchantability, fitness for a particular purpose, and non-infringement. We do not warrant that the site will be uninterrupted, secure, or error-free."
+          }
+        ]
+      },
+      {
+        "heading": "Limitation of liability",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "To the fullest extent permitted by law, [businessName] will not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits, data, or goodwill, arising out of or related to your use of the site. Nothing in these terms limits liability that cannot be limited under applicable law."
+          }
+        ]
+      },
+      {
+        "heading": "Indemnification",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "You agree to indemnify and hold [businessName] harmless from any claims, losses, or expenses (including reasonable attorneys' fees) arising out of your misuse of the site or your violation of these terms."
+          }
+        ]
+      },
+      {
+        "heading": "Governing law",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "These terms are governed by the laws of the State of [state], without regard to its conflict-of-laws rules. Any dispute relating to the site will be brought in the state or federal courts located in [county], [state], and you consent to their jurisdiction."
+          }
+        ]
+      },
+      {
+        "heading": "Changes to these terms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "We may update these terms from time to time. When we do, we will post the updated version at this URL with a new effective date. Your continued use of the site after a change means you accept the updated terms."
+          }
+        ]
+      },
+      {
+        "heading": "Contact us",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Questions about these terms:"
+          },
+          {
+            "type": "card",
+            "text": "<strong>[businessName]</strong>\n\nEmail: [contactEmail]\n\nMailing address: [mailingAddress], [city], [state]"
+          }
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "browserTitle": "Privacy Policy | [businessName]",
+    "metaDescription": "How [businessName] collects, uses, and protects the information you share through [siteDomain], including the rentals and media pages.",
+    "effectiveDate": "August 6, 2026",
+    "numberSections": true,
+    "intro": "This policy explains what information [businessName] collects when you use <strong>[siteDomain]</strong> (the Studio, Rentals, and Media pages), how we use it, and the choices you have.",
+    "sections": [
+      {
+        "heading": "Who we are",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "[businessName] is an independent film studio operated as a sole proprietorship by [ownerName], based in the [region] area. In this policy, \"we,\" \"us,\" and \"our\" mean [businessName]. This policy covers the website at [siteDomain] and its sub-sections at <nobr>/rentals</nobr> and <nobr>/media</nobr>."
+          }
+        ]
+      },
+      {
+        "heading": "Information we collect",
+        "blocks": [
+          {
+            "type": "subheading",
+            "text": "Information you give us"
+          },
+          {
+            "type": "paragraph",
+            "text": "When you use our contact form, rental-request form, or crew-inquiry form, you may provide:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Your name, email address, and phone number;",
+              "Your company or production name, and details about your project;",
+              "For a rental request: the equipment you select and the pickup and return dates you request."
+            ]
+          },
+          {
+            "type": "subheading",
+            "text": "Information collected automatically"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Your IP address, browser and device type, and the pages you view;",
+              "Cookie and similar identifiers set by the services described in Section 4."
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "How we use your information",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "To respond to your inquiry and prepare a rental quote or project proposal;",
+              "To schedule equipment pickups and returns;",
+              "To keep a record of our conversation and any booking in our customer-management tools;",
+              "To operate, secure, and improve the website."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "<strong>We do not sell your personal information, and we do not send marketing or newsletter emails.</strong> When you contact us, a real person replies to you directly about your request."
+          }
+        ]
+      },
+      {
+        "heading": "Cookies and tracking technologies",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Our contact and inquiry forms are provided by HubSpot and Jotform, which set cookies when their forms load. HubSpot's cookies (for example <code>__hstc</code>, <code>hubspotutk</code>, <code>__hssc</code>, and <code>__hssrc</code>) help those forms function and let HubSpot recognize a returning visitor; HubSpot may collect information about your activity over time and across other websites that use HubSpot. Our hosting provider, Cloudflare, may set cookies necessary for security and performance."
+          },
+          {
+            "type": "paragraph",
+            "text": "We do not load HubSpot while you are simply browsing. Its form, and the cookies above, load only when you open a contact or inquiry form, or when you accept cookies using the banner shown on your first visit. You can also control or delete cookies through your browser settings, though blocking them may affect how the embedded forms work."
+          }
+        ]
+      },
+      {
+        "heading": "Third parties who process your information",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "We share information only with the service providers that help us run the site and respond to you. We do not sell or rent your information to anyone."
+          },
+          {
+            "type": "table",
+            "rows": [
+              {
+                "label": "HubSpot",
+                "text": "Contact form, customer-relationship management, and form analytics. May set tracking cookies and collect activity across sites over time."
+              },
+              {
+                "label": "Jotform",
+                "text": "Hosts our rental-request and crew-inquiry forms and delivers your submission to us."
+              },
+              {
+                "label": "Google Calendar",
+                "text": "Stores rental pickup and return events created from your request so we can schedule your booking."
+              },
+              {
+                "label": "Cloudflare",
+                "text": "Website hosting, content delivery, and security."
+              },
+              {
+                "label": "Supabase",
+                "text": "Database that stores rental booking records."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Each of these providers processes your information under its own privacy policy."
+          }
+        ]
+      },
+      {
+        "heading": "\"Do Not Track\" signals",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "We do not currently respond to browser \"Do Not Track\" (DNT) signals, because there is no common industry standard for how to interpret them. Third-party services embedded on our site (such as HubSpot) may collect information as described above regardless of a DNT setting."
+          }
+        ]
+      },
+      {
+        "heading": "Reviewing, changing, or deleting your information",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "You may ask us to review, correct, or delete the information you submitted, or the record we hold about your inquiry. Email [contactEmail] and we will respond within a reasonable time."
+          }
+        ]
+      },
+      {
+        "heading": "Data retention and security",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "We keep your information for as long as needed to respond to your inquiry, fulfill a booking, and meet ordinary business and record-keeping needs, then delete or archive it. We use reasonable administrative and technical safeguards to protect the information we hold, though no method of transmission or storage is completely secure."
+          }
+        ]
+      },
+      {
+        "heading": "Children",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "This site is not directed to children under 16, and we do not knowingly collect personal information from them. If you believe a child has provided us information, contact us and we will delete it."
+          }
+        ]
+      },
+      {
+        "heading": "[state] residents",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Because of our size, [businessName] is not a \"business\" required to comply with the California Consumer Privacy Act (CCPA/CPRA). We do not sell or share personal information as those terms are defined by the CCPA. [state] residents may still contact us with any privacy question or request, and we will do our best to honor it."
+          }
+        ]
+      },
+      {
+        "heading": "Changes to this policy",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "If we make a material change, we will post the updated policy at this URL with a new effective date. Please check back from time to time."
+          }
+        ]
+      },
+      {
+        "heading": "How to contact us",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Questions or requests about this policy or your information:"
+          },
+          {
+            "type": "card",
+            "text": "<strong>[businessName]</strong>\n\nEmail: [contactEmail]\n\nMailing address: [mailingAddress], [city], [state]"
+          }
+        ]
+      }
+    ]
+  }
+}
