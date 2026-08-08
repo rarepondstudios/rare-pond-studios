@@ -1487,8 +1487,12 @@ function makeGridBubble(p,i){
   bubble.dataset.pk=p.key;
   /* kbnative: keyboard selection is indicated by the bubble's OWN glow mirrors (.rpc-kbsel
      halo/.glow/.edge/scale) - no ring band (v19), and the engine ring stays faded so nothing
-     ever paints over the logo. */
-  bubble.setAttribute('data-cursor','kbnative');
+     ever paints over the logo.
+     nohug: states the glow-only intent outright instead of leaving it to be inferred from the
+     50% radius. These bubbles are circles today so the engine's auto-circle rule already skips
+     the outline and nothing changes; the token is what keeps that true if the shape ever
+     changes, which is exactly how the outline came back on the home carousel's featured card. */
+  bubble.setAttribute('data-cursor','kbnative nohug');
   if(!p.placeholder){bubble.setAttribute('role','button');bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','Open '+p.title);}
   else{
     /* mobile: taps don't fire :hover on an element with no click behaviour, so the
@@ -1645,7 +1649,15 @@ function focusHTML(p){
 const citems=CAROUSEL.map((p,i)=>{
   const el=document.createElement('div');el.className='citem';el.dataset.slot='';el.dataset.pk=p.key;el.style.setProperty('--i',i);el.style.setProperty('--accent',accentFor(p.key));
   if(!p.placeholder){el.setAttribute('role','button');el.setAttribute('tabindex','0');}   /* keyboard spatial-nav can select carousel items */
-  el.setAttribute('data-cursor','kbnative');   /* kb indicator = the card's own glow mirrors (.rpc-kbsel) - the engine ring would paint OVER the film logo */
+  /* kbnative: kb indicator = the card's own glow mirrors (.rpc-kbsel) - the engine ring would
+     paint OVER the film logo.
+     nohug: MOUSE glow-only, at every slot. As a side bubble the card is a 50%-radius circle
+     and the engine's auto-circle rule already skipped the outline, but in the feat slot .cbub
+     morphs to 13%/20% and the rule stopped matching, so following the bubble with the mouse
+     as it expanded brought the hard hug outline back around the card. The ring keeps its own
+     glow here (the featured card IS enterable, "dive in"); it only fades on the side cards,
+     which the focus-vs-enter rule handles. */
+  el.setAttribute('data-cursor','kbnative nohug');
   const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" decoding="async" src="${p.img}" alt="${p.title}">`;
   /* only films with a reel AND a real still (not the placeholder poster) get a hover video */
   const sideVid=(!p.poster&&p.focusVideo)?`<video class="side-vid" data-src="${p.focusVideo}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
