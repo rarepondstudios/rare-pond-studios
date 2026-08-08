@@ -15,13 +15,65 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-08 (carousel hug-outline glitch fixed at the SHARED cursor master, see
-> 0.0.-22. Order totals now push to HubSpot and `bookings.status` hidden in NocoDB in 0.0.-21;
-> test-booking cleanup in 0.0.-20).
+> Last updated: 2026-08-08 (Terms + Privacy on both sites now edited in Pages CMS with shared
+> variables, see 0.0.-23. Carousel hug-outline glitch fixed at the SHARED cursor master in
+> 0.0.-22. Order totals now push to HubSpot and `bookings.status` hidden in NocoDB in 0.0.-21).
 
 ---
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+
+### 0.0.-23 TERMS + PRIVACY MOVED INTO PAGES CMS, WITH VARIABLES (2026-08-08)
+
+**The four legal pages are no longer hand-written HTML.** `terms/index.html` and
+`privacy/index.html` on BOTH sites are now shells: site chrome, then an empty
+`<main data-legal="terms">` (or `"privacy"`). Everything inside it is drawn at load from
+`data/legal.json` by `assets/legal-render.js`. Jack edits both documents in Pages CMS under
+**Legal Pages (Terms + Privacy)**, one entry per site, and a save is live in about a minute. No
+exporter, no build step, no launchd job.
+
+**The point of the change was the values that repeat.** The contact email, the mailing address,
+the city, the state, the county and the domain each appeared in several places across the four
+pages, so changing one meant a code edit in four files and a real chance of missing one. They are
+now VARIABLES, set once at the top of the CMS page under Shared values, and referenced in body
+text as `[contactEmail]`, `[mailingAddress]` and so on. There is a `Your own variables` list too:
+name one `bookingEmail` and `[bookingEmail]` works everywhere immediately, no code change. A
+readonly key at the top of the CMS page lists every variable that exists.
+
+**An unfilled variable is visible, not silent.** A variable with no value renders as the amber
+`[... to be added]` chip rather than disappearing, which is exactly how the mailing address reads
+today. That was deliberate: a blank that renders as nothing turns "Mailing address: X, Burbank,
+California" into a finished-looking sentence that is quietly wrong. **This also means the open
+mailing-address item is now a one-field fix in Pages CMS on each site, not a code change.**
+
+**Section numbering is generated.** Headings are typed without numbers and the renderer numbers
+them in order, so dragging, adding or deleting a section renumbers the rest. `numberSections` can
+turn it off per document. A section with no heading and no content is skipped rather than
+rendered, so a half-written one can never reach a visitor. Same rule as the maintenance cover.
+
+**Block types inside a section:** `paragraph`, `subheading`, `list`, `note` (the highlighted
+callout), `card` (the bordered box) and `table` (the two-column third-party table). Body text
+takes a small whitelist of inline tags: `<strong> <em> <b> <i> <u> <code> <small> <sup> <sub>
+<br> <nobr>` and `<a href="...">`. Everything else is escaped and shown literally, so nothing
+typed into the CMS can break the page or inject anything. Plain email and `https://` addresses
+become links by themselves, which is why no body text contains a hand-written `mailto:`.
+
+**`assets/legal-render.js` IS NOT EDITABLE IN THIS REPO.** Master is
+`~/bts-automation/legal_render.js`, published to both repos by `social_ui_sync.py`, exactly like
+`cursor.js`, `contact.js`, `contact.css` and `social_ui.js` (see 0.0.-22 for what happens if you
+forget). Edit the master, commit `bts-automation`, then
+`python3 ~/bts-automation/social_ui_sync.py --publish`.
+
+**Verified, not assumed.** `~/bts-automation/_verify_legal_pages.mjs` renders each new page in
+Chromium, pulls the visible text out of `<main>`, and diffs it word-for-word against the
+pre-change file (kept in `~/bts-automation/_legal_before/`). All four came back character-for-
+character identical, with no JS errors, the same links, the same mailto targets and the same
+amber placeholder. Re-run it after any change to the renderer. Live checked afterwards: all four
+URLs 200, correct titles, 13/12/11/12 numbered sections.
+
+**One deliberate visual change:** the contact details at the end of `rarepond.com/terms` and
+`jackcarlsen.com/terms` now sit in the same bordered card the privacy pages already used. The
+terms pages previously used bare paragraphs with inline margins. The two documents now match.
 
 ### 0.0.-22 THE CAROUSEL HUG-OUTLINE GLITCH, AND WHY IT CAME BACK (2026-08-08)
 
