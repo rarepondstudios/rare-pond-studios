@@ -15,7 +15,9 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-09 (**Pages CMS: sign in as `Jackjrrc` for BOTH sites**, see 0.0.-25.
+> Last updated: 2026-08-09 (Pages CMS drops empty fields on save, and any renderer over its JSON
+> must treat missing and blank alike, see 0.0.-26. **Pages CMS: sign in as `Jackjrrc` for BOTH
+> sites**, see 0.0.-25.
 > Em-dash scrub finished in the Pages CMS strings and the mailing address split off from the legal
 > jurisdiction in 0.0.-24. Terms + Privacy on both sites now edited in Pages CMS with shared
 > variables in 0.0.-23).
@@ -23,6 +25,33 @@
 ---
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+
+### 0.0.-26 PAGES CMS DROPS EMPTY FIELDS ON SAVE. ANY RENDERER READING ITS JSON MUST EXPECT A MISSING KEY (2026-08-09)
+
+**Found by diffing what Pages CMS wrote back** after the first real save of `data/legal.json`.
+The structure survived intact, 13 and 12 sections, all four top-level keys. But `phone` (saved as
+an empty string) and `custom` (an empty list) were **gone from the file entirely**. Pages CMS does
+not write an empty value, it omits the field.
+
+**Why that was a real bug and not a curiosity.** `legal-render.js` decided between "show the amber
+`[... to be added]` chip" and "leave the brackets alone as typed" by testing whether the key was
+present in the data. Blank meant chip; absent meant literal. Since the CMS turns *cleared* into
+*absent*, clearing a referenced field would have printed the raw text `[mailingZip]` onto the live
+legal page instead of the amber chip. **That is exactly the silent-blank failure the amber chip
+exists to prevent, arriving through a side door.**
+
+**Fix:** a name is treated as a variable if it is in the data **or** in the renderer's `LABELS`
+map of fixed variables, so blank and missing behave identically. A bracketed word that is neither
+is still left exactly as typed. Custom variables are unaffected: their `{name, value}` object
+keeps its `name` when the value is emptied, so the object is not empty and survives the save.
+
+**Proved by simulating it**, not by reasoning about it: both `mailingStreet` and `mailingZip` keys
+were deleted from `legal.json` and the page re-rendered. Before the fix it leaked raw tokens;
+after, it shows `[street address to be added]` and `[ZIP code to be added]` as amber chips with no
+raw tokens on the page.
+
+**Generalise this.** Any future surface that renders a Pages CMS JSON file must treat "field
+missing" and "field blank" as the same state. Do not use key presence as a signal for anything.
 
 ### 0.0.-25 PAGES CMS: SIGN IN AS `Jackjrrc`, AND WHY THE WRONG ACCOUNT LOOKS LIKE A BROKEN APP (2026-08-09)
 

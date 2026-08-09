@@ -52,9 +52,15 @@
     return out;
   }
 
+  /* A name counts as a variable if it is one of the fixed ones (LABELS) OR is present in the
+     data. Checking LABELS matters: Pages CMS DROPS a field entirely when it is saved empty, so
+     an emptied variable arrives here as a missing key, not a blank one. Keying off presence
+     alone printed the raw "[mailingZip]" in that case instead of the amber chip, which is the
+     silent-blank failure this whole design exists to prevent, arriving through a side door.
+     Blank and missing must behave identically. A bracketed word that is neither is left as typed. */
   function subVars(raw, vars) {
     return String(raw == null ? '' : raw).replace(/\[([A-Za-z][\w-]*)\]/g, function (whole, name) {
-      if (!(name in vars)) return whole;              // not one of ours, leave it exactly as typed
+      if (!(name in vars) && !(name in LABELS)) return whole;   // not one of ours, leave it alone
       var val = vars[name];
       if (val == null || String(val).trim() === '') return TODO_A + (LABELS[name] || name) + TODO_B;
       return String(val);
