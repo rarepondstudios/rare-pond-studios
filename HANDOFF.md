@@ -15,7 +15,9 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-09 (**the maintenance switch is on each page's own screen and a page
+> Last updated: 2026-08-09 (**full-setup review: orphan media cleaned out of both repos, the JC
+> mirror stops copying bts/, stale n8n pipeline docs corrected**, see 0.0.-32; **the maintenance
+> switch is on each page's own screen and a page
 > cannot exist without one, enforced by a test**, see 0.0.-31; jackcarlsen.com reaches full parity
 > with the template, see 0.0.-30;
 > page-access register + shared cover engine on both sites; eyebrow is production-only and JC has
@@ -33,7 +35,40 @@
 
 ---
 
-## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+## 0. LATEST SESSION (2026-08-09), READ THIS FIRST
+
+### 0.0.-32 FULL-SETUP REVIEW: ORPHAN MEDIA CLEANED OUT, STALE DOCS CORRECTED (2026-08-09)
+
+**Media that nothing referenced is gone from both repos.** Here: three pre-reorg leftovers
+stranded by the 808926b move into stills/ subfolders (geri-split.jpg, revelations-earth.jpg,
+invalid-focus.jpg) and one duplicate gear-logo upload (g_638b0b68a0746c1e.png). On jackcarlsen:
+the mirrored `media/projects/<key>/bts/` copies (~45 MB no JC page ever read, including three
+stale renamed generations of every geri/rev photo), the retired buriedtreasure clip and poster
+(its DB row exists with `on_jackcarlsen` off; native media re-ingests from Synology if it
+returns), the `_letterboxed_orig` scratch folder, and logo-uncropped-backup.png. All recoverable
+from git history. **The JC mirror no longer copies bts/:** `jc_projects_sync.py` skips that
+subfolder because JC renders BTS from `/media/bts/` via `bts_sync.py`. Verified by a live sync
+run after the deletion: nothing re-copied.
+
+**Verified NOT orphans, deliberately left alone.** `rentals/media/gear/*` is referenced by the
+RENTALS array baked into `rentals/assets/app.js` (relative `media/gear/` paths resolve under
+`/rentals/`, so a naive repo grep undercounts). `media/email/rentals-header.png` is embedded in
+the Rental Quote Request Jotform email template (confirmed via the Jotform API). Flagged for
+Jack, untouched: two Pages CMS uploads at media root (20260723_104418.jpeg,
+RP_V3_Simple-Logo-White_FULL-CANVAS-1.png), the three duck-mark PNG variants (possible external
+hotlinks), JC's headshot-circle.png, and JC's three reel poster JPGs.
+
+**Smoke test fixed and green.** `tools/smoke-test.mjs` still demanded
+`/media/stills/invalid-orbit.jpg`, deleted by the 808926b reorg; it now checks the
+invalid_opinion focus still. Full suite green on both repos afterwards (smoke, media-refs,
+page-switches, slugs, projects validator, maintenance, both admin gates).
+
+**Docs corrected.** Section 1's diagram and section 6 no longer present the retired n8n projects
+workflow as live (superseded note added; OPERATIONS.md was already right). Media-page copy: the
+doubled "isn't just" construction smoothed in `data/media.json` AND the baked fallback in
+`media/index.html` (they must stay in step). Stale `rp_media/index.html` path in media.json
+`_note` corrected. JC `site.json` typo "Lets" fixed to "Let's". Live after deploy: all pages 200,
+both admin gates 401, removed files 404, mailing address served on both hosts.
 
 ### 0.0.-31 THE SWITCH LIVES ON EACH PAGE'S OWN SCREEN, AND A PAGE CANNOT EXIST WITHOUT ONE (2026-08-09)
 
@@ -1506,7 +1541,7 @@ and (only if the owner approves) the fixes. Nothing above should be changed sile
                                     │  every 5 min (server-side schedule)
                                     ▼
         ┌──────────────────────────────────────────────────────────────┐
-        │  n8n workflow "Projects: DB to site (rarepond)"              │
+        │  Python exporter projects_sync.py (com.rarepond.rpprojsync)  │
         │  Get rows → Build projects.json → diff → commit to GitHub    │
         └───────────────┬──────────────────────────────────────────────┘
                         │  git commit to  rarepondstudios/rare-pond-studios (main)
@@ -1524,7 +1559,7 @@ and (only if the owner approves) the fixes. Nothing above should be changed sile
 ```
 
 Two editing surfaces, one repo:
-- **Projects (films)** → **NocoDB** (→ Supabase → n8n → repo). *Never* edited by hand in the repo.
+- **Projects (films)** → **NocoDB** (→ Supabase → Python exporter → repo). *Never* edited by hand in the repo.
 - **Everything else** → **Pages CMS** (edits `data/*.json` directly in the repo).
 
 ---
@@ -1667,6 +1702,13 @@ Not emitted: `roles`, `sites` (internal filter only), `social_links` (only when 
 ---
 
 ## 6. The n8n export pipeline
+
+> **SUPERSEDED (verified 2026-08-09).** The projects export moved from n8n to the Python
+> exporter `projects_sync.py` on launchd `com.rarepond.rpprojsync` on 2026-08-03
+> (`jc_projects_sync.py` / `com.rarepond.jcprojsync` for jackcarlsen). The workflow described
+> below no longer exists in n8n; the current pipeline is documented in OPERATIONS.md,
+> "The projects pipeline". This section is kept for history because the node-by-node logic
+> (filtering, `toArr()`, semantic diff) carried over into the exporter.
 
 **Workflow:** "▶️ Projects: DB to site (rarepond)", id `tAlPhnGm5crTfnrM`.
 **Trigger:** Manual + **Schedule every 5 min** (server-side; runs headless even when no

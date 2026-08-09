@@ -3,7 +3,7 @@
   "pageName": "Media",
   "publicAccess": true,
   "navBlurb": "Business Videography",
-  "_note": "Rare Pond Media (/media) content. Edited in Pages CMS under 'Rare Pond Media'. The page ships with these same values baked into rp_media/index.html as a fallback, so it always renders even if this file is missing; when present, these values override. Each heading's 'accent' is the word shown in the signature gradient (must appear in the heading text).",
+  "_note": "Rare Pond Media (/media) content. Edited in Pages CMS under 'Rare Pond Media'. The page ships with these same values baked into media/index.html as a fallback, so it always renders even if this file is missing; when present, these values override. Each heading's 'accent' is the word shown in the signature gradient (must appear in the heading text).",
   "seo": {
     "title": "Rare Pond Media: Cinematic video for business",
     "description": "Rare Pond Media brings narrative-film craft to corporate and commissioned video, telling your business's story in cinematic quality."
@@ -48,7 +48,7 @@
       "badge": "Why us?",
       "heading": "Filmmaking is what we love doing.",
       "accent": "love",
-      "body": "This isn't just a business to us, this is how we spend our free time, and we enjoy the process. We aren't in this to just get the job done, we're here to have fun doing it, and we believe your audience will be able to see that through our work.",
+      "body": "This is more than a business to us, it's how we spend our free time, and we enjoy the process. We aren't in this to just get the job done, we're here to have fun doing it, and we believe your audience will be able to see that through our work.",
       "image": "/media/projects/geri_action/bts/dsc_7966-full.jpg"
     },
     {
