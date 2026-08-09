@@ -6,24 +6,18 @@
     "siteName": "Rare Pond Studios",
     "siteDomain": "rarepond.com",
     "contactEmail": "contact@rarepond.com",
-    "privacyEmail": "",
-    "phone": "",
-    "mailingStreet": "",
+    "privacyEmail": "privacy@rarepond.com",
     "mailingCity": "Burbank",
     "mailingState": "California",
-    "mailingZip": "",
     "state": "California",
     "county": "Los Angeles County",
-    "region": "Los Angeles / Burbank, California",
-    "custom": []
+    "region": "Los Angeles / Burbank, California"
   },
   "terms": {
     "title": "Terms of Use",
-    "browserTitle": "Terms of Use | [businessName]",
-    "metaDescription": "The terms that govern your use of [siteDomain], including the rentals and media pages, and how the rental request flow works.",
     "effectiveDate": "August 6, 2026",
-    "numberSections": true,
     "intro": "These terms govern your use of <strong>[siteDomain]</strong>, including the Studio, Rentals, and Media pages. By using the site, you agree to them. If you do not agree, please do not use the site.",
+    "numberSections": true,
     "sections": [
       {
         "heading": "Who we are",
@@ -150,15 +144,15 @@
           }
         ]
       }
-    ]
+    ],
+    "browserTitle": "Terms of Use | [businessName]",
+    "metaDescription": "The terms that govern your use of [siteDomain], including the rentals and media pages, and how the rental request flow works."
   },
   "privacy": {
     "title": "Privacy Policy",
-    "browserTitle": "Privacy Policy | [businessName]",
-    "metaDescription": "How [businessName] collects, uses, and protects the information you share through [siteDomain], including the rentals and media pages.",
     "effectiveDate": "August 6, 2026",
-    "numberSections": true,
     "intro": "This policy explains what information [businessName] collects when you use <strong>[siteDomain]</strong> (the Studio, Rentals, and Media pages), how we use it, and the choices you have.",
+    "numberSections": true,
     "sections": [
       {
         "heading": "Who we are",
@@ -337,6 +331,8 @@
           }
         ]
       }
-    ]
+    ],
+    "browserTitle": "Privacy Policy | [businessName]",
+    "metaDescription": "How [businessName] collects, uses, and protects the information you share through [siteDomain], including the rentals and media pages."
   }
 }
