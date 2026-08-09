@@ -1,3 +1,4 @@
+import { maintenanceFor } from './_maintenance.js';
 /* Cloudflare Pages Function - password gate for every internal page (/admin/*).
  *
  * WHY THIS EXISTS
@@ -111,15 +112,11 @@ function locked(msg) {
  * REAL page. A hiccup fetching a JSON file must never take the rentals page off the air -
  * the cost of wrongly showing the page is far lower than wrongly hiding it.
  */
-/* The page name comes from the CMS and is written into an HTML attribute, so it must be
-   escaped. A page titled  Bob's "Big" Day  would otherwise break out of the attribute. */
-function esc(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => (
-    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
-  ));
-}
 
-const COVERABLE = [
+/* Rare Pond's PRE-REGISTER switches. New pages do NOT go here: add a row to
+   Site Settings -> Page access, which the shared engine checks first. These three predate the
+   register and are kept so an existing switch cannot silently stop working. */
+const LEGACY = [
   { match: (p) => p === '/rentals' || p.startsWith('/rentals/'),
     flag: '/data/rentals.json', key: 'publicAccess', covers: 'rentals', name: 'Rentals' },
   { match: (p) => p === '/team',
@@ -128,99 +125,12 @@ const COVERABLE = [
     flag: '/data/site.json', key: 'projectsPublicAccess', covers: 'studio', name: 'Projects' },
 ];
 
-/* CUSTOM PAGES are not a fixed list - you add them in Pages CMS - so they cannot be rows in
-   the table above. Instead we look the path up in pages.json: if a page with that slug has
-   been switched off, it gets covered, and the cover is told the page's real TITLE so it can
-   say "come back to Summer Open House later". Add a page, get the switch for free. */
-/* Slugs that are real routes, not custom pages - a custom page can never be one of these
-   (tools/check-slugs.mjs blocks saving a colliding slug), and this makes sure the cover path
-   never intercepts them even if one somehow existed. Keeping /admin out of here in
-   particular means a page slugged "admin" can never stand in front of the auth gate. */
+/* Segments that are real routes, so a custom page can never be slugged one of them and stand in
+   front of a real page. Keeping /admin here means a page slugged "admin" can never sit in front
+   of the auth gate. */
 const RESERVED_SEGS = new Set(['admin','assets','data','functions','media','tools','maintenance','rentals','team','projects']);
-async function customPageRule(env, request, pathname) {
-  const seg = pathname.replace(/^\/+|\/+$/g, '');
-  if (!seg || seg.indexOf('/') !== -1) return null;          // not a single-segment path
-  if (RESERVED_SEGS.has(seg)) return null;                   // a real route, not a custom page
-  let data;
-  try { data = await readJson(env, request, '/data/pages.json'); } catch (e) { return null; }
-  const list = (data && data.pages) || [];
-  const page = list.find((p) => p && String(p.slug || '').trim() === seg);
-  if (!page || page.publicAccess !== false) return null;     // absent === open
-  return { covers: 'studio', name: page.title || seg };
-}
 
-async function readJson(env, request, path) {
-  const url = new URL(path, request.url);
-  // env.ASSETS is the Pages static-asset binding; fall back to a plain fetch if it is not
-  // there (e.g. local harnesses), so this code is testable outside Cloudflare.
-  const res = env && env.ASSETS && env.ASSETS.fetch
-    ? await env.ASSETS.fetch(new Request(url.toString(), { headers: request.headers }))
-    : await fetch(url.toString());
-  if (!res || !res.ok) return null;
-  return res.json();
-}
-
-async function maintenanceFor(context, pathname) {
-  const { request, env } = context;
-
-  /* Resolve which page (if any) is closed. Two sources: the fixed table, and - for custom
-     pages, which are created in the CMS and so cannot be in a fixed table - pages.json. */
-  let hit = null;
-  const rule = COVERABLE.find((r) => r.match(pathname));
-  if (rule) {
-    try {
-      const cfg = await readJson(env, request, rule.flag);
-      // Absent === open. Only an explicit false closes a page, so a missing or partial file
-      // can never accidentally take one down.
-      if (cfg && cfg[rule.key] === false) hit = { covers: rule.covers, name: rule.name };
-    } catch (e) {
-      return null;                     // fail open - serve the real page
-    }
-  } else {
-    try { hit = await customPageRule(env, request, pathname); }
-    catch (e) { return null; }         // fail open
-  }
-  if (!hit) return null;
-
-  /* Ask for the EXTENSIONLESS path. Cloudflare Pages answers /maintenance.html with a 308
-     redirect to /maintenance, and a 308 is not `ok` - so requesting the .html form would
-     fail the check below, fall through, and the cover would silently never appear while
-     every test still passed. Try both, so neither spelling can break it. */
-  let html;
-  try {
-    const grab = async (p) => {
-      const u = new URL(p, request.url).toString();
-      return (env && env.ASSETS && env.ASSETS.fetch)
-        ? env.ASSETS.fetch(new Request(u))
-        : fetch(u);
-    };
-    let res = await grab('/maintenance');
-    if (!res || !res.ok) res = await grab('/maintenance.html');
-    if (!res || !res.ok) return null;   // cover page missing -> rather show the real page
-    html = await res.text();
-    if (!html || html.indexOf('<html') === -1) return null;   // not a page -> fail open
-  } catch (e) {
-    return null;
-  }
-
-  /* Tell the cover which page it is standing in front of:
-       data-covers    -> which header/chrome to wear (rentals or studio)
-       data-page-name -> the page's real name, so it can say "come back to Projects later".
-     The NAME is passed rather than looked up, because a custom page's name lives in the CMS
-     and the cover has no way to know it otherwise. */
-  const attrs = ' data-covers="' + esc(hit.covers) + '" data-page-name="' + esc(hit.name) + '"';
-  html = html.replace(/<html\b[^>]*>/i, (tag) => tag.replace(/>\s*$/, attrs + '>'));
-
-  return new Response(html, {
-    status: 200,                        // 200, not 503: this is a normal page to a visitor
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      // Never cache the cover, or it would linger after the page is reopened.
-      'Cache-Control': 'no-store',
-      'X-Robots-Tag': 'noindex',
-    },
-  });
-}
+const MAINT = { legacy: LEGACY, reservedSegs: RESERVED_SEGS, customPages: '/data/pages.json' };
 
 export async function onRequest(context) {
   const { request, env, next } = context;
@@ -237,7 +147,7 @@ export async function onRequest(context) {
   // Wrapped so an unexpected throw fails OPEN (serve the page) rather than 500-ing it; the
   // /admin gate below is separate and still fails closed.
   let cover = null;
-  try { cover = await maintenanceFor(context, pathname); } catch (e) { cover = null; }
+  try { cover = await maintenanceFor(context, pathname, MAINT); } catch (e) { cover = null; }
   if (cover) return cover;
 
   // A missing file under /media/ must 404, not fall through to the SPA. Cloudflare Pages cannot

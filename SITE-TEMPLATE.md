@@ -38,6 +38,15 @@ In this order. A site omits a section only when it genuinely has no such surface
 | 7 | **Form Input Types** | `data/form-fields.json` | Every CUSTOM form on the site and the input type of each field. |
 | 8 | **Color Looks** | `data/colorlooks.json` | View-only. Links to that site's own preview page. Edited in NocoDB. |
 | 9 | **Maintenance Cover** | `data/maintenance.json` | The messages shown when a page is switched off. |
+
+**Every primary page gets its switch from ONE place: `Site Settings -> Page access`.** It is a
+list of `{path, name, open}` rows read by the shared cover engine, so **a page added next year
+inherits the control by adding a row, with no code change**. `*` is the whole-site switch. Custom
+Pages are the exception: each carries its own switch on its own screen, because they were never a
+fixed list. The cover is served at the closed page's OWN url by Cloudflare, before any bytes
+reach the browser, so a closed page is never delivered. Everything fails OPEN: an unreadable
+switch file serves the real page, because wrongly hiding a page costs more than wrongly showing
+one.
 | 10 | **Legal Terms + Privacy** | `data/legal.json` | Both legal documents, and the shared variables they use. |
 
 ### Naming rules
@@ -87,6 +96,7 @@ commit `bts-automation`, then run `python3 ~/bts-automation/social_ui_sync.py --
 | `cursor.js` | `assets/cursor.js` | The custom cursor engine. |
 | `legal_render.js` | `assets/legal-render.js` | Draws /terms and /privacy from `data/legal.json`. |
 | `admin_colorlooks.html` | `admin/colorlooks.html` | The colour-look preview. Skins itself per host. |
+| `maintenance_lib.js` | `functions/_maintenance.js` | The page-cover engine. `maintenance.html` itself stays per-site chrome. |
 
 Adding a shared module is one entry in that script's `FILES` list, and a row here.
 
@@ -112,10 +122,10 @@ Kept current deliberately, so the gaps are visible rather than discovered.
 | Contact Popup | yes | yes |
 | Form Input Types | yes, one form | yes, empty until a custom form exists |
 | Color Looks | yes, own branded page | yes, own branded page, own login |
-| Maintenance Cover | yes | **NOT YET.** See below. |
+| Maintenance Cover | yes | yes |
 | Legal Terms + Privacy | yes | yes |
 
-### Two gaps, and what each needs
+### One gap, and what it needs
 
 **Projects on jackcarlsen.com.** RP's Projects screen edits four shared templates that build the
 text around every film: a project-page eyebrow, the featured-card eyebrow, the featured-card
@@ -125,13 +135,6 @@ either a decision to add those two elements to JC's design, or a JC template set
 ship four fields where two do nothing: dead CMS fields are the problem this template exists to
 prevent. **The template COUNT is per site, not fixed at four.** RP uses four; a site whose design
 has no grid caption gets three, and so on.
-
-**Maintenance Cover on jackcarlsen.com.** RP does this at the edge in `functions/_middleware.js`,
-which reads the `publicAccess` switches out of the data files and serves `maintenance.html` with a
-random message from `maintenance.json`. Doing it server-side is the whole point: a client-side
-check would ship the closed page's markup to anyone who looked. JC needs the middleware logic, the
-cover page, the data file, two switches (Portfolios page, and whole site), and a port of
-`tools/test-maintenance.mjs`.
 
 ## Standing up a new site
 
