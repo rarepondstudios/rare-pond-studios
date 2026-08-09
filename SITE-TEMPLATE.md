@@ -86,6 +86,7 @@ commit `bts-automation`, then run `python3 ~/bts-automation/social_ui_sync.py --
 | `social_ui.js` | `assets/social_ui.js` | Social bubbles and the transport wipe. |
 | `cursor.js` | `assets/cursor.js` | The custom cursor engine. |
 | `legal_render.js` | `assets/legal-render.js` | Draws /terms and /privacy from `data/legal.json`. |
+| `admin_colorlooks.html` | `admin/colorlooks.html` | The colour-look preview. Skins itself per host. |
 
 Adding a shared module is one entry in that script's `FILES` list, and a row here.
 
@@ -110,11 +111,11 @@ Kept current deliberately, so the gaps are visible rather than discovered.
 | Custom Pages | yes | not yet needed |
 | Contact Popup | yes | yes |
 | Form Input Types | yes, one form | yes, empty until a custom form exists |
-| Color Looks | yes, own preview page | **shares Rare Pond's page.** See below. |
+| Color Looks | yes, own branded page | yes, own branded page, own login |
 | Maintenance Cover | yes | **NOT YET.** See below. |
 | Legal Terms + Privacy | yes | yes |
 
-### Three gaps, and what each needs
+### Two gaps, and what each needs
 
 **Projects on jackcarlsen.com.** RP's Projects screen edits four shared templates that build the
 text around every film: a project-page eyebrow, the featured-card eyebrow, the featured-card
@@ -122,15 +123,8 @@ logline, and the grid caption. JC's project pages have kicker, tagline and logli
 eyebrow line and no grid caption**, so only two of the four have anywhere to land. Wiring it needs
 either a decision to add those two elements to JC's design, or a JC template set of two. Do not
 ship four fields where two do nothing: dead CMS fields are the problem this template exists to
-prevent.
-
-**Color Looks on jackcarlsen.com** currently points at `rarepond.com/admin/colorlooks`, so editing
-a look for JC sends you to a Rare Pond-branded page. The data is already correct on both sides:
-`colorlooks_sync.py` publishes the same NocoDB table into both repos, and JC keeps its own purple
-`signature` via `colorlooks-overrides.json`. What is missing is a JC-branded `/admin/colorlooks`
-page plus the `/admin/` prefix gate in JC's `functions/_middleware.js`, which JC does not yet have.
-That gate needs a `COLORLOOKS_PASSWORD` secret on the jackcarlsen-website Pages project, set in the
-Cloudflare dashboard, which is an owner action.
+prevent. **The template COUNT is per site, not fixed at four.** RP uses four; a site whose design
+has no grid caption gets three, and so on.
 
 **Maintenance Cover on jackcarlsen.com.** RP does this at the edge in `functions/_middleware.js`,
 which reads the `publicAccess` switches out of the data files and serves `maintenance.html` with a

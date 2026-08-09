@@ -1,5 +1,5 @@
 {
-  "eyebrowTemplate": "{production} · {released}",
+  "eyebrowTemplate": "{production}",
   "cardEyebrowTemplate": "{kicker}",
   "cardLoglineTemplate": "{logline}",
   "gridCaptionTemplate": "{kicker}"

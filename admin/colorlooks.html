@@ -3,19 +3,51 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Looks - Rare Pond Studios</title>
+<title>Color Looks</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Kaushan+Script&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<script>
+/* ===== PER-SITE SKIN =========================================================
+   ONE file serves every site (published from bts-automation/admin_colorlooks.html by
+   social_ui_sync.py), so the two can never drift apart. Everything this page READS is already
+   site-relative, so the data is whatever the host site publishes; only the chrome changes here.
+   Unknown host falls through to the Rare Pond skin rather than rendering unstyled. */
+(function () {
+  var h = (location.hostname || '').toLowerCase();
+  var JC = /(^|\.)jackcarlsen\.com$/.test(h) || /^jackcarlsen-website\b/.test(h);
+  var s = document.documentElement.style;
+  if (JC) {
+    s.setProperty('--adm-font', '"Poppins",-apple-system,Segoe UI,Roboto,Arial,sans-serif');
+    s.setProperty('--adm-script', '"Poppins",sans-serif');
+    s.setProperty('--adm-fg', '#f2eefc');
+    s.setProperty('--adm-mark', '#d9baf8');
+    s.setProperty('--adm-bg', 'linear-gradient(180deg,#241a33 0%,#1d1529 38%,#171021 72%,#141414 100%)');
+  }
+  var brand = JC ? 'Jack Carlsen' : 'Rare Pond';
+  document.title = 'Color Looks - ' + brand;
+  document.addEventListener('DOMContentLoaded', function () {
+    var m = document.getElementById('admMark');
+    if (m) m.textContent = brand;
+  });
+})();
+</script>
+
 <style>
   :root{color-scheme:dark}
   *{box-sizing:border-box}
-  body{margin:0;font-family:"Heebo",-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#eaf3ff;
-    background:linear-gradient(180deg,#2f72b8 0%,#256199 16%,#1d5089 40%,#183f72 72%,#123056 100%);
+  /* Both skins live here; the SKIN script below sets these vars from the hostname. Defaults are
+     Rare Pond, so a new domain that nobody has taught this page about still renders correctly. */
+  :root{--adm-font:"Heebo",-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+        --adm-script:"Kaushan Script",cursive;
+        --adm-fg:#eaf3ff; --adm-mark:#bfe0ff;
+        --adm-bg:linear-gradient(180deg,#2f72b8 0%,#256199 16%,#1d5089 40%,#183f72 72%,#123056 100%)}
+  body{margin:0;font-family:var(--adm-font);color:var(--adm-fg);
+    background:var(--adm-bg);
     background-attachment:fixed;min-height:100vh;padding:38px clamp(16px,4vw,54px) 80px}
   .head{max-width:1120px;margin:0 auto 8px}
-  .bn-rare{font-family:"Kaushan Script",cursive;font-size:40px;color:#bfe0ff;line-height:1}
+  .bn-rare{font-family:var(--adm-script);font-size:40px;color:var(--adm-mark);line-height:1}
   h1{font-size:clamp(22px,3vw,32px);font-weight:800;margin:10px 0 4px}
   .lead{color:#cfe0f5;font-size:14.5px;line-height:1.55;max-width:760px;margin:0 0 4px}
   .lead b{color:#fff}
@@ -198,7 +230,7 @@
 </head>
 <body>
   <div class="head">
-    <div class="bn-rare">Rare Pond</div>
+    <div class="bn-rare" id="admMark">Rare Pond</div>
     <h1>Color Looks</h1>
     <p class="lead">A live, read-only preview of every color look, rendered <b>exactly as the two sites render it</b> from the shared <b>data/colorlooks.json</b>.
        Each look is shown the way the site actually applies it for its <b>kind</b>: a <b>Film</b> look shows the full themed film-page treatment (accent, background washes, kicker, tagline and title) that the film page applies; <b>Basics</b> and <b>Special</b> looks show the bubble / banner glow they drive (Pinwheel for bubbles, Stream for wide headers); a <b>Rentals category</b> shows its single flat colour. So what you see here is what a visitor sees.

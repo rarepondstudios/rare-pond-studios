@@ -306,8 +306,8 @@ content:
       - name: eyebrowTemplate
         label: "🏷️ Project page: eyebrow (top-right label)"
         type: string
-        default: "{production} · {released}"
-        description: "The small uppercase label at the top-right of each film's own page. EXAMPLES: '{production} · {released}' shows 'Rare Pond Studios · 2026' (or '· In Post-Production' when there's no year yet); 'Finished in {year}' shows 'Finished in 2026'. Applies to every film; each fills in its own values."
+        default: "{production}"
+        description: "The small uppercase label at the top-right of each film's own page. It is the PRODUCTION COMPANY on its own, because the year is already shown elsewhere on both sites and repeating it read as clutter. A film with no production company set renders NO label at all rather than an empty line, so this is safe to leave unset. Other variables still work if you want them: '{production} · {released}' would show 'Rare Pond Studios · 2026' (or '· In Post-Production' when there is no year yet), and any variable that is empty, plus a separator left dangling beside it, is dropped automatically."
       - name: cardEyebrowTemplate
         label: "🏷️ Home featured card: small line above the title"
         type: string
