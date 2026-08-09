@@ -15,14 +15,52 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-08 (em-dash scrub finished in the Pages CMS strings, and the mailing
-> address split off from the legal jurisdiction, see 0.0.-24. Terms + Privacy on both sites now
-> edited in Pages CMS with shared variables in 0.0.-23. Carousel hug-outline glitch fixed at the
-> SHARED cursor master in 0.0.-22).
+> Last updated: 2026-08-08 (**Pages CMS: sign in as `Jackjrrc` for BOTH sites**, see 0.0.-25.
+> Em-dash scrub finished in the Pages CMS strings and the mailing address split off from the legal
+> jurisdiction in 0.0.-24. Terms + Privacy on both sites now edited in Pages CMS with shared
+> variables in 0.0.-23).
 
 ---
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+
+### 0.0.-25 PAGES CMS: SIGN IN AS `Jackjrrc`, AND WHY THE WRONG ACCOUNT LOOKS LIKE A BROKEN APP (2026-08-08)
+
+**Symptom:** editing any page in Pages CMS on rarepond.com loads fine, then Save throws
+`Resource not accessible by integration - .../repos/contents#create-or-update-file-contents`.
+
+**Cause: signed into Pages CMS as the wrong GitHub account.** The two sites sit under two
+accounts. `rarepondstudios/rare-pond-studios` is public; `Jackjrrc/jackcarlsen-website` is
+private. `Jackjrrc` had only **read** on the Rare Pond repo, and the only collaborator with push
+was `rarepondstudios`.
+
+**The reason this is confusing rather than obvious: the Rare Pond repo is PUBLIC.** A read-only
+session can fetch `.pages.yml` and every data file, so the CMS renders the whole edit form
+perfectly and gives no hint anything is wrong. Push access is needed for exactly one operation,
+the commit, so the failure lands on Save and nowhere else. **A form that loads proves nothing
+about whether you can save it.**
+
+**Fix, applied 2026-08-08: `Jackjrrc` was granted WRITE on `rare-pond-studios`.** That makes it
+the only login with write on both repos, so **sign into Pages CMS as `Jackjrrc` for both sites**.
+The grant is deliberately **one-way**: `rarepondstudios` was NOT given access to
+`jackcarlsen-website`, so the private repo keeps its single-collaborator surface. The cost of
+that choice is that `rarepondstudios` can save rarepond.com only, which is fine because there is
+now one account that does everything.
+
+**This is unrelated to git on the mini**, which has its own answer to the same two-account split:
+`gh` serves `rarepondstudios`, and `jackcarlsen-website` is pinned to the `Jackjrrc` credential
+through the osxkeychain helper (session 23, after that repo failed to push silently for 13
+hours). Same root cause, two different surfaces, two different fixes. Do not "simplify" one into
+the other.
+
+**Diagnostic that settles it in one command**, rather than going through GitHub App settings:
+
+```
+gh api repos/rarepondstudios/rare-pond-studios/collaborators/<user>/permission --jq .permission
+```
+
+Also worth checking before blaming permissions: `gh api repos/<owner>/<repo>/rulesets` and
+`.../branches/main/protection`. Both were empty here, which is what pointed at the account.
 
 ### 0.0.-24 EM-DASH SCRUB FINISHED, AND THE ADDRESS SPLIT OFF FROM THE JURISDICTION (2026-08-08)
 
