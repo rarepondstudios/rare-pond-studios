@@ -1218,7 +1218,11 @@ const BTS=__d[6]||{};  /* per-project behind-the-scenes, auto-synced from the Pr
   var sec=document.getElementById('home-bts'),grid=document.getElementById('homeBtsGrid');
   if(!sec||!grid||!g.length)return;
   grid.innerHTML=g.map(function(b){
-    return '<button class="still" type="button" data-full="'+b.full+'" data-fallback="'+b.src+'"><img src="'+b.src+'" loading="lazy" alt=""></button>';
+    /* srcW/fullW = WebP variants the BTS pipeline guarantees beside every jpg (same
+       dimensions, q90); the jpg stays as src / data-fallback for ancient browsers
+       and as the lightbox fallback if a webp is ever missing */
+    var t=b.srcW?(' srcset="'+b.srcW+'"'):'';
+    return '<button class="still" type="button" data-full="'+(b.fullW||b.full)+'" data-fallback="'+(b.fullW?b.full:b.src)+'"><img src="'+b.src+'"'+t+' loading="lazy" alt=""></button>';
   }).join('');
   sec.style.display='';
 })();
@@ -1997,7 +2001,7 @@ function buildUniverse(key){
   const titleEl=s.logo?`<img class="u-logo" decoding="async" src="${s.logo}" alt="${String(s.title||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}">`:`<h2 class="u-title">${s.title}</h2>`;
   const watchHTML=renderWatch(s.watch);
   const stillsHTML=(s.stills&&s.stills.length)?`<div class="u-stills"><h3 class="stills-h">Stills</h3><div class="stills-grid">${s.stills.map(src=>`<button class="still" type="button" data-full="${stillFull(src)}" data-fallback="${stillFallback(src)}">${stillThumb(src)}</button>`).join('')}</div></div>`:'';
-  const btsHTML=(BTS[key]&&BTS[key].length)?`<div class="u-stills u-bts"><h3 class="stills-h">Behind The Scenes</h3><div class="stills-grid">${BTS[key].map(b=>`<button class="still" type="button" data-full="${b.full}" data-fallback="${b.src}"><img src="${b.src}" loading="lazy" alt=""></button>`).join('')}</div></div>`:'';
+  const btsHTML=(BTS[key]&&BTS[key].length)?`<div class="u-stills u-bts"><h3 class="stills-h">Behind The Scenes</h3><div class="stills-grid">${BTS[key].map(b=>`<button class="still" type="button" data-full="${b.fullW||b.full}" data-fallback="${b.fullW?b.full:b.src}"><img src="${b.src}"${b.srcW?` srcset="${b.srcW}"`:''} loading="lazy" alt=""></button>`).join('')}</div></div>`:'';
   /* Still-based universe background: a film with NO focus video uses its FIRST still
      (DB stills[0], HD webp) so reordering stills in the DB changes the bg; a film WITH a
      focus video keeps its existing focusBg, unchanged. */

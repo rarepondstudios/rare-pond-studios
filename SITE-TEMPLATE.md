@@ -110,10 +110,36 @@ commit `bts-automation`, then run `python3 ~/bts-automation/social_ui_sync.py --
 
 Adding a shared module is one entry in that script's `FILES` list, and a row here.
 
+## The media pipeline standard (added 2026-08-09)
+
+The rule in one line: **the file you drop is the master and is never degraded; the pipeline
+derives everything the web needs, and the site picks the right derivative per screen.**
+Masters stay at full resolution in the Synology source folders (plus a 45-day originals
+buffer in `bts-automation/_ingest_originals`); what ships is derived from them.
+
+**Images.** Every published image gets WebP derivatives at standard widths alongside a JPEG
+fallback, and renderers serve them with `srcset`/`sizes` so a phone pulls only the pixels it
+shows. Stills: 800/1600/2560 WebP + 1600 JPEG (the stills pipeline, `stills-hd.json`).
+BTS: grid + lightbox WebP (q90, same dimensions as the JPGs) on rarepond
+(`rp_bts_sync.py`, `srcW`/`fullW` in `bts.json`) and 800/1600 WebP on the jackcarlsen collage
+(`bts_sync.py`, `srcW8`/`srcW`). Never upscale: a derivative larger than its master is never
+generated.
+
+**Video.** The dropped `*-reel-web.mp4` publishes untouched as the full-quality original.
+`video_variants.py` (run by `jc_native_media_sync`) guarantees, per video: a high-quality 720p
+companion (`<name>-720.mp4`, H.264 CRF 19) whenever the original is taller than 720p, a poster
+(`<name>.jpg`, reels only, never overwriting a hand-made one), and an entry in
+`data/video-variants.json`, which is the manifest the site's `vsrc()` helper reads. Small
+screens and Save-Data connections get the companion; desktop always streams the original, so
+quality is never reduced where it can be seen. Off-viewport landing reels are paused by an
+IntersectionObserver, which changes nothing visually and cuts mobile streaming to a third.
+
 ## Which data files are generated, and which are yours
 
 **Generated from NocoDB, never hand-edit:** `projects.json`, `colorlooks.json`, `platforms.json`,
-`socials.json`, `bts.json`. A background sync rewrites them, so an edit is lost at the next run.
+`socials.json`, `bts.json`. Also generated: `video-variants.json` (from the video files on
+disk) and `page-index.json` (from the data files). A background sync rewrites them, so an edit
+is lost at the next run.
 
 **Edited in Pages CMS:** `site.json`, `contact.json`, `legal.json`, `form-fields.json`,
 `maintenance.json`, `pages.json`, `team.json`, `section-templates.json`, and each sub site's file.

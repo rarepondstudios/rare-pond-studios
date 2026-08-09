@@ -15,7 +15,9 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-09 (**full-setup review: orphan media cleaned out of both repos, the JC
+> Last updated: 2026-08-09 (**the media pipeline standard: WebP + srcset on BTS both sites,
+> adaptive video with a companion manifest, masters never degraded**, see 0.0.-33 and
+> SITE-TEMPLATE.md; **full-setup review: orphan media cleaned out of both repos, the JC
 > mirror stops copying bts/, stale n8n pipeline docs corrected**, see 0.0.-32; **the maintenance
 > switch is on each page's own screen and a page
 > cannot exist without one, enforced by a test**, see 0.0.-31; jackcarlsen.com reaches full parity
@@ -36,6 +38,42 @@
 ---
 
 ## 0. LATEST SESSION (2026-08-09), READ THIS FIRST
+
+### 0.0.-33 THE MEDIA PIPELINE STANDARD: MASTERS NEVER DEGRADE, THE SITE ADAPTS (2026-08-09)
+
+**The standard is now written down in `SITE-TEMPLATE.md` ("The media pipeline standard") and
+enforced by the pipeline**, closing the gap between what Jack believed (everything auto-converts
+to WebP) and what was true (stills and brand images did; BTS was JPG-only; video published
+byte-for-byte).
+
+**Images: BTS joins the WebP + srcset standard on both sites.** `rp_bts_sync.py` now emits q90
+WebP beside every grid and lightbox JPG (`srcW`/`fullW` in `bts.json`); `bts_sync.py` emits
+800w + 1600w WebP for the JC collage (`srcW8`/`srcW`). Renderers on both sites serve them via
+`srcset` with the JPG kept as universal fallback, and the JC collage passes each tile's exact
+CSS width as `sizes`, so a phone pulls only the density it shows. Masters untouched (Synology +
+the 45-day ingest buffer); a pipeline-version marker in each sync's state sig forced the one
+rebuild.
+
+**Video: adaptive without quality loss.** New shared master `video_variants.py` (called by
+`jc_native_media_sync` every run) guarantees a CRF-19 720p companion for any reel/clip taller
+than 720p, a poster for every reel, and writes `data/video-variants.json`, the manifest the
+site's new `vsrc()` helper reads, so a phone never requests a companion that does not exist.
+**Measured before building: all current reels and clips are ALREADY 720p at ~1.2 Mbps**, so no
+companion exists today and desktop always streams the original; the standard is future-proofing
+for the day a 1080p reel is dropped. The real mobile wins shipped in the renderer: the landing
+reels now carry their poster JPGs (they were only used on role pages before), and an
+IntersectionObserver pauses off-viewport landing reels, which changes nothing visually (they
+stack on phones, two of three are always off-screen) and cuts mobile video streaming to a
+third. A capture-phase error handler swaps any failing `-720` source back to the original.
+
+**Found while wiring it: `jc_native_media_sync.py` never imported `_rp_gitlock`** although
+`git_sync_down`/`git_push` use it. Every scheduled run has silently skipped its pull
+("pull skipped: name '_rp_gitlock' is not defined") and the first run that actually needed to
+publish would have crashed. Import added; the sync now pulls and publishes correctly.
+
+**Also standing in the sync logs, needs Jack:** the Synology folder "Stolen Heart" carries BTS
+images but matches no project title in NocoDB, so those photos publish nowhere (bts_sync logs
+it every run). Rename the folder to a project title or move the photos to the Unsorted pool.
 
 ### 0.0.-32 FULL-SETUP REVIEW: ORPHAN MEDIA CLEANED OUT, STALE DOCS CORRECTED (2026-08-09)
 
