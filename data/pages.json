@@ -12,7 +12,7 @@
       "showInRentalsNav": false,
       "navOrder": 10,
       "background": "team",
-      "bubbles": true,
+      "bubbles": false,
       "blocks": [
         {
           "type": "subheader",
