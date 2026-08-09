@@ -15,7 +15,9 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-09 (jackcarlsen.com reaches full parity with the template, see 0.0.-30;
+> Last updated: 2026-08-09 (**the maintenance switch is on each page's own screen and a page
+> cannot exist without one, enforced by a test**, see 0.0.-31; jackcarlsen.com reaches full parity
+> with the template, see 0.0.-30;
 > page-access register + shared cover engine on both sites; eyebrow is production-only and JC has
 > its own colour-look page from a
 > SHARED master, see 0.0.-29. **The CMS is now built to a written standard, `SITE-TEMPLATE.md`,
@@ -32,6 +34,36 @@
 ---
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+
+### 0.0.-31 THE SWITCH LIVES ON EACH PAGE'S OWN SCREEN, AND A PAGE CANNOT EXIST WITHOUT ONE (2026-08-09)
+
+**I built the wrong shape first and Jack caught it.** He asked for a switch at the top of every
+page's screen. I built a central `Page access` register in Site Settings instead, then removed the
+per-section switches that already existed, so opening Rentals Sub Site showed no switch at all.
+The register had one genuine merit, that a new page inherited the control by adding a row, and I
+let that outweigh the instruction. **Corrected: the switch is now the FIRST field on each page's
+own screen, which is where you already are when you want to close that page.**
+
+**The register's merit is preserved without the register, by deriving the wiring.** A data file
+that declares a `route` IS a page. `bts-automation/page_index_sync.py` scans the data files and
+generates `data/page-index.json`, the route to file map the engine reads, so **a page screen added
+later is wired in automatically**. The index deliberately holds the MAPPING ONLY, never the switch
+value: Pages CMS writes the value into the page's own file, so a copy in a generated index would
+be stale between the save and the next sync, and a stale copy of a safety switch is worse than no
+copy at all.
+
+**`tools/check-page-switches.mjs` turns the guarantee into a failing test** rather than a
+convention someone has to remember. It fails when a file declares a route with no switch, when a
+declared route is missing from the index, when a switch is unreachable from any CMS screen, and,
+the one that actually bites, **when the index still lists a route nothing declares any more**: a
+stale row sends the engine to read a switch that is gone, absent reads as OPEN, and a closed page
+silently reopens. **Both failure modes were confirmed to FAIL the check before it was trusted**,
+by deleting a switch and by faking a renamed route.
+
+**Where the switches are now.** RP: Home (Site Settings), Media Sub Site, Rentals Sub Site,
+Projects, Team, plus each custom page on its own screen. JC: Home and Portfolios. Site Settings on
+both also holds `siteOpen`, the whole-site switch, which beats every individual one so an
+emergency is one flip rather than a tour. `page-index.json` is generated and must not be edited.
 
 ### 0.0.-30 JC GETS THE TWO TEMPLATES ITS DESIGN CAN SHOW, AND FULL PARITY (2026-08-09)
 

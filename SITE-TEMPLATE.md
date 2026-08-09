@@ -39,27 +39,32 @@ In this order. A site omits a section only when it genuinely has no such surface
 | 8 | **Color Looks** | `data/colorlooks.json` | View-only. Links to that site's own preview page. Edited in NocoDB. |
 | 9 | **Maintenance Cover** | `data/maintenance.json` | The messages shown when a page is switched off. |
 
-**Every primary page gets its switch from ONE place: `Site Settings -> Page access`.** It is a
-list of `{path, name, open}` rows read by the shared cover engine, so **a page added next year
-inherits the control by adding a row, with no code change**. `*` is the whole-site switch. Custom
-Pages are the exception: each carries its own switch on its own screen, because they were never a
-fixed list. **There is exactly ONE switch per page and it lives in the register.** Rare Pond's
-older per-section switches (Projects in Site Settings, and `publicAccess` on Team and Rentals)
-were removed from the CMS on 2026-08-09: two controls for one page, either of which could close
-it, is a trap. The middleware still honours those keys as a silent fallback, so an old value
-cannot strand a page, but nothing writes them any more. The cover is served at the closed page's OWN url by Cloudflare, before any bytes
-reach the browser, so a closed page is never delivered. Everything fails OPEN: an unreadable
-switch file serves the real page, because wrongly hiding a page costs more than wrongly showing
-one.
-| 10 | **Legal Terms + Privacy** | `data/legal.json` | Both legal documents, and the shared variables they use. |
+**Every primary page carries its own switch, at the top of its own screen.** Not gathered in a
+central list: when you want to close the Rentals page you are already on the Rentals screen, so
+that is where the switch is. Site Settings additionally holds `siteOpen`, the whole-site switch,
+because that is not a page.
 
-### Naming rules
+**And a page cannot exist without one, structurally.** A data file that declares a `route` IS a
+page. `bts-automation/page_index_sync.py` derives `data/page-index.json` from those declarations,
+so a page screen added next year is wired into the cover system automatically, with no code
+change. `tools/check-page-switches.mjs` (shared master) then fails the build if:
 
-- **Title Case for every section label.** "Form Input Types", not "Form input types".
-- **A sub site is labelled `<Name> Sub Site`** and sits directly below Site Settings, so it reads
-  as a place rather than a topic. Rare Pond has "Media Sub Site" and "Rentals Sub Site".
-- **Labels say what the thing IS, not where it applies.** "Contact Popup", not
-  "Contact popup (all sites)": which sites use it is a fact for the description, not the label.
+- a file declares a route and has no `publicAccess` switch,
+- a declared route is missing from the generated index,
+- **the index still lists a route nothing declares any more.** That last one is the dangerous
+  case: a stale row sends the engine to read a switch that is gone, absent reads as OPEN, and a
+  closed page silently reopens. Both failure modes were confirmed to fail the check before it was
+  trusted.
+- a page's switch is not reachable from any Pages CMS screen.
+
+Custom Pages keep their own nested switch, which was always the exception. The cover is served at
+the closed page's OWN url by Cloudflare before any bytes reach the browser. Everything fails OPEN:
+an unreadable index or data file serves the real page, because wrongly hiding a page costs far
+more than wrongly showing one.
+
+**Adding a page, end to end:** create its CMS screen, give its data file `route`, `pageName` and
+`publicAccess`, put the switch first on the screen. Run `page_index_sync.py`. That is the whole
+wiring, and `check-page-switches.mjs` tells you if you missed a step.
 
 ## Read-only fields: the empty-box rule
 
@@ -101,6 +106,7 @@ commit `bts-automation`, then run `python3 ~/bts-automation/social_ui_sync.py --
 | `legal_render.js` | `assets/legal-render.js` | Draws /terms and /privacy from `data/legal.json`. |
 | `admin_colorlooks.html` | `admin/colorlooks.html` | The colour-look preview. Skins itself per host. |
 | `maintenance_lib.js` | `functions/_maintenance.js` | The page-cover engine. `maintenance.html` itself stays per-site chrome. |
+| `check_page_switches.mjs` | `tools/check-page-switches.mjs` | Fails when a page has no switch, or the index is stale. |
 
 Adding a shared module is one entry in that script's `FILES` list, and a row here.
 

@@ -9,16 +9,23 @@ content:
     type: file
     path: data/site.json
     fields:
-      - name: pageAccess
-        label: "🚧 PAGE ACCESS - open or close any page on this site"
-        type: object
-        list: true
-        description: "One row per page visitors can navigate to. Switch a row OFF and anyone who goes to that address gets the 'back soon' cover instead of the page, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: a link you have shared does not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. The cover is served by Cloudflare before the page is sent, so a closed page is never delivered to the browser at all. ADDING A NEW PAGE TO THE SITE LATER? Add a row here and it gets the same switch, with nothing to change in code. Custom Pages are the exception: each one carries its own switch on its own screen, so they are not listed here."
-        fields:
-          - { name: path, label: "Address (e.g. /media). Use * for the WHOLE SITE", type: string, description: "The page's address, starting with a slash. '/' is the home page on its own. A row also covers anything underneath it, so /rentals covers /rentals/checkout too. The single entry '*' is the whole-site switch: turning that off closes everything at once, which is the one to reach for in an emergency rather than switching every row." }
-          - { name: name, label: "Page name, as the cover should say it", type: string, description: "Written into the cover so it can say 'come back to Projects later'. Use the name a visitor would recognise, not the address." }
-          - { name: open, label: "This page is OPEN to the public", type: boolean, default: true, description: "ON is normal. OFF shows the cover. Takes effect within about a minute of saving." }
+      - name: siteOpen
+        label: "🚧 THE WHOLE SITE IS OPEN TO THE PUBLIC"
+        type: boolean
+        default: true
+        description: "The one to reach for in an emergency. OFF closes EVERY page at once, including ones whose own switch is on, so you do not have to go screen by screen. The switch below covers only the home page. Turn this back on and the site returns exactly as it was, with each page's own switch still meaning what it meant."
 
+      - name: publicAccess
+        label: "🚧 THIS PAGE IS OPEN TO THE PUBLIC"
+        type: boolean
+        default: true
+        description: "ON is normal. Switch it OFF and anyone who goes to this page gets the 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: a link you have shared does not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page on this site has this switch at the top of its own screen; there is no second place to look."
+
+      - name: route
+        label: "🔗 The address this screen controls"
+        type: string
+        readonly: true
+        description: "Which page the switch above opens and closes. It is also how the site wires this screen into the cover system: a screen that declares an address IS a page, and page_index_sync.py picks it up automatically, so a page added later cannot end up without a switch. Do not change it by hand."
 
       - name: navBlurb
         label: "🏷️ Header hover blurb (what Studio is)"
@@ -167,6 +174,18 @@ content:
     type: file
     path: data/media.json
     fields:
+      - name: publicAccess
+        label: "🚧 THIS PAGE IS OPEN TO THE PUBLIC"
+        type: boolean
+        default: true
+        description: "ON is normal. Switch it OFF and anyone who goes to this page gets the 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: a link you have shared does not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page on this site has this switch at the top of its own screen; there is no second place to look."
+
+      - name: route
+        label: "🔗 The address this screen controls"
+        type: string
+        readonly: true
+        description: "Which page the switch above opens and closes. It is also how the site wires this screen into the cover system: a screen that declares an address IS a page, and page_index_sync.py picks it up automatically, so a page added later cannot end up without a switch. Do not change it by hand."
+
       - name: cmsNote
         label: "✏️ Rare Pond Media, the /media pitch site"
         type: string
@@ -234,6 +253,18 @@ content:
     type: file
     path: data/rentals.json
     fields:
+      - name: publicAccess
+        label: "🚧 THIS PAGE IS OPEN TO THE PUBLIC"
+        type: boolean
+        default: true
+        description: "ON is normal. Switch it OFF and anyone who goes to this page gets the 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: a link you have shared does not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page on this site has this switch at the top of its own screen; there is no second place to look."
+
+      - name: route
+        label: "🔗 The address this screen controls"
+        type: string
+        readonly: true
+        description: "Which page the switch above opens and closes. It is also how the site wires this screen into the cover system: a screen that declares an address IS a page, and page_index_sync.py picks it up automatically, so a page added later cannot end up without a switch. Do not change it by hand."
+
       - name: navBlurb
         label: "🏷️ Header hover blurb (what Rentals is)"
         type: string
@@ -289,6 +320,18 @@ content:
     type: file
     path: data/section-templates.json
     fields:
+      - name: publicAccess
+        label: "🚧 THIS PAGE IS OPEN TO THE PUBLIC"
+        type: boolean
+        default: true
+        description: "ON is normal. Switch it OFF and anyone who goes to this page gets the 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: a link you have shared does not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page on this site has this switch at the top of its own screen; there is no second place to look."
+
+      - name: route
+        label: "🔗 The address this screen controls"
+        type: string
+        readonly: true
+        description: "Which page the switch above opens and closes. It is also how the site wires this screen into the cover system: a screen that declares an address IS a page, and page_index_sync.py picks it up automatically, so a page added later cannot end up without a switch. Do not change it by hand."
+
       - name: cmsNote
         label: "✏️ EDIT HERE: shared text templates for every film"
         type: string
@@ -325,6 +368,18 @@ content:
     type: file
     path: data/team.json
     fields:
+      - name: publicAccess
+        label: "🚧 THIS PAGE IS OPEN TO THE PUBLIC"
+        type: boolean
+        default: true
+        description: "ON is normal. Switch it OFF and anyone who goes to this page gets the 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: a link you have shared does not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page on this site has this switch at the top of its own screen; there is no second place to look."
+
+      - name: route
+        label: "🔗 The address this screen controls"
+        type: string
+        readonly: true
+        description: "Which page the switch above opens and closes. It is also how the site wires this screen into the cover system: a screen that declares an address IS a page, and page_index_sync.py picks it up automatically, so a page added later cannot end up without a switch. Do not change it by hand."
+
       - name: team
         label: Team members
         type: object

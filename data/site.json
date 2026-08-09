@@ -1,4 +1,8 @@
 {
+  "route": "/",
+  "pageName": "Home",
+  "publicAccess": true,
+  "siteOpen": true,
   "navBlurb": "Narrative Films",
   "projectsPublicAccess": true,
   "veil": {
@@ -126,37 +130,5 @@
     "buttonLink": "/rentals",
     "colorLook": "geri",
     "gradientStyle": "stream"
-  },
-  "pageAccess": [
-    {
-      "path": "*",
-      "name": "This site",
-      "open": true
-    },
-    {
-      "path": "/",
-      "name": "Home",
-      "open": true
-    },
-    {
-      "path": "/projects",
-      "name": "Projects",
-      "open": true
-    },
-    {
-      "path": "/team",
-      "name": "Our Team",
-      "open": true
-    },
-    {
-      "path": "/rentals",
-      "name": "Rentals",
-      "open": true
-    },
-    {
-      "path": "/media",
-      "name": "Media",
-      "open": true
-    }
-  ]
+  }
 }

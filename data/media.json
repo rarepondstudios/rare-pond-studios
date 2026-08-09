@@ -1,4 +1,7 @@
 {
+  "route": "/media",
+  "pageName": "Media",
+  "publicAccess": true,
   "navBlurb": "Business Videography",
   "_note": "Rare Pond Media (/media) content. Edited in Pages CMS under 'Rare Pond Media'. The page ships with these same values baked into rp_media/index.html as a fallback, so it always renders even if this file is missing; when present, these values override. Each heading's 'accent' is the word shown in the signature gradient (must appear in the heading text).",
   "seo": {
@@ -19,11 +22,26 @@
     "body": "Using the same gear and expertise from our narrative film branch, we are ready and equipped to showcase your group, business, or artwork in cinematic quality."
   },
   "showcase": [
-    { "image": "/media/projects/invalid_opinion/stills/invalid-1-1600.webp", "alt": "Cinematic still, Invalid Opinion" },
-    { "image": "/media/projects/revelations/stills/rev-michael-bar-1600.webp", "alt": "Cinematic still, Revelations" },
-    { "image": "/media/projects/geri_action/stills/geri-madeline-800.webp", "alt": "Cinematic still, Geri Action" },
-    { "image": "/media/projects/invalid_opinion/stills/invalid-sourpatch-800.webp", "alt": "Cinematic still, Invalid Opinion" },
-    { "image": "/media/projects/revelations/stills/rev-earth-2-800.webp", "alt": "Cinematic still, Revelations" }
+    {
+      "image": "/media/projects/invalid_opinion/stills/invalid-1-1600.webp",
+      "alt": "Cinematic still, Invalid Opinion"
+    },
+    {
+      "image": "/media/projects/revelations/stills/rev-michael-bar-1600.webp",
+      "alt": "Cinematic still, Revelations"
+    },
+    {
+      "image": "/media/projects/geri_action/stills/geri-madeline-800.webp",
+      "alt": "Cinematic still, Geri Action"
+    },
+    {
+      "image": "/media/projects/invalid_opinion/stills/invalid-sourpatch-800.webp",
+      "alt": "Cinematic still, Invalid Opinion"
+    },
+    {
+      "image": "/media/projects/revelations/stills/rev-earth-2-800.webp",
+      "alt": "Cinematic still, Revelations"
+    }
   ],
   "sections": [
     {

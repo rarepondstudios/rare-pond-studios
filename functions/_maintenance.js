@@ -62,36 +62,48 @@ function norm(p) {
   return s === '' ? '/' : s;
 }
 
-/* THE REGISTER. A row matches its own path exactly, and also anything beneath it, so closing
-   `/rentals` closes `/rentals/checkout` with it. `/` matches only the home page itself, never
-   the whole site, because a prefix match on `/` would cover everything including the cover. */
-async function registerRule(env, request, pathname) {
-  let site;
-  try { site = await readJson(env, request, '/data/site.json'); } catch (e) { return null; }
-  const rows = (site && site.pageAccess) || [];
-  if (!rows.length) return null;
+/* THE PAGE LOOKUP.
+   `data/page-index.json` is GENERATED (bts-automation/page_index_sync.py) from the data files
+   themselves: any file declaring a `route` is a page, so a page screen added later is wired in
+   without anyone remembering to do it. The index holds only the MAPPING. The switch value is read
+   from the page's own file, because Pages CMS writes it there and a copy in the index would be
+   stale between the save and the next sync, which is the worst possible thing for a safety switch.
+
+   The whole-site switch (`siteOpen` in site.json) is checked first and beats everything, so one
+   flip closes a site without visiting every screen. */
+async function pageRule(env, request, pathname) {
   const p = norm(pathname);
 
-  /* A whole-site row (path '*') closes everything except the cover itself. Checked first so it
-     cannot be defeated by a more specific row being open. */
-  const all = rows.find((r) => r && String(r.path || '').trim() === '*');
-  if (all && all.open === false) return { covers: coverStyle('/'), name: all.name || 'This site' };
+  let site = null;
+  try { site = await readJson(env, request, '/data/site.json'); } catch (e) { site = null; }
+  if (site && site.siteOpen === false) {
+    return { covers: coverStyle('/'), name: site.pageName || 'This site' };
+  }
+
+  let index = null;
+  try { index = await readJson(env, request, '/data/page-index.json'); } catch (e) { return null; }
+  const pages = (index && index.pages) || [];
+  if (!pages.length) return null;
 
   let best = null;
-  for (const r of rows) {
-    if (!r || !r.path || String(r.path).trim() === '*') continue;
-    const rp = norm(r.path);
+  for (const r of pages) {
+    if (!r || !r.route) continue;
+    const rp = norm(r.route);
+    /* `/` matches the home page ONLY. A prefix match on it would cover the whole site, including
+       the cover, which is what the siteOpen switch is for. */
     const hit = rp === '/' ? (p === '/') : (p === rp || p.startsWith(rp + '/'));
     if (!hit) continue;
-    /* longest match wins, so a row for /rentals/gear beats the one for /rentals */
-    if (!best || rp.length > norm(best.path).length) best = r;
+    if (!best || rp.length > norm(best.route).length) best = r;   // longest match wins
   }
-  if (!best) return null;
-  if (best.open === false) return { covers: coverStyle(best.path), name: best.name || best.path };
-  /* Open in the register FALLS THROUGH to the legacy rules rather than short-circuiting. Either
-     source may close a page; neither can force one open over the other. That is the safe
-     direction: a site added to the register cannot silently disable a switch that already
-     worked. The CMS only ever shows the register, so in practice legacy never fires. */
+  if (!best || !best.file) return null;
+
+  let cfg = null;
+  try { cfg = await readJson(env, request, best.file); } catch (e) { return null; }
+  /* Absent === open. Only an explicit false closes a page, so a missing or half-written file can
+     never take one down by accident. */
+  if (cfg && cfg.publicAccess === false) {
+    return { covers: coverStyle(best.route), name: cfg.pageName || best.name || best.route };
+  }
   return null;
 }
 
@@ -130,7 +142,7 @@ export async function maintenanceFor(context, pathname, opts) {
 
   let hit = null;
   try {
-    hit = await registerRule(env, request, pathname);
+    hit = await pageRule(env, request, pathname);
     if (!hit) hit = await legacyRule(env, request, pathname, o.legacy);
     if (!hit && o.customPages) {
       hit = await customPageRule(env, request, pathname, o.reservedSegs || new Set(), o.customPages);

@@ -1,4 +1,6 @@
 {
+  "route": "/team",
+  "pageName": "Our Team",
   "publicAccess": true,
   "team": [
     {

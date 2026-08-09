@@ -1,4 +1,7 @@
 {
+  "route": "/projects",
+  "pageName": "Projects",
+  "publicAccess": true,
   "eyebrowTemplate": "{production}",
   "cardEyebrowTemplate": "{kicker}",
   "cardLoglineTemplate": "{logline}",
