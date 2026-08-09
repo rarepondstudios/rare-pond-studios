@@ -15,7 +15,9 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-09 (privacy email wired into both privacy policies, two dead variables
+> Last updated: 2026-08-09 (**the CMS is now built to a written standard, `SITE-TEMPLATE.md`,
+> which must be updated in the same commit as any standard section**, see 0.0.-28. Privacy email
+> wired into both privacy policies, two dead variables
 > removed, and the Florida mailing address is CORRECT alongside California governing law, see
 > 0.0.-27. Pages CMS drops empty fields on save, and any renderer over its JSON
 > must treat missing and blank alike, see 0.0.-26. **Pages CMS: sign in as `Jackjrrc` for BOTH
@@ -27,6 +29,51 @@
 ---
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+
+### 0.0.-28 THE CMS IS NOW BUILT TO A WRITTEN STANDARD: `SITE-TEMPLATE.md` (2026-08-09)
+
+**New file: `SITE-TEMPLATE.md`, and it is LIVE, not a snapshot.** It defines what a site built on
+this system has: the standard Pages CMS sidebar and its order, the naming rules, the read-only
+field convention, which assets are shared masters, which data files are generated versus edited,
+and a parity table showing exactly where each site stands against it. **Changing a standard
+section on either site means changing this file in the same commit.** It bridges hourly into the
+context folder, so a cloud session can read it with no device access.
+
+**Sidebar renamed and reordered on rarepond.com.** Sub sites now sit together directly under Site
+Settings and are labelled as places: `Media Sub Site`, `Rentals Sub Site`. `Contact popup (all
+sites)` became `Contact Popup`, because which sites use it is a fact for the description, not the
+label. `Legal Pages (Terms + Privacy)` became `Legal Terms + Privacy` on both sites. Order is now
+Site Settings, the two sub sites, Projects, Team, Custom Pages, Contact Popup, Form Input Types,
+Color Looks, Maintenance Cover, Legal Terms + Privacy. jackcarlsen.com follows the same order for
+the sections it has.
+
+**Reordered as TEXT BLOCKS, never by re-dumping parsed YAML** (`bts-automation/_pagesyml.py`).
+Re-dumping would have reformatted several hundred hand-written flow-style field lines and dropped
+every comment, producing a diff nobody could review. Proved it: both files were parsed before and
+after and every entry is byte-identical apart from the four labels that were meant to change.
+
+**THE READ-ONLY FIELD CONVENTION, now written down and enforced.** Pages CMS has no notice
+element, so explanatory text rides on a `readonly` field. Two kinds, never mixed. **Explaining
+something: the box is EMPTY and every word lives in `description`**, so an empty box is the cue
+that there is nothing to type. **Displaying a value to read or copy** (a URL, a username, where a
+password is kept): the value stays and the description explains it. `imageSpecs` and `varsKey` had
+the same text in both, a condensed copy in the box and the full version underneath, so a reader
+had to compare two blocks of prose to learn they matched. Both boxes emptied.
+
+**`Projects`: the NocoDB explainer moved to the top**, next to the other read-only note, instead
+of sitting under the four template fields where it read like a footnote.
+
+**Form Input Types is now on jackcarlsen.com**, with the explainer and no forms, because JC has no
+custom forms yet. The description states the rule: a new custom form gets its fields added to that
+screen at the same time it is built, and the Contact popup is not edited there because it is a
+HubSpot form.
+
+**Three gaps are deliberately still open, and `SITE-TEMPLATE.md` names them** rather than pretending
+parity: Maintenance Cover and Projects on JC, and JC's own Color Looks page. **A CMS section whose
+switches do nothing is worse than a missing one**, because it looks like a control, so none of the
+three was added ahead of its machinery. The Projects one has a real design question inside it: JC
+project pages have kicker, tagline and logline but no eyebrow line and no grid caption, so two of
+RP's four templates have nowhere to land on JC.
 
 ### 0.0.-27 PRIVACY EMAIL WIRED IN, TWO DEAD VARIABLES REMOVED, AND WHY THE ADDRESS IS IN FLORIDA (2026-08-09)
 

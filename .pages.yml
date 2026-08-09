@@ -157,7 +157,7 @@ content:
           - { name: gradientStyle, label: "Gradient style - Stream (wide horizontal sweep, best for this banner) or Pinwheel (rotating conic, best for round bubbles)", type: select, options: { values: [stream, pinwheel] } }
 
   - name: mediasite
-    label: "Rare Pond Media (/media)"
+    label: "Media Sub Site"
     type: file
     path: data/media.json
     fields:
@@ -223,121 +223,8 @@ content:
           - { name: buttonHref, label: "Button link (e.g. /#contact, a /path, or a full https:// URL)", type: string }
           - { name: image, label: "Background image (image path, paste from NocoDB)", type: string, description: "A /media/... path into the shared media library. You can also PASTE a /media/... path here straight from the stills/BTS attribute in NocoDB. The page then uses the SAME file the project already uses (no re-upload, no duplicate copies). SPECS if adding something new: 2560x1440 (16:9), JPG/WebP, sRGB 8-bit, under 600 KB. Darker reads best." }
 
-  - name: contact
-    label: "Contact popup (all sites)"
-    type: file
-    path: data/contact.json
-    fields:
-      - name: cmsNote
-        label: "✉️ The Contact popup, shared by Studio, Rentals + Media"
-        type: string
-        readonly: true
-        description: "The 'Get in touch' popup that opens from the Contact button in the header (and the Get in touch buttons on the home pages) on all three sites. It's the SAME form everywhere, edited here once. The social bubbles beside the form + their blurbs come from the socials table in NocoDB. Below you control the heading text and the HubSpot form it embeds."
-      - { name: eyebrow, label: Eyebrow (small label above the heading), type: string }
-      - { name: heading, label: Heading, type: string }
-      - { name: sub, label: Sub-line under the heading, type: text }
-      - { name: buttonLabel, label: "\"Get in touch\" button label", type: string }
-      - name: hubspot
-        label: HubSpot form
-        type: object
-        description: "The embedded HubSpot form. Find these in HubSpot → your form → Share → Embed (they're in the embed snippet)."
-        fields:
-          - { name: region, label: "Region (e.g. na2)", type: string }
-          - { name: portalId, label: Portal ID, type: string }
-          - { name: formId, label: Form ID, type: string }
-
-  - name: colorlooks
-    label: Color Looks
-    type: file
-    path: data/colorlooks.json
-    fields:
-      - name: previewUrl
-        label: "▶ Live color preview page (open this URL in a new browser tab)"
-        type: string
-        readonly: true
-        description: "One page, two things. TOP: every colour look rendered EXACTLY as the two sites render it. A film look shows the full themed film-page treatment (accent, background washes, kicker, tagline, title); a basics/special look shows the bubble/banner glow it drives; a rentals category shows its one flat colour. BOTTOM (scroll down, or add #platform-colors): the read-only 'Platform colours' reference. The brand colour + real logo for every social platform (YouTube, Instagram, TikTok, X, Facebook, Threads, Vimeo, LinkedIn, IMDb) and every 'Watch on' streaming service (Prime Video, Netflix, Hulu, Disney+, Max, Apple TV+, Peacock, Paramount+, plus YouTube/Vimeo). Same login for both. This preview is VIEW-ONLY: colour looks are edited in NocoDB (the color_looks table), not here."
-      - name: previewUser
-        label: "🔒 Username for that page"
-        type: string
-        readonly: true
-        description: "The page asks for a login. This is the username."
-      - name: previewPasswordLocation
-        label: "🔑 Password - where to find it"
-        type: string
-        readonly: true
-        description: "On Mac/iPhone/iPad, Safari will autofill the login box for you. Not written down here on purpose: this repo is PUBLIC, so anything typed into Pages CMS is visible to the world. Never put a password, key or token in this CMS."
-      - name: nocodbNote
-        label: "🎨 Color looks are edited in NocoDB (this page is view-only + the live preview)"
-        type: string
-        readonly: true
-        description: "Colour looks now live in the shared database: NocoDB → the color_looks table (http://localhost:8080). A background sync publishes data/colorlooks.json to BOTH sites automatically, so there is nothing to edit here. This screen only keeps the preview link + login above. To change a look's colours, edit its row in NocoDB (each field has a description), then reload the preview page to check it. (The per-look colour fields used to live here; they moved to NocoDB so the two sites and the preview can never drift, see D7 in the system plan.)"
-
-  - name: projects
-    label: "Projects"
-    type: file
-    path: data/section-templates.json
-    fields:
-      - name: cmsNote
-        label: "✏️ EDIT HERE: shared text templates for every film"
-        type: string
-        readonly: true
-        description: "The four boxes below are the SHARED templates for the lines of text the site builds around every film. Write each one ONCE and it applies to EVERY project - the site fills in each film's own values (from NocoDB) wherever you put a {variable} in curly braces. Change the wording of the LINE here; change each film's actual CONTENT (kicker, tagline, logline, credits) in NocoDB. AVAILABLE VARIABLES: {title}, {year}, {production}, {status}, {released} (smart: year if set, otherwise status), {kicker}, {tagline}, {genre}, {logline}. Empty variables - and any separator left dangling next to them, like a stray ' · ' - are dropped automatically. TIP: see any template rendered live against a real film at rarepond.com/admin/preview before you save."
-      - name: eyebrowTemplate
-        label: "🏷️ Project page: eyebrow (top-right label)"
-        type: string
-        default: "{production} · {released}"
-        description: "The small uppercase label at the top-right of each film's own page. EXAMPLES: '{production} · {released}' shows 'Rare Pond Studios · 2026' (or '· In Post-Production' when there's no year yet); 'Finished in {year}' shows 'Finished in 2026'. Applies to every film; each fills in its own values."
-      - name: cardEyebrowTemplate
-        label: "🏷️ Home featured card: small line above the title"
-        type: string
-        default: "{kicker}"
-        description: "The little uppercase line on the FEATURED (center) card of the home carousel. Default '{kicker}' shows each film's kicker. EXAMPLE: '{production} · {released}' would show 'Rare Pond Studios · 2026'."
-      - name: cardLoglineTemplate
-        label: "🏷️ Home featured card: one-liner under the title"
-        type: string
-        default: "{logline}"
-        description: "The sentence on the FEATURED (center) card of the home carousel. Default '{logline}' shows each film's logline. You can combine text and variables, e.g. '{genre} · {logline}'."
-      - name: gridCaptionTemplate
-        label: "🏷️ Projects grid: caption under each tile"
-        type: string
-        default: "{kicker}"
-        description: "The small caption under each bubble in the Projects grid / carousel. Default '{kicker}' shows each film's kicker. EXAMPLE: '{genre} · {year}' would show 'Sci-Fi · 2026'."
-      - name: nocodbNote
-        label: "📋 The project list itself is edited in NocoDB (read-only here)"
-        type: string
-        readonly: true
-        description: "The films themselves - their names, images, which sites show each one, colour look, carousel and glow toggles, per-film text (kicker, tagline, logline, credits), and order - all live in the shared database and are edited in NocoDB at http://localhost:8080, where you can also see each project by name with its bubble thumbnail. A background sync rebuilds the site from there automatically, so there is nothing to edit for the list itself on this screen. To OPEN or CLOSE the whole Projects page to the public, use SITE SETTINGS → 'Projects page is OPEN to the public'. Colour palettes live in COLOR LOOKS. The boxes ABOVE are the only editable things here - they control the shared wording, not the individual films."
-
-  - name: team
-    label: Team
-    type: file
-    path: data/team.json
-    fields:
-      - name: publicAccess
-        label: "🚧 Our Team page is OPEN to the public"
-        type: boolean
-        default: true
-        description: "ON (normal): visitors see the page as usual. OFF: the page is closed - anyone who goes to rarepond.com/team gets the 'back soon' cover instead, with a random message from MAINTENANCE COVER. The address stays the same, so links you have already shared are not broken and everything comes straight back the moment you switch this on again. The header and menus still work on the cover, so nobody is stranded. Takes effect within about a minute of committing."
-      - name: team
-        label: Team members
-        type: object
-        list: true
-        fields:
-          - { name: name, label: Name, type: string }
-          - { name: role, label: Role, type: string }
-          - { name: photo, label: Photo, type: image, description: "SPECS: square, 800x800 px, JPG, under 250 KB. Cropped to a circle - centre the face. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
-          - { name: desc, label: Bio, type: text }
-          # ---- Portfolio links (all optional). Any you leave blank is simply not shown, and the
-          #      row closes the gap - so a person with only a website and Instagram shows exactly
-          #      two icons, no empty spaces. Paste the FULL https:// address for each.
-          - { name: website,   label: "Portfolio - Website (optional)",   type: string, description: "Full https:// link to this person's own site/portfolio. Blank = hidden." }
-          - { name: youtube,   label: "Portfolio - YouTube (optional)",   type: string, description: "Full https:// link. Blank = hidden." }
-          - { name: instagram, label: "Portfolio - Instagram (optional)", type: string, description: "Full https:// link. Blank = hidden." }
-          - { name: linkedin,  label: "Portfolio - LinkedIn (optional)",  type: string, description: "Full https:// link. Blank = hidden." }
-          - { name: facebook,  label: "Portfolio - Facebook (optional)",  type: string, description: "Full https:// link. Blank = hidden." }
-
   - name: rentals
-    label: Rentals page
+    label: "Rentals Sub Site"
     type: file
     path: data/rentals.json
     fields:
@@ -400,54 +287,69 @@ content:
           - { name: quoteButton, label: Request-quote button, type: string }
           - { name: emptyMessage, label: Empty-cart message (HTML allowed), type: text }
 
-  - name: formfields
-    label: Form input types
+  - name: projects
+    label: "Projects"
     type: file
-    path: data/form-fields.json
+    path: data/section-templates.json
     fields:
-      - name: rental
-        label: Rental request form - input type per field
-        type: object
-        fields:
-          - { name: firstName, label: First name, type: select, options: { values: [text, email, number, tel, url] } }
-          - { name: lastName,  label: Last name,  type: select, options: { values: [text, email, number, tel, url] } }
-          - { name: email,     label: Contact email, type: select, options: { values: [text, email, number, tel, url] } }
-          - { name: film,      label: Film / project name, type: select, options: { values: [text, email, number, tel, url] } }
-      - name: crew
-        label: Crew-your-shoot form - input type per field
-        type: object
-        fields:
-          - { name: first,   label: First name, type: select, options: { values: [text, email, number, tel, url] } }
-          - { name: last,    label: Last name,  type: select, options: { values: [text, email, number, tel, url] } }
-          - { name: email,   label: Contact email, type: select, options: { values: [text, email, number, tel, url] } }
-          - { name: project, label: Project name, type: select, options: { values: [text, email, number, tel, url] } }
-          - { name: budget,  label: Budget (number = digits only), type: select, options: { values: [text, email, number, tel, url] } }
-          - { name: notes,   label: Notes, type: select, options: { values: [text, email, number, tel, url] } }
+      - name: cmsNote
+        label: "✏️ EDIT HERE: shared text templates for every film"
+        type: string
+        readonly: true
+        description: "The four boxes below are the SHARED templates for the lines of text the site builds around every film. Write each one ONCE and it applies to EVERY project - the site fills in each film's own values (from NocoDB) wherever you put a {variable} in curly braces. Change the wording of the LINE here; change each film's actual CONTENT (kicker, tagline, logline, credits) in NocoDB. AVAILABLE VARIABLES: {title}, {year}, {production}, {status}, {released} (smart: year if set, otherwise status), {kicker}, {tagline}, {genre}, {logline}. Empty variables - and any separator left dangling next to them, like a stray ' · ' - are dropped automatically. TIP: see any template rendered live against a real film at rarepond.com/admin/preview before you save."
+      - name: nocodbNote
+        label: "📋 The project list itself is edited in NocoDB (read-only here)"
+        type: string
+        readonly: true
+        description: "The films themselves - their names, images, which sites show each one, colour look, carousel and glow toggles, per-film text (kicker, tagline, logline, credits), and order - all live in the shared database and are edited in NocoDB at http://localhost:8080, where you can also see each project by name with its bubble thumbnail. A background sync rebuilds the site from there automatically, so there is nothing to edit for the list itself on this screen. To OPEN or CLOSE the whole Projects page to the public, use SITE SETTINGS → 'Projects page is OPEN to the public'. Colour palettes live in COLOR LOOKS. The boxes ABOVE are the only editable things here - they control the shared wording, not the individual films."
 
-  - name: maintenance
-    label: Maintenance Cover
+      - name: eyebrowTemplate
+        label: "🏷️ Project page: eyebrow (top-right label)"
+        type: string
+        default: "{production} · {released}"
+        description: "The small uppercase label at the top-right of each film's own page. EXAMPLES: '{production} · {released}' shows 'Rare Pond Studios · 2026' (or '· In Post-Production' when there's no year yet); 'Finished in {year}' shows 'Finished in 2026'. Applies to every film; each fills in its own values."
+      - name: cardEyebrowTemplate
+        label: "🏷️ Home featured card: small line above the title"
+        type: string
+        default: "{kicker}"
+        description: "The little uppercase line on the FEATURED (center) card of the home carousel. Default '{kicker}' shows each film's kicker. EXAMPLE: '{production} · {released}' would show 'Rare Pond Studios · 2026'."
+      - name: cardLoglineTemplate
+        label: "🏷️ Home featured card: one-liner under the title"
+        type: string
+        default: "{logline}"
+        description: "The sentence on the FEATURED (center) card of the home carousel. Default '{logline}' shows each film's logline. You can combine text and variables, e.g. '{genre} · {logline}'."
+      - name: gridCaptionTemplate
+        label: "🏷️ Projects grid: caption under each tile"
+        type: string
+        default: "{kicker}"
+        description: "The small caption under each bubble in the Projects grid / carousel. Default '{kicker}' shows each film's kicker. EXAMPLE: '{genre} · {year}' would show 'Sci-Fi · 2026'."
+  - name: team
+    label: Team
     type: file
-    path: data/maintenance.json
+    path: data/team.json
     fields:
-      - name: variations
-        label: Messages shown when a page is closed
+      - name: publicAccess
+        label: "🚧 Our Team page is OPEN to the public"
+        type: boolean
+        default: true
+        description: "ON (normal): visitors see the page as usual. OFF: the page is closed - anyone who goes to rarepond.com/team gets the 'back soon' cover instead, with a random message from MAINTENANCE COVER. The address stays the same, so links you have already shared are not broken and everything comes straight back the moment you switch this on again. The header and menus still work on the cover, so nobody is stranded. Takes effect within about a minute of committing."
+      - name: team
+        label: Team members
         type: object
         list: true
-        description: >-
-          When a page is switched off (Rentals page -> "Rentals page is OPEN to the public"),
-          visitors get a "back soon" cover instead. ONE of the entries below is picked AT
-          RANDOM each time the page is loaded, so someone who reloads sees a different message
-          and a different picture. Add as many as you like - they are all equally likely, and
-          nothing else needs changing. Every entry shows the Rare Pond duck, then your header
-          and sub-header, and underneath that a line the site writes itself telling the visitor
-          which page to come back to. An entry with no message is skipped, so a half-finished
-          one can never be shown to a visitor.
         fields:
-          - { name: header, label: Header (the big line), type: string,
-              description: "Required. An entry with no header is never shown." }
-          - { name: subHeader, label: Sub-header (the smaller line underneath), type: string }
-          - { name: image, label: Picture, type: image,
-              description: "The artwork shown above the message. All three are set to the Rare Pond duck for now. Drop in whatever you like later - it is shown WHOLE (never cropped) and capped so it can never push the message off the screen, so almost any shape works. SPECS: PNG or WebP, up to about 1200 px on the long edge, under 400 KB, transparent background looks best. If you leave it empty the entry still works; it just shows the message with no picture. COLOR: export sRGB, 8-bit." }
+          - { name: name, label: Name, type: string }
+          - { name: role, label: Role, type: string }
+          - { name: photo, label: Photo, type: image, description: "SPECS: square, 800x800 px, JPG, under 250 KB. Cropped to a circle - centre the face. COLOR: export sRGB, 8-bit (not Display P3 / Adobe RGB, or it shifts in browsers)." }
+          - { name: desc, label: Bio, type: text }
+          # ---- Portfolio links (all optional). Any you leave blank is simply not shown, and the
+          #      row closes the gap - so a person with only a website and Instagram shows exactly
+          #      two icons, no empty spaces. Paste the FULL https:// address for each.
+          - { name: website,   label: "Portfolio - Website (optional)",   type: string, description: "Full https:// link to this person's own site/portfolio. Blank = hidden." }
+          - { name: youtube,   label: "Portfolio - YouTube (optional)",   type: string, description: "Full https:// link. Blank = hidden." }
+          - { name: instagram, label: "Portfolio - Instagram (optional)", type: string, description: "Full https:// link. Blank = hidden." }
+          - { name: linkedin,  label: "Portfolio - LinkedIn (optional)",  type: string, description: "Full https:// link. Blank = hidden." }
+          - { name: facebook,  label: "Portfolio - Facebook (optional)",  type: string, description: "Full https:// link. Blank = hidden." }
 
   - name: pages
     label: Custom Pages
@@ -558,8 +460,106 @@ content:
                 label: "Form height in pixels (optional - default 900)"
                 type: number
 
+  - name: contact
+    label: "Contact Popup"
+    type: file
+    path: data/contact.json
+    fields:
+      - name: cmsNote
+        label: "✉️ The Contact popup, shared by Studio, Rentals + Media"
+        type: string
+        readonly: true
+        description: "The 'Get in touch' popup that opens from the Contact button in the header (and the Get in touch buttons on the home pages) on all three sites. It's the SAME form everywhere, edited here once. The social bubbles beside the form + their blurbs come from the socials table in NocoDB. Below you control the heading text and the HubSpot form it embeds."
+      - { name: eyebrow, label: Eyebrow (small label above the heading), type: string }
+      - { name: heading, label: Heading, type: string }
+      - { name: sub, label: Sub-line under the heading, type: text }
+      - { name: buttonLabel, label: "\"Get in touch\" button label", type: string }
+      - name: hubspot
+        label: HubSpot form
+        type: object
+        description: "The embedded HubSpot form. Find these in HubSpot → your form → Share → Embed (they're in the embed snippet)."
+        fields:
+          - { name: region, label: "Region (e.g. na2)", type: string }
+          - { name: portalId, label: Portal ID, type: string }
+          - { name: formId, label: Form ID, type: string }
+
+  - name: formfields
+    label: "Form Input Types"
+    type: file
+    path: data/form-fields.json
+    fields:
+      - name: rental
+        label: Rental request form - input type per field
+        type: object
+        fields:
+          - { name: firstName, label: First name, type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: lastName,  label: Last name,  type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: email,     label: Contact email, type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: film,      label: Film / project name, type: select, options: { values: [text, email, number, tel, url] } }
+      - name: crew
+        label: Crew-your-shoot form - input type per field
+        type: object
+        fields:
+          - { name: first,   label: First name, type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: last,    label: Last name,  type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: email,   label: Contact email, type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: project, label: Project name, type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: budget,  label: Budget (number = digits only), type: select, options: { values: [text, email, number, tel, url] } }
+          - { name: notes,   label: Notes, type: select, options: { values: [text, email, number, tel, url] } }
+
+  - name: colorlooks
+    label: Color Looks
+    type: file
+    path: data/colorlooks.json
+    fields:
+      - name: previewUrl
+        label: "▶ Live color preview page (open this URL in a new browser tab)"
+        type: string
+        readonly: true
+        description: "One page, two things. TOP: every colour look rendered EXACTLY as the two sites render it. A film look shows the full themed film-page treatment (accent, background washes, kicker, tagline, title); a basics/special look shows the bubble/banner glow it drives; a rentals category shows its one flat colour. BOTTOM (scroll down, or add #platform-colors): the read-only 'Platform colours' reference. The brand colour + real logo for every social platform (YouTube, Instagram, TikTok, X, Facebook, Threads, Vimeo, LinkedIn, IMDb) and every 'Watch on' streaming service (Prime Video, Netflix, Hulu, Disney+, Max, Apple TV+, Peacock, Paramount+, plus YouTube/Vimeo). Same login for both. This preview is VIEW-ONLY: colour looks are edited in NocoDB (the color_looks table), not here."
+      - name: previewUser
+        label: "🔒 Username for that page"
+        type: string
+        readonly: true
+        description: "The page asks for a login. This is the username."
+      - name: previewPasswordLocation
+        label: "🔑 Password - where to find it"
+        type: string
+        readonly: true
+        description: "On Mac/iPhone/iPad, Safari will autofill the login box for you. Not written down here on purpose: this repo is PUBLIC, so anything typed into Pages CMS is visible to the world. Never put a password, key or token in this CMS."
+      - name: nocodbNote
+        label: "🎨 Color looks are edited in NocoDB (this page is view-only + the live preview)"
+        type: string
+        readonly: true
+        description: "Colour looks now live in the shared database: NocoDB → the color_looks table (http://localhost:8080). A background sync publishes data/colorlooks.json to BOTH sites automatically, so there is nothing to edit here. This screen only keeps the preview link + login above. To change a look's colours, edit its row in NocoDB (each field has a description), then reload the preview page to check it. (The per-look colour fields used to live here; they moved to NocoDB so the two sites and the preview can never drift, see D7 in the system plan.)"
+
+  - name: maintenance
+    label: Maintenance Cover
+    type: file
+    path: data/maintenance.json
+    fields:
+      - name: variations
+        label: Messages shown when a page is closed
+        type: object
+        list: true
+        description: >-
+          When a page is switched off (Rentals page -> "Rentals page is OPEN to the public"),
+          visitors get a "back soon" cover instead. ONE of the entries below is picked AT
+          RANDOM each time the page is loaded, so someone who reloads sees a different message
+          and a different picture. Add as many as you like - they are all equally likely, and
+          nothing else needs changing. Every entry shows the Rare Pond duck, then your header
+          and sub-header, and underneath that a line the site writes itself telling the visitor
+          which page to come back to. An entry with no message is skipped, so a half-finished
+          one can never be shown to a visitor.
+        fields:
+          - { name: header, label: Header (the big line), type: string,
+              description: "Required. An entry with no header is never shown." }
+          - { name: subHeader, label: Sub-header (the smaller line underneath), type: string }
+          - { name: image, label: Picture, type: image,
+              description: "The artwork shown above the message. All three are set to the Rare Pond duck for now. Drop in whatever you like later - it is shown WHOLE (never cropped) and capped so it can never push the message off the screen, so almost any shape works. SPECS: PNG or WebP, up to about 1200 px on the long edge, under 400 KB, transparent background looks best. If you leave it empty the entry still works; it just shows the message with no picture. COLOR: export sRGB, 8-bit." }
+
   - name: legal
-    label: "Legal Pages (Terms + Privacy)"
+    label: "Legal Terms + Privacy"
     type: file
     path: data/legal.json
     fields:
