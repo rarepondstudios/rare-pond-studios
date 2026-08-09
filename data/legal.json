@@ -7,8 +7,10 @@
     "siteDomain": "rarepond.com",
     "contactEmail": "contact@rarepond.com",
     "privacyEmail": "privacy@rarepond.com",
-    "mailingCity": "Burbank",
-    "mailingState": "California",
+    "mailingStreet": "2338 Immokalee Road Suite 210",
+    "mailingCity": "Naples",
+    "mailingState": "Florida",
+    "mailingZip": "34110",
     "state": "California",
     "county": "Los Angeles County",
     "region": "Los Angeles / Burbank, California"
