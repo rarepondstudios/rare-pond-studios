@@ -118,7 +118,9 @@ async function main() {
       ['/sitemap.xml', 200, /rarepond\.com/i],
       ['/media/site/favicon-48.png', 200, null],
       ['/media/site/apple-touch-icon.png', 200, null],
-      ['/media/stills/invalid-orbit.jpg', 200, null],
+      // (was /media/stills/invalid-orbit.jpg until the 808926b media reorg deleted it;
+      //  this focus still is referenced by projects.json so it must exist)
+      ['/media/projects/invalid_opinion/stills/invalid_opinion-focus.jpg', 200, null],
     ];
     for (const [p, code, re] of checks) {
       const r = await ctx.request.get(BASE + p);
