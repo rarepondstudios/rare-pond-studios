@@ -56,6 +56,14 @@ Revision shows kicker `Surrealist drama short film`, plain-text title, caption
 **`SITE-TEMPLATE.md` now has a full parity table with no gaps**, and a section explaining that the
 template count is per site rather than fixed at four.
 
+**Loose end closed the same day: RP had TWO switches per page for a while.** Adding the register
+did not remove the older per-section switches, so Projects, Team and Rentals each had one in the
+register and one on their own screen, either of which would close the page. Both were live, so it
+was not broken, it was confusing, which is worse in a control you reach for in a hurry. The three
+old fields are gone from the CMS. The middleware still honours the keys as a silent fallback, so
+an old `false` sitting in a data file cannot strand a page with no visible way to reopen it, but
+nothing writes them any more and the register is the only switch. RP's suite still passes.
+
 ### 0.0.-29 THE EYEBROW IS PRODUCTION-ONLY, AND JC HAS ITS OWN COLOUR-LOOK PAGE (2026-08-09)
 
 **The project-page eyebrow is now `{production}` alone**, on both sites. It was

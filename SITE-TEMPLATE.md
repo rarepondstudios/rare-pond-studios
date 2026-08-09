@@ -43,7 +43,11 @@ In this order. A site omits a section only when it genuinely has no such surface
 list of `{path, name, open}` rows read by the shared cover engine, so **a page added next year
 inherits the control by adding a row, with no code change**. `*` is the whole-site switch. Custom
 Pages are the exception: each carries its own switch on its own screen, because they were never a
-fixed list. The cover is served at the closed page's OWN url by Cloudflare, before any bytes
+fixed list. **There is exactly ONE switch per page and it lives in the register.** Rare Pond's
+older per-section switches (Projects in Site Settings, and `publicAccess` on Team and Rentals)
+were removed from the CMS on 2026-08-09: two controls for one page, either of which could close
+it, is a trap. The middleware still honours those keys as a silent fallback, so an old value
+cannot strand a page, but nothing writes them any more. The cover is served at the closed page's OWN url by Cloudflare, before any bytes
 reach the browser, so a closed page is never delivered. Everything fails OPEN: an unreadable
 switch file serves the real page, because wrongly hiding a page costs more than wrongly showing
 one.
