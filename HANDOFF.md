@@ -15,7 +15,7 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-08 (**Pages CMS: sign in as `Jackjrrc` for BOTH sites**, see 0.0.-25.
+> Last updated: 2026-08-09 (**Pages CMS: sign in as `Jackjrrc` for BOTH sites**, see 0.0.-25.
 > Em-dash scrub finished in the Pages CMS strings and the mailing address split off from the legal
 > jurisdiction in 0.0.-24. Terms + Privacy on both sites now edited in Pages CMS with shared
 > variables in 0.0.-23).
@@ -24,7 +24,7 @@
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
 
-### 0.0.-25 PAGES CMS: SIGN IN AS `Jackjrrc`, AND WHY THE WRONG ACCOUNT LOOKS LIKE A BROKEN APP (2026-08-08)
+### 0.0.-25 PAGES CMS: SIGN IN AS `Jackjrrc`, AND WHY THE WRONG ACCOUNT LOOKS LIKE A BROKEN APP (2026-08-09)
 
 **Symptom:** editing any page in Pages CMS on rarepond.com loads fine, then Save throws
 `Resource not accessible by integration - .../repos/contents#create-or-update-file-contents`.
@@ -40,7 +40,7 @@ perfectly and gives no hint anything is wrong. Push access is needed for exactly
 the commit, so the failure lands on Save and nowhere else. **A form that loads proves nothing
 about whether you can save it.**
 
-**Fix, applied 2026-08-08: `Jackjrrc` was granted WRITE on `rare-pond-studios`.** That makes it
+**Fix, applied 2026-08-09: `Jackjrrc` was granted WRITE on `rare-pond-studios`.** That makes it
 the only login with write on both repos, so **sign into Pages CMS as `Jackjrrc` for both sites**.
 The grant is deliberately **one-way**: `rarepondstudios` was NOT given access to
 `jackcarlsen-website`, so the private repo keeps its single-collaborator surface. The cost of
