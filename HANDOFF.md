@@ -15,7 +15,9 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-09 (Pages CMS drops empty fields on save, and any renderer over its JSON
+> Last updated: 2026-08-09 (privacy email wired into both privacy policies, two dead variables
+> removed, and the Florida mailing address is CORRECT alongside California governing law, see
+> 0.0.-27. Pages CMS drops empty fields on save, and any renderer over its JSON
 > must treat missing and blank alike, see 0.0.-26. **Pages CMS: sign in as `Jackjrrc` for BOTH
 > sites**, see 0.0.-25.
 > Em-dash scrub finished in the Pages CMS strings and the mailing address split off from the legal
@@ -25,6 +27,34 @@
 ---
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+
+### 0.0.-27 PRIVACY EMAIL WIRED IN, TWO DEAD VARIABLES REMOVED, AND WHY THE ADDRESS IS IN FLORIDA (2026-08-09)
+
+**`[privacyEmail]` was set on both sites and used in zero places.** `privacy@rarepond.com` existed
+while both privacy policies still sent people to `contact@rarepond.com`. Now wired into the two
+spots in each policy that give an address: the "Reviewing, changing, or deleting your information"
+section, and the contact block at the end. **The Terms page keeps `[contactEmail]`**, because its
+closing block is ordinary business contact, not a privacy request. Verified live: `/terms` links
+`mailto:contact@`, `/privacy` links `mailto:privacy@`, on both sites.
+
+**No fallback between the two, on purpose.** A blank `[privacyEmail]` shows the amber placeholder
+rather than quietly using the contact address. The policy promises a reply within a reasonable
+time, so silently substituting would hide that the promised route was never set up. Same reasoning
+as 0.0.-26: a blank must be visible.
+
+**`[siteName]` and `[phone]` deleted.** Both were unused. `siteName` duplicated `businessName` on
+both sites; `phone` was blank. `Your own variables` covers a one-off like a phone number now, so a
+permanently present optional slot bought nothing but a field to scroll past. Twelve fixed
+variables remain. `businessName` and `ownerName` stay separate, because on rarepond.com they
+genuinely differ and both appear in the copy.
+
+**THE ADDRESS IS IN FLORIDA AND THAT IS CORRECT. DO NOT "FIX" IT.** The mailing address is
+`2338 Immokalee Road Suite 210, Naples, Florida 34110`, while the documents say the business is
+based in the Los Angeles / Burbank, California area, set governing law to California, and put
+venue in Los Angeles County. **The business is still in LA; Florida is only where post goes.**
+Confirmed by Jack 2026-08-09. This is exactly what the 0.0.-24 split of postal address from legal
+jurisdiction was built for. To a fresh reader the two look inconsistent, which is why it is
+written down here: they describe two different facts and both are right.
 
 ### 0.0.-26 PAGES CMS DROPS EMPTY FIELDS ON SAVE. ANY RENDERER READING ITS JSON MUST EXPECT A MISSING KEY (2026-08-09)
 

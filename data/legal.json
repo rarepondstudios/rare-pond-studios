@@ -1,9 +1,8 @@
 {
-  "varsKey": "Type a variable in square brackets anywhere in a heading or a text box below and the page fills in its value from SHARED VALUES. Change it in one place, every page changes. The ones that always exist: [businessName] [ownerName] [siteName] [siteDomain] [contactEmail] [privacyEmail] [phone] [mailingStreet] [mailingCity] [mailingState] [mailingZip] [state] [county] [region]. NOTE the mailing address carries its OWN city, state and ZIP: [mailingCity], [mailingState] and [mailingZip] are where post is sent, while [state] and [county] are the law the site runs under and where a dispute would be heard. They read the same today, and they are separate so that moving the address never quietly rewrites the Governing law section. Anything you add under YOUR OWN VARIABLES works the same way: name one bookingEmail and type [bookingEmail]. A variable you have not filled in yet shows on the page as an amber [... to be added] note instead of vanishing, so a blank can never read as a finished sentence. A word in brackets that is not one of your variables is left exactly as typed.",
+  "varsKey": "Type a variable in square brackets anywhere in a heading or a text box below and the page fills in its value from SHARED VALUES. Change it in one place, every page changes. The ones that always exist: [businessName] [ownerName] [siteDomain] [contactEmail] [privacyEmail] [mailingStreet] [mailingCity] [mailingState] [mailingZip] [state] [county] [region]. TWO PAIRS ARE DELIBERATELY SEPARATE. The mailing address carries its own city, state and ZIP: those are where post is sent, while [state] and [county] are the law the site runs under and where a dispute would be heard, so moving the address never rewrites the Governing law section. And [privacyEmail] is used by the privacy policy while [contactEmail] is used by the terms page and anything general. Anything you add under YOUR OWN VARIABLES works the same way: name one bookingEmail and type [bookingEmail]. A variable you have not filled in yet shows on the page as an amber [... to be added] note instead of vanishing, so a blank can never read as a finished sentence. A word in brackets that is not one of your variables is left exactly as typed.",
   "vars": {
     "businessName": "Rare Pond Studios",
     "ownerName": "Jack Carlsen",
-    "siteName": "Rare Pond Studios",
     "siteDomain": "rarepond.com",
     "contactEmail": "contact@rarepond.com",
     "privacyEmail": "privacy@rarepond.com",
@@ -280,7 +279,7 @@
         "blocks": [
           {
             "type": "paragraph",
-            "text": "You may ask us to review, correct, or delete the information you submitted, or the record we hold about your inquiry. Email [contactEmail] and we will respond within a reasonable time."
+            "text": "You may ask us to review, correct, or delete the information you submitted, or the record we hold about your inquiry. Email [privacyEmail] and we will respond within a reasonable time."
           }
         ]
       },
@@ -329,7 +328,7 @@
           },
           {
             "type": "card",
-            "text": "<strong>[businessName]</strong>\n\nEmail: [contactEmail]\n\nMailing address: [mailingStreet], [mailingCity], [mailingState] [mailingZip]"
+            "text": "<strong>[businessName]</strong>\n\nEmail: [privacyEmail]\n\nMailing address: [mailingStreet], [mailingCity], [mailingState] [mailingZip]"
           }
         ]
       }

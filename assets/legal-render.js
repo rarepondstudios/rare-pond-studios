@@ -27,15 +27,19 @@
 
   /* Friendly names for the amber "not filled in yet" placeholder. */
   var LABELS = {
-    businessName: 'business name', ownerName: 'owner name', contactEmail: 'contact email',
-    privacyEmail: 'privacy email', phone: 'phone number',
+    businessName: 'business name', ownerName: 'owner name',
+    /* Two addresses on purpose: the privacy policy points people at privacyEmail, the terms page
+       and anything general at contactEmail. No fallback between them. A blank privacyEmail shows
+       the placeholder rather than quietly using contactEmail, because the policy promises a reply
+       and a silent substitution would hide that the promised route was never set up. */
+    contactEmail: 'contact email', privacyEmail: 'privacy email',
     /* The postal address carries its own city and state. [state] and [county] below are the
        legal ones (Governing law, "[state] residents"), so moving the office cannot quietly
        change which state's law the documents claim to run under. */
     mailingStreet: 'street address', mailingCity: 'city', mailingState: 'state',
     mailingZip: 'ZIP code',
     state: 'state', county: 'county', region: 'region',
-    siteDomain: 'site domain', siteName: 'site name'
+    siteDomain: 'site domain'
   };
 
   /* ---------- variables ---------- */
