@@ -8,9 +8,9 @@ Written for the next person - human or AI - who has to keep this working.
 > "Projects: DB to site (rarepond)" workflow was retired 2026-08-03. n8n remains event-driven
 > glue only (rentals HubSpot↔DB sync, integrations, alerts, backups). There is also a THIRD
 > surface, **`media/index.html` → rarepond.com/media**, and a separate jackcarlsen.com repo
-> sharing the same backend. The canonical current-state master is
-> **`~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md`** (local, non-public), trust it over any
-> stale wording below. The n8n-specific sections here have been corrected; the rentals pipeline,
+> sharing the same backend. The canonical current-state master is the context folder
+> **`~/Desktop/AI_System_Context`** (local, non-public; start with `START-HERE.md`), trust it
+> over any stale wording below; the former `SYSTEM_SOURCE_OF_TRUTH.md` is now a pointer. The n8n-specific sections here have been corrected; the rentals pipeline,
 > Supabase, alerting, and "things that have bitten us" sections remain fully current.
 
 > **This repository is PUBLIC.** No keys, passwords, tokens or API secrets go in this file

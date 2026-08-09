@@ -1,10 +1,11 @@
 # Rare Pond Studios - Cloudflare Pages site
 
-> **📌 THE source of truth for the whole cross-site system is the master handoff doc:**
-> **`~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md`** (local, non-public, full internal detail,
-> no secrets). Read it first for architecture, the sources of truth, the golden rule, the pipeline,
-> the colour-look/media models, safe-change procedures, automations, and open flags. This public
-> README is a repo-side summary of that same system.
+> **📌 THE source of truth for the whole cross-site system is the context folder on the mini:**
+> **`~/Desktop/AI_System_Context`**, start with `START-HERE.md` (local, non-public, no secrets;
+> its indexes rebuild hourly from the machine so it cannot drift). Site-level detail: this repo's
+> `HANDOFF.md` section 0 and `OPERATIONS.md`. The former master,
+> `~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md`, was demoted 2026-08-09 and is now a pointer.
+> This public README is a repo-side summary of that same system.
 
 Two static sites (studio + rentals), no build step. All content lives in editable JSON,
 so projects, photos, logos and whole new pages can be changed from a no-code admin.
@@ -124,9 +125,10 @@ python3 -m http.server 8080
 rarepond.com and **jackcarlsen.com** are two static sites that **share one backend**. The film
 catalogue and the colour looks are not stored in either repo by hand, they flow from a single
 database, through per-site exporters, into each repo's `data/*.json`, which the site reads at
-load. Both READMEs describe this same system; the authoritative master doc is
-`~/Desktop/Active Work/SYSTEM_SOURCE_OF_TRUTH.md` (local, not public). *(The former
-`bts-automation/SYSTEM_MAP_AND_PLAN.md` is now just a pointer to it.)*
+load. Both READMEs describe this same system; the authoritative master is the context folder
+`~/Desktop/AI_System_Context` (local, not public; start with START-HERE.md). *(The former
+masters `SYSTEM_SOURCE_OF_TRUTH.md` and `bts-automation/SYSTEM_MAP_AND_PLAN.md` are now
+pointers to it.)*
 
 ### 1. NocoDB = the single source of truth
 On the Mac Mini, **NocoDB** (a spreadsheet-style UI over a Supabase Postgres database) holds the
