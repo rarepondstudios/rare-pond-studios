@@ -15,7 +15,9 @@
 > architecture, file paths and CMS field names only, **never tokens or credentials**. It is the
 > running handoff note the next chat reads first.
 >
-> Last updated: 2026-08-09 (eyebrow is production-only and JC has its own colour-look page from a
+> Last updated: 2026-08-09 (jackcarlsen.com reaches full parity with the template, see 0.0.-30;
+> page-access register + shared cover engine on both sites; eyebrow is production-only and JC has
+> its own colour-look page from a
 > SHARED master, see 0.0.-29. **The CMS is now built to a written standard, `SITE-TEMPLATE.md`,
 > which must be updated in the same commit as any standard section**, see 0.0.-28. Privacy email
 > wired into both privacy policies, two dead variables
@@ -30,6 +32,29 @@
 ---
 
 ## 0. LATEST SESSION (2026-08-05), READ THIS FIRST
+
+### 0.0.-30 JC GETS THE TWO TEMPLATES ITS DESIGN CAN SHOW, AND FULL PARITY (2026-08-09)
+
+**jackcarlsen.com now has the shared text-template mechanism**, `data/section-templates.json`
+plus `projVars`/`fillVars` in `index.html`, the same as RP. **It gets TWO templates, not four.**
+`cardEyebrowTemplate` drives the small line ABOVE the title in the home preview; a new
+`gridCaptionTemplate` drives a new line UNDER it. RP's other two, the project-page eyebrow and the
+grid caption, have nowhere to land on JC: its project pages have no eyebrow row and it has no
+bubble grid. **Two CMS boxes that changed nothing would be worse than none**, so the count is per
+site and the Projects screen says so.
+
+**The caption defaults to `{tagline}`, deliberately not `{kicker}`.** The kicker is already on
+screen directly above it, so defaulting to the obvious value would have printed the same sentence
+twice. Tagline is set on all 19 JC films and appears nowhere else in that overlay.
+
+**A template that fills to nothing renders NO element.** The caption is `hidden` when empty, with
+`[hidden]{display:none}` so it cannot be overridden by the flex layout, and the film title stays
+plain text wherever a film has no logo, which is most of them on JC. Verified live locally:
+Revision shows kicker `Surrealist drama short film`, plain-text title, caption
+`Some stories aren't meant for you.`, no JS errors.
+
+**`SITE-TEMPLATE.md` now has a full parity table with no gaps**, and a section explaining that the
+template count is per site rather than fixed at four.
 
 ### 0.0.-29 THE EYEBROW IS PRODUCTION-ONLY, AND JC HAS ITS OWN COLOUR-LOOK PAGE (2026-08-09)
 

@@ -116,7 +116,7 @@ Kept current deliberately, so the gaps are visible rather than discovered.
 |------------------|--------------|-----------------|
 | Site Settings | yes | yes |
 | Sub Sites | Media, Rentals | none, and none planned |
-| Projects | yes | **NOT YET.** See the note below. |
+| Projects | yes, four templates | yes, two templates |
 | Team | yes | no team page, correctly absent |
 | Custom Pages | yes | not yet needed |
 | Contact Popup | yes | yes |
@@ -125,16 +125,17 @@ Kept current deliberately, so the gaps are visible rather than discovered.
 | Maintenance Cover | yes | yes |
 | Legal Terms + Privacy | yes | yes |
 
-### One gap, and what it needs
+### The template count is per site, not fixed
 
-**Projects on jackcarlsen.com.** RP's Projects screen edits four shared templates that build the
-text around every film: a project-page eyebrow, the featured-card eyebrow, the featured-card
-logline, and the grid caption. JC's project pages have kicker, tagline and logline, but **no
-eyebrow line and no grid caption**, so only two of the four have anywhere to land. Wiring it needs
-either a decision to add those two elements to JC's design, or a JC template set of two. Do not
-ship four fields where two do nothing: dead CMS fields are the problem this template exists to
-prevent. **The template COUNT is per site, not fixed at four.** RP uses four; a site whose design
-has no grid caption gets three, and so on.
+RP uses FOUR shared templates: a project-page eyebrow, the featured-card eyebrow, the
+featured-card logline and the grid caption. **jackcarlsen.com uses two**, because its design has
+no project-page eyebrow row and no bubble grid to caption. Shipping four fields where two do
+nothing is exactly the dead-CMS-field problem this document exists to prevent, so a site gets the
+templates its design can actually show, and its `Projects` screen says how many and why.
+
+A template that fills to nothing renders NO element, never an empty one. That rule is what makes
+it safe to leave a variable unset: a film with no production company shows no eyebrow row, and a
+film with no tagline shows no caption line, rather than a gap where one should be.
 
 ## Standing up a new site
 
