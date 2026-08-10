@@ -74,9 +74,7 @@
    Must run in <head>, before the load event, or the browser has already decided. */
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=Kaushan+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
 <style>
 /* page-load veil - masks first-load asset pop-in; self-removing, never blocks interaction.
    Colour = a colour-look (data/site.json -> veil.colorLook) muted onto a dark base. */
@@ -1962,8 +1960,11 @@ function renderWatch(w){
   });
   const yt=links.find(L=>L.net==='youtube'), vim=links.find(L=>L.net==='vimeo');
   let embed='';
-  if(yt) embed=`<div class="u-embed"><button class="yt-facade" type="button" data-id="${yt.id}" aria-label="Play video on YouTube" style="background-image:url('https://i.ytimg.com/vi/${yt.id}/hqdefault.jpg')"><span class="yt-play"></span></button></div>`;
-  else if(vim) embed=`<div class="u-embed"><button class="vim-facade" type="button" data-id="${vim.id}" aria-label="Play video on Vimeo"><span class="yt-play"></span></button></div>`;
+  /* data-cursor="notilt": the cursor engine must NOT perspective-tilt the watch facade -
+     the tilt shifts the frame while the cursor's hug outline stays put, which reads as a
+     glitch on a big embed. Outline morph still applies; only the tilt is opted out. */
+  if(yt) embed=`<div class="u-embed"><button class="yt-facade" type="button" data-cursor="notilt" data-id="${yt.id}" aria-label="Play video on YouTube" style="background-image:url('https://i.ytimg.com/vi/${yt.id}/hqdefault.jpg')"><span class="yt-play"></span></button></div>`;
+  else if(vim) embed=`<div class="u-embed"><button class="vim-facade" type="button" data-cursor="notilt" data-id="${vim.id}" aria-label="Play video on Vimeo"><span class="yt-play"></span></button></div>`;
   let body='';
   if(btns) body=`<div class="watch-btns">${btns}</div>${embed}`;
   else if(w.status) body=`<div class="watch-status">${_wEsc(w.status)}</div>`;

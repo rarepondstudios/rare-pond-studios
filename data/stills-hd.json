@@ -78,10 +78,13 @@
   ],
   "/media/projects/revelations/stills/revelations-focus.jpg": [
    800,
-   1600
+   1600,
+   2048
   ],
   "/media/projects/invalid_opinion/stills/invalid_opinion-focus.jpg": [
-   800
+   800,
+   1600,
+   2560
   ]
  }
 }
