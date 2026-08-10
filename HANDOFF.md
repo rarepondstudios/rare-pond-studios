@@ -39,6 +39,52 @@
 
 ## 0. LATEST SESSION (2026-08-10), READ THIS FIRST
 
+### 0.0.-39 THE 25 MiB DEPLOY-FAILURE CLASS IS NOW UNREPEATABLE: DEPLOY MONITORING + SIZE GATES (2026-08-10)
+
+Follow-up to 0.0.-37D. That incident had two halves: an oversized file (guarded in
+reel_ingest since) and the BLINDNESS, 8 straight failed Cloudflare Pages deploys that
+nobody saw for a day because a failed deploy is silent (the push looks fine, the site
+keeps serving the previous build). Both halves are now closed.
+
+**1. Automation Health watches the deploys.** New `bts-automation/deploy_status_check.py`,
+called by `automation_health_launchd.py` every 15 min run: reads the LATEST main commit's
+"Cloudflare Pages" check run for BOTH site repos via the GitHub API (read-only, tokens from
+the existing askpass helpers) and renders a first "Site deploys" section on the Automation
+Health page. GREEN = deployed (or still building within 15 min of the push); RED = the
+check run concluded failure, is still running past 15 min, or never appeared 15 min after
+the push, with a copy-paste fix block that names the commit, links the Cloudflare check
+run, and points at `node tools/check-asset-sizes.mjs` + 0.0.-37D as the first move.
+Verified against history: the eight Aug 9 failures (1556f0e through 839a5cf, 50b2ef9)
+all classify RED failure; d168013 and the current heads classify GREEN success.
+**TRAP for anyone scripting the GitHub API here:** the askpass helpers return the PASSWORD
+only when the prompt contains "Password"; any other prompt returns the USERNAME, the API
+answers `Bad credentials`, and a naive `.get("check_runs", [])` reads that error as "no
+check runs". deploy_status_check treats a `message` payload as an error, never as empty.
+
+**2. Nothing oversized can reach a site repo quietly any more.** Three layers:
+- `tools/check-asset-sizes.mjs` in BOTH repos: scans every git-tracked file, WARN over
+  24 MiB, FAIL (exit 1) over 25 MiB (the Pages per-file cap). Chained into the end of
+  `tools/check-media-refs.mjs` on both repos, so the habitual pre-deploy command runs it
+  automatically; also runs standalone. Warnings never fail the run, so the legacy
+  `media/reels/vfx-reel.mp4` (26,138,907 bytes, 75 KB UNDER the cap, awaiting the
+  portfolio-reel rebuild) warns without blocking unrelated commits. Do not re-encode it.
+- `media_ingest.deployable_asset()`: shared publish-time gate, REFUSES (loudly, in the
+  job log) any file over the cap and warns in the 24-25 MiB band. Wired into every
+  exporter copy path that can put a big file into a repo: the jc_native_media_sync reel
+  publish, the projects_media_sync video publish, and the jc_projects_sync media mirror.
+  A refused reel leaves the repo's existing deployable clip and the NocoDB field alone.
+- `reel_ingest.py` (since 0.0.-37D) already re-encodes with a CRF ladder until the web
+  reel fits, so the normal pipeline never produces an oversized file in the first place.
+Tested: a scratch git repo with a fake 26 MiB file fails the tool (exit 1) and a 24.5 MiB
+file only warns; `deployable_asset` refuses the preserved 45 MiB Remember Me original and
+passes the shipped 16.4 MiB re-encode; all three exporters dry-run clean after the wiring.
+
+**Also verified end to end this session (all green):** three repos in sync with origin;
+latest commits on both site repos show Cloudflare Pages SUCCESS; live spot checks pass
+(clips byte-exact vs repo, 14-companion video-variants.json, BTS webp on both sites, the
+0.0.-37 stills + notilt + pj-bg fade all live); Automation Health page fresh with zero
+red across all sections including the new deploys section.
+
 ### 0.0.-38 ROUND 3: SELF-HOSTED FONTS BOTH SITES, POSTER WEBP TILES ON JC, DELETION-SAFETY SYSTEM (2026-08-09)
 
 **Google Fonts is gone from both sites.** Every page (index, media, rentals, legal, admin,

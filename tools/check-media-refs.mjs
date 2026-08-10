@@ -7,6 +7,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const refs = new Map(); // path -> first data file that references it
@@ -32,3 +33,10 @@ for (const [p, src] of [...refs.entries()].sort()) {
 }
 console.log(`${refs.size} media refs checked, ${missing} missing`);
 if (missing) process.exitCode = 1;
+
+/* deploy-cap gate, chained: one committed file over 25 MiB fails the WHOLE Cloudflare
+   Pages deploy while the site keeps serving the previous build (froze jackcarlsen.com
+   for a day on 2026-08-09, HANDOFF 0.0.-37D). Running it here means the habitual
+   pre-deploy command covers it on both repos; it also runs standalone. */
+const sz = spawnSync(process.execPath, [join(root, 'tools', 'check-asset-sizes.mjs')], { stdio: 'inherit' });
+if (sz.status) process.exitCode = 1;
