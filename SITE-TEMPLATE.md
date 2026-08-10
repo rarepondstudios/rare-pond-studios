@@ -133,12 +133,23 @@ BTS: grid + lightbox WebP (q90, same dimensions as the JPGs) on rarepond
 generated.
 
 **Video.** The dropped `*-reel-web.mp4` publishes untouched as the full-quality original.
-`video_variants.py` (run by `jc_native_media_sync`) guarantees, per video: a high-quality 720p
+The web encode itself is budgeted at the source (`reel_ingest.py`): 1920-wide H.264, CRF
+ladder 19 -> 21 -> 23 until the file averages <= ~3.5 Mbps (these are muted ambient loops
+served lazily, so first play waits on the download; CRF 23 is the quality floor for the
+budget, verified visually transparent, and only the 25 MiB Cloudflare Pages per-file cap
+can push the ladder further).
+`video_variants.py` (run by `jc_native_media_sync`, and by `projects_media_sync` for the
+rarepond repo since 2026-08-10) guarantees, per video in `media/reels`, `media/clips` AND
+`media/projects/*/video`: a high-quality 720p
 companion (`<name>-720.mp4`, H.264 CRF 19) whenever the original is taller than 720p, a poster
 (`<name>.jpg`, reels only, never overwriting a hand-made one), and an entry in
 `data/video-variants.json`, which is the manifest the site's `vsrc()` helper reads. Small
 screens and Save-Data connections get the companion; desktop always streams the original, so
-quality is never reduced where it can be seen. Off-viewport landing reels are paused by an
+quality is never reduced where it can be seen. On rarepond the small HOVER PREVIEWS (carousel
+side cards, projects-grid bubbles) additionally prefer the companion at every screen size
+(`psrc()`): they render a few hundred px wide, so 720p is beyond-retina there and the preview
+starts in a fraction of the time. Full-bleed surfaces (film-page background, featured card)
+keep the `vsrc()` rule. Off-viewport landing reels are paused by an
 IntersectionObserver, which changes nothing visually and cuts mobile streaming to a third.
 
 ## Which data files are generated, and which are yours

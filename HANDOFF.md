@@ -39,6 +39,54 @@
 
 ## 0. LATEST SESSION (2026-08-10), READ THIS FIRST
 
+### 0.0.-40 GERI'S SLOW-STARTING BACKGROUND: THE 1080p ROLLOUT MADE THE REELS 4-5x HEAVIER; BUDGETED ENCODES + ADAPTIVE VIDEO ON RP (2026-08-10)
+
+**Root cause.** Jack reported the geri-action background reel often not playing (film page
+bg + projects-bubble hover) until "a while", while invalid-opinion felt fine and the home
+preview always worked. Not a code bug: the 2026-08-09 1080p reel rollout re-encoded the web
+reels from the 4K masters at CRF 19, which multiplied them 4-5x (geri 2.6 -> 14.5 MiB at
+4.8 Mbps for a 24s loop; invalid 3.0 -> 12.2 MiB at 6.2 Mbps for 15.8s). Every RP consumer
+of these files is LAZY (`preload="none"` + data-src, reveal only when frames arrive), so
+first play waits on that download; the home preview "wins" only because syncFocusVideo
+gives the featured card its src early, so it buffers before Jack looks. Geri read as the
+broken one because it is the longest reel (most absolute bytes) and the film he opens most.
+
+**Fix 1, the files themselves (source + pipeline, no repo one-offs).** `reel_ingest.py`
+now budgets the web encode: CRF ladder 19 -> 21 -> 23 until the file averages <= ~3.5 Mbps
+(muted ambient loops; CRF 23 is the quality floor for the budget, only the 25 MiB cap can
+push further). Verified transparent before shipping: side-by-side frames (live-action, dark
+low-light, animation) and SSIM ~0.990 vs the shipped CRF 19 for both films. The pipeline
+itself regenerated the sources: geri landed at CRF 21 = 9.3 MiB (3.1 Mbps), invalid at
+CRF 23 = 6.8 MiB (3.5 Mbps); `projects_media_sync` republished both + NocoDB fields.
+
+**Fix 2, adaptive video extended to rarepond (SITE-TEMPLATE standard, JC parity).**
+`video_variants.py` VDIRS now includes `media/projects/*/video`, and `projects_media_sync`
+runs it and stages `data/video-variants.json`. RP index.html gained the manifest fetch
+(`__d[10]`), `V_SMALL`, `vsrc()` (companion on small screens / Save-Data, original
+everywhere else) and the RP-only `psrc()` (hover PREVIEWS always take the -720 companion:
+side cards and grid bubbles render a few hundred px wide, so 720p is beyond-retina there
+and the preview starts ~3x sooner). Wiring: `.bubble-vid`/`.side-vid` = psrc,
+`.u-vid`/`.focus-vid` = vsrc, plus JC's capture-phase -720 error fallback. Measured DOM:
+bubbles + side cards ask for the 5.5 MiB companions, desktop film bg keeps the 9.3 MiB
+original, phone film bg gets the companion, featured card unchanged.
+
+**Two traps paid for, do not repeat:**
+1. NEVER regenerate a web reel by MOVING the old one away: `reel_ingest._key()` infers the
+   film key from the existing `*-reel-web.mp4` name and falls back to the FOLDER slug, so
+   with the file gone it minted `geriaction-reel-web.mp4` / `invalid_opinion-reel-web.mp4`,
+   the sync published those as new videos and repointed NocoDB at them. Repaired same
+   session (sources renamed back, strays git-rm'd, NocoDB repointed, manifest rebuilt). To
+   force a regen, touch the MASTER in High Resolution Versions instead.
+2. `shutil.copy2` preserves the SOURCE mtime, which can predate an existing -720 companion
+   and mask a republish from video_variants' mtime staleness check (the companions stayed
+   derived from the old encodes). `projects_media_sync` now `os.utime()`s the published
+   copy; the stale companions were regenerated from the new encodes.
+
+**Status of the other films:** JC-native heroClips already had companions + V_SMALL, their
+project pages preload=auto behind the 0.0.-37B crossfade, and every one now passes back
+through the ambient budget the next time its master changes; nothing else on RP has a
+focus video. vfx-reel remains the known 0.0.-39 near-cap warning.
+
 ### 0.0.-39 THE 25 MiB DEPLOY-FAILURE CLASS IS NOW UNREPEATABLE: DEPLOY MONITORING + SIZE GATES (2026-08-10)
 
 Follow-up to 0.0.-37D. That incident had two halves: an oversized file (guarded in
