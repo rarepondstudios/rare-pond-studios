@@ -39,6 +39,40 @@
 
 ## 0. LATEST SESSION (2026-08-10), READ THIS FIRST
 
+### 0.0.-36 ROUND 2: HEARTBEAT ALERT, MEDIA-SOURCE WATCHDOG, SELF-HEALING SIZES, TWO SITE TEMPLATES (2026-08-09)
+
+**The mini can now say it is down.** A Claude scheduled task ("Mini heartbeat check", hourly)
+reads the Google Drive mirror's SYSTEMS-MAP.md modifiedTime; 3+ hours stale (mini, Synology
+backup task, NAS or Cloud Sync dead) sends Jack a push + email. Every other alert runs ON the
+mini, so this is the first alarm that survives the mini going dark.
+
+**New launchd job `com.rarepond.mediasource`** (every 15 min, through run_with_access.js after
+the bare-python TCC trap was confirmed live under launchd): goes RED on Automation Health when
+the Website Repository media source is unreachable, the state where every media sync idles as
+"skipping safely" while showing green, and it remounts /Volumes/RarePondNAS from the keychain by
+hostname (RarePondNAS.local, so it survives moving to a new network). Verified green under
+launchd.
+
+**Sizes heal themselves now.** 03-file-map.md's sizes table + disk line are a generated block
+(`bts-automation/context_sizes_block.py`, hourly via aicontextdocs, values rounded so the block
+only rewrites on a real change). Rule added to INSTRUCTIONS-FOR-AI: sizes and disk figures are
+never hand-typed anywhere in the context folder.
+
+**Two site templates, both kept current.** `SITE-TEMPLATE.md` (a site inside this system) now
+points at the new **`SITE-TEMPLATE-STANDALONE.md`**: the full playbook for a separate client
+site on their own free-tier accounts with no always-on machine (content model without NocoDB,
+media without the pipeline including a GitHub Actions option, remote-support model, cost table).
+The keep-in-step rule is written into both.
+
+**Also:** contacts-photoprep repointed to the FDA node@20 build (verified exit 0, 177 avatars);
+`ai_context_docs_sync.py` now mirrors SITE-TEMPLATE.md, SITE-TEMPLATE-STANDALONE.md and
+bts-automation/MEDIA-SPEC.md into the context folder (SITE-TEMPLATE's header claimed hourly
+bridging that was never actually wired); MEDIA-SPEC's three "Project Repository" mentions
+conformed to the on-disk name, Website Repository; STREAMLINE-ROADMAP gained §3a with measured
+Lighthouse targets; bloat purge per Jack's approval (Blender bake caches + .blend1 saves, the
+LM-era home logs, three loose one-off scripts, Review Stills; about 1 GB, all recoverable from
+the Trash).
+
 ### 0.0.-35 REEL QC PASS: THREE 1080p WEB REELS WERE WRONG AND WERE REBUILT (2026-08-10)
 
 **Glitch QC of all 16 re-encoded 1080p web reels against the archived 720p edits of record**

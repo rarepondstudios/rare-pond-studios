@@ -9,6 +9,13 @@
 > It bridges hourly into the context folder as
 > `project-docs/rp_site_work__SITE-TEMPLATE.md`, so a session with no device access can read it.
 >
+> **Two templates exist and both stay current.** This file is the standard for a site INSIDE
+> Jack's system (NocoDB + exporters + Synology media tree; a new site is one `sites.json`
+> entry). **`SITE-TEMPLATE-STANDALONE.md`** is the playbook for a fully separate site for
+> someone else: their accounts, no connection to this backend, no always-on machine required.
+> When a standard section changes here, check in the same commit whether the standalone
+> playbook needs the matching change.
+>
 > Last updated: 2026-08-09.
 
 ## What a site is made of

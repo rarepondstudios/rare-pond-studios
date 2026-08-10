@@ -95,6 +95,28 @@ collapse). The footer/header/lightbox work should look exactly like these when d
   deep links 404 at the old forwarder, share www links until then); CSP report-only;
   branch protection.
 
+## 3a. Measured targets (Lighthouse mobile, 2026-08-09, run from the mini)
+
+rarepond.com: perf 55, LCP 11.7s, CLS 0.164, 12.3 MB transferred.
+jackcarlsen.com: perf 45, LCP 14.1s, TBT 1.4s, 15.7 MB transferred.
+Desktop is comfortable on both; the cost is mobile bytes. Sources, largest first:
+
+- JC posters: 19 hand-dropped JPGs at 450-870 KB each, no WebP/srcset derivatives
+  (~3.3 MB recoverable on a phone). Wire poster derivatives into the exporters so a NEW
+  poster drop auto-optimizes with no workflow change.
+- RP home carousel streams `media/projects/geri_action/video/geri-action-reel.mp4` (10 MB) on
+  every device. JC's landing reels got the 720p companion + poster + IntersectionObserver pause
+  in HANDOFF 0.0.-33; give the RP carousel the same vsrc() treatment.
+- Bubble JPGs served full-size into small slots on BOTH sites (e.g. geri-bubble.jpg, 370 KB).
+  Add srcset derivatives like stills/BTS already have.
+- Google Fonts is render-blocking ~0.8s on both sites: self-host the woff2 files with
+  font-display so paint does not wait on fonts.googleapis.com.
+- RP mobile CLS (0.164) comes from carousel imagery without reserved aspect-ratio space.
+
+Rule for all of it, per the media standard: never degrade a master, desktop keeps streaming the
+original; derive and select per screen, and make every derivation automatic on drop so Jack's
+workflow does not change.
+
 ## 4. Definition of done for the streamline pass
 
 1. One shared engine each for footer, header, lightbox (+ reel), with per-site config;
