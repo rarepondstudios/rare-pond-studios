@@ -37,7 +37,33 @@
 
 ---
 
-## 0. LATEST SESSION (2026-08-09), READ THIS FIRST
+## 0. LATEST SESSION (2026-08-10), READ THIS FIRST
+
+### 0.0.-35 REEL QC PASS: THREE 1080p WEB REELS WERE WRONG AND WERE REBUILT (2026-08-10)
+
+**Glitch QC of all 16 re-encoded 1080p web reels against the archived 720p edits of record**
+(`bts-automation/backups/webreels_720_20260809/`), shot-boundary comparison plus frame-accurate
+content alignment plus visual contact sheets. 13 reels verified clean. Three had real defects in
+their High Resolution Versions masters, which the 2026-08-09 web re-encode had faithfully copied
+to the live sites:
+
+**The Animator:** opening shot had a burned-in timecode overlay and wrong focus (pulled from the
+timecoded film master instead of `Bobb Lands VFX (V4).mov`, which is actually TWO shots with a
+hidden jump cut at 1.8s), and the final shot froze on its last ~0.5s. **Revision:** shot 2 missed
+its first ~0.5s (the blue-paper action); deeper finding, the entire original reel was cut from
+`Revision Cut V2 (June 7 2024) COLOR.mov`, not the Color Class Cut, so the reel was rebuilt from
+V2 and the opening letter macro is now TRUE 1080 instead of a 720 upscale. **Remember Me:** shot 1
+in-point ~3 frames late and one cut landed 3 frames early. All three hi-res masters rebuilt
+frame-exactly (verified zero misalignment against the 720p edits of record), web reels re-encoded
+per MEDIA-SPEC (1920-wide, CRF 19, slow, 30fps CFR, muted, faststart) and dropped into each film's
+`Project Video/`; the sync pipeline published them automatically. FCPXMLs for those three films
+regenerated with the corrected sources. Defective files stashed in `/tmp/reelqc/replaced/` (temp).
+
+**Also:** the 6 films that were missing FCPXMLs in their `High Resolution Versions/` folders
+(Incoherent, Lights Up, Parting Piece, Spotlight ABAY, The Duckling, Vantage Point) now have
+frame-verified ones there. Older draft copies still sit in each film's `Project Video/` root with
+slightly wrong durations; superseded, Jack may want them removed. Handbook section 3 and Changelog
+updated. Websites were not touched by hand.
 
 ### 0.0.-34 FULL-REVIEW PASS: CMS DESCRIPTIONS TIGHTENED, STALE SWITCH POINTERS FIXED, NODE PINNED (2026-08-09)
 
