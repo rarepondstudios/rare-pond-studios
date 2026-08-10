@@ -39,6 +39,59 @@
 
 ## 0. LATEST SESSION (2026-08-10), READ THIS FIRST
 
+### 0.0.-37 FOCUS STILLS AT FULL RES + BG-VIDEO CROSSFADE ON JC + WATCH EMBED STOPS TILTING (2026-08-10)
+
+**A. The "one still renders smaller" report (Geri-Action, Invalid Opinion) was the LIGHTBOX,
+not the grid.** Grid tiles were always identical (16/9 aspect-ratio box + object-fit cover,
+measured identical on every film, both sites). But `.lightbox img` sizes to the image's natural
+resolution, so the FOCUS still, the only one whose data-full pointed at a small file, opened
+visibly smaller than its 2560/2048 siblings. Three separate causes, all fixed:
+1. `invalid_opinion-focus` was genuinely low-res: its Focus Image source is only 1500px wide, so
+   the sync's ladder capped at [800] and the "-1600.jpg" was actually 1500x844. Re-pulled the
+   frame from the ProRes master on the NAS per STILLS.md (`.../Invalid Opinion Skit/Cuts/Invalid
+   Opinion COMPLETE.mov`, 3840x2160, coarse 1s scan + wide refine matched t=37.429s at distance
+   3.49; decoded with in_range=tv:in_color_matrix=bt709; tone-matched per channel to the old
+   still, residual 3.68). New 800/1600/2560 webp + true 1600 jpg + 1000 base, both repos.
+2. `revelations-focus` capped at [800,1600] although its source is the native-2K 2048px
+   rev-earth-1: the sync LADDER (800/1600/2560) has no 2048 rung, so a 2K film silently loses
+   its top width. Generated the 2048 webp from the same source and registered it, matching the
+   film's other stills.
+3. jackcarlsen's `data/stills-hd.json` (hand-maintained; the sync only writes the RP copy and
+   `jc_projects_sync` mirrors media, not this file) was missing ALL THREE focus entries, so JC
+   rendered them as plain 1000px `<img>`s. Added the three entries; also added the missing
+   `.still picture{...}` parity rule to JC CSS.
+   Every tile in every film's Stills grid now opens its film's max width on both sites (verified
+   per tile with Playwright). KNOWN leftovers, pre-existing and left alone: JC-native films with
+   mixed still widths (synesthesia 4x2560+1792, no master exists; the_animator 3x2560+2x1920;
+   vantage_point ~1080s) only differ in the lightbox on very large screens.
+   **Drift note:** the Focus Image SOURCE folder still holds the 1500px invalid-focus.jpg (pull
+   only by convention, not overwritten). The sync will not clobber the repo derivatives (it only
+   republishes when `<base>-1600.webp` is missing), but if those repo files are ever removed it
+   would regenerate an [800] ladder from that 1500px source; the graded 3840px master frame from
+   this session was left at /tmp/rp/invalid_focus_graded.png for Jack to drop into Focus Image
+   if he wants the folder to be the true source again (a session /tmp, so re-derive per STILLS.md
+   if it is gone: master path + t above).
+
+**B. jackcarlsen project-page background video no longer pops in.** `renderProjectPage` built
+`.pj-bg` as a bare `<video ... poster=still>`: the poster hard-cuts to the first video frame the
+moment playback starts. Now the still paints as a real `<img>` UNDER the video, the video starts
+at opacity 0 and fades in over .8s only once `canplay`/`playing` fires (same reveal-when-ready
+pattern as RP's .focus-vid and the JC hero); on error nothing reveals and the still simply
+stays. CSS: `.pj-bg video/img` are absolutely stacked, `.pj-bg video.ready{opacity:1}`.
+Considered and NOT built: a colour-look splash cover over the page while the video buffers,
+rejected as heavier than the problem; described in the session report if Jack still sees a
+jarring moment on slow connections.
+
+**C. The watch embed no longer shifts under the cursor (both sites).** The shared cursor engine
+perspective-tilts any hovered interactive element toward the mouse (cursor.js tilt block), and
+the YouTube/Vimeo click-to-load facade button qualified, so the big frame rotated while the
+cursor's hug outline stayed on the untransformed rect: the "glow outline stops hugging the
+iframe" glitch. Fix is the engine's own opt-out convention, `data-cursor="notilt"`, added to the
+`.yt-facade` / `.vim-facade` buttons in BOTH repos' renderWatch. No cursor.js change, so no
+version bump and no social_ui_sync republish; nothing else's cursor behaviour changed (outline
+morph still applies to the facade, only the tilt is gone). After the click the facade becomes an
+iframe, which the engine never tilted.
+
 ### 0.0.-36 ROUND 2: HEARTBEAT ALERT, MEDIA-SOURCE WATCHDOG, SELF-HEALING SIZES, TWO SITE TEMPLATES (2026-08-09)
 
 **The mini can now say it is down.** A Claude scheduled task ("Mini heartbeat check", hourly)

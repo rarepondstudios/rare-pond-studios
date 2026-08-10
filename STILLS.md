@@ -32,6 +32,17 @@ Revelations is only 2K, so its stills cap at 2048 px wide. **We do not upscale i
 2560.** If a 4K Revelations export ever exists, re-run the pipeline and bump its widths in
 `data/stills-hd.json`.
 
+**Focus stills are stills too** (2026-08-10). The `<key>-focus` image each film's page uses as
+its background is published into the same stills set and MUST carry the same widths as its
+siblings, on BOTH sites (jackcarlsen's `data/stills-hd.json` is hand-maintained; the media sync
+only writes the rarepond copy). Two traps found and fixed that day: (1) `projects_media_sync`'s
+LADDER is 800/1600/2560 with no 2048 rung, so a native-2K focus source silently tops out at
+1600 - add the 2048 by hand for 2K films; (2) a low-res file dropped in `Focus Image/` caps the
+whole ladder (invalid-focus.jpg at 1500px produced [800] plus a "-1600.jpg" that was really
+1500px) - the fix is this pipeline against the film master, never a bigger re-export of the
+small file. `invalid_opinion-focus` was re-pulled from `Invalid Opinion COMPLETE.mov` at
+t=37.429s (match distance 3.49).
+
 ---
 
 ## Colour - get this right or the grade shifts
