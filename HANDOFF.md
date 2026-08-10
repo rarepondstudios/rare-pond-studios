@@ -39,6 +39,37 @@
 
 ## 0. LATEST SESSION (2026-08-10), READ THIS FIRST
 
+### 0.0.-38 ROUND 3: SELF-HOSTED FONTS BOTH SITES, POSTER WEBP TILES ON JC, DELETION-SAFETY SYSTEM (2026-08-09)
+
+**Google Fonts is gone from both sites.** Every page (index, media, rentals, legal, admin,
+maintenance; 14 files across the two repos) now loads `/assets/fonts/fonts.css`: the same
+families, weights and swap behavior the pages always had, served same-origin (66 woff2 faces
+here, 31 on JC; a browser fetches only the subsets a page renders). Removes ~0.8s of
+render-blocking cross-origin chain on mobile with zero visual change. The admin colorlooks
+MASTER in bts-automation was changed the same way so `socialuisync` cannot revert it, and both
+repos' fonts.css carry the union of families because that shared page skins per host.
+`_headers` caches `/assets/fonts/*` immutable for a year.
+
+**JC poster tiles serve 800w WebP.** All 16 posters got a `<name>-800.webp` companion (about
+80% smaller; tiles render at 200-320 CSS px, so 800w keeps 2.5x+ density and desktop quality is
+unchanged; og:image and the full JPGs untouched). The renderer adds srcset via `vposterSet()`
+with an inline onerror that strips srcset, so a future poster dropped WITHOUT a companion
+self-heals to its JPG, the same pattern as the -720 reel sources. Poster derivation should
+still join the pipeline (roadmap 3a) so future drops auto-optimize.
+
+**Verified before push:** headless Chrome against both repos served locally: zero console
+errors, Poppins/Heebo loading from the local files, wall tiles serving the -800.webp. Bubble
+srcset and the RP carousel reel companion are deliberately NOT in this pass: both live in files
+the parallel session is editing tonight, and per the roadmap ground rules they get the harness.
+
+**Deletion safety, after two review mislabels:** `03-file-map.md` gained a "Before you call
+something junk" section (reference-grep checklist, misleading-names table, Trash-never-rm), and
+`!ACTIVE` marker files now sit inside `website-emergency-backups` (the live weekly backup
+target) and `local-ai-hub` (hosts the live card_service). New `07-relocation-and-recovery.md`
+covers power loss, mini-down alerting (the Claude scheduled task now, plus
+`bts-automation/nas_heartbeat_check.sh` ready for DSM as the AI-independent replacement) and
+the moving-homes checklist; START-HERE points at it.
+
 ### 0.0.-37 FOCUS STILLS AT FULL RES + BG-VIDEO CROSSFADE ON JC + WATCH EMBED STOPS TILTING (2026-08-10)
 
 **A. The "one still renders smaller" report (Geri-Action, Invalid Opinion) was the LIGHTBOX,

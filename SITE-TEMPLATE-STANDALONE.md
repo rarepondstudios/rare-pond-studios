@@ -51,14 +51,19 @@ Total: about the price of the domain per year. No subscriptions required for ful
    descriptions (with no pipeline, the specs in the CMS are the only thing standing between an
    8 MB phone photo and the live site). Regenerate `data/page-index.json` by hand or with
    `page_index_sync.py` run once locally, and keep `tools/check-page-switches.mjs` green.
-4. **Media without the pipeline.** Two tiers, pick per client:
-   - **Hand-exported (default, zero infrastructure):** export to the specs the CMS shows on each
-     upload field (sRGB 8-bit, WebP/JPG, the standard sizes, under 600 KB, never upscale).
+4. **Media without the pipeline, same standard as the live sites:** the client's masters stay at
+   FULL resolution (video 1080p or better, images at capture size) and are never degraded; what
+   the web serves is DERIVED from the master by downscaling, and the site picks per screen.
+   Desktop streams the full-quality 1080p web encode; small screens get the 720p companion;
+   images ship as WebP at the standard widths with the original format kept as fallback. Never
+   upscale anything. Two ways to produce the derivatives:
+   - **Hand-exported (default, zero infrastructure):** from the master, export to the specs the
+     CMS shows on each upload field (sRGB 8-bit, WebP/JPG, the standard sizes, under 600 KB),
+     plus the 1080p web encode and, for any reel taller than 720p, a CRF-19 720p companion.
    - **Auto-derived (nice to have, still $0 and no machine):** a GitHub Action in their repo
-     watches `media-masters/`, and on push writes WebP derivatives at the standard widths plus a
-     manifest, exactly what the launchd syncs do at home, but run by GitHub's free runners
-     (free minutes are ample for a portfolio site's edit rate). Video: drop the web reel; the
-     Action can also make the 720p companion with ffmpeg when a master is taller than 720p.
+     watches `media-masters/`, and on push writes the WebP sizes, the 1080p web encode and the
+     720p companion with ffmpeg, plus a manifest, exactly what the launchd syncs do at home, but
+     run by GitHub's free runners (free minutes are ample for a portfolio site's edit rate).
 5. **Cloudflare.** Create the Pages project on THEIR account, connect the repo, no build step
    (framework: none). Set the per-site secrets in the Pages project (the `/admin/` gate password
    variables named in `functions/_middleware.js`). Point their domain's DNS at Pages, apex AND
