@@ -117,6 +117,13 @@ Rule for all of it, per the media standard: never degrade a master, desktop keep
 original; derive and select per screen, and make every derivation automatic on drop so Jack's
 workflow does not change.
 
+**Status (2026-08-10):** fonts self-hosted on both sites (HANDOFF 0.0.-38, live). RP adaptive
+video + budgeted reel encodes shipped (0.0.-40). Poster tiles (0.0.-38) and bubble images on
+both sites (0.0.-41) serve WebP companions with the onerror JPG self-heal, via ONE-SHOT
+generation. STILL QUEUED for this pass: companion generation joins the exporters
+(projects_media_sync bubble path + the jc poster path) so future drops auto-derive, and the
+carousel aspect-ratio reservation for RP's mobile CLS.
+
 ## 4. Definition of done for the streamline pass
 
 1. One shared engine each for footer, header, lightbox (+ reel), with per-site config;

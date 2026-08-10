@@ -39,6 +39,28 @@
 
 ## 0. LATEST SESSION (2026-08-10), READ THIS FIRST
 
+### 0.0.-41 CLOSE-OUT: BUBBLE WEBP ON BOTH SITES, HEALTH PAGE NAMES ITS OFF-MINI ALARMS, REEL HANDBOOK FILED (2026-08-10)
+
+**Bubble images on BOTH sites now serve WebP companions.** `bubbleSet()` adds
+`<name>-800.webp 800w, <name>-1200.webp 1200w` srcset with the inline onerror JPG self-heal
+(same pattern as the poster tiles and the -720 reel sources); 12 companions generated one-shot
+(6 bubbles x2 sizes, cwebp q85, the -1200 is the full-size master width, never upscaled).
+Wired here on the carousel side/featured cards AND the projects-grid bubbles, and on JC's hero
+bubbles. Verified headless (zero console errors, both sites) and the full pre-deploy suites are
+green (the near-cap vfx-reel warning is the known 0.0.-39 item). Companion generation still
+belongs in the exporters, tracked in roadmap 3a's status block.
+
+**The Automation Health page now names its own watchdogs.** Its header explains that the page
+can only update while the mini is alive, and points at the two off-mini alarms: the hourly
+Claude "Mini heartbeat check" (push + email at 3h stale) and the NAS-side
+`nas_heartbeat_check.sh` for DSM Task Scheduler (no AI involved, installs in ~5 min, steps in
+the script header).
+
+**The Hi-Res Reel System Handbook has a proper home:** moved from ~/Downloads to
+`bts-automation/REEL-SYSTEM-HANDBOOK.md` (git-tracked, and mirrored hourly into the context
+folder's project-docs alongside MEDIA-SPEC, so future reel sessions find it without knowing to
+look in Downloads).
+
 ### 0.0.-40 GERI'S SLOW-STARTING BACKGROUND: THE 1080p ROLLOUT MADE THE REELS 4-5x HEAVIER; BUDGETED ENCODES + ADAPTIVE VIDEO ON RP (2026-08-10)
 
 **Root cause.** Jack reported the geri-action background reel often not playing (film page

@@ -1202,6 +1202,12 @@ const EYEBROW_TPL=(TPL.eyebrowTemplate||SITE.eyebrowTemplate||'{production} · {
 const CARD_EYEBROW_TPL=(TPL.cardEyebrowTemplate||SITE.cardEyebrowTemplate||'{kicker}');
 const CARD_LOGLINE_TPL=(TPL.cardLoglineTemplate||SITE.cardLoglineTemplate||'{logline}');
 const GRID_CAPTION_TPL=(TPL.gridCaptionTemplate||SITE.gridCaptionTemplate||'{kicker}');
+/* Bubble images: serve the WebP companions (<name>-800.webp / <name>-1200.webp beside the JPG)
+   where they exist. The inline onerror strips srcset so a future bubble dropped WITHOUT
+   companions self-heals to its JPG, the same pattern as the poster tiles on jackcarlsen and the
+   -720 reel sources. Companion generation should join projects_media_sync (roadmap 3a). */
+const bubbleSet=src=>{const m=String(src||'').match(/^(\/media\/projects\/[^?]*bubble[^\/?]*)\.jpg(\?.*)?$/);
+  return m?` srcset="${m[1]}-800.webp 800w, ${m[1]}-1200.webp 1200w" sizes="(max-width:760px) 62vw, 520px" onerror="this.onerror=null;this.removeAttribute('srcset')"`:'';};
 const PROJECTS=__projects.map(p=>({key:p.key,title:p.title,sub:p.kicker,img:p.bubbleImage,logo:p.titleLogo,blurb:p.blurb,focusBg:p.focusBg,focusVideo:p.focusVideo||'',characters:[],logline:(p.logline||p.pageLogline||p.blurb),placeholder:!!p.placeholder,inCarousel:p.inCarousel!==false}));
 const SECTIONS=Object.fromEntries(__projects.filter(p=>!p.placeholder).map(p=>[p.key,{theme:'theme-'+p.key,bg:p.focusBg,focusVideo:p.focusVideo||'',logo:p.titleLogo,kicker:p.kicker,title:p.title,tagline:p.tagline,logline:(p.logline||p.pageLogline),genre:p.genre||[],type:p.type||'',medium:p.medium||'',watch:buildWatch(p),stills:p.stills||[],credits:p.credits,rpThoughts:(p.rpThoughts||''),rpShowThoughts:!!p.rpShowThoughts,vars:VARS[p.key]}]));
 const TEAM=__d[2].team;
@@ -1534,7 +1540,7 @@ function makeGridBubble(p,i){
     });
   }
   const mediaHTML=p.placeholder?`<div class="bubble__media placeholder-fill"></div><div class="ph-logo" style="-webkit-mask:url('${SITE.logos.duckMark}') center/contain no-repeat;mask:url('${SITE.logos.duckMark}') center/contain no-repeat"></div><div class="ph-spin"></div>`
-    :(p.poster?'<div class="bubble__media poster"></div>':`<img class="bubble__media" decoding="async" src="${p.img}" alt="${p.title}">`);
+    :(p.poster?'<div class="bubble__media poster"></div>':`<img class="bubble__media" decoding="async" src="${p.img}"${bubbleSet(p.img)} alt="${p.title}">`);
   /* ===== PROJECTS-PAGE HOVER-PREVIEW REEL =========================================
      Same behaviour as the home carousel's side cards: a real film (not a placeholder,
      not a poster-only bubble) that has a reel (p.focusVideo - projects.json "focusVideo",
@@ -1687,7 +1693,7 @@ const citems=CAROUSEL.map((p,i)=>{
      glow here (the featured card IS enterable, "dive in"); it only fades on the side cards,
      which the focus-vs-enter rule handles. */
   el.setAttribute('data-cursor','kbnative nohug');
-  const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" decoding="async" src="${p.img}" alt="${p.title}">`;
+  const side=p.poster?'<div class="side-view cposter"></div>':`<img class="side-view" decoding="async" src="${p.img}"${bubbleSet(p.img)} alt="${p.title}">`;
   /* only films with a reel AND a real still (not the placeholder poster) get a hover video */
   const sideVid=(!p.poster&&p.focusVideo)?`<video class="side-vid" data-src="${psrc(p.focusVideo)}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
   /* data-cursor="noscan" on the decorative layers BEHIND the visible card (.cdrop = stretched
