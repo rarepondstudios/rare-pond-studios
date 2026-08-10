@@ -19,7 +19,7 @@ content:
         label: "🚧 THIS PAGE IS OPEN TO THE PUBLIC"
         type: boolean
         default: true
-        description: "ON is normal. Switch it OFF and anyone who goes to this page gets the 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: a link you have shared does not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page on this site has this switch at the top of its own screen; there is no second place to look."
+        description: "ON is normal. OFF sends anyone visiting this page a 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: shared links do not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page has this switch at the top of its own screen; there is no second place to look."
 
       - name: route
         label: "🔗 The address this screen controls"
@@ -35,7 +35,7 @@ content:
         label: "📐 READ ME - image specs for every upload on this site"
         type: text
         readonly: true
-        description: "COLOR (applies to EVERY image): export sRGB, 8-bit. Do NOT export Display P3 or Adobe RGB - browsers will render them wrong (usually oversaturated). If you are exporting a frame from a video: video is Rec.709 and usually LIMITED range (16-235); it must be converted to sRGB FULL range (0-255), or blacks look milky and washed out. || SIZES: Film stills 2560x1440 (16:9). Page/feature backgrounds 2560x1440. Project bubbles 1200x1200 square. Team photos 800x800 square. Logos: transparent PNG, 1400 px+. Header duck mark 512x512 PNG. || FORMAT: photos = JPG or WebP (WebP preferred, ~30% smaller). Anything needing transparency = PNG. Keep every file under 600 KB. || NEVER UPSCALE a small image to hit these numbers - it just adds blur and weight. Better a sharp 1600 px file than a soft fake 2560. || Full detail + the stills pipeline: see STILLS.md and README.md in the repo."
+        description: "COLOR, every image: export sRGB 8-bit. Never Display P3 or Adobe RGB: browsers render them wrong (usually oversaturated). Video frames: video is Rec.709 and usually LIMITED range (16-235); convert to sRGB FULL range (0-255) or blacks look milky. || SIZES: film stills 2560x1440 (16:9). Page/feature backgrounds 2560x1440. Project bubbles 1200x1200. Team photos 800x800. Logos: transparent PNG, 1400 px+. Header duck mark 512x512 PNG. || FORMAT: photos JPG or WebP (WebP preferred, ~30% smaller); anything needing transparency PNG; every file under 600 KB. || NEVER UPSCALE to hit these numbers: a sharp 1600 px file beats a soft fake 2560. || Full detail + the stills pipeline: STILLS.md and README.md in the repo."
       - name: home
         label: Home / Projects background
         type: object
@@ -44,7 +44,7 @@ content:
             label: "🫧 Background bubble count"
             type: number
             default: 28
-            description: "How many ambient floating bubbles drift behind the home and Projects backgrounds. Default 28. RECOMMENDED MAXIMUM ~40 - these bubbles are animated and GPU-composited, so higher counts can hurt rendering performance on weaker phones and laptops. It is CRITICAL the site stays smooth on ALL devices, so raise this gently and only if it still feels light on a mid-range phone. Leave blank to use the default. (Hard-capped at 60 in code as a safety net.) Takes effect on the next page load after saving."
+            description: "How many ambient bubbles drift behind the home and Projects backgrounds. Default 28, RECOMMENDED MAX ~40: the bubbles are animated and GPU-composited, and the site must stay smooth on ALL devices, so raise gently and only if a mid-range phone still feels light. Leave blank for the default. Hard-capped at 60 in code. Takes effect on the next page load after saving."
       - name: veil
         label: "✨ Page-load fade"
         type: object
@@ -178,7 +178,7 @@ content:
         label: "🚧 THIS PAGE IS OPEN TO THE PUBLIC"
         type: boolean
         default: true
-        description: "ON is normal. Switch it OFF and anyone who goes to this page gets the 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: a link you have shared does not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page on this site has this switch at the top of its own screen; there is no second place to look."
+        description: "ON is normal. OFF sends anyone visiting this page a 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: shared links do not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page has this switch at the top of its own screen; there is no second place to look."
 
       - name: route
         label: "🔗 The address this screen controls"
@@ -190,7 +190,7 @@ content:
         label: "✏️ Rare Pond Media, the /media pitch site"
         type: string
         readonly: true
-        description: "Everything on rarepond.com/media. Edit the text and swap the main images here. The cinematic showcase + on-set photos default to existing project stills/BTS, but you can replace any of them. Images you upload go to the shared media library and are referenced as /media/... . In each heading, the 'accent' field is the word shown in the signature gradient. It must appear (spelled + cased) exactly within that heading, or nothing is highlighted. Leaving a text box blank keeps the page's built-in default for that item. IMAGE SPECS: export sRGB, 8-bit (never Display P3 / Adobe RGB). Backgrounds + stills 2560x1440 (16:9); on-set photos 16:9 or 4:3; keep every file under 600 KB; never upscale."
+        description: "Everything on rarepond.com/media. Edit the text and swap the main images here. The cinematic showcase + on-set photos default to existing project stills/BTS; replace any of them. Uploaded images go to the shared media library and are referenced as /media/... . In each heading, the 'accent' field is the word shown in the signature gradient; it must appear exactly (spelled + cased) within that heading or nothing is highlighted. A blank text box keeps the page's built-in default. IMAGE SPECS: sRGB 8-bit (never Display P3 / Adobe RGB); backgrounds + stills 2560x1440 (16:9); on-set photos 16:9 or 4:3; under 600 KB; never upscale."
       - name: navBlurb
         label: "🏷️ Header hover blurb (what Rare Pond Media is)"
         type: string
@@ -257,7 +257,7 @@ content:
         label: "🚧 THIS PAGE IS OPEN TO THE PUBLIC"
         type: boolean
         default: true
-        description: "ON is normal. Switch it OFF and anyone who goes to this page gets the 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: a link you have shared does not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page on this site has this switch at the top of its own screen; there is no second place to look."
+        description: "ON is normal. OFF sends anyone visiting this page a 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: shared links do not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page has this switch at the top of its own screen; there is no second place to look."
 
       - name: route
         label: "🔗 The address this screen controls"
@@ -324,7 +324,7 @@ content:
         label: "🚧 THIS PAGE IS OPEN TO THE PUBLIC"
         type: boolean
         default: true
-        description: "ON is normal. Switch it OFF and anyone who goes to this page gets the 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: a link you have shared does not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page on this site has this switch at the top of its own screen; there is no second place to look."
+        description: "ON is normal. OFF sends anyone visiting this page a 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: shared links do not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page has this switch at the top of its own screen; there is no second place to look."
 
       - name: route
         label: "🔗 The address this screen controls"
@@ -336,18 +336,18 @@ content:
         label: "✏️ EDIT HERE: shared text templates for every film"
         type: string
         readonly: true
-        description: "The four boxes below are the SHARED templates for the lines of text the site builds around every film. Write each one ONCE and it applies to EVERY project - the site fills in each film's own values (from NocoDB) wherever you put a {variable} in curly braces. Change the wording of the LINE here; change each film's actual CONTENT (kicker, tagline, logline, credits) in NocoDB. AVAILABLE VARIABLES: {title}, {year}, {production}, {status}, {released} (smart: year if set, otherwise status), {kicker}, {tagline}, {genre}, {logline}. Empty variables - and any separator left dangling next to them, like a stray ' · ' - are dropped automatically. TIP: see any template rendered live against a real film at rarepond.com/admin/preview before you save."
+        description: "The four boxes below are the SHARED templates for the text lines the site builds around every film. Write each once and it applies to EVERY project: the site fills in each film's values (from NocoDB) wherever you put a {variable}. Change the wording of the LINE here; change a film's CONTENT (kicker, tagline, logline, credits) in NocoDB. VARIABLES: {title}, {year}, {production}, {status}, {released} (year if set, otherwise status), {kicker}, {tagline}, {genre}, {logline}. Empty variables, plus any separator left dangling beside them (a stray ' · '), are dropped automatically. TIP: see any template rendered live against a real film at rarepond.com/admin/preview before you save."
       - name: nocodbNote
         label: "📋 The project list itself is edited in NocoDB (read-only here)"
         type: string
         readonly: true
-        description: "The films themselves - their names, images, which sites show each one, colour look, carousel and glow toggles, per-film text (kicker, tagline, logline, credits), and order - all live in the shared database and are edited in NocoDB at http://localhost:8080, where you can also see each project by name with its bubble thumbnail. A background sync rebuilds the site from there automatically, so there is nothing to edit for the list itself on this screen. To OPEN or CLOSE the whole Projects page to the public, use SITE SETTINGS → 'Projects page is OPEN to the public'. Colour palettes live in COLOR LOOKS. The boxes ABOVE are the only editable things here - they control the shared wording, not the individual films."
+        description: "The films themselves (names, images, which sites show each one, colour look, carousel and glow toggles, per-film text, order) live in the shared database, edited in NocoDB at http://localhost:8080, where each project shows with its bubble thumbnail. A background sync rebuilds the site from there automatically, so the list itself is not edited on this screen. To OPEN or CLOSE the Projects page, use the switch at the top of this screen. Colour palettes live in COLOR LOOKS. Only the boxes ABOVE are editable here: they control the shared wording, not the individual films."
 
       - name: eyebrowTemplate
         label: "🏷️ Project page: eyebrow (top-right label)"
         type: string
         default: "{production}"
-        description: "The small uppercase label at the top-right of each film's own page. It is the PRODUCTION COMPANY on its own, because the year is already shown elsewhere on both sites and repeating it read as clutter. A film with no production company set renders NO label at all rather than an empty line, so this is safe to leave unset. Other variables still work if you want them: '{production} · {released}' would show 'Rare Pond Studios · 2026' (or '· In Post-Production' when there is no year yet), and any variable that is empty, plus a separator left dangling beside it, is dropped automatically."
+        description: "The small uppercase label at the top-right of each film's own page. It is the PRODUCTION COMPANY on its own, because the year already shows elsewhere on both sites and repeating it read as clutter. A film with no production company renders NO label rather than an empty line, so leaving this unset is safe. Other variables still work: '{production} · {released}' shows 'Rare Pond Studios · 2026' (or '· In Post-Production' when there is no year yet), and an empty variable plus a dangling separator is dropped automatically."
       - name: cardEyebrowTemplate
         label: "🏷️ Home featured card: small line above the title"
         type: string
@@ -372,7 +372,7 @@ content:
         label: "🚧 THIS PAGE IS OPEN TO THE PUBLIC"
         type: boolean
         default: true
-        description: "ON is normal. Switch it OFF and anyone who goes to this page gets the 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: a link you have shared does not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page on this site has this switch at the top of its own screen; there is no second place to look."
+        description: "ON is normal. OFF sends anyone visiting this page a 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: shared links do not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page has this switch at the top of its own screen; there is no second place to look."
 
       - name: route
         label: "🔗 The address this screen controls"
@@ -563,7 +563,7 @@ content:
         label: "▶ Live color preview page (open this URL in a new browser tab)"
         type: string
         readonly: true
-        description: "One page, two things. TOP: every colour look rendered EXACTLY as the two sites render it. A film look shows the full themed film-page treatment (accent, background washes, kicker, tagline, title); a basics/special look shows the bubble/banner glow it drives; a rentals category shows its one flat colour. BOTTOM (scroll down, or add #platform-colors): the read-only 'Platform colours' reference. The brand colour + real logo for every social platform (YouTube, Instagram, TikTok, X, Facebook, Threads, Vimeo, LinkedIn, IMDb) and every 'Watch on' streaming service (Prime Video, Netflix, Hulu, Disney+, Max, Apple TV+, Peacock, Paramount+, plus YouTube/Vimeo). Same login for both. This preview is VIEW-ONLY: colour looks are edited in NocoDB (the color_looks table), not here."
+        description: "One page, two things. TOP: every colour look rendered EXACTLY as the two sites render it. A film look shows the full themed film-page treatment (accent, washes, kicker, tagline, title); a basics/special look shows the bubble/banner glow it drives; a rentals category shows its one flat colour. BOTTOM (scroll down, or add #platform-colors): the read-only 'Platform colours' reference: brand colour + real logo for every social platform (YouTube, Instagram, TikTok, X, Facebook, Threads, Vimeo, LinkedIn, IMDb) and every 'Watch on' service (Prime Video, Netflix, Hulu, Disney+, Max, Apple TV+, Peacock, Paramount+, plus YouTube/Vimeo). Same login for both. VIEW-ONLY: colour looks are edited in NocoDB (the color_looks table), not here."
       - name: previewUser
         label: "🔒 Username for that page"
         type: string
@@ -578,7 +578,7 @@ content:
         label: "🎨 Color looks are edited in NocoDB (this page is view-only + the live preview)"
         type: string
         readonly: true
-        description: "Colour looks now live in the shared database: NocoDB → the color_looks table (http://localhost:8080). A background sync publishes data/colorlooks.json to BOTH sites automatically, so there is nothing to edit here. This screen only keeps the preview link + login above. To change a look's colours, edit its row in NocoDB (each field has a description), then reload the preview page to check it. (The per-look colour fields used to live here; they moved to NocoDB so the two sites and the preview can never drift, see D7 in the system plan.)"
+        description: "Colour looks live in the shared database: NocoDB, the color_looks table (http://localhost:8080). A background sync publishes data/colorlooks.json to BOTH sites, so nothing is edited here; this screen keeps only the preview link + login above. To change a look, edit its row in NocoDB (each field has a description), then reload the preview page. (The per-look colour fields moved to NocoDB so the two sites and the preview can never drift, see D7 in the system plan.)"
 
   - name: maintenance
     label: Maintenance Cover
@@ -590,7 +590,7 @@ content:
         type: object
         list: true
         description: >-
-          When a page is switched off (Rentals page -> "Rentals page is OPEN to the public"),
+          When a page is switched off (the switch at the top of its own screen),
           visitors get a "back soon" cover instead. ONE of the entries below is picked AT
           RANDOM each time the page is loaded, so someone who reloads sees a different message
           and a different picture. Add as many as you like - they are all equally likely, and
@@ -614,7 +614,7 @@ content:
         label: "🔑 READ ME - the variables you can type into any text box on this page"
         type: text
         readonly: true
-        description: "Type a variable in square brackets anywhere in a heading or a text box below and the page fills in its value from SHARED VALUES. Change it in one place, every page changes. The ones that always exist: [businessName] [ownerName] [siteDomain] [contactEmail] [privacyEmail] [mailingStreet] [mailingCity] [mailingState] [mailingZip] [state] [county] [region]. TWO PAIRS ARE DELIBERATELY SEPARATE. The mailing address carries its own city, state and ZIP: those are where post is sent, while [state] and [county] are the law the site runs under and where a dispute would be heard, so moving the address never rewrites the Governing law section. And [privacyEmail] is used by the privacy policy while [contactEmail] is used by the terms page and anything general. Anything you add under YOUR OWN VARIABLES works the same way: name one bookingEmail and type [bookingEmail]. A variable you have not filled in yet shows on the page as an amber [... to be added] note instead of vanishing, so a blank can never read as a finished sentence. A word in brackets that is not one of your variables is left exactly as typed."
+        description: "Type a variable in square brackets in any heading or text box below and the page fills in its value from SHARED VALUES. Change it in one place, every page changes. Always available: [businessName] [ownerName] [siteDomain] [contactEmail] [privacyEmail] [mailingStreet] [mailingCity] [mailingState] [mailingZip] [state] [county] [region]. TWO PAIRS ARE DELIBERATELY SEPARATE. The mailing city, state and ZIP are where post is sent; [state] and [county] are the law the site runs under and where a dispute is heard, so moving the address never rewrites Governing law. [privacyEmail] serves the privacy policy; [contactEmail] serves the terms page and anything general. Anything added under YOUR OWN VARIABLES works the same way: name one bookingEmail and type [bookingEmail]. An unfilled variable shows as an amber [... to be added] note instead of vanishing, so a blank can never read as a finished sentence. A bracketed word that matches no variable is left exactly as typed."
 
       - name: vars
         label: "① SHARED VALUES - the things that repeat, set once here"

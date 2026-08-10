@@ -39,6 +39,34 @@
 
 ## 0. LATEST SESSION (2026-08-09), READ THIS FIRST
 
+### 0.0.-34 FULL-REVIEW PASS: CMS DESCRIPTIONS TIGHTENED, STALE SWITCH POINTERS FIXED, NODE PINNED (2026-08-09)
+
+**Pages CMS descriptions shortened with no information removed.** The longest `description:`
+strings in BOTH repos' `.pages.yml` (15 lines here, 8 on jackcarlsen) were rewritten to carry the
+same facts in fewer words. YAML validated, em-dash grep clean, field structure untouched, so the
+CMS shows the same screens with shorter help text.
+
+**Three descriptions pointed at a screen that no longer exists.** JC's Projects note and its
+maintenance text still said 'SITE SETTINGS -> PAGE ACCESS', and this repo's Projects note said the
+Projects switch lives in Site Settings. The register was removed in 0.0.-31; every switch sits at
+the top of its own page's screen, and the descriptions now say so.
+
+**The Automation Health registry text was compressed the same way**
+(`bts-automation/automation_health_launchd.py`, the five long INFRA descriptions). Monitor run by
+hand afterwards: exit 0, ClickUp publish HTTP 200.
+
+**Future-proofing: `brew pin node@20`.** 21 launchd plists exec
+`/opt/homebrew/Cellar/node@20/20.20.2/bin/node`, a versioned path a routine `brew upgrade`
+deletes, which would take all 21 jobs down at once INCLUDING the health monitor (stale-green, not
+red). Pinned, so an upgrade is now a deliberate act; migrating the plists and the TCC grant is a
+planned job for whenever node@20 is bumped on purpose.
+
+**Security tidy:** `~/nocodb-r2.env` (NocoDB R2 storage keys, wired into the container env) was
+world-readable, now chmod 600.
+
+Full pass detail (docs accuracy, bloat rundown, power-loss and future-proofing audits, template
+readiness) is in the context-folder journal entry for 2026-08-09 and the report handed to Jack.
+
 ### 0.0.-33 THE MEDIA PIPELINE STANDARD: MASTERS NEVER DEGRADE, THE SITE ADAPTS (2026-08-09)
 
 **The standard is now written down in `SITE-TEMPLATE.md` ("The media pipeline standard") and

@@ -186,6 +186,7 @@ Workflows (mind the **Status** column - some are inactive *by design*):
 | ~~Projects: DB to site (rarepond)~~ | **RETIRED 2026-08-03** | replaced by the Python exporter `projects_sync.py` on launchd (see the projects pipeline). n8n no longer builds any site content. |
 | **[Alerts] Workflow Failure → Email** | **ACTIVE** | fires on ANY workflow error |
 | **[Alerts] Watchdog - workflow gone silent** | **ACTIVE** | every 30 min, flags a workflow that has stopped running at all |
+| *...plus the non-site glue* | ACTIVE | The table lists the site-facing workflows. The full live inventory (11 active workflows as of 2026-08-09: also weekly backup, Apple/ClickUp/iMessage/Gemini HubSpot glue, chores) is on the ClickUp **Automation Health** doc, rewritten every 15 min. |
 | ~~`[Website Forms]` Jotform Intake / Crew / Rental → HubSpot + Calendar~~ | **DELETED 2026-08-03** | The old n8n copy of the form → HubSpot + Calendar job. **Jotform's own native integrations do this now** (see "The rental pipeline" above); after a live end-to-end proof the inactive workflows were deleted (backed up to `bts-automation/backups/n8n_20260803/`). Do not resurrect them - running them alongside native previously created duplicate deals + duplicate calendar events. |
 
 > **The `[Website Forms]` workflows are GONE from n8n on purpose** (deleted 2026-08-03, backup in
