@@ -123,6 +123,22 @@ version bump and no social_ui_sync republish; nothing else's cursor behaviour ch
 morph still applies to the facade, only the tilt is gone). After the click the facade becomes an
 iframe, which the engine never tilted.
 
+**D. Found while verifying live: EVERY jackcarlsen deploy since Aug 9 16:32 PT had failed.**
+The live site was frozen on a day-old build (GitHub check runs: Cloudflare Pages "failure" on
+every push since 1556f0e). Cause: the Remember Me web reel rebuilt that afternoon came out at
+45.2 MiB (CRF 19 on 14.6s of grain-heavy 1920x1014), and **Cloudflare Pages hard-rejects any
+single asset over 25 MiB, which fails the WHOLE deployment**, so every later push (catalogue
+syncs, fonts, this session's fixes) never went live. Fix: re-encoded the web reel FROM its
+hi-res master (never from the web file) stepping CRF until it fit: CRF 23 = 16.4 MiB, visually
+in line with the other clips; replaced both the Project Video source file and the repo's
+media/clips/rememberme.mp4, regenerated the -720 companion, pushed, deploy went green.
+`reel_ingest.py` now has that size guard built in (starts at CRF 19, steps up only if the
+output would break the 25 MiB cap, logs when it does; committed to bts-automation). The
+oversized original is at /tmp/rp/rememberme-reel-web.OVERSIZED.mp4 for this session only; the
+hi-res master is untouched. Related: media/reels/vfx-reel.mp4 is 26,138,907 bytes, 75 KB UNDER
+the cap; the next rebuild that nudges it over will freeze deploys the same way, and it has no
+hi-res master yet (handbook: portfolio reels await masters), so watch it.
+
 ### 0.0.-36 ROUND 2: HEARTBEAT ALERT, MEDIA-SOURCE WATCHDOG, SELF-HEALING SIZES, TWO SITE TEMPLATES (2026-08-09)
 
 **The mini can now say it is down.** A Claude scheduled task ("Mini heartbeat check", hourly)
