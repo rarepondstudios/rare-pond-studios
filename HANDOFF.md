@@ -37,7 +37,22 @@
 
 ---
 
-## 0. LATEST SESSION (2026-08-10), READ THIS FIRST
+## 0. LATEST SESSION (2026-08-11), READ THIS FIRST
+
+### 0.0.-42 RENTALS UNITS NOW CARRY A REAL-WORLD UNIT ID (2026-08-11)
+
+**Every physical rental unit now has a stable Unit ID of the form `<item_id>-<unit_number>`**
+(e.g. `1025-1`, `1025-2`), stored in the units table display field so it shows in the NocoDB
+units grid and on every linked booking and damage event, in place of the bare item (model) id.
+The rentals database was already fully unit-level: each `bookings.unit_id` is one physical unit,
+`reserve_order()` assigns an available unit and skips any that are `in_repair` or already booked,
+a GiST no-overlap constraint and `rp_booking_validate()` prevent double-booking, and
+`damage_events` flip a unit's `condition_status`. The only gap was that the units display field
+was empty, so a unit read only as its model id. Backfilled all 398 units;
+`bts-automation/rentals_units_sync.py` now also runs `ensure_unit_ids()` each 180s cycle, so any
+new unit is labelled within three minutes. The Unit ID is keyed off `unit_number` (a stable
+per-unit attribute) so it never changes when a sibling copy is deleted. No schema, availability,
+pricing, or site-code change.
 
 ### 0.0.-41 CLOSE-OUT: BUBBLE WEBP ON BOTH SITES, HEALTH PAGE NAMES ITS OFF-MINI ALARMS, REEL HANDBOOK FILED (2026-08-10)
 
