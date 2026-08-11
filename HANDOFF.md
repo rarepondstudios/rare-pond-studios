@@ -39,20 +39,22 @@
 
 ## 0. LATEST SESSION (2026-08-11), READ THIS FIRST
 
-### 0.0.-42 RENTALS UNITS NOW CARRY A REAL-WORLD UNIT ID (2026-08-11)
+### 0.0.-42 RENTALS UNITS GET A "UNIT ID" COLUMN (formula), NAMES LEFT ALONE (2026-08-11)
 
-**Every physical rental unit now has a stable Unit ID of the form `<item_id>-<unit_number>`**
-(e.g. `1025-1`, `1025-2`), stored in the units table display field so it shows in the NocoDB
-units grid and on every linked booking and damage event, in place of the bare item (model) id.
-The rentals database was already fully unit-level: each `bookings.unit_id` is one physical unit,
-`reserve_order()` assigns an available unit and skips any that are `in_repair` or already booked,
-a GiST no-overlap constraint and `rp_booking_validate()` prevent double-booking, and
-`damage_events` flip a unit's `condition_status`. The only gap was that the units display field
-was empty, so a unit read only as its model id. Backfilled all 398 units;
-`bts-automation/rentals_units_sync.py` now also runs `ensure_unit_ids()` each 180s cycle, so any
-new unit is labelled within three minutes. The Unit ID is keyed off `unit_number` (a stable
-per-unit attribute) so it never changes when a sibling copy is deleted. No schema, availability,
-pricing, or site-code change.
+**Each unit now shows a Unit ID of the form `<item_id>-<unit_number>`** (e.g. `1025-1`, `1025-2`)
+in its own dedicated column on the NocoDB units table, alongside the existing model name. The Unit
+ID column is a **NocoDB formula** (`CONCAT({item_id},'-',{unit_number})`), so it is always correct,
+needs no backfill, and auto-fills for any new unit; nothing writes it. The rentals database was
+already fully unit-level: each `bookings.unit_id` is one physical unit, `reserve_order()` assigns
+an available unit and skips any that are `in_repair` or already booked, a GiST no-overlap
+constraint and `rp_booking_validate()` prevent double-booking, and `damage_events` flip a unit's
+`condition_status`. No Supabase schema change (the Supabase source is schema read-only in NocoDB;
+the formula is a NocoDB virtual column), no availability, pricing, or site-code change.
+
+> Note for history: a first pass wrongly overwrote each unit's `name` (the model label) with the
+> Unit ID. The names were restored from the NocoDB audit log (`nc_audit_v2.old_data`) and the Unit
+> ID moved to the formula column above. The transient `ensure_unit_ids()` edit to
+> `rentals_units_sync.py` was reverted; that script is back to qty-reconcile only.
 
 ### 0.0.-41 CLOSE-OUT: BUBBLE WEBP ON BOTH SITES, HEALTH PAGE NAMES ITS OFF-MINI ALARMS, REEL HANDBOOK FILED (2026-08-10)
 
