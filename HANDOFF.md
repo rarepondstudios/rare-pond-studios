@@ -39,6 +39,22 @@
 
 ## 0. LATEST SESSION (2026-08-11), READ THIS FIRST
 
+### 0.0.-43 CONTACT POPUP: CLICK-TO-COPY EMAIL ADDRESSES (2026-08-11)
+
+**The Contact popup can now show click-to-copy email addresses under the social bubbles.** A new
+repeatable CMS field, `Contact Popup -> Click-to-copy emails` (`emails` in `data/contact.json`, each
+row `{label, address}`, label optional), drives them. `assets/contact.js` renders each address as a
+button in the right-hand socials column, below the bubbles: a copy icon and a "Click to copy" hint
+show up front so nobody copies by accident, and on click the address is written to the clipboard, the
+icon flips to a check, and the hint reads "Copied" (auto-reverts after ~1.9s, with an `aria-live`
+status for screen readers). Uses `navigator.clipboard` with an `execCommand('copy')` textarea
+fallback. Styles appended to `assets/contact.css` (`.cbubbles`, `.rpc-email`, `.rpe-*`). The popup is
+shared by studio, rentals and media, so this is live on all three. Seeded with one address,
+`contact@rarepond.com` (label General); edit or add more in Pages CMS under Contact Popup, or empty
+the list to hide it. Verified headless with Playwright: the pre-click affordance is present, the click
+copies the exact address to the clipboard, and the copied state shows then reverts. No exporter or
+NocoDB change; `contact.json` is CMS-edited, not generated.
+
 ### 0.0.-42 RENTALS UNITS GET A "UNIT ID" COLUMN (formula), NAMES LEFT ALONE (2026-08-11)
 
 **Each unit now shows a Unit ID of the form `<item_id>-<unit_number>`** (e.g. `1025-1`, `1025-2`)

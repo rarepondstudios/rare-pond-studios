@@ -521,6 +521,14 @@ content:
       - { name: heading, label: Heading, type: string }
       - { name: sub, label: Sub-line under the heading, type: text }
       - { name: buttonLabel, label: "\"Get in touch\" button label", type: string }
+      - name: emails
+        label: "Click-to-copy emails"
+        type: object
+        list: true
+        description: "Email addresses shown under the social buttons in the popup. A visitor clicks one and it copies to their clipboard. A copy icon and a 'Click to copy' hint appear first so nobody copies by accident, then it flips to 'Copied' once done. Leave the list empty to show no emails. Label is optional (General, Bookings, Press); leave it blank to show the address on its own."
+        fields:
+          - { name: label, label: "Label (optional, e.g. Bookings)", type: string }
+          - { name: address, label: "Email address", type: string }
       - name: hubspot
         label: HubSpot form
         type: object

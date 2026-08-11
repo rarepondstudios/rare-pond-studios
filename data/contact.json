@@ -4,6 +4,9 @@
   "heading": "Let's make something amazing.",
   "sub": "Tell us about your project and we'll be in touch.",
   "buttonLabel": "Get in touch",
+  "emails": [
+    { "label": "General", "address": "contact@rarepond.com" }
+  ],
   "hubspot": {
     "region": "na2",
     "portalId": "245995240",
