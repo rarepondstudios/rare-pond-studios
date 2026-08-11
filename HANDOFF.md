@@ -44,7 +44,8 @@
 **Each unit now shows a Unit ID of the form `<item_id>-<unit_number>`** (e.g. `1025-1`, `1025-2`)
 in its own dedicated column on the NocoDB units table, alongside the existing model name. The Unit
 ID column is a **NocoDB formula** (`CONCAT({item_id},'-',{unit_number})`), so it is always correct,
-needs no backfill, and auto-fills for any new unit; nothing writes it. The rentals database was
+needs no backfill, and auto-fills for any new unit; nothing writes it. The items tab likewise has
+an **Item ID** formula column (`{id}`) so an item's id reads clearly next to its name. The rentals database was
 already fully unit-level: each `bookings.unit_id` is one physical unit, `reserve_order()` assigns
 an available unit and skips any that are `in_repair` or already booked, a GiST no-overlap
 constraint and `rp_booking_validate()` prevent double-booking, and `damage_events` flip a unit's
