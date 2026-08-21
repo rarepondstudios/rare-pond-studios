@@ -28,13 +28,6 @@
       "icon": "fb",
       "colorLook": "facebook",
       "blurb": "Engage with our Facebook"
-    },
-    {
-      "label": "TikTok",
-      "url": "https://www.tiktok.com/@rarepondstudios",
-      "icon": "tiktok",
-      "colorLook": "tiktok",
-      "blurb": "Follow us on TikTok"
     }
   ]
 }
