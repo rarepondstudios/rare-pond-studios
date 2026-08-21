@@ -114,6 +114,7 @@ a.xchip:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
 .rp-soc a[data-net="ig"]:hover,.rp-footer .fsoc a[data-net="ig"]:hover{background:linear-gradient(135deg,#f9ce34,#ee2a7b 46%,#6228d7);color:#fff}
 .rp-soc a[data-net="li"]:hover,.rp-footer .fsoc a[data-net="li"]:hover{background:linear-gradient(135deg,#0a66c2,#004182);color:#fff}
 .rp-soc a[data-net="fb"]:hover,.rp-footer .fsoc a[data-net="fb"]:hover{background:linear-gradient(135deg,#1877f2,#0b5fce);color:#fff}
+.rp-soc a[data-net="tiktok"]:hover,.rp-footer .fsoc a[data-net="tiktok"]:hover{background:linear-gradient(135deg,#25f4ee,#000 45%,#fe2c55);color:#fff}
 .rp-soc a[data-net="web"]:hover,.rp-footer .fsoc a[data-net="web"]:hover{background:linear-gradient(135deg,#2ba7a0,#127e8c);color:#fff}
 
 /* ---------- the footer's contents ---------- */
