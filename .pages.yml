@@ -398,6 +398,20 @@ content:
           - { name: linkedin,  label: "Portfolio - LinkedIn (optional)",  type: string, description: "Full https:// link. Blank = hidden." }
           - { name: facebook,  label: "Portfolio - Facebook (optional)",  type: string, description: "Full https:// link. Blank = hidden." }
 
+  - name: socialswitches
+    label: Social accounts
+    type: file
+    path: data/social-switches.json
+    fields:
+      - name: switches
+        label: Show or hide each social account
+        type: object
+        list: true
+        description: "One row per social account shown on rarepond.com (header, footer and the Contact popup). Turn a row OFF to hide that account across the whole site; turn it back ON to show it again. Takes effect within about a minute of saving. The account itself, its link, blurb and colour, is set in NocoDB, not here; this screen only turns each one on or off. New accounts appear here automatically, switched on."
+        fields:
+          - { name: label, label: Account, type: string, readonly: true, description: "Which account this switch controls. Filled in automatically from the socials list; do not edit." }
+          - { name: enabled, label: "Show on the site", type: boolean, default: true, description: "ON shows this account in the header, footer and Contact popup. OFF hides it everywhere on rarepond.com. The account is not deleted, so you can switch it back on any time." }
+
   - name: pages
     label: Custom Pages
     type: file

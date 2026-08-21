@@ -1166,7 +1166,8 @@ const __d=await Promise.all([
   fetch('/data/platforms.json').then(r=>r.json()).catch(()=>({platforms:[]})),
   fetch('/data/socials.json').then(r=>r.json()).catch(()=>({socials:[]})),
   fetch('/data/colorlooks.json').then(r=>r.json()).catch(()=>({looks:[]})),
-  fetch('/data/video-variants.json').then(r=>r.json()).catch(()=>({}))
+  fetch('/data/video-variants.json').then(r=>r.json()).catch(()=>({})),
+  fetch('/data/social-switches.json').then(r=>r.json()).catch(()=>({switches:[]}))
 ]);
 const SITE=__d[0];
 const __projects=__d[1].projects;
@@ -1293,7 +1294,12 @@ const bgStillSrc=(stills,fallback)=>(stills&&stills.length)?stillFull(stills[0])
 /* Socials are now sourced from data/socials.json (NocoDB `socials` table), NOT site.json.
    Each entry: {label,url,icon(code),colorLook,blurb}. The platform logo + colours come from the
    entry's colour-look in data/colorlooks.json (look.icon = swappable 1080 PNG, look.c1/c2/c3). */
-const SOCIALS_DATA=((__d[8]&&__d[8].socials)||[]);
+/* Per-account on/off from data/social-switches.json (edited in Pages CMS). A social whose
+   switch is explicitly enabled:false is hidden everywhere (header, footer, contact bubbles);
+   absent or enabled:true shows. Matched to the account by label. */
+const __socialSwitches=((__d[11]&&__d[11].switches)||[]);
+const __socialsOff=new Set(__socialSwitches.filter(s=>s&&s.enabled===false).map(s=>String(s.label)));
+const SOCIALS_DATA=((__d[8]&&__d[8].socials)||[]).filter(s=>!__socialsOff.has(String(s.label)));
 const __looksRaw=(__d[9]&&__d[9].looks)||(__d[9]||{});
 const LOOKS_BY_KEY={};
 (Array.isArray(__looksRaw)?__looksRaw:Object.keys(__looksRaw).map(k=>Object.assign({key:k},__looksRaw[k]||{}))).forEach(l=>{if(l&&l.key)LOOKS_BY_KEY[l.key]=l;});
