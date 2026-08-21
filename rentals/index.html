@@ -75,7 +75,11 @@
     const [rs,rf]=await Promise.all([fetch('/data/socials.json',{cache:'no-store'}),fetch('/data/site.json',{cache:'no-store'})]);
     const socials=(rs&&rs.ok?((await rs.json()).socials||[]):[]);
     const site=(rf&&rf.ok?await rf.json():{});
-    const html=socials.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="${esc(s.label)}" data-net="${esc(s.icon)}">${SOCIAL_SVG[s.icon]||''}</a>`).join('');
+    /* Icon artwork from the shared /assets/socials.js (RP_SOCIAL_ICONS) so every platform the
+       studio supports (TikTok included) renders here too; fall back to the inline set, and skip
+       any account with no icon. */
+    const ic=(window.RP_SOCIAL_ICONS&&Object.keys(window.RP_SOCIAL_ICONS).length)?window.RP_SOCIAL_ICONS:SOCIAL_SVG;
+    const html=socials.filter(s=>ic[s.icon]).map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="${esc(s.label)}" data-net="${esc(s.icon)}">${ic[s.icon]}</a>`).join('');
     const hs=document.getElementById('hsoc'), fs=document.getElementById('fsoc');
     if(hs) hs.innerHTML=html;
     if(fs) fs.innerHTML=html;

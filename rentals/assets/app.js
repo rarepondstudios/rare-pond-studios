@@ -63,8 +63,9 @@ function drTxt(p){return p.fee==='Included'?'Included':(p.fn===0?'Free':fmt(p.fn
 function priceBlk(p,big){const dd=days();const b=big?' big':'';
  if(!dd||!p.fn)return '<div class="price'+b+'">'+drTxt(p)+(p.fn?'<span>/day</span>':'')+'</div>';
  return '<div class="pcalc'+b+'"><div class="dr">'+fmt(p.fn)+'<span>/day × '+dd+' day'+(dd>1?'s':'')+'</span></div><div class="tot">'+fmt(p.fn*dd)+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px;letter-spacing:.02em">total</span></div></div>';}
-$('hsoc').innerHTML=SOCLINKS.map(([u,n,k])=>'<a href="'+u+'" target="_blank" rel="noopener" aria-label="'+n+'">'+SOC[k]+'</a>').join('');
-$('fsoc').innerHTML=$('hsoc').innerHTML;
+/* Header + footer socials are rendered data-driven from /data/socials.json by the inline
+   script in rentals/index.html (shared RP_SOCIAL_ICONS artwork, honours the Pages CMS on/off
+   switch). The old hardcoded SOCLINKS render was removed so it no longer flashes a stale set. */
 function tabColor(){return active==='Home'?'#9fc2ff':COL[active];}
 function renderTabs(){
  const all=['Home',...CATS];
