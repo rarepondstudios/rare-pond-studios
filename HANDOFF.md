@@ -51,18 +51,29 @@ branded look is a new `tiktok` row in the NocoDB `color_looks` table (c1 #25F4EE
 `data/platforms.json`, and `assets/chrome.css` gained a `data-net="tiktok"` hover gradient. The logo
 `media/brand/social/tiktok.png` (1080x1080, alpha, matches the other social logos) was added to the repo.
 
-**Each social account now has an on/off switch, edited in Pages CMS, not NocoDB.** New file
-`data/social-switches.json` holds one `{label, enabled}` row per account. Pages CMS section
-**Social accounts** (`.pages.yml` -> `socialswitches`) gives a per-account "Show on the site" toggle;
-the SPA reads the file (`__d[11]`) and hides any account whose switch is `enabled:false` across
-header, footer and bubbles (matched by label; absent or true = shown). `socials_sync.py` maintains
-the file for sites whose `sites.json` flags carry `socials_switches:true` (rarepond only for now): it
-adds a switch for every account, defaults a new account on, and PRESERVES the existing `enabled`
-value so a Pages CMS toggle is never clobbered by the 5-min sync. WHY a separate file and not a
+**Each social account now has a UNIVERSAL on/off switch, edited in Pages CMS, not NocoDB.** New file
+`data/social-switches.json` holds one `{label, enabled}` row per account; Pages CMS section
+**Social accounts** (`.pages.yml` -> `socialswitches`) is a per-account "Show on the site" toggle.
+The toggle is applied AT THE SOURCE, not per page: `socials_sync.py` writes ONLY switched-on accounts
+into `data/socials.json`, so every surface that reads that file honours the switch with no per-page
+code: the studio header/footer AND its contact popup, the Media section (`/media`), the Rentals
+section (`/rentals`), the shared contact popup (`assets/contact.js`), and the legal-page footers.
+`socials_sync.py` also maintains `social-switches.json` for sites whose `sites.json` flags carry
+`socials_switches:true` (rarepond only): it lists every account, defaults a new account on, and
+PRESERVES the existing `enabled` value so a Pages CMS toggle is never clobbered by the 5-min sync.
+Effect lands on the next sync, so allow a few minutes after saving. WHY a separate file and not a
 NocoDB `enabled` column: the `socials` table is in Supabase and its schema is read-only in NocoDB, so
 a new column was not possible without unlocking the source; Jack chose to manage the switch on the
-GitHub/CMS side instead. Verified live: all five accounts render, `social-switches.json` serves with
-all `enabled:true`, and the TikTok bubble shows the branded logo.
+GitHub/CMS side instead.
+
+> Correction to a first pass: the switch was initially wired only into the studio SPA (a `__d[11]`
+> frontend filter), so Media, Rentals and the contact popup ignored it, and the Rentals header used a
+> hardcoded icon map (yt/ig/li/fb only) that showed no TikTok icon. Fixed by moving the filter into
+> `socials_sync.py` (pre-filtered `socials.json`, universal) and pointing `rentals/index.html` at the
+> shared `RP_SOCIAL_ICONS` (assets/socials.js, which has every platform incl. TikTok), matching how
+> `media/index.html` already renders. The stale hardcoded `SOCLINKS` render in `rentals/assets/app.js`
+> was removed. Verified live with TikTok switched OFF: it is absent from the studio header + contact
+> popup, Media, and Rentals (no broken icon slot).
 
 ### 0.0.-43 CONTACT POPUP: CLICK-TO-COPY EMAIL ADDRESSES (2026-08-11)
 
