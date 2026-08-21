@@ -37,7 +37,32 @@
 
 ---
 
-## 0. LATEST SESSION (2026-08-11), READ THIS FIRST
+## 0. LATEST SESSION (2026-08-20), READ THIS FIRST
+
+### 0.0.-44 TIKTOK ADDED + PER-ACCOUNT SOCIAL ON/OFF SWITCHES IN PAGES CMS (2026-08-20)
+
+**@rarepondstudios on TikTok is now a Rare Pond social account**, showing in the header, footer and
+Contact popup alongside YouTube/Instagram/LinkedIn/Facebook, and edited the same way as the others:
+it is a row in the NocoDB `socials` table (base pn8kzophvbwxtt7, table id ma4lkbfxa7xa6ot), so
+`socials_sync.py` publishes it into `data/socials.json` on the usual 5-min `--publish` cycle. Its
+branded look is a new `tiktok` row in the NocoDB `color_looks` table (c1 #25F4EE, c2 #000000, c3
+#FE2C55, icon `/media/brand/social/tiktok.png`), mirrored into `data/colorlooks.json` by
+`colorlooks_sync.py`. The header/footer icon comes from the real TikTok logo already in
+`data/platforms.json`, and `assets/chrome.css` gained a `data-net="tiktok"` hover gradient. The logo
+`media/brand/social/tiktok.png` (1080x1080, alpha, matches the other social logos) was added to the repo.
+
+**Each social account now has an on/off switch, edited in Pages CMS, not NocoDB.** New file
+`data/social-switches.json` holds one `{label, enabled}` row per account. Pages CMS section
+**Social accounts** (`.pages.yml` -> `socialswitches`) gives a per-account "Show on the site" toggle;
+the SPA reads the file (`__d[11]`) and hides any account whose switch is `enabled:false` across
+header, footer and bubbles (matched by label; absent or true = shown). `socials_sync.py` maintains
+the file for sites whose `sites.json` flags carry `socials_switches:true` (rarepond only for now): it
+adds a switch for every account, defaults a new account on, and PRESERVES the existing `enabled`
+value so a Pages CMS toggle is never clobbered by the 5-min sync. WHY a separate file and not a
+NocoDB `enabled` column: the `socials` table is in Supabase and its schema is read-only in NocoDB, so
+a new column was not possible without unlocking the source; Jack chose to manage the switch on the
+GitHub/CMS side instead. Verified live: all five accounts render, `social-switches.json` serves with
+all `enabled:true`, and the TikTok bubble shows the branded logo.
 
 ### 0.0.-43 CONTACT POPUP: CLICK-TO-COPY EMAIL ADDRESSES (2026-08-11)
 
