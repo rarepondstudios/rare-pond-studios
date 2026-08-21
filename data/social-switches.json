@@ -1,0 +1,24 @@
+{
+  "switches": [
+    {
+      "label": "YouTube",
+      "enabled": true
+    },
+    {
+      "label": "Instagram",
+      "enabled": true
+    },
+    {
+      "label": "LinkedIn",
+      "enabled": true
+    },
+    {
+      "label": "Facebook",
+      "enabled": true
+    },
+    {
+      "label": "TikTok",
+      "enabled": true
+    }
+  ]
+}
