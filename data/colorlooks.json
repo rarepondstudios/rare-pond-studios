@@ -508,6 +508,16 @@
       "c3": "#f6cd38",
       "taglineItalic": false,
       "icon": "/media/brand/social/imdb.png"
+    },
+    {
+      "key": "tiktok",
+      "name": "TikTok",
+      "kind": "social",
+      "c1": "#25F4EE",
+      "c2": "#000000",
+      "c3": "#FE2C55",
+      "taglineItalic": false,
+      "icon": "/media/brand/social/tiktok.png"
     }
   ]
 }
