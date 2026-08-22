@@ -39,6 +39,32 @@
 
 ## 0. LATEST SESSION (2026-08-22), READ THIS FIRST
 
+### 0.0.-48 HOME LOGO BUBBLE: CSS-RECREATED BRAND BUBBLE, GLOW COLOUR VIA PAGES CMS (2026-08-22)
+
+Iteration on the home #about animation. The plain white plate was removed (0.0.-46) which left the
+colour logo's blue wordmark hard to read on the dark section. Per Jack: recreate the brand SOAP BUBBLE
+(Sticker Overlays `RP_Bubble`) and hold the animation inside it, using the bubble's inner light to
+separate the logo from the background; and recreate the LOOK in CSS so the outer-glow colour is
+adjustable in Pages CMS.
+
+- **Bubble is 100% CSS** on `.about-anim-slot` (circular): soft light interior (readability), a
+  coloured rim ring (conic gradient), an outer glow, and a top-right specular highlight. No image
+  asset (so nothing to stage; the source-of-truth rule is not involved).
+- **Glow/rim colour is a colour look, editable in Pages CMS.** New `homeBubble` in `data/site.json`
+  (`colorLook` default "signature", `enabled`) and a matching Pages CMS section in `.pages.yml`
+  ("🫧 Home logo bubble"). JS resolves the look via `LOOKS_BY_KEY` and sets `--bub-c1/2/3` on the
+  slot; CSS defaults to signature so it is right with no JS. `enabled:false` -> `.no-bubble` (logo
+  sits bare).
+- **Animation contained inside the bubble**, larger (max-width 460 desktop / 320 mobile). The logo
+  lives in an in-flow `.about-anim-inner` wrapper so the canvas scales by the frame's intrinsic ratio
+  and cannot squish (fixes the earlier squish). Note: the slot needs a definite width, so
+  `.about-logo`/`.about-bubble` are `width:100%` (mobile grid uses justify-items:center, which would
+  otherwise shrink them to zero and the bubble/logo vanish).
+- Verified headless desktop + mobile: bubble renders, wordmark readable, duck bounce contained,
+  canvas ratio 1.304 (no squish), no console errors. jackcarlsen.com untouched.
+
+Commit: rp `df708c9`.
+
 ### 0.0.-47 WEBSITE SOURCE-OF-TRUTH RULE ENFORCED: SYNC READS ONLY FROM `Website Repository/` (2026-08-22)
 
 Correction to 0.0.-45/-46. Those wired the media duck, the home animation, and the RP studio logos to
