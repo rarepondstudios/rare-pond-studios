@@ -176,7 +176,7 @@ purpose. They were removed once already after leaking.
 
 The access details live in two places:
 
-- **ClickUp -> Work -> "Remote Access Cheat Sheet"** - the working doc. Every link in it
+- **ClickUp -> Work -> "How To Remote Access"** - the working doc. Every link in it
   is tested. Start here.
 - `~/rp_site_private/REMOTE_ACCESS.md` on the Mac mini - the same thing, offline.
 

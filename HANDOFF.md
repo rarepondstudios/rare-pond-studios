@@ -2230,8 +2230,7 @@ it *can* reach the repo mount and the public internet.
 > the Mac Mini itself** (loopback). n8n + NocoDB are bound to **loopback + Tailscale only**,
 > deliberately NOT reachable over home Wi-Fi or the public internet. Never run
 > `tailscale funnel` on them and never rebind to `0.0.0.0`. Exact host/port, the alert email,
-> and internal RPC names live **outside the public repo**, in ClickUp → "Remote Access Cheat
-> Sheet" and `~/rp_site_private/REMOTE_ACCESS.md` / `OPERATIONS_PRIVATE.md` on the Mac Mini
+> and internal RPC names live **outside the public repo**, in ClickUp → "How To Remote Access" and `~/rp_site_private/REMOTE_ACCESS.md` / `OPERATIONS_PRIVATE.md` on the Mac Mini
 > (and NAS). Ask the owner for the private file; never reconstruct secrets into the repo.
 
 ---
