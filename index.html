@@ -576,22 +576,25 @@ html.xw-active{overflow:hidden}
   #about{padding:clamp(24px,4vh,52px) clamp(18px,5vw,60px) clamp(56px,8vh,90px)}
   .about-wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto;display:grid;grid-template-columns:minmax(0,330px) 1fr;gap:clamp(28px,5vw,64px);align-items:center}
   .about-logo{display:flex;justify-content:center}
-  .about-bubble{position:relative;display:grid;place-items:center;padding:clamp(30px,4vw,50px) clamp(34px,4.5vw,58px);overflow:hidden;
+  .about-bubble{position:relative;display:grid;place-items:center;padding:clamp(30px,4vw,50px) clamp(34px,4.5vw,58px);overflow:visible;
     background:radial-gradient(125% 120% at 50% 30%,#ffffff 50%,#eef5ff 76%,#d2e3f7 100%);
     border-radius:36% / 46%;
     box-shadow:0 28px 64px rgba(0,12,40,.5),inset 0 3px 10px rgba(255,255,255,.95),inset 0 -16px 32px rgba(120,160,220,.3)}
   .about-bubble::before{content:"";position:absolute;left:10%;top:6%;width:62%;height:30%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,255,255,.95),transparent);pointer-events:none}
-  .about-bubble img{position:relative;width:100%;max-width:268px;height:auto;display:block;filter:drop-shadow(0 4px 10px rgba(40,80,150,.16))}
-  /* Scroll-scrubbed logo animation (Studios "RP Anim 1", no-bg). Sized IDENTICALLY to the static
-     logo above so the bubble never changes size; JS adds .anim-on once frames are ready, which
-     swaps the static logo for the canvas. No JS / reduced-motion keeps the static logo. */
-  .about-bubble canvas.about-anim{position:relative;width:100%;max-width:268px;height:auto;display:none;filter:drop-shadow(0 4px 10px rgba(40,80,150,.16))}
-  .about-bubble.anim-on img.rpColor{display:none}
+  /* Logo slot: fixed-width box that both the static logo and the scroll animation share. */
+  .about-anim-slot{position:relative;width:100%;max-width:268px;margin:0 auto}
+  .about-anim-slot img.rpColor{width:100%;height:auto;display:block;filter:drop-shadow(0 4px 10px rgba(40,80,150,.16))}
+  /* Scroll-scrubbed logo animation (Studios "RP Anim 1", no-bg): a canvas overlaid on the slot,
+     bottom-aligned and full width, so the SETTLED logo lands exactly on the static logo's box while
+     the taller frame (the duck's bounce) spills ABOVE the bubble. aspect-ratio is set from the frame
+     manifest in JS, so a re-generated animation of different dimensions needs no CSS change. */
+  .about-anim-slot canvas.about-anim{position:absolute;left:0;bottom:0;width:100%;height:auto;display:none;filter:drop-shadow(0 6px 14px rgba(40,80,150,.20))}
+  .about-bubble.anim-on .about-anim-slot img.rpColor{visibility:hidden}
   .about-bubble.anim-on canvas.about-anim{display:block}
   .about-copy h2{font-size:clamp(26px,3.4vw,40px);margin:0 0 6px;font-weight:800;letter-spacing:-.01em}
   .about-copy .ey{font-size:12.5px;letter-spacing:.24em;text-transform:uppercase;color:#8fd0ff;font-weight:700;margin-bottom:8px}
   .about-copy p{font-size:clamp(14px,1.6vw,17px);line-height:1.65;color:#d4e6fb;margin:.7em 0 0}.about-copy .ph{color:#8fd0ff;font-weight:700}
-  @media(max-width:760px){.about-wrap{grid-template-columns:1fr;text-align:center;justify-items:center}.about-bubble img,.about-bubble canvas.about-anim{max-width:210px}}
+  @media(max-width:760px){.about-wrap{grid-template-columns:1fr;text-align:center;justify-items:center}.about-anim-slot{max-width:210px}}
 
   /* ===== contact + footer ===== */
   #contact{padding:clamp(50px,8vh,96px) clamp(18px,5vw,60px) 0}
@@ -1090,7 +1093,7 @@ html.xw-active{overflow:hidden}
 
     <section id="about">
       <div class="about-wrap">
-        <div class="about-logo"><div class="about-bubble"><img class="rpColor" loading="lazy" decoding="async" alt="Rare Pond Studios"><canvas class="about-anim" width="600" height="315" aria-hidden="true"></canvas></div></div>
+        <div class="about-logo"><div class="about-bubble"><div class="about-anim-slot"><img class="rpColor" loading="lazy" decoding="async" alt="Rare Pond Studios"><canvas class="about-anim" aria-hidden="true"></canvas></div></div></div>
         <div class="about-copy">
           <div class="ey">What we do</div><h2>Worlds worth escaping into.</h2>
           <p>Rare Pond Studios is an independent film studio crafting escapist stories that feel like peering into an alternate world. We work across live-action and 2D / 3D animation, blending mediums to build immersive little universes, from a retired superspy breaking out of her nursing home to a surreal vision of Heaven and Earth.</p>
@@ -1646,22 +1649,21 @@ const wrap=document.createElement('div');wrap.className='orbits';ABOUT_ORBS.map(
   var bubble=document.querySelector('#about .about-bubble');
   var host=document.querySelector('#about .about-logo');
   var cv=bubble&&bubble.querySelector('canvas.about-anim');
-  if(!cv||!host||!('IntersectionObserver'in window))return;
+  if(!cv||!host)return;
   if(matchMedia('(prefers-reduced-motion:reduce)').matches)return; // keep the static logo
   fetch('/media/brand/home-logo-anim/manifest.json',{cache:'force-cache'})
     .then(function(r){return r.ok?r.json():null;})
     .then(function(m){
       if(!m||!m.count||!m.pattern)return;
       var N=m.count, ctx=cv.getContext('2d');
-      cv.width=m.width||600; cv.height=m.height||Math.round(cv.width/(m.aspect||1.906));
-      var imgs=new Array(N), done=0, ready=false, cur=-1, ticking=false;
-      function nearest(i){ var im=imgs[i],j;
-        if(im&&im.complete&&im.naturalWidth)return im;
-        for(j=i;j>=0;j--){if(imgs[j]&&imgs[j].complete&&imgs[j].naturalWidth)return imgs[j];}
-        for(j=i;j<N;j++){if(imgs[j]&&imgs[j].complete&&imgs[j].naturalWidth)return imgs[j];}
-        return null; }
-      function draw(i){ var im=nearest(i); if(!im)return;
-        ctx.clearRect(0,0,cv.width,cv.height); ctx.drawImage(im,0,0,cv.width,cv.height); }
+      // Backing store + CSS aspect come straight from the manifest, so a re-generated animation of a
+      // different size/shape just works with no code change.
+      cv.width=m.width; cv.height=m.height; cv.style.aspectRatio=m.width+' / '+m.height;
+      var imgs=new Array(N), ready=false, cur=-1, ticking=false;
+      function draw(i){ var im=imgs[i]; if(!im){ var j;
+          for(j=i;j>=0;j--){if(imgs[j]){im=imgs[j];break;}}
+          if(!im)for(j=i;j<N;j++){if(imgs[j]){im=imgs[j];break;}} }
+        if(!im)return; ctx.clearRect(0,0,cv.width,cv.height); ctx.drawImage(im,0,0,cv.width,cv.height); }
       function progress(){ var r=host.getBoundingClientRect();
         var vh=innerHeight||document.documentElement.clientHeight;
         var c=r.top+r.height/2, p=(vh*1.05-c)/(vh*0.62);
@@ -1669,12 +1671,23 @@ const wrap=document.createElement('div');wrap.className='orbits';ABOUT_ORBS.map(
       function upd(){ ticking=false; if(!ready)return;
         var i=Math.round(progress()*(N-1)); if(i!==cur){cur=i;draw(i);} }
       function onScroll(){ if(!ticking){ticking=true;requestAnimationFrame(upd);} }
-      for(var k=0;k<N;k++){(function(k){
+      // Load + DECODE every frame off the main thread (img.decode()), so the first scroll draw and
+      // every draw after it are cheap drawImage calls with no synchronous decode -> no scroll hitch.
+      // The browser manages the decoded-image memory (can evict/re-decode), which is safer on phones
+      // than pinning a bitmap array. The canvas is revealed only once all frames are decoded, so the
+      // bubble never flashes empty.
+      function loadFrame(k){ return new Promise(function(res){
         var im=new Image(); im.decoding='async';
-        im.onload=im.onerror=function(){ done++; if(done>=N&&!ready){ ready=true;
-          bubble.classList.add('anim-on'); cur=-1; upd(); } };
-        im.src=m.pattern.replace('%02d',('0'+(k+1)).slice(-2)); imgs[k]=im;
-      })(k);}
+        im.src=m.pattern.replace('%02d',('0'+(k+1)).slice(-2));
+        var ok=function(){imgs[k]=im;res();};
+        if(im.decode){ im.decode().then(ok, function(){ im.onload=ok; im.onerror=res; }); }
+        else { im.onload=ok; im.onerror=res; }
+      }); }
+      function start(){ var ps=[],k; for(k=0;k<N;k++)ps.push(loadFrame(k));
+        Promise.all(ps).then(function(){ ready=true; bubble.classList.add('anim-on'); cur=-1; onScroll(); }); }
+      // Defer the loading burst until the browser is idle after first paint, so it never competes with
+      // the initial page load (another source of the scroll-in hitch).
+      if('requestIdleCallback'in window) requestIdleCallback(start,{timeout:2500}); else setTimeout(start,800);
       addEventListener('scroll',onScroll,{passive:true}); addEventListener('resize',onScroll);
     }).catch(function(){});
 })();
