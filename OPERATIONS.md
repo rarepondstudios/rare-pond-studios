@@ -19,6 +19,26 @@ Written for the next person - human or AI - who has to keep this working.
 
 ---
 
+## Website source-of-truth rule (applies to every image/animation on the sites)
+
+Every asset shown on rarepond.com or jackcarlsen.com is published by the `~/bts-automation` sync
+scripts **from the `Website Repository/` staging folder** (inside the Synology `Current_Brand_Assets`)
+**into the site repos**, and the live sites only reference files inside their own repo. So:
+
+- A sync must only read masters from a **sorted subfolder inside `Website Repository/`** (e.g.
+  `Projects (Web)/<Film>/...`, `Rare Pond Brand (Web)/Logos/`, `Rare Pond Brand (Web)/Animations/`,
+  `Jack Carlsen (Web)/Logos/`). It must **never** read the raw `Rare Pond V3/Rare Pond Brand Kit/...`
+  library or anything else outside `Website Repository/`.
+- To put an image/animation on a site, drop a **duplicate into the right sorted folder** under
+  `Website Repository/`; the sync republishes it. The brand kit is the design library, the Website
+  Repository is the buffer the sites actually pull from.
+
+Full detail (and the folder map) lives in `bts-automation/MEDIA-SPEC.md` → "Website source-of-truth
+rule". Enforced in `brand_media_sync.py` and `home_logo_anim_frames.py` (masters resolve only under
+`Website Repository/`).
+
+---
+
 ## The three surfaces (one repo)
 
 | | |
