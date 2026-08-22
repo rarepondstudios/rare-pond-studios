@@ -39,6 +39,40 @@
 
 ## 0. LATEST SESSION (2026-08-22), READ THIS FIRST
 
+### 0.0.-51 HOME #about DUCK ANIM: NORMAL SPEED, EDGE-CLIP FIX, PALETTE-ALWAYS + FADE-RESET (2026-08-22)
+
+Four fixes to the home animation (per Jack). Touches `bts-automation/home_logo_anim_frames.py` (frame
+extraction) + `index.html` (playback) + regenerated `media/brand/home-logo-anim/*` (frames + manifest).
+The master .mov is NOT touched.
+
+- **Normal speed.** Playback was ~1.05s (about 4x too fast). The frame extractor now writes `fps`
+  (23.976) and `duration_ms` (the real-time span of the published frames) into `manifest.json`, and the
+  site plays at that duration. With the new trim the full play is ~3.88s = true source speed.
+- **Line-artifact root cause + fix.** The crop box equalled the artwork's TIGHT alpha bbox, so the blue
+  pond ("palette") on the bottom-left and the "Rare Pond" wordmark on the right sat flush on the frame
+  edges and got sliced into hard 1px lines (LANCZOS resize sharpened them). Confirmed via a magenta
+  composite: content at alpha 255 touched x=0 / x=539 / y=413. Fix: the crop is now the FULL extent of
+  everything shown plus a 32px transparent `MARGIN` on left/right/bottom, so anti-aliased edges fall off
+  to alpha 0 inside the frame. Verified new frames: alpha=0 on all four edges. Also bumped WebP quality
+  78 -> 90 (the pond gradient banded at 78).
+- **Palette always visible (no fade-in).** Source frames 1-12 are the palette fading in from nothing;
+  `SRC_START` moved 1 -> 13 so frame 1 already shows the fully-formed blue palette. This is a trim of
+  where playback STARTS, not an edit to the master.
+- **Fade-to-palette on scroll-away instead of reverse.** New playback model in `index.html`: the palette
+  is always visible; scrolling the bubble into view (>=45% visible) plays FORWARD once at normal speed;
+  scrolling until the bubble is >80% out of view (<20% visible) CROSSFADES back to just the palette and
+  resets, so the next scroll-in re-plays forward. It never plays in reverse. rAF loop runs only during a
+  play or a crossfade.
+- Note (mobile): on a 390px viewport the bubble peeks ~34% above the fold at the page TOP, so the
+  reset does not fire by scrolling to the very top there (it is not >80% out); the replay still works
+  once the bubble is genuinely scrolled off (e.g. off the top toward the page bottom) and back. Desktop
+  resets at the top as expected.
+- Verified headless desktop (1440) + mobile (390) via canvas-checksum sampling + screenshots: ~3.88s
+  normal-speed forward, no edge clipping (wordmark + palette intact), palette always shown, dissolve to
+  palette on exit, forward replay on re-entry (not reverse), 0 console errors. jackcarlsen untouched.
+
+Commit: rp `a1ff8c7`; bts `9a535b0`.
+
 ### 0.0.-50 HOME #about DUCK ANIM: TRIGGER-PLAYED (TIME-BASED), NOT SCROLL-SCRUBBED (2026-08-22)
 
 Per Jack: the scroll-scrubbed playback looked odd (frame parked on the messy 3D->2D handoff, and it
