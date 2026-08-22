@@ -39,6 +39,31 @@
 
 ## 0. LATEST SESSION (2026-08-22), READ THIS FIRST
 
+### 0.0.-49 HOME #about ORBIT BUBBLES + ANIM TIMING POLISH (2026-08-22)
+
+Three refinements to the home #about section on top of 0.0.-48, all in `index.html` only.
+
+- **Orbit film-still bubbles now emerge from behind the logo bubble.** They start at opacity 0 and
+  scale 0 at the bubble centre and animate outward on scroll. Rewrote the orbit CSS to drive
+  transform+opacity from a per-orbit `--op` (was a single shared `--p`), and set `.orbits`
+  `z-index:2` so they render in front of the translucent bubble (were behind, hard to read).
+- **They end AT / just outside the bubble exterior.** `buildOrbits` now computes each orbit's
+  position and size from the bubble's LIVE radius in `place()` (`R = slot width / 2`, final radius
+  `R * rf` with `rf` ~1.00-1.16), so orbits track the bubble on every viewport and sit on/just past
+  the edge (verified dist/R 1.00-1.16 when fully out). Removed the mobile `.orbits{scale(.70)}`
+  override, which used to shrink them back INSIDE the bubble on phones.
+- **More natural variance.** New `ORB_SPEC` table gives each of the 7 orbits its own final angle +
+  radius (path), size, emerge delay + ease (speed), and a `--spin` so it curves out rather than moving
+  straight (staggered emergence verified: opacities fan out 0.00-0.43 mid-scroll).
+- **Scroll animation starts later.** The logo-anim progress window changed from
+  `(vh*1.05 - c)/(vh*0.62)` to `(vh*0.78 - c)/(vh*0.52)`, so the duck bounce begins once the bubble
+  is well into view and the whole animation plays within the visible window (was almost finished by
+  the time it was fully on screen).
+- Verified headless desktop (1440) + mobile (390): orbits start hidden, emerge to the edge readable
+  with size/speed/path variance, anim delayed; no console errors. jackcarlsen.com untouched.
+
+Commit: rp `2505e6e`.
+
 ### 0.0.-48 HOME LOGO BUBBLE: CSS-RECREATED BRAND BUBBLE, GLOW COLOUR VIA PAGES CMS (2026-08-22)
 
 Iteration on the home #about animation. The plain white plate was removed (0.0.-46) which left the
