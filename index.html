@@ -970,10 +970,16 @@ html.xw-active{overflow:hidden}
   .about-wrap .about-copy{position:relative;z-index:3}
   .orbits{position:absolute;left:50%;top:50%;width:0;height:0;z-index:2;pointer-events:none}
   .orb{position:absolute;left:0;top:0;width:var(--sz,80px);height:var(--sz,80px);margin:calc(var(--sz,80px) / -2) 0 0 calc(var(--sz,80px) / -2);transform:rotate(calc(var(--spin,0deg) * (1 - var(--op,0)))) translate(calc(var(--tx,0px) * var(--op,0)),calc(var(--ty,0px) * var(--op,0))) scale(var(--op,0));opacity:var(--op,0);will-change:transform,opacity}
-  .orbi{position:absolute;inset:0;border-radius:50%;overflow:hidden;display:block;box-shadow:0 12px 26px -8px rgba(0,12,40,.6),inset 0 0 16px rgba(255,255,255,.3),inset 0 0 5px rgba(255,255,255,.6),inset 5px 7px 18px rgba(0,10,40,.45),inset 0 -12px 22px rgba(0,16,52,.55),inset 0 9px 16px rgba(255,255,255,.45);animation:orbbob 6s ease-in-out infinite alternate;animation-delay:var(--bd,0s)}
+  /* --oc1/2/3 = the colour look of the project this still comes from (set in buildOrbits). The edge
+     is a soft COLOURED gradient rim + outer glow in those colours, not a hard white line. */
+  .orb{--oc1:#3f6bff;--oc2:#9b5cff;--oc3:#56c8ff}
+  .orbi{position:absolute;inset:0;border-radius:50%;overflow:hidden;display:block;box-shadow:0 0 16px 1px color-mix(in srgb,var(--oc2) 60%,transparent),0 0 6px 0 color-mix(in srgb,var(--oc1) 55%,transparent),0 12px 26px -8px rgba(0,12,40,.6),inset 0 0 16px rgba(255,255,255,.3),inset 0 0 5px rgba(255,255,255,.6),inset 5px 7px 18px rgba(0,10,40,.45),inset 0 -12px 22px rgba(0,16,52,.55),inset 0 9px 16px rgba(255,255,255,.45);animation:orbbob 6s ease-in-out infinite alternate;animation-delay:var(--bd,0s)}
   .orb img{width:100%;height:100%;object-fit:cover;display:block}
   .orbi::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(34% 26% at 32% 24%,rgba(255,255,255,.78),transparent 58%),radial-gradient(120% 100% at 50% 122%,rgba(0,10,34,.34),transparent 52%)}
-  .orbi::before{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:2;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5),inset 0 0 10px rgba(255,255,255,.28)}
+  /* coloured gradient rim: a conic sweep of the look's 3 colours, masked to the outer ~22% so it
+     fades inward into the photo instead of drawing a crisp line. A faint white inner hairline keeps
+     the glassy read. */
+  .orbi::before{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:2;background:conic-gradient(from 130deg,var(--oc1),var(--oc2),var(--oc3),var(--oc2),var(--oc1));-webkit-mask:radial-gradient(closest-side,transparent 78%,#000 100%);mask:radial-gradient(closest-side,transparent 78%,#000 100%);opacity:.92}
   @keyframes orbbob{from{transform:translateY(-4px)}to{transform:translateY(5px)}}
   @media(prefers-reduced-motion:reduce){.orbi{animation:none}}
   /* No mobile scale override: orbit positions + sizes are computed from the bubble's live
@@ -1655,22 +1661,31 @@ makeBgBubbles(document.getElementById('projects-page'),BG_BUBBLES,'fade-b');
 var ABOUT_SET_ORBITS=null;   // assigned by buildOrbits; called by the logo-anim loop so the film-still
                              // bubbles emerge/retract IN SYNC with the logo animation's own progress.
 const ORB_SPEC=[
-  {ang:-104,rf:1.10,sz:90,delay:0.00,ease:2.3,spin:-16},
-  {ang:-152,rf:1.03,sz:66,delay:0.18,ease:1.5,spin:12},
-  {ang:150,rf:1.16,sz:82,delay:0.08,ease:2.7,spin:20},
-  {ang:100,rf:1.04,sz:62,delay:0.27,ease:1.5,spin:-10},
-  {ang:54,rf:1.13,sz:76,delay:0.13,ease:2.0,spin:14},
-  {ang:18,rf:1.00,sz:58,delay:0.33,ease:1.7,spin:-18},
-  {ang:-54,rf:1.08,sz:80,delay:0.04,ease:2.5,spin:9}
+  {ang:-104,rf:1.10,sz:112,delay:0.00,ease:2.3,spin:-16},
+  {ang:-152,rf:1.03,sz:82,delay:0.18,ease:1.5,spin:12},
+  {ang:150,rf:1.16,sz:102,delay:0.08,ease:2.7,spin:20},
+  {ang:100,rf:1.04,sz:78,delay:0.27,ease:1.5,spin:-10},
+  {ang:54,rf:1.13,sz:95,delay:0.13,ease:2.0,spin:14},
+  {ang:18,rf:1.00,sz:72,delay:0.33,ease:1.7,spin:-18},
+  {ang:-54,rf:1.08,sz:100,delay:0.04,ease:2.5,spin:9}
 ];
 (function buildOrbits(){
   const host=document.querySelector('#about .about-logo');if(!host)return;
   const slot=host.querySelector('.about-anim-slot');
   const normPath=k=>{k=String(k||'').trim();if(!k)return '';if(/^https?:\/\//i.test(k)){try{k=new URL(k).pathname;}catch(_){}}if(k[0]!=='/')k='/'+k;return k;};
   const wrap=document.createElement('div');wrap.className='orbits';const orbs=[];
+  // Each bubble's edge is coloured by the COLOUR LOOK of the project the still comes from. The
+  // project key is embedded in the path (/media/projects/<key>/...), so we derive it with no extra
+  // data: key -> project.colorLook -> LOOKS_BY_KEY -> c1/c2/c3, set as --oc1/2/3 on the orb.
+  const PROJ_LOOK={};(__projects||[]).forEach(p=>{if(p&&p.key)PROJ_LOOK[p.key]=p.colorLook||'signature';});
   ABOUT_ORBS.map(normPath).filter(Boolean).forEach((k,i)=>{
     const s=ORB_SPEC[i%ORB_SPEC.length];
     const orb=document.createElement('div');orb.className='orb';orb.style.setProperty('--spin',s.spin+'deg');
+    const mk=k.match(/\/media\/projects\/([^\/]+)\//);
+    const look=LOOKS_BY_KEY[(mk&&PROJ_LOOK[mk[1]])||'signature']||LOOKS_BY_KEY.signature||{};
+    if(look.c1)orb.style.setProperty('--oc1',look.c1);
+    if(look.c2)orb.style.setProperty('--oc2',look.c2);
+    if(look.c3)orb.style.setProperty('--oc3',look.c3);
     orb.innerHTML='<span class="orbi"><img src="'+k+'" alt="" loading="lazy"></span>';
     wrap.appendChild(orb);orbs.push({el:orb,s:s});
   });
