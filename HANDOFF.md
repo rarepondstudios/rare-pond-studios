@@ -39,6 +39,29 @@
 
 ## 0. LATEST SESSION (2026-08-22), READ THIS FIRST
 
+### 0.0.-53 HOME #about ORBITS NOW EMERGE IN SYNC WITH THE LOGO ANIMATION (2026-08-22)
+
+Per Jack: have the film-still orbit bubbles come out in time with the logo animation. `index.html` only.
+
+- **Orbits are now driven by the logo-anim progress, not by scroll.** Previously `buildOrbits` had its
+  own scroll listener computing an emergence progress from the section's viewport position (independent
+  of the duck/wordmark playback). Now `buildOrbits` exposes `ABOUT_SET_ORBITS(p)` (a shared hook) and
+  the logo-anim rAF loop calls it every frame with the SAME progress it uses for the logo
+  (`curF/(N-1)` while playing; `(fadeFrom/(N-1))*(1-fadeK)` while dissolving). So the bubbles emerge in
+  lockstep with the logo and retract as it dissolves back to the palette; each orbit keeps its own
+  delay+ease for natural stagger.
+- **Net performance win:** the orbits' separate scroll+rAF loop is removed. There is now ONE loop (the
+  logo-anim loop), which only runs during a play or a crossfade and stops itself on arrival, so orbits
+  cost nothing when idle. `setP` dedupes and a resize handler repositions + re-applies current progress.
+- **Fallbacks:** on reduced-motion, or if the animation can't load (no canvas / manifest / fetch
+  fails), the orbits are revealed (op=1) so they are never stuck hidden.
+- Verified headless desktop + mobile: orbit avg-opacity sits at 0 at the palette, ramps 0->1 in step
+  with the logo playback (0.21,0.39,0.60,0.76,0.88,0.96,1...), reaches 1 when the logo finishes, and
+  returns to 0 when scrolled >80% out (desktop; mobile keeps them out at its top-peek, as before).
+  0 console errors. jackcarlsen untouched.
+
+Commit: rp `4206b61`.
+
 ### 0.0.-52 HOME #about DUCK ANIM: 24FPS + CACHE-BUSTER (STALE FRAMES WERE HIDING THE 0.0.-51 FIX) (2026-08-22)
 
 Follow-up to 0.0.-51: Jack still saw the edge-crop lines and it looked low-FPS. Two causes, both fixed
