@@ -1652,6 +1652,8 @@ makeBgBubbles(document.getElementById('projects-page'),BG_BUBBLES,'fade-b');
    positions + sizes scale to the logo bubble's current radius, and they end AT/just outside the
    bubble edge (rf ~1) so they read in front rather than getting lost behind the translucent bubble.
    Paths are plain /media/... strings from the CMS (SITE.orbits); URLs / missing slashes are normalised. */
+var ABOUT_SET_ORBITS=null;   // assigned by buildOrbits; called by the logo-anim loop so the film-still
+                             // bubbles emerge/retract IN SYNC with the logo animation's own progress.
 const ORB_SPEC=[
   {ang:-104,rf:1.10,sz:90,delay:0.00,ease:2.3,spin:-16},
   {ang:-152,rf:1.03,sz:66,delay:0.18,ease:1.5,spin:12},
@@ -1680,13 +1682,16 @@ const ORB_SPEC=[
       o.el.style.setProperty('--sz',Math.round(o.s.sz*f)+'px');});}
   place();
   if(matchMedia('(prefers-reduced-motion:reduce)').matches){orbs.forEach(o=>o.el.style.setProperty('--op','1'));return;}
-  let ticking=false;
-  function upd(){ticking=false;const r=host.getBoundingClientRect();const vh=innerHeight||document.documentElement.clientHeight;const c=r.top+r.height/2;
-    let p=(vh*0.90-c)/(vh*0.55);p=p<0?0:(p>1?1:p);
-    orbs.forEach(o=>{let op=(p-o.s.delay)/(1-o.s.delay);op=op<0?0:(op>1?1:op);o.el.style.setProperty('--op',(1-Math.pow(1-op,o.s.ease)).toFixed(3));});}
-  addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(upd);}},{passive:true});
-  addEventListener('resize',()=>{place();upd();});
-  upd();setTimeout(function(){place();upd();},300);setTimeout(function(){place();upd();},700);
+  // Emergence is driven by the LOGO ANIMATION's progress p (0..1), NOT by scroll: the logo-anim loop
+  // calls ABOUT_SET_ORBITS(p) each frame, so the bubbles pop out in time with the duck/wordmark and
+  // retract when it dissolves back to the palette. Each orbit keeps its own delay+ease for stagger.
+  // No separate orbit scroll/rAF loop -> one loop total (the anim loop), so it costs nothing when idle.
+  var curP=-1;
+  function setP(p){ if(p===curP)return; curP=p;
+    orbs.forEach(o=>{var op=(p-o.s.delay)/(1-o.s.delay);op=op<0?0:(op>1?1:op);o.el.style.setProperty('--op',(1-Math.pow(1-op,o.s.ease)).toFixed(3));});}
+  ABOUT_SET_ORBITS=setP;
+  setP(0);                                              // start hidden, matching the palette state
+  addEventListener('resize',function(){place();var p=curP;curP=-1;setP(p);},{passive:true});  // reposition, then re-apply the current progress
 })();
 
 /* Home logo bubble: colour its rim + outer glow from the CMS colour look (site.json homeBubble),
@@ -1715,12 +1720,12 @@ const ORB_SPEC=[
   var host=document.querySelector('#about .about-logo');
   var slot=bubble&&bubble.querySelector('.about-anim-slot');
   var cv=bubble&&bubble.querySelector('canvas.about-anim');
-  if(!cv||!host)return;
-  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return; // keep the static logo
+  if(!cv||!host){ if(ABOUT_SET_ORBITS)ABOUT_SET_ORBITS(1); return; }  // no canvas -> reveal orbits
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return; // keep the static logo (orbits already revealed by buildOrbits)
   fetch('/media/brand/home-logo-anim/manifest.json',{cache:'no-cache'})  // revalidate the tiny manifest (it lives under /media/* which caches a week) so frame updates are picked up
     .then(function(r){return r.ok?r.json():null;})
     .then(function(m){
-      if(!m||!m.count||!m.pattern)return;
+      if(!m||!m.count||!m.pattern){ if(ABOUT_SET_ORBITS)ABOUT_SET_ORBITS(1); return; }  // no anim -> reveal orbits so they aren't stuck hidden
       var N=m.count, ctx=cv.getContext('2d');
       // Backing store = frame size from the manifest. The canvas is an in-flow block with CSS
       // width:100% + height:auto, so it scales by this intrinsic ratio and never distorts.
@@ -1746,13 +1751,16 @@ const ORB_SPEC=[
         if(imgs[0])ctx.drawImage(imgs[0],0,0,cv.width,cv.height);
         var top=imgs[fadeFrom]; if(top&&k<1){ ctx.globalAlpha=1-k; ctx.drawImage(top,0,0,cv.width,cv.height); ctx.globalAlpha=1; }
         drawn=-1; }
+      // Drive the orbit film-still bubbles from the SAME progress as the logo, so they emerge in time
+      // with the duck/wordmark and retract as it dissolves back to the palette.
+      function orb(p){ if(ABOUT_SET_ORBITS) ABOUT_SET_ORBITS(p<0?0:(p>1?1:p)); }
       function loop(t){ if(!lastT)lastT=t; var dt=t-lastT; lastT=t; if(dt>50)dt=50;
         if(mode==='fwd'){ curF+=SPD*dt;
-          if(curF>=N-1){ curF=N-1; paint(); mode='done'; raf=0; lastT=0; return; }
-          paint(); raf=requestAnimationFrame(loop); }
+          if(curF>=N-1){ curF=N-1; paint(); orb(1); mode='done'; raf=0; lastT=0; return; }
+          paint(); orb(curF/(N-1)); raf=requestAnimationFrame(loop); }
         else if(mode==='fade'){ fadeK+=dt/FADE_MS;
-          if(fadeK>=1){ curF=0; mode='palette'; paint(); raf=0; lastT=0; return; }
-          cross(fadeK); raf=requestAnimationFrame(loop); }
+          if(fadeK>=1){ curF=0; mode='palette'; paint(); orb(0); raf=0; lastT=0; return; }
+          cross(fadeK); orb((fadeFrom/(N-1))*(1-fadeK)); raf=requestAnimationFrame(loop); }
         else { raf=0; lastT=0; } }
       function kick(){ if(!raf){ lastT=0; raf=requestAnimationFrame(loop); } }
       var st=false;
@@ -1785,12 +1793,12 @@ const ORB_SPEC=[
           var r=(slot||host).getBoundingClientRect(), vh=innerHeight||document.documentElement.clientHeight;
           var vis=Math.max(0,Math.min(r.bottom,vh)-Math.max(r.top,0))/(r.height||1);
           if(vis>=0.45){ curF=N-1; mode='done'; } else { curF=0; mode='palette'; }
-          drawn=-1; paint(); }); }
+          drawn=-1; paint(); orb(curF/(N-1)); }); }
       // Defer the loading burst until the browser is idle after first paint, so it never competes with
       // the initial page load (another source of the scroll-in hitch).
       if('requestIdleCallback'in window) requestIdleCallback(start,{timeout:2500}); else setTimeout(start,800);
       addEventListener('scroll',onScroll,{passive:true}); addEventListener('resize',onScroll);
-    }).catch(function(){});
+    }).catch(function(){ if(ABOUT_SET_ORBITS)ABOUT_SET_ORBITS(1); });  // anim failed to load -> reveal orbits
 })();
 
 /* carousel (home) - films only */
