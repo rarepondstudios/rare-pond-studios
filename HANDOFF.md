@@ -39,6 +39,36 @@
 
 ## 0. LATEST SESSION (2026-08-22), READ THIS FIRST
 
+### 0.0.-54 HOME #about ORBITS: BIGGER + COLOURED GRADIENT EDGE FROM PROJECT COLOUR LOOK (2026-08-22)
+
+Per Jack, part 1 of 2 (`index.html` only). Part 2 (a nicer place to SELECT which stills feed the
+orbits) is pending Jack's NocoDB-vs-PagesCMS decision - see the note at the end.
+
+- **Bigger bubbles.** `ORB_SPEC` sizes bumped ~1.25x (58-90 -> 72-112). Positions still scale to the
+  live bubble radius, so they track every viewport.
+- **Coloured gradient edge instead of the white line.** The old `.orbi::before` was a hard 1.5px white
+  ring. Replaced with a soft COLOURED rim: a conic-gradient sweep of the source project's colour-look
+  colours, radial-masked to the outer ~22% so it fades inward into the photo (no crisp line), plus a
+  coloured outer glow on `.orbi` (color-mix of the look colours). Each orbit's `--oc1/2/3` are set in
+  `buildOrbits` by deriving the project from the still's path (`/media/projects/<key>/...`) ->
+  `projects.json` colourLook -> `LOOKS_BY_KEY`. No data change: the project key is already in the path.
+- Verified headless desktop + mobile: geri stills read red/blue (#e0455f/#4f77ff), revelations
+  white/gold (#ffffff/#bd9661), invalid blue/indigo (#3f9bea/#6360e1); sizes 72-112 desktop / 50-78
+  mobile; 0 console errors. jackcarlsen untouched.
+
+SOURCE OF THE ORBIT PHOTOS (confirmed): they already come from the projects' OWN stills folders.
+`ABOUT_ORBS = SITE.orbits` (data/site.json), a list of `/media/projects/<key>/stills/*.jpg` paths that
+point at the same files the project pages use (no duplicate copies). Today that list is edited in Pages
+CMS ("About-logo floating images", a paste-the-path string list). In NocoDB, a project's `stills` is a
+single text field of paths (projects_sync.py: `toArr(r.get("stills"))`), NOT per-still rows - so there
+is no natural per-image toggle there. RECOMMENDATION PENDING JACK: keep the selection in Pages CMS but
+upgrade the field from a raw string-list to an IMAGE picker list (type: image), so he clicks each still
+in the media browser instead of pasting a path; the project + colour look are still derived from the
+chosen path. (Alternative considered: NocoDB - rejected as less consistent because the orbit is a
+cross-project home-page curation, not a property of any one project, and stills are not rows there.)
+
+Commit: rp `e8dd23e`.
+
 ### 0.0.-53 HOME #about ORBITS NOW EMERGE IN SYNC WITH THE LOGO ANIMATION (2026-08-22)
 
 Per Jack: have the film-still orbit bubbles come out in time with the logo animation. `index.html` only.
