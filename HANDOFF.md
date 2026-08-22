@@ -61,8 +61,8 @@ sorted subfolder inside `Website Repository/`, never the raw kit), that was wron
   modified.
 - **Documented the rule** so future sessions follow it: a "Website source-of-truth rule" section at
   the top of `bts-automation/MEDIA-SPEC.md` and in `OPERATIONS.md`, plus enforcement comments in both
-  sync scripts. STILL TO DO (needs Jack): add the same one-liner rule to `AI_System_Context/START-HERE.md`
-  (the folder-access prompt went unanswered this session).
+  sync scripts, and as **rule 8** in `AI_System_Context/START-HERE.md` (the master; heading now reads
+  "eight rules that cause real damage").
 
 Commits: rp `c6fa697`, bts `efaadeb`.
 
