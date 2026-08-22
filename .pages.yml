@@ -101,6 +101,13 @@ content:
           - { name: heading, label: Heading, type: string }
           - { name: paragraphs, label: Paragraphs, type: text, list: true }
           - { name: button, label: Button text, type: string }
+      - name: homeBubble
+        label: "🫧 Home logo bubble"
+        type: object
+        description: "The soft branded bubble behind the animated logo in the home About section. Its inside stays a soft light so the colour logo reads on the dark section; its OUTER GLOW + rim are coloured by a colour look you pick here."
+        fields:
+          - { name: colorLook, label: "Colour look (key or name)", type: string, description: "Which colour look colours the bubble's outer glow + rim. Type a look's key or NAME exactly as in the Color Looks list (e.g. \"signature\", \"geri\", \"invalid\"). Blank = signature. Colour looks are shared + edited in NocoDB." }
+          - { name: enabled, label: "Bubble enabled", type: boolean, default: true, description: "ON: the logo sits inside the branded bubble. OFF: the logo sits directly on the section with no bubble." }
       # Social links moved to NocoDB (the `socials` table) 2026-08-04 - edit accounts, links,
       # bubble blurbs and colours there; socials_sync.py writes data/socials.json for BOTH sites.
       # (No longer edited here or in site.json.)

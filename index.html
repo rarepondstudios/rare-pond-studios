@@ -574,27 +574,49 @@ html.xw-active{overflow:hidden}
 
   /* ===== About ===== */
   #about{padding:clamp(24px,4vh,52px) clamp(18px,5vw,60px) clamp(56px,8vh,90px)}
-  .about-wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto;display:grid;grid-template-columns:minmax(0,330px) 1fr;gap:clamp(28px,5vw,64px);align-items:center}
-  .about-logo{display:flex;justify-content:center}
-  .about-bubble{position:relative;display:grid;place-items:center;padding:clamp(30px,4vw,50px) clamp(34px,4.5vw,58px);overflow:visible;
-    background:radial-gradient(125% 120% at 50% 30%,#ffffff 50%,#eef5ff 76%,#d2e3f7 100%);
-    border-radius:36% / 46%;
-    box-shadow:0 28px 64px rgba(0,12,40,.5),inset 0 3px 10px rgba(255,255,255,.95),inset 0 -16px 32px rgba(120,160,220,.3)}
-  .about-bubble::before{content:"";position:absolute;left:10%;top:6%;width:62%;height:30%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,255,255,.95),transparent);pointer-events:none}
-  /* Logo slot: fixed-width box that both the static logo and the scroll animation share. */
-  .about-anim-slot{position:relative;width:100%;max-width:268px;margin:0 auto}
-  .about-anim-slot img.rpColor{width:100%;height:auto;display:block;filter:drop-shadow(0 4px 10px rgba(40,80,150,.16))}
-  /* Scroll-scrubbed logo animation (Studios "RP Anim 1", no-bg): a canvas overlaid on the slot,
-     bottom-aligned and full width, so the SETTLED logo lands exactly on the static logo's box while
-     the taller frame (the duck's bounce) spills ABOVE the bubble. aspect-ratio is set from the frame
-     manifest in JS, so a re-generated animation of different dimensions needs no CSS change. */
-  .about-anim-slot canvas.about-anim{position:absolute;left:0;bottom:0;width:100%;height:auto;display:none;filter:drop-shadow(0 6px 14px rgba(40,80,150,.20))}
-  .about-bubble.anim-on .about-anim-slot img.rpColor{visibility:hidden}
-  .about-bubble.anim-on canvas.about-anim{display:block}
+  .about-wrap{position:relative;z-index:1;max-width:1040px;margin:0 auto;display:grid;grid-template-columns:minmax(0,460px) 1fr;gap:clamp(28px,5vw,60px);align-items:center}
+  .about-logo{display:flex;justify-content:center;width:100%}
+  /* No backdrop plate: the logo/animation sits directly on the section (transparent). */
+  .about-bubble{position:relative;width:100%;display:grid;place-items:center;overflow:visible;background:none;box-shadow:none;padding:0}
+  /* ===== Home logo bubble (recreated in CSS) =====
+     The logo/animation sits INSIDE a branded soap bubble. Its INSIDE is a soft light so the colour
+     logo reads on the dark section; its RIM + OUTER GLOW carry a colour look's colours via
+     --bub-c1/2/3, which JS sets from data/site.json homeBubble.colorLook (editable in Pages CMS).
+     The defaults below are the "signature" look so it still looks right with no JS. */
+  .about-anim-slot{position:relative;width:100%;max-width:460px;aspect-ratio:1/1;margin:0 auto;border-radius:50%;
+    --bub-c1:#3f6bff;--bub-c2:#9b5cff;--bub-c3:#56c8ff;
+    background:radial-gradient(circle at 50% 45%,rgba(246,250,255,.93),rgba(232,242,255,.72) 37%,rgba(210,229,255,.40) 57%,rgba(188,213,250,.14) 72%,rgba(255,255,255,0) 80%);
+    box-shadow:0 0 46px 3px color-mix(in srgb,var(--bub-c3) 55%,transparent),
+      0 0 96px 12px color-mix(in srgb,var(--bub-c1) 38%,transparent),
+      0 24px 60px -16px rgba(0,10,40,.55),
+      inset 0 3px 13px rgba(255,255,255,.72),
+      inset 0 -26px 48px color-mix(in srgb,var(--bub-c2) 32%,transparent)}
+  /* coloured rim ring (cyan -> blue -> purple sweep), masked to the outer edge */
+  .about-anim-slot::before{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:0;
+    background:conic-gradient(from 215deg,var(--bub-c3),var(--bub-c1) 32%,var(--bub-c2) 64%,var(--bub-c3));
+    -webkit-mask:radial-gradient(circle,transparent 62%,#000 76%,#000 99%,transparent 100%);
+            mask:radial-gradient(circle,transparent 62%,#000 76%,#000 99%,transparent 100%);
+    opacity:.9;filter:blur(1.5px)}
+  /* specular highlight (top-right), on the glass surface */
+  .about-anim-slot::after{content:"";position:absolute;right:15%;top:11%;width:26%;height:18%;border-radius:50%;z-index:3;
+    background:radial-gradient(circle at 42% 40%,rgba(255,255,255,.9),rgba(255,255,255,0) 68%);filter:blur(2px);pointer-events:none}
+  /* the logo/animation, centred on the SETTLED logo (which sits low in the frame). The inner wrapper
+     is the positioned box; the img/canvas are in-flow width:100% + height:auto, so they scale by the
+     frame's intrinsic ratio and can never distort. */
+  .about-anim-inner{position:absolute;left:50%;top:50%;width:74%;transform:translate(-50%,-64%);z-index:1}
+  .about-anim-inner img.rpColor,.about-anim-inner canvas.about-anim{width:100%;height:auto;display:block;
+    filter:drop-shadow(0 3px 10px rgba(0,20,60,.22))}
+  .about-anim-inner canvas.about-anim{display:none}
+  .about-bubble.anim-on .about-anim-inner img.rpColor{display:none}
+  .about-bubble.anim-on .about-anim-inner canvas.about-anim{display:block}
+  /* bubble turned OFF in Pages CMS: no plate/glow, logo sits directly on the section */
+  .about-anim-slot.no-bubble{background:none;box-shadow:none;aspect-ratio:auto}
+  .about-anim-slot.no-bubble::before,.about-anim-slot.no-bubble::after{display:none}
+  .about-anim-slot.no-bubble .about-anim-inner{position:static;transform:none;width:100%;margin:0 auto}
   .about-copy h2{font-size:clamp(26px,3.4vw,40px);margin:0 0 6px;font-weight:800;letter-spacing:-.01em}
   .about-copy .ey{font-size:12.5px;letter-spacing:.24em;text-transform:uppercase;color:#8fd0ff;font-weight:700;margin-bottom:8px}
   .about-copy p{font-size:clamp(14px,1.6vw,17px);line-height:1.65;color:#d4e6fb;margin:.7em 0 0}.about-copy .ph{color:#8fd0ff;font-weight:700}
-  @media(max-width:760px){.about-wrap{grid-template-columns:1fr;text-align:center;justify-items:center}.about-anim-slot{max-width:210px}}
+  @media(max-width:760px){.about-wrap{grid-template-columns:1fr;text-align:center;justify-items:center}.about-anim-slot{max-width:320px}}
 
   /* ===== contact + footer ===== */
   #contact{padding:clamp(50px,8vh,96px) clamp(18px,5vw,60px) 0}
@@ -1093,7 +1115,7 @@ html.xw-active{overflow:hidden}
 
     <section id="about">
       <div class="about-wrap">
-        <div class="about-logo"><div class="about-bubble"><div class="about-anim-slot"><img class="rpColor" loading="lazy" decoding="async" alt="Rare Pond Studios"><canvas class="about-anim" aria-hidden="true"></canvas></div></div></div>
+        <div class="about-logo"><div class="about-bubble"><div class="about-anim-slot"><div class="about-anim-inner"><img class="rpColor" loading="lazy" decoding="async" alt="Rare Pond Studios"><canvas class="about-anim" aria-hidden="true"></canvas></div></div></div></div>
         <div class="about-copy">
           <div class="ey">What we do</div><h2>Worlds worth escaping into.</h2>
           <p>Rare Pond Studios is an independent film studio crafting escapist stories that feel like peering into an alternate world. We work across live-action and 2D / 3D animation, blending mediums to build immersive little universes, from a retired superspy breaking out of her nursing home to a surreal vision of Heaven and Earth.</p>
@@ -1636,6 +1658,16 @@ const ABOUT_ORB_POS=[[-172,-96,86],[-202,72,76],[-130,166,80],[10,196,72],[126,1
 const normPath=k=>{k=String(k||'').trim();if(!k)return '';if(/^https?:\/\//i.test(k)){try{k=new URL(k).pathname;}catch(_){}}if(k[0]!=='/')k='/'+k;return k;};
 const wrap=document.createElement('div');wrap.className='orbits';ABOUT_ORBS.map(normPath).filter(Boolean).forEach((k,i)=>{const p=ABOUT_ORB_POS[i%ABOUT_ORB_POS.length];const orb=document.createElement('div');orb.className='orb';orb.style.setProperty('--tx',p[0]+'px');orb.style.setProperty('--ty',p[1]+'px');orb.style.setProperty('--sz',p[2]+'px');orb.style.setProperty('--bd',(i*0.6).toFixed(2)+'s');orb.innerHTML='<span class="orbi"><img src="'+k+'" alt="" loading="lazy"></span>';wrap.appendChild(orb);});host.appendChild(wrap);if(matchMedia('(prefers-reduced-motion:reduce)').matches){wrap.style.setProperty('--p','1');return;}let ticking=false;function upd(){ticking=false;const r=host.getBoundingClientRect();const vh2=innerHeight||document.documentElement.clientHeight;const c=r.top+r.height/2;let p=(vh2*1.04-c)/(vh2*0.46);p=Math.max(0,Math.min(1,p));wrap.style.setProperty('--p',p.toFixed(3));}addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(upd);}},{passive:true});addEventListener('resize',upd);upd();setTimeout(upd,300);})();
 
+/* Home logo bubble: colour its rim + outer glow from the CMS colour look (site.json homeBubble),
+   and honour the on/off toggle. Runs regardless of reduced-motion (it also frames the static logo). */
+(function(){
+  var slot=document.querySelector('#about .about-anim-slot'); if(!slot)return;
+  var cfg=SITE.homeBubble||{};
+  if(cfg.enabled===false){slot.classList.add('no-bubble');return;}
+  var look=LOOKS_BY_KEY[String(cfg.colorLook||'signature').trim()]||LOOKS_BY_KEY.signature||{};
+  ['c1','c2','c3'].forEach(function(k){if(look[k])slot.style.setProperty('--bub-'+k,look[k]);});
+})();
+
 /* ===== About-logo scroll-scrubbed animation =====================================================
    Replaces the static #about logo with the Studios "RP Anim 1" (no-bg) master, converted to a
    compact alpha WebP frame set (bts-automation/home_logo_anim_frames.py -> media/brand/home-logo-anim/).
@@ -1656,9 +1688,9 @@ const wrap=document.createElement('div');wrap.className='orbits';ABOUT_ORBS.map(
     .then(function(m){
       if(!m||!m.count||!m.pattern)return;
       var N=m.count, ctx=cv.getContext('2d');
-      // Backing store + CSS aspect come straight from the manifest, so a re-generated animation of a
-      // different size/shape just works with no code change.
-      cv.width=m.width; cv.height=m.height; cv.style.aspectRatio=m.width+' / '+m.height;
+      // Backing store = frame size from the manifest. The canvas is an in-flow block with CSS
+      // width:100% + height:auto, so it scales by this intrinsic ratio and never distorts.
+      cv.width=m.width; cv.height=m.height;
       var imgs=new Array(N), ready=false, cur=-1, ticking=false;
       function draw(i){ var im=imgs[i]; if(!im){ var j;
           for(j=i;j>=0;j--){if(imgs[j]){im=imgs[j];break;}}

@@ -47,6 +47,10 @@
     ],
     "button": "Learn who we are →"
   },
+  "homeBubble": {
+    "colorLook": "signature",
+    "enabled": true
+  },
   "orbits": [
     "/media/projects/geri_action/stills/geri-anim-1.jpg",
     "/media/projects/geri_action/stills/geri-anim-2.jpg",
