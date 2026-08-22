@@ -111,7 +111,7 @@ content:
       # Social links moved to NocoDB (the `socials` table) 2026-08-04 - edit accounts, links,
       # bubble blurbs and colours there; socials_sync.py writes data/socials.json for BOTH sites.
       # (No longer edited here or in site.json.)
-      - { name: orbits, label: "About-logo floating images (paste /media/... paths)", type: string, list: true, description: "The little film-still bubbles that orbit the logo. Each entry is a PATH into the shared media library. Paste the generated file path straight from the stills or BTS attribute in NocoDB (e.g. /media/projects/geriaction/stills/ga-1-800.webp). The bubble then shows the SAME file the project already uses, no re-upload, no duplicate copies. A full https:// URL or a path without the leading slash also works. They are masked into circles, so pick stills with a centred subject." }
+      - { name: orbits, label: "About-logo floating images (pick project stills)", type: image, list: true, description: "The little film-still bubbles that orbit the home logo. Click + and pick a still from the media library - browse to media/projects/<film>/stills/ and choose the image (it uses the SAME file the project already uses, no re-upload, no duplicate copies). Each bubble's COLOURED EDGE is set automatically from that film's colour look, because the film is read from the file's folder - so pick stills from inside a film's own /media/projects/<film>/ folder for the colour to match. They are masked into circles, so pick stills with a centred subject. The order here is the order they are placed around the logo." }
       - name: header
         label: Header (shared - studio + rentals)
         type: object

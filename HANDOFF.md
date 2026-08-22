@@ -41,8 +41,8 @@
 
 ### 0.0.-54 HOME #about ORBITS: BIGGER + COLOURED GRADIENT EDGE FROM PROJECT COLOUR LOOK (2026-08-22)
 
-Per Jack, part 1 of 2 (`index.html` only). Part 2 (a nicer place to SELECT which stills feed the
-orbits) is pending Jack's NocoDB-vs-PagesCMS decision - see the note at the end.
+Per Jack. Part 1 = bigger + coloured edge (`index.html`). Part 2 = the SELECTION control, now shipped:
+Jack chose the Pages CMS route (try it, may revisit). See the note at the end.
 
 - **Bigger bubbles.** `ORB_SPEC` sizes bumped ~1.25x (58-90 -> 72-112). Positions still scale to the
   live bubble radius, so they track every viewport.
@@ -61,11 +61,17 @@ SOURCE OF THE ORBIT PHOTOS (confirmed): they already come from the projects' OWN
 point at the same files the project pages use (no duplicate copies). Today that list is edited in Pages
 CMS ("About-logo floating images", a paste-the-path string list). In NocoDB, a project's `stills` is a
 single text field of paths (projects_sync.py: `toArr(r.get("stills"))`), NOT per-still rows - so there
-is no natural per-image toggle there. RECOMMENDATION PENDING JACK: keep the selection in Pages CMS but
-upgrade the field from a raw string-list to an IMAGE picker list (type: image), so he clicks each still
-in the media browser instead of pasting a path; the project + colour look are still derived from the
-chosen path. (Alternative considered: NocoDB - rejected as less consistent because the orbit is a
-cross-project home-page curation, not a property of any one project, and stills are not rows there.)
+is no natural per-image toggle there. DONE (Jack chose Pages CMS, will revisit if awkward to use): the
+`orbits` field in `.pages.yml` (Site Settings -> "About-logo floating images") is now
+`type: image, list: true` instead of a raw string list - click + and pick each still from the media
+browser (browse to media/projects/<film>/stills/). It stores the same `/media/...` path, so the site
+JS (`ABOUT_ORBS = SITE.orbits`) and the colour-edge derivation are unchanged, and the existing paths in
+site.json render as pre-selected. Media resolves via the top-of-file `media: {input: media, output:
+/media}`. Limitation: Pages CMS browses the whole media library folder tree; it cannot show a filtered
+"just this film's stills" dropdown - but the folders are already per-film so you navigate straight in.
+(Alternative considered: NocoDB - rejected as less consistent because the orbit is a cross-project
+home-page curation, not a property of any one project, and stills are not rows there. For per-film
+control later, add a field on the project record + export it in projects_sync.py.)
 
 Commit: rp `e8dd23e`.
 
