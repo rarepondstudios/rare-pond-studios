@@ -39,6 +39,32 @@
 
 ## 0. LATEST SESSION (2026-08-22), READ THIS FIRST
 
+### 0.0.-50 HOME #about DUCK ANIM: TRIGGER-PLAYED (TIME-BASED), NOT SCROLL-SCRUBBED (2026-08-22)
+
+Per Jack: the scroll-scrubbed playback looked odd (frame parked on the messy 3D->2D handoff, and it
+stuttered with scroll speed). Reworked the `#about` canvas animation in `index.html` so scroll only
+TRIGGERS it; playback is time-based.
+
+- **Trigger, not scrub.** A cheap rAF-throttled scroll check reads the bubble slot's viewport
+  position. Cross below 0.68vh -> target = last frame (play forward); cross above 0.82vh -> target =
+  frame 0 (play reverse). The 0.68-0.82 dead zone is hysteresis so jitter never flip-flops direction.
+- **Smooth time-based loop.** `curF` (float frame) advances toward `target` by ELAPSED TIME
+  (`SPD = (N-1)/1050`, ~1.05s full play), `dt` capped at 50ms so a background tab / long frame can
+  never leap across the handoff frames. It always runs to a clean end frame, so it never parks on the
+  ugly 3D->2D transition and never stutters with scroll speed.
+- **Zero idle cost.** The rAF loop starts only when a play begins and stops itself on arrival
+  (`raf=0`). Sitting on or scrolling past the section costs nothing. Verified: two post-settle canvas
+  samples are byte-identical (loop stopped).
+- **Reverse works.** Scrolling back up plays the whole thing backwards to the first frame.
+- On load the frame is SEEDED to match the current scroll position (finished logo if already in view,
+  else frame 0) with no auto-play. Reduced-motion still keeps the static logo (outer guard unchanged);
+  frame preload/decode pipeline unchanged.
+- Verified headless desktop (1440) + mobile (390) via canvas-checksum sampling: forward advances over
+  time with scroll HELD static then settles on the finished logo; reverse returns to the start frame;
+  loop idles; 0 console errors. jackcarlsen.com untouched.
+
+Commit: rp `b4bd81b`.
+
 ### 0.0.-49 HOME #about ORBIT BUBBLES + ANIM TIMING POLISH (2026-08-22)
 
 Three refinements to the home #about section on top of 0.0.-48, all in `index.html` only.
