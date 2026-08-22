@@ -39,6 +39,36 @@
 
 ## 0. LATEST SESSION (2026-08-22), READ THIS FIRST
 
+### 0.0.-46 HOME ANIM: FULL-DUCK BOUNCE (NO CLIP) + SMOOTHER LOAD; RP STUDIO LOGOS SOURCED FROM THE KIT (2026-08-22)
+
+Follow-ups to 0.0.-45 (same day).
+
+**1. Home #about animation: the bounce no longer clips the duck.** `home_logo_anim_frames.py` now crops
+each frame to the held-logo WIDTH and pond BOTTOM but extends the TOP up to the bounce peak, so the
+whole duck is always in-frame. On the page the logo lives in a new `.about-anim-slot`; the canvas is
+absolutely positioned, full-width and BOTTOM-aligned to the slot, with `.about-bubble{overflow:visible}`,
+so the settled logo lands on exactly the static logo's box (unchanged size/position) while the duck's
+bounce spills ABOVE the white bubble. Canvas `width/height` + `aspect-ratio` are read from
+`manifest.json`, so a re-generated animation of any size just works with no CSS/JS change.
+
+**2. Scroll-in lag fixed.** Frames are now loaded AND decoded off the main thread via `img.decode()`
+(instead of decoding lazily on first paint), and the whole preload is deferred to `requestIdleCallback`
+so it never competes with initial page load. Draws are rAF-throttled and only fire when the frame index
+changes. Verified in headless Chrome at 1280 and 390 wide: full duck through the bounce, held logo box
+identical (330x213 desktop), no console errors. Frame set is 48x 540px alpha WebP, ~1.3 MB.
+
+**3. RP studio logos now publish from the standardized brand kit.** `brand_media_sync.py` MANIFEST split:
+rarepond.com's `rare-pond-color`, `duck-mark`, `duck-white`, `duck-mark-filled` now source from
+`KIT/Rare Pond V3/.../Static Graphics/{Full Name Logos/RP_Full-Logo_Studios_COLOR, Duck Only Logos/
+RP_Logo_Duck_{COLOR,WHITE,FILLED}}.png`. Verified before publishing: same output dimensions and visually
+identical to the previous Website-Repository copies (rare-pond-color + filled pixel-diff 0.0/255; color
++ white ducks ~2.6-3.2/255 = edge anti-aliasing only, same art). Editing a studio logo in the kit now
+auto-publishes to rarepond.com. **jackcarlsen.com outputs still source from the Website-Repository
+masters** (unchanged; migrate from the mini when JC is in scope). Brand-kit masters were NOT modified.
+
+Commits: rp `8215f7a`, bts `e83e1c6` (explicit paths; bts state files from parallel jobs preserved via
+autostash). Rentals + jackcarlsen.com untouched.
+
 ### 0.0.-45 MEDIA-PAGE NEON DUCK + SCROLL-SCRUBBED HOME LOGO; STANDARDIZED BRAND KIT WIRED IN (2026-08-22)
 
 Two brand-asset changes on rarepond.com (studio + media only; Rentals and jackcarlsen.com untouched).
