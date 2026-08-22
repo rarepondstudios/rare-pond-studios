@@ -968,19 +968,17 @@ html.xw-active{overflow:hidden}
   .about-logo{position:relative}
   .about-logo .about-bubble{position:relative;z-index:2}
   .about-wrap .about-copy{position:relative;z-index:3}
-  .orbits{position:absolute;left:50%;top:50%;width:0;height:0;z-index:0;pointer-events:none;--p:0}
-  .orb{position:absolute;left:0;top:0;width:var(--sz,80px);height:var(--sz,80px);margin:calc(var(--sz,80px) / -2) 0 0 calc(var(--sz,80px) / -2);transform:translate(calc(var(--tx,0px) * var(--p)),calc(var(--ty,0px) * var(--p))) scale(var(--p));opacity:var(--p);will-change:transform,opacity}
+  .orbits{position:absolute;left:50%;top:50%;width:0;height:0;z-index:2;pointer-events:none}
+  .orb{position:absolute;left:0;top:0;width:var(--sz,80px);height:var(--sz,80px);margin:calc(var(--sz,80px) / -2) 0 0 calc(var(--sz,80px) / -2);transform:rotate(calc(var(--spin,0deg) * (1 - var(--op,0)))) translate(calc(var(--tx,0px) * var(--op,0)),calc(var(--ty,0px) * var(--op,0))) scale(var(--op,0));opacity:var(--op,0);will-change:transform,opacity}
   .orbi{position:absolute;inset:0;border-radius:50%;overflow:hidden;display:block;box-shadow:0 12px 26px -8px rgba(0,12,40,.6),inset 0 0 16px rgba(255,255,255,.3),inset 0 0 5px rgba(255,255,255,.6),inset 5px 7px 18px rgba(0,10,40,.45),inset 0 -12px 22px rgba(0,16,52,.55),inset 0 9px 16px rgba(255,255,255,.45);animation:orbbob 6s ease-in-out infinite alternate;animation-delay:var(--bd,0s)}
   .orb img{width:100%;height:100%;object-fit:cover;display:block}
   .orbi::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(34% 26% at 32% 24%,rgba(255,255,255,.78),transparent 58%),radial-gradient(120% 100% at 50% 122%,rgba(0,10,34,.34),transparent 52%)}
   .orbi::before{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:2;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5),inset 0 0 10px rgba(255,255,255,.28)}
   @keyframes orbbob{from{transform:translateY(-4px)}to{transform:translateY(5px)}}
   @media(prefers-reduced-motion:reduce){.orbi{animation:none}}
-  /* mobile: was scale(.58) - the whole orbit collapsed INSIDE the white logo plate, so the
-     bubbles never emerged on scroll (Jack's phone screenshots). .70 clears the plate while
-     staying inside a 390px viewport. NOTE: this section is slated for a full redo - the real
-     fix is sizing the orbit ring relative to the plate, not a fixed px position table. */
-  @media(max-width:760px){.orbits{transform:scale(.70)}}
+  /* No mobile scale override: orbit positions + sizes are computed from the bubble's live
+     radius in buildOrbits (place()), so they track the bubble on every viewport. A fixed
+     transform:scale() here would shrink them back inside the bubble on phones. */
   /* ===== carousel swipe =====
      NOTHING visual is switched off during a swipe any more - no glow flashing out, no
      shadow popping. Every effect that used to be hidden was measured on a 120Hz Mac:
@@ -1649,14 +1647,47 @@ const BG_BUBBLES=Math.max(0,Math.min(60,Math.round(Number(SITE.home&&SITE.home.b
 makeBgBubbles(document.getElementById('projects-page'),BG_BUBBLES,'fade-b');
 /* About-logo scroll-tied film-still orbit bubbles. Edit ABOUT_ORBS (IMG keys) to swap images. */
 
-const ABOUT_ORB_POS=[[-172,-96,86],[-202,72,76],[-130,166,80],[10,196,72],[126,150,70],[150,-92,72],[-52,-188,72]];
-(function buildOrbits(){const host=document.querySelector('.about-logo');if(!host)return;
-/* Orbit images are PLAIN PATH STRINGS in the CMS now, paste a /media/... path straight from
-   the NocoDB stills/BTS attribute and the SAME file the project already uses populates the
-   bubble (no duplicate uploads). Normalize whatever gets pasted: full URL → its path;
-   missing leading slash → added. */
-const normPath=k=>{k=String(k||'').trim();if(!k)return '';if(/^https?:\/\//i.test(k)){try{k=new URL(k).pathname;}catch(_){}}if(k[0]!=='/')k='/'+k;return k;};
-const wrap=document.createElement('div');wrap.className='orbits';ABOUT_ORBS.map(normPath).filter(Boolean).forEach((k,i)=>{const p=ABOUT_ORB_POS[i%ABOUT_ORB_POS.length];const orb=document.createElement('div');orb.className='orb';orb.style.setProperty('--tx',p[0]+'px');orb.style.setProperty('--ty',p[1]+'px');orb.style.setProperty('--sz',p[2]+'px');orb.style.setProperty('--bd',(i*0.6).toFixed(2)+'s');orb.innerHTML='<span class="orbi"><img src="'+k+'" alt="" loading="lazy"></span>';wrap.appendChild(orb);});host.appendChild(wrap);if(matchMedia('(prefers-reduced-motion:reduce)').matches){wrap.style.setProperty('--p','1');return;}let ticking=false;function upd(){ticking=false;const r=host.getBoundingClientRect();const vh2=innerHeight||document.documentElement.clientHeight;const c=r.top+r.height/2;let p=(vh2*1.04-c)/(vh2*0.46);p=Math.max(0,Math.min(1,p));wrap.style.setProperty('--p',p.toFixed(3));}addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(upd);}},{passive:true});addEventListener('resize',upd);upd();setTimeout(upd,300);})();
+/* Orbit film-still bubbles emerge from behind the logo bubble as the section scrolls in. Each has
+   variance in final angle/radius (path), size, and emerge speed (delay + ease) so they feel natural;
+   positions + sizes scale to the logo bubble's current radius, and they end AT/just outside the
+   bubble edge (rf ~1) so they read in front rather than getting lost behind the translucent bubble.
+   Paths are plain /media/... strings from the CMS (SITE.orbits); URLs / missing slashes are normalised. */
+const ORB_SPEC=[
+  {ang:-104,rf:1.10,sz:90,delay:0.00,ease:2.3,spin:-16},
+  {ang:-152,rf:1.03,sz:66,delay:0.18,ease:1.5,spin:12},
+  {ang:150,rf:1.16,sz:82,delay:0.08,ease:2.7,spin:20},
+  {ang:100,rf:1.04,sz:62,delay:0.27,ease:1.5,spin:-10},
+  {ang:54,rf:1.13,sz:76,delay:0.13,ease:2.0,spin:14},
+  {ang:18,rf:1.00,sz:58,delay:0.33,ease:1.7,spin:-18},
+  {ang:-54,rf:1.08,sz:80,delay:0.04,ease:2.5,spin:9}
+];
+(function buildOrbits(){
+  const host=document.querySelector('#about .about-logo');if(!host)return;
+  const slot=host.querySelector('.about-anim-slot');
+  const normPath=k=>{k=String(k||'').trim();if(!k)return '';if(/^https?:\/\//i.test(k)){try{k=new URL(k).pathname;}catch(_){}}if(k[0]!=='/')k='/'+k;return k;};
+  const wrap=document.createElement('div');wrap.className='orbits';const orbs=[];
+  ABOUT_ORBS.map(normPath).filter(Boolean).forEach((k,i)=>{
+    const s=ORB_SPEC[i%ORB_SPEC.length];
+    const orb=document.createElement('div');orb.className='orb';orb.style.setProperty('--spin',s.spin+'deg');
+    orb.innerHTML='<span class="orbi"><img src="'+k+'" alt="" loading="lazy"></span>';
+    wrap.appendChild(orb);orbs.push({el:orb,s:s});
+  });
+  host.appendChild(wrap);
+  function place(){const R=((slot&&slot.getBoundingClientRect().width)||360)/2,f=R/230;
+    orbs.forEach(o=>{const a=o.s.ang*Math.PI/180,r=R*o.s.rf;
+      o.el.style.setProperty('--tx',(Math.cos(a)*r).toFixed(1)+'px');
+      o.el.style.setProperty('--ty',(Math.sin(a)*r).toFixed(1)+'px');
+      o.el.style.setProperty('--sz',Math.round(o.s.sz*f)+'px');});}
+  place();
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches){orbs.forEach(o=>o.el.style.setProperty('--op','1'));return;}
+  let ticking=false;
+  function upd(){ticking=false;const r=host.getBoundingClientRect();const vh=innerHeight||document.documentElement.clientHeight;const c=r.top+r.height/2;
+    let p=(vh*0.90-c)/(vh*0.55);p=p<0?0:(p>1?1:p);
+    orbs.forEach(o=>{let op=(p-o.s.delay)/(1-o.s.delay);op=op<0?0:(op>1?1:op);o.el.style.setProperty('--op',(1-Math.pow(1-op,o.s.ease)).toFixed(3));});}
+  addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(upd);}},{passive:true});
+  addEventListener('resize',()=>{place();upd();});
+  upd();setTimeout(function(){place();upd();},300);setTimeout(function(){place();upd();},700);
+})();
 
 /* Home logo bubble: colour its rim + outer glow from the CMS colour look (site.json homeBubble),
    and honour the on/off toggle. Runs regardless of reduced-motion (it also frames the static logo). */
@@ -1698,7 +1729,7 @@ const wrap=document.createElement('div');wrap.className='orbits';ABOUT_ORBS.map(
         if(!im)return; ctx.clearRect(0,0,cv.width,cv.height); ctx.drawImage(im,0,0,cv.width,cv.height); }
       function progress(){ var r=host.getBoundingClientRect();
         var vh=innerHeight||document.documentElement.clientHeight;
-        var c=r.top+r.height/2, p=(vh*1.05-c)/(vh*0.62);
+        var c=r.top+r.height/2, p=(vh*0.78-c)/(vh*0.52);
         return p<0?0:(p>1?1:p); }
       function upd(){ ticking=false; if(!ready)return;
         var i=Math.round(progress()*(N-1)); if(i!==cur){cur=i;draw(i);} }
