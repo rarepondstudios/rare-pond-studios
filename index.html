@@ -1717,7 +1717,7 @@ const ORB_SPEC=[
   var cv=bubble&&bubble.querySelector('canvas.about-anim');
   if(!cv||!host)return;
   if(matchMedia('(prefers-reduced-motion:reduce)').matches)return; // keep the static logo
-  fetch('/media/brand/home-logo-anim/manifest.json',{cache:'force-cache'})
+  fetch('/media/brand/home-logo-anim/manifest.json',{cache:'no-cache'})  // revalidate the tiny manifest (it lives under /media/* which caches a week) so frame updates are picked up
     .then(function(r){return r.ok?r.json():null;})
     .then(function(m){
       if(!m||!m.count||!m.pattern)return;
@@ -1772,7 +1772,7 @@ const ORB_SPEC=[
       // bubble never flashes empty.
       function loadFrame(k){ return new Promise(function(res){
         var im=new Image(); im.decoding='async';
-        im.src=m.pattern.replace('%02d',('0'+(k+1)).slice(-2));
+        im.src=m.pattern.replace('%02d',('0'+(k+1)).slice(-2))+(m.rev?('?h='+m.rev):'');  // ?h=<rev> busts the week-long /media cache when frames change
         var ok=function(){imgs[k]=im;res();};
         if(im.decode){ im.decode().then(ok, function(){ im.onload=ok; im.onerror=res; }); }
         else { im.onload=ok; im.onerror=res; }

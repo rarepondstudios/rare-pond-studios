@@ -1,11 +1,12 @@
 {
- "count": 48,
- "width": 540,
- "height": 380,
+ "count": 94,
+ "width": 480,
+ "height": 338,
  "aspect": 1.4192,
  "held_frac": 0.6709,
  "fps": 23.976,
  "duration_ms": 3879,
+ "rev": "de1394b861",
  "pattern": "/media/brand/home-logo-anim/f%02d.webp",
  "source": "RP_Anim-1_Short_Studios_NO-BG_16x9.mov"
 }
