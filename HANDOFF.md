@@ -39,6 +39,32 @@
 
 ## 0. LATEST SESSION (2026-08-22), READ THIS FIRST
 
+### 0.0.-52 HOME #about DUCK ANIM: 24FPS + CACHE-BUSTER (STALE FRAMES WERE HIDING THE 0.0.-51 FIX) (2026-08-22)
+
+Follow-up to 0.0.-51: Jack still saw the edge-crop lines and it looked low-FPS. Two causes, both fixed
+(`bts-automation/home_logo_anim_frames.py` + `index.html` + regenerated `media/brand/home-logo-anim/*`).
+
+- **Stale cache was hiding the 0.0.-51 edge fix.** The 0.0.-51 frames were clean on disk (verified alpha=0
+  on all edges) but `/media/*` caches hard for a week (`_headers`) and the frames have stable filenames,
+  and the manifest was fetched with `cache:'force-cache'` — so returning visitors kept the OLD (edge-line)
+  manifest + frames. Fix follows the site's existing `?h=<content-hash>` media convention: the extractor
+  now writes a `rev` (md5 of the whole frame set) into `manifest.json`, `index.html` fetches the manifest
+  with `cache:'no-cache'` (revalidate the ~250-byte file) and appends `?h=<rev>` to every frame URL. A
+  regenerated set gets fresh URLs; an unchanged set stays cached. (rev this build: `de1394b861`.)
+- **Low FPS fixed.** Playback was 48 frames over 3.88s = ~12fps (choppy). `N_FRAMES` 48 -> 94 = one frame
+  per source frame in [13..106] = the source's own ~24fps, no resampling. To keep memory/bytes sane with
+  2x the frames, `OUT_WIDTH` 540 -> 480 (still >= the on-page ~340-460 CSS render size; aspect unchanged
+  at 1.4192 so bubble positioning is identical). Set: 94 frames, 2.68 MB total (deferred load, ~61 MB
+  decoded), q90.
+- Verified headless desktop + mobile: all 94 frames alpha=0 on every edge, 94 frame requests each carry
+  `?h=de1394b861`, manifest revalidates, 0 console errors, playback advances ~24fps at normal speed. The
+  0.0.-51 behaviour (palette always visible, forward on entry, fade-to-palette on exit, no reverse) is
+  unchanged. jackcarlsen untouched.
+- Perf note: frames are deferred (requestIdleCallback) so they never block first paint; decoded memory
+  ~61 MB (was ~39 MB at 48x540). If a low-end-mobile issue ever appears, drop OUT_WIDTH or N_FRAMES.
+
+Commit: rp `1c0f45b`; bts `d81c104`.
+
 ### 0.0.-51 HOME #about DUCK ANIM: NORMAL SPEED, EDGE-CLIP FIX, PALETTE-ALWAYS + FADE-RESET (2026-08-22)
 
 Four fixes to the home animation (per Jack). Touches `bts-automation/home_logo_anim_frames.py` (frame
