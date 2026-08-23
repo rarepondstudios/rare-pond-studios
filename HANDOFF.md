@@ -39,6 +39,37 @@
 
 ## 0. LATEST SESSION (2026-08-22), READ THIS FIRST
 
+### 0.0.-55 HOME #about ANIM: FIX SAFARI SCROLL "LINE" UNDER THE PALETTE (canvas GPU-layer tear) (2026-08-22)
+
+Jack's OBS recording still showed a hard horizontal line under the palette at the start of the anim.
+Diagnosed from the recording + isolation tests in real Safari (via osascript + screencapture). `index.html`
+CSS only.
+
+- **NOT the frames.** Re-verified every WebP frame is pixel-clean (alpha=0 on all four edges, no line in
+  the art). Chrome renders the whole thing clean. The line is SAFARI-ONLY and only during SCROLL.
+- **Root cause: a WebKit compositor tear on the animated canvas's GPU layer.** The recording's line is a
+  hard horizontal seam through the pond with the content BELOW it offset from above - the signature of an
+  async-scroll layer tear. The `#about` canvas is repainted every rAF (so Safari promotes it to its own
+  layer) AND it carried `filter:drop-shadow(...)`, which forces an extra filtered layer buffer that
+  Safari re-tiles mid-scroll -> the seam. (Static / non-scrolling renders are clean, which is why earlier
+  frame-edge fixes in 0.0.-51/-52 did not touch it.)
+- **Fix (two parts, CSS):** (1) moved `filter:drop-shadow` OFF the `<canvas>` - it now lives only on the
+  static fallback `img.rpColor` (no-JS / reduced-motion), which never animates. The animated logo keeps
+  its depth from the frame art + the bubble. (2) gave the canvas a STABLE atomic GPU layer
+  (`transform:translateZ(0);backface-visibility:hidden`) so Safari moves it in lockstep with the page
+  during scroll instead of re-tiling/tearing it.
+- Verified in Chrome (Playwright): anim still plays, canvas `filter:none`, layer promoted, logo renders
+  correctly, 0 console errors. jackcarlsen untouched.
+- HONEST CAVEAT: the tear is a TRANSIENT async-scroll compositor artifact. Scripted scrolling
+  (Playwright / osascript key events) does not drive Safari's async scrolling like a real trackpad, so it
+  could not be reproduced deterministically in an automated harness - the recording is the definitive
+  "before". The fix is the standard WebKit remedy for this class of bug and is verified non-regressive;
+  Jack to confirm on his Safari with a hard refresh + a fresh scroll. If it somehow persists, next levers:
+  drop `will-change`-inducing repaints by only redrawing on frame change (already the case), or render the
+  logo shadow into the frames instead of CSS.
+
+Commit: rp `3436cea`.
+
 ### 0.0.-54 HOME #about ORBITS: BIGGER + COLOURED GRADIENT EDGE FROM PROJECT COLOUR LOOK (2026-08-22)
 
 Per Jack. Part 1 = bigger + coloured edge (`index.html`). Part 2 = the SELECTION control, now shipped:
