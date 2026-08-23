@@ -604,9 +604,17 @@ html.xw-active{overflow:hidden}
      is the positioned box; the img/canvas are in-flow width:100% + height:auto, so they scale by the
      frame's intrinsic ratio and can never distort. */
   .about-anim-inner{position:absolute;left:50%;top:50%;width:74%;transform:translate(-50%,-64%);z-index:1}
-  .about-anim-inner img.rpColor,.about-anim-inner canvas.about-anim{width:100%;height:auto;display:block;
-    filter:drop-shadow(0 3px 10px rgba(0,20,60,.22))}
-  .about-anim-inner canvas.about-anim{display:none}
+  .about-anim-inner img.rpColor,.about-anim-inner canvas.about-anim{width:100%;height:auto;display:block}
+  /* Drop-shadow stays on the STATIC fallback logo only. It must NOT be on the animated <canvas>:
+     a CSS filter forces the continuously-repainted canvas onto its own GPU layer, which Safari tears
+     with a hard horizontal seam under the palette while the page scrolls (the exact glitch Jack saw).
+     The canvas keeps its depth from the frame art + the bubble, so it needs no filter. */
+  .about-anim-inner img.rpColor{filter:drop-shadow(0 3px 10px rgba(0,20,60,.22))}
+  /* Give the animated canvas a STABLE, atomic GPU layer (its own backing store) so Safari moves it in
+     lockstep with the page during scroll. Without this, the continuously-repainted canvas layer can be
+     re-tiled mid-scroll and show a hard horizontal tear under the palette (content below the seam
+     offset from above). translateZ(0)+backface-visibility promote it as one flat texture. */
+  .about-anim-inner canvas.about-anim{display:none;transform:translateZ(0);backface-visibility:hidden;-webkit-backface-visibility:hidden}
   .about-bubble.anim-on .about-anim-inner img.rpColor{display:none}
   .about-bubble.anim-on .about-anim-inner canvas.about-anim{display:block}
   /* bubble turned OFF in Pages CMS: no plate/glow, logo sits directly on the section */
