@@ -37,7 +37,19 @@
 
 ---
 
-## 0. LATEST SESSION (2026-08-22), READ THIS FIRST
+## 0. LATEST SESSION (2026-08-24), READ THIS FIRST
+
+### 0.0.-56 RENTALS: /g/<item_no> QR RESOLVER, one code for staff and public (2026-08-24)
+
+Rental sticker QRs now encode `https://www.rarepond.com/g/<item_no>`. New Pages Function
+`functions/g/[id].js` returns a tiny page that, in the visitor's browser, probes the internal
+scan app's `/healthz` with a no-cors fetch: staff ON the Tailscale tailnet are forwarded to the
+scan app at `pond.tail8c2778.ts.net:8444/i/<item_no>`; anyone OFF the tailnet is redirected to the
+`www` home page after ~2.5s. The scan app stays tailnet-only (no Funnel; the tailnet host is
+unreachable and ACL-gated regardless). Added `g` to `RESERVED_SEGS` in `_middleware.js` so a CMS
+custom page can never shadow the route. There is no CSP in `_headers`, so the inline probe script
+and the cross-origin no-cors fetch are fine. The rentals item numbers live in the rentals
+Supabase/NocoDB `items.item_no`; this resolver is host-only and needs no DB.
 
 ### 0.0.-55 HOME #about ANIM: FIX SAFARI SCROLL "LINE" UNDER THE PALETTE (canvas GPU-layer tear) (2026-08-22)
 
