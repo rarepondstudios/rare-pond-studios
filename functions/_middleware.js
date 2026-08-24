@@ -128,7 +128,7 @@ const LEGACY = [
 /* Segments that are real routes, so a custom page can never be slugged one of them and stand in
    front of a real page. Keeping /admin here means a page slugged "admin" can never sit in front
    of the auth gate. */
-const RESERVED_SEGS = new Set(['admin','assets','data','functions','media','tools','maintenance','rentals','team','projects']);
+const RESERVED_SEGS = new Set(['admin','assets','data','functions','media','tools','maintenance','rentals','team','projects','g']);
 
 const MAINT = { legacy: LEGACY, reservedSegs: RESERVED_SEGS, customPages: '/data/pages.json' };
 
