@@ -18,12 +18,15 @@ const HOME = 'https://www.rarepond.com/';
 const TIMEOUT_MS = 2500;
 
 export async function onRequest(context) {
-  const raw = (context.params && context.params.id) || '';
-  const id = String(raw).replace(/[^0-9]/g, '');
-  if (!id) {
+  const raw = String((context.params && context.params.id) || '');
+  const m = raw.match(/^(\d+)(?:-([A-Za-z]+))?$/);
+  if (!m) {
     return Response.redirect(HOME, 302);
   }
-  const scan = SCAN_HOST + '/i/' + id;
+  const num = m[1];
+  const letter = m[2] ? m[2].toUpperCase() : '';
+  const id = letter ? (num + '-' + letter) : num;          // human label
+  const scan = letter ? (SCAN_HOST + '/u/' + num + '-' + letter) : (SCAN_HOST + '/i/' + num);
   const probe = SCAN_HOST + '/healthz';
   const html =
 '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
