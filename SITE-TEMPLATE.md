@@ -132,6 +132,15 @@ BTS: grid + lightbox WebP (q90, same dimensions as the JPGs) on rarepond
 (`bts_sync.py`, `srcW8`/`srcW`). Never upscale: a derivative larger than its master is never
 generated.
 
+**Laurels (added 2026-08-25).** Festival laurels are folder-driven like stills: the film's
+`Laurels/` D1 subfolder holds the white-on-transparent FilmFreeway PNGs, `laurels_publish.py`
+publishes each as a 600px transparent PNG at `media/projects/<key>/laurels/<stem>.png` and mirrors
+the NocoDB `laurels` column (one path per line, order = display order). Every site renders them
+in a rail to the RIGHT of the film info (150px desktop, wrapping rows, single column beside the
+info on phones), with no label and no links. A site joining the template implements the same
+two-column hero-only-when-laurels-exist pattern (`has-laurels` on the hero, main column
+`minmax(0,1fr)`, rail width capped by `--laurel-w`).
+
 **Video.** The dropped `*-reel-web.mp4` publishes untouched as the full-quality original.
 The web encode itself is budgeted at the source (`reel_ingest.py`): 1920-wide H.264, CRF
 ladder 19 -> 21 -> 23 until the file averages <= ~3.5 Mbps (these are muted ambient loops

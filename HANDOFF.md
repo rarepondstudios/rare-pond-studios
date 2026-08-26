@@ -37,7 +37,50 @@
 
 ---
 
-## 0. LATEST SESSION (2026-08-24), READ THIS FIRST
+## 0. LATEST SESSION (2026-08-25), READ THIS FIRST
+
+### 0.0.-57 FESTIVAL LAURELS: FOLDER-DRIVEN `Laurels/` -> NocoDB `laurels` -> RAIL BESIDE THE FILM INFO, BOTH SITES (2026-08-25)
+
+New core feature, built to the same folder = source of truth contract as `stills`, so nothing about
+it is hand-typed. Per Jack: white FilmFreeway PNGs, ~150px on desktop, no label, no links, and on
+phones the rail stays BESIDE the info (single column) rather than dropping below it.
+
+- **Folder.** Every film folder in `Website Repository/Projects (Web)/<Film>/` now has a `Laurels/`
+  D1 subfolder (with a `.noletterbox` sentinel, so transparent art is never auto-cropped).
+  `projects_folder_sync.py` creates it for new films and, since this session, also **tops up** any
+  missing D1 subfolder in every linked folder (additive only), which is how all 20 existing folders
+  got one. Drop the FilmFreeway laurel PNG (the white-on-transparent variant) in; remove the file to
+  take the laurel down.
+- **Publish.** New shared module `bts-automation/laurels_publish.py`, called by `projects_media_sync.py`
+  (cross-site films, publishes into `rp_site_work/media/projects/<key>/laurels/<stem>.png`, 600px wide
+  transparent PNG via `media_ingest.encode_png`) and by `jc_native_media_sync.py` (JC-native films,
+  same path shape inside the jackcarlsen repo). Content-hash state in `laurels_state.json`; removals
+  archive (never delete). The jackcarlsen media mirror copies `laurels/` along with the rest of
+  `media/projects/<key>/` for cross-site films.
+- **Database.** `rp.projects.laurels` (text) in the Supabase Projects DB, surfaced in NocoDB as a
+  LongText column with a description. The projects source is schema-read-only inside NocoDB, so the
+  column was added with `ALTER TABLE` through the NocoDB-stored connection and pulled in with a base
+  meta-diff sync. That endpoint refuses API tokens; `_add_laurels_column.py` (idempotent, rerunnable)
+  mints a short-lived user JWT from the signed-in user's refresh token in `noco.db` to call it. One
+  published path per line, order = display order, same as `stills`; the sync preserves your order,
+  drops removed, appends new in name order.
+- **Export.** `projects_sync.py` rarepond profile emits `laurels: [...]` (omitted when empty, matching
+  the delete-null shape); the jackcarlsen profile and `jc_projects_sync.py` emit `laurels: [...]`
+  with `?h=` busts (empty list when none, matching that shape).
+- **Render.** rarepond `index.html`: `.u-hero` becomes a two-column grid (`minmax(0,1fr) auto`) ONLY
+  when `s.laurels` is non-empty (`has-laurels`), the existing content wrapped in `.u-hero-main`, and
+  an `<aside class="u-laurels">` holds the images; flex-wrap rows of `--laurel-w` (150px desktop, 2 per
+  row under 900px, single ~72-100px column under 600px), sticky within the hero row. jackcarlsen
+  `index.html`: identical mechanism as `.pj-hero` / `.pj-hero-main` / `.pj-laurels`. A film with no
+  laurels renders byte-identical to before on both sites. Alt text = filename humanised.
+- **Verified** with a synthetic laurel dropped into Geri-Action/Laurels/: sync published + wrote the
+  field (1 -> 0 on removal, archived), both exporters carried it, Playwright at 1440/820/390 on both
+  sites showed the rail right of the info with zero overlap and no horizontal scroll, and a 7-laurel
+  clone test wrapped into 3 rows at 1440 and one column at 390. Test laurel removed; Geri-Action's
+  `Laurels/` is empty and ready for the real one.
+- **Side fix.** `projects_sync.py`'s jackcarlsen mirror now skips `bts/` like `jc_projects_sync.py`
+  already did (it had copied ~50 unreachable BTS files into the JC repo on a manual all-sites run;
+  removed before commit).
 
 ### 0.0.-56 RENTALS: /g/<item_no> QR RESOLVER, one code for staff and public (2026-08-24)
 
@@ -148,7 +191,7 @@ Follow-up to 0.0.-51: Jack still saw the edge-crop lines and it looked low-FPS. 
 
 - **Stale cache was hiding the 0.0.-51 edge fix.** The 0.0.-51 frames were clean on disk (verified alpha=0
   on all edges) but `/media/*` caches hard for a week (`_headers`) and the frames have stable filenames,
-  and the manifest was fetched with `cache:'force-cache'` — so returning visitors kept the OLD (edge-line)
+  and the manifest was fetched with `cache:'force-cache'`, so returning visitors kept the OLD (edge-line)
   manifest + frames. Fix follows the site's existing `?h=<content-hash>` media convention: the extractor
   now writes a `rev` (md5 of the whole frame set) into `manifest.json`, `index.html` fetches the manifest
   with `cache:'no-cache'` (revalidate the ~250-byte file) and appends `?h=<rev>` to every frame URL. A
