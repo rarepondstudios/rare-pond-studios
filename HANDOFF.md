@@ -37,7 +37,48 @@
 
 ---
 
-## 0. LATEST SESSION (2026-08-25), READ THIS FIRST
+## 0. LATEST SESSION (2026-08-26), READ THIS FIRST
+
+### 0.0.-58 RENTALS n8n: SUPABASE CALLS MOVED OFF REST ONTO POSTGRES; DELETED-DEAL HANDLING; AUDIT WARNING TIER (2026-08-26)
+
+Automation Health went red on two rentals items. Neither was caused by the laurels work (0.0.-57);
+both are fixed at the root so they cannot come back the same way.
+
+- **`HubSpot → Rental DB Sync` failing ~90% of runs since 09:30 UTC 2026-08-26** with
+  `401 PGRST303 "JWT issued at future"` from `rest/v1/rpc/hubspot_sync_order`. The n8n credential was a
+  new-style `sb_secret_` key; Supabase's gateway mints a JWT per request for those, and that JWT was
+  intermittently timestamped ahead of the PostgREST node checking it (Supabase-side skew; the mini, the
+  container and Google agree on the clock to the second, and the same key returned 32/32 200s from a
+  test loop). **Fix:** both rentals workflows now call the same database functions over Postgres
+  directly, using the `Postgres account` credential n8n already held for the weekly backup: no REST,
+  no gateway, no per-request JWT. `HTTP Request` -> `Sync order (Postgres)`
+  (`select public.hubspot_sync_order(...) from (select $1::jsonb as p) s`, one JSON parameter built by
+  expression); `Get pending pushes` -> `Get pending pushes (Postgres)` (`select * from
+  public.orders_pending_hs_push()`); `Mark pushed` -> `Mark pushed (Postgres)`
+  (`select public.mark_hs_pushed($1::bigint)`). The three REST nodes are kept **disabled** in the
+  workflows for rollback, named `... (REST, retired 2026-08-26)`. First runs after the switch: all 8
+  deals `ok:true`, push chain green.
+- **n8n 2.x gotcha, new:** an active workflow runs the `workflow_history` row named by
+  `workflow_entity.activeVersionId`, NOT the draft in `workflow_entity.nodes`. Editing the draft (CLI
+  import or a direct DB write) changes nothing until that version is published. The scripts in
+  `bts-automation/_n8n_rentals_to_postgres.js`, `_n8n_publish_versions.js` and
+  `_n8n_push_404_guard.js` do it headless: stop the container, run the script in a one-off
+  `n8nio/n8n` container against the `n8n_data` volume (writes draft + history row + activeVersionId +
+  a publish_history event), start the container. Adds to the session-27 list (import deactivates,
+  copy all three sqlite files).
+- **`rentalspriceaudit` red since 2026-08-24:** order 64 ("Rental: The Renter", $12, Aug 24-25, a test)
+  pointed at HubSpot deal 343134602960, which had been deleted. Order 64 is now **cancelled** (the
+  stage trigger released its two bookings) and marked pushed. Cancelling it re-queued a push to the
+  deleted deal, which 404ed: so the Stage Push workflow now routes the HubSpot node's error output
+  through `Deal gone (404)?` -> `Mark pushed (deal deleted)` (clears the dirty flags, the queue
+  stops churning) while any other HubSpot error goes to `Real HubSpot failure` (Stop and Error, so
+  the alert mail still fires). Verified live by re-queuing order 64 once: success, queue empty.
+- **Audit rule change (Jack's call):** `rentals_price_audit.py` skips cancelled orders, and a deal
+  missing in HubSpot on an order whose `ends_on` is already past is a **warning** (exit 3) instead of
+  a failure; a missing deal on a live or future order stays red (exit 2). `automation_health_launchd.py`
+  learned the convention: **exit 3 = yellow, "last run WARNED"**, any job may use it.
+- Backups: `bts-automation/backups/n8n_prepg_20260826/` (the three sqlite files before the change) and
+  `backups/n8n_workflows_20260826/` (exports after). Both git-ignored, local only.
 
 ### 0.0.-57 FESTIVAL LAURELS: FOLDER-DRIVEN `Laurels/` -> NocoDB `laurels` -> RAIL BESIDE THE FILM INFO, BOTH SITES (2026-08-25)
 
