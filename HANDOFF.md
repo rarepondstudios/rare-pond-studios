@@ -37,7 +37,36 @@
 
 ---
 
-## 0. LATEST SESSION (2026-08-26), READ THIS FIRST
+## 0. LATEST SESSION (2026-08-28), READ THIS FIRST
+
+### 0.0.-59 LOGO HATS: CMS-TOGGLED THEMED HAT ON THE STATIC DUCK LOGOS (Studios + Rentals) (2026-08-28)
+
+New feature: an optional themed hat drawn on the STATIC duck head-marks across the Studios and
+Rentals surfaces (header, footer, legal-page top marks, maintenance), toggled and chosen in Pages
+CMS. It is deliberately NOT on the animated home logo, and NOT anywhere on the Rare Pond Media page
+(`hat.js` is not loaded there). Shipped OFF by default, so nothing on the live site changes until a
+hat is picked and the switch is turned on.
+
+- **Assets, folder = source of truth.** Two hats staged in `Website Repository/Rare Pond Brand (Web)/Hats/`
+  (`Duck_2D_Geri-Action_Hat.png`, `Duck_2D_Revelations_Hat.png`), published by `brand_media_sync.py` to
+  `media/hats/geri-action.webp` + `media/hats/revelations.webp`. Encoded lossy q90 (soft glows compress
+  badly lossless) and with **trim=False**, which is load-bearing: every hat is authored on a STANDARD
+  1920x1920 frame and the registration depends on that frame staying intact. To add a hat: drop a
+  same-frame PNG in `Hats/` and add one line to the `brand_media_sync.py` MANIFEST.
+- **CMS.** New `hat` object in the `site.json` branding block (`.pages.yml`): `enabled` (boolean,
+  default off) + `image` (image picker into `media/hats/`). Edited in Pages CMS signed in as `Jackjrrc`.
+  Pages CMS drops empty fields on save, so `hat.js` treats a missing enabled/image as off.
+- **Engine.** `assets/hat.js` (loaded on Studios, Rentals, privacy, terms, maintenance; NOT media)
+  reads `site.json -> hat` and, over each `.hdr-logo img, .lg-logo img, .fwm img`, drops the hat as one
+  absolutely-positioned overlay. ONE transform lands every hat because they share the standard frame:
+  width 85% of the logo, centre x 36%, vertical anchor 8% (CSS vars `--rp-hat-w` / `--rp-hat-x` /
+  `--rp-hat-y`, so a future nudge is one line). Every value is a percentage of the logo, so it is
+  correct at 40px and at 120px with no per-size tuning; the picture hat rests on the head and the halo
+  floats above purely from how each is drawn in the frame.
+- **Verified.** Placement dialled against the real logo alpha and signed off by Jack; then the real
+  `hat.js` was run headless (Chromium) against the real header/footer CSS: no clipping anywhere (the
+  tight case, the fixed 86px desktop header, still leaves ~7-8px above the highest hat pixel).
+- **To turn it on:** Pages CMS -> Site Settings -> Logo hat -> pick a hat, switch Enabled on, Save.
 
 ### 0.0.-58 RENTALS n8n: SUPABASE CALLS MOVED OFF REST ONTO POSTGRES; DELETED-DEAL HANDLING; AUDIT WARNING TIER (2026-08-26)
 
