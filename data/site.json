@@ -27,6 +27,10 @@
   "home": {
     "bgBubbleCount": 28
   },
+  "hat": {
+    "enabled": false,
+    "image": ""
+  },
   "logos": {
     "color": "/media/logos/rare-pond-color.webp",
     "footer": "/media/logos/duck-white.webp",
