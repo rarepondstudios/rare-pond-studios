@@ -1,14 +1,15 @@
 {
-  "route": "/",
-  "pageName": "Home",
-  "publicAccess": true,
   "siteOpen": true,
+  "publicAccess": true,
+  "route": "/",
   "navBlurb": "Narrative Films",
-  "projectsPublicAccess": true,
+  "home": {
+    "bgBubbleCount": 28
+  },
   "veil": {
     "colorLook": "signature",
-    "enabled": true,
-    "style": "full"
+    "style": "full",
+    "enabled": true
   },
   "cursor": {
     "studio": {
@@ -24,17 +25,14 @@
       "colorLook": "signature"
     }
   },
-  "home": {
-    "bgBubbleCount": 28
-  },
-  "hat": {
-    "enabled": false,
-    "image": ""
-  },
   "logos": {
     "color": "/media/logos/rare-pond-color.webp",
     "footer": "/media/logos/duck-white.webp",
     "duckMark": "/media/logos/duck-mark.webp"
+  },
+  "hat": {
+    "enabled": true,
+    "image": "/media/hats/geri-action.webp"
   },
   "water": "/media/site/water.jpg",
   "hero": {
@@ -81,15 +79,18 @@
     },
     {
       "label": "Studio",
-      "href": "/"
+      "href": "/",
+      "header": false
     },
     {
       "label": "Media",
-      "href": "/media"
+      "href": "/media",
+      "header": false
     },
     {
       "label": "Rentals",
-      "href": "/rentals"
+      "href": "/rentals",
+      "header": false
     },
     {
       "label": "Contact",
@@ -98,11 +99,13 @@
     },
     {
       "label": "Terms",
-      "href": "/terms/"
+      "href": "/terms/",
+      "header": false
     },
     {
       "label": "Privacy",
-      "href": "/privacy/"
+      "href": "/privacy/",
+      "header": false
     }
   ],
   "sectionHeadings": {
