@@ -62,7 +62,7 @@ hat is picked and the switch is turned on.
   width 85% of the logo, centre x 36%, vertical anchor 8% (CSS vars `--rp-hat-w` / `--rp-hat-x` /
   `--rp-hat-y`, so a future nudge is one line). Every value is a percentage of the logo, so it is
   correct at 40px and at 120px with no per-size tuning; the picture hat rests on the head and the halo
-  floats above purely from how each is drawn in the frame.
+  floats above purely from how each is drawn in the frame. The Studios site is a SPA that inserts its footer after first paint and swaps scenes on navigation, so `hat.js` also runs a MutationObserver and hats any matching logo the moment it enters the DOM. The first one-pass build missed the studio footer for exactly this reason; fixed 2026-08-28 (commit 7c3425d).
 - **Verified.** Placement dialled against the real logo alpha and signed off by Jack; then the real
   `hat.js` was run headless (Chromium) against the real header/footer CSS: no clipping anywhere (the
   tight case, the fixed 86px desktop header, still leaves ~7-8px above the highest hat pixel).
