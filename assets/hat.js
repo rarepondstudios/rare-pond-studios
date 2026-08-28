@@ -12,11 +12,17 @@
    per-size tuning. Tunable in one place via the CSS vars below.
      --rp-hat-w  hat width as % of the logo width      (default 85%)
      --rp-hat-x  horizontal centre, % across the logo  (default 36%)
-     --rp-hat-y  vertical anchor, % down the logo       (default 8%)  */
+     --rp-hat-y  vertical anchor, % down the logo       (default 8%)
+
+   The Studios site is a single-page app: its footer (and some marks) are inserted
+   AFTER first paint, and it swaps scenes on navigation. So beyond the initial pass
+   we keep a MutationObserver running and hat any matching logo the moment it enters
+   the DOM. Every hatted logo is flagged so nothing is wrapped twice. */
 (function () {
   'use strict';
   var SELECTOR = '.hdr-logo img, .lg-logo img, .fwm img';
   var STYLE_ID = 'rp-hat-style';
+  var HAT_SRC = null;
 
   function injectStyle() {
     if (document.getElementById(STYLE_ID)) return;
@@ -32,26 +38,45 @@
     (document.head || document.documentElement).appendChild(el);
   }
 
-  function place(src) {
-    var imgs = document.querySelectorAll(SELECTOR);
-    for (var i = 0; i < imgs.length; i++) {
-      var img = imgs[i];
-      if (img.getAttribute('data-rp-hat') === '1') continue;
-      var parent = img.parentNode;
-      if (!parent) continue;
-      var wrap = document.createElement('span');
-      wrap.className = 'rp-hatwrap';
-      parent.insertBefore(wrap, img);
-      wrap.appendChild(img);
-      var hat = document.createElement('img');
-      hat.className = 'rp-hat';
-      hat.alt = '';
-      hat.setAttribute('aria-hidden', 'true');
-      hat.setAttribute('decoding', 'async');
-      hat.src = src;
-      wrap.appendChild(hat);
-      img.setAttribute('data-rp-hat', '1');
-    }
+  function wrap(img) {
+    if (!img || img.nodeType !== 1) return;
+    if (img.classList && img.classList.contains('rp-hat')) return;      // never hat a hat
+    if (img.getAttribute('data-rp-hat') === '1') return;               // already done
+    var parent = img.parentNode;
+    if (!parent) return;
+    var w = document.createElement('span');
+    w.className = 'rp-hatwrap';
+    parent.insertBefore(w, img);
+    w.appendChild(img);
+    var hat = document.createElement('img');
+    hat.className = 'rp-hat';
+    hat.alt = '';
+    hat.setAttribute('aria-hidden', 'true');
+    hat.setAttribute('decoding', 'async');
+    hat.src = HAT_SRC;
+    w.appendChild(hat);
+    img.setAttribute('data-rp-hat', '1');
+  }
+
+  function scan(root) {
+    if (!HAT_SRC) return;
+    if (root && root.nodeType === 1 && root.matches && root.matches(SELECTOR)) wrap(root);
+    var scope = (root && root.querySelectorAll) ? root : document;
+    var imgs = scope.querySelectorAll(SELECTOR);
+    for (var i = 0; i < imgs.length; i++) wrap(imgs[i]);
+  }
+
+  function observe() {
+    if (!('MutationObserver' in window)) return;
+    var mo = new MutationObserver(function (muts) {
+      for (var i = 0; i < muts.length; i++) {
+        var added = muts[i].addedNodes;
+        for (var j = 0; j < added.length; j++) {
+          if (added[j].nodeType === 1) scan(added[j]);
+        }
+      }
+    });
+    mo.observe(document.documentElement, { childList: true, subtree: true });
   }
 
   function run(cfg) {
@@ -59,8 +84,11 @@
     if (!cfg || cfg.enabled !== true) return;
     var src = (typeof cfg.image === 'string') ? cfg.image.trim() : '';
     if (!src) return;
+    HAT_SRC = src;
     injectStyle();
-    place(src);
+    scan(document);   // static marks (headers, static footers)
+    observe();        // SPA-injected footers, scene swaps, route changes
+    window.addEventListener('load', function () { scan(document); }, { once: true });
   }
 
   function boot() {
