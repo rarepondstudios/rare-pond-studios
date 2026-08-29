@@ -82,9 +82,9 @@ ONE line named "Grip Crate (Build Your Own)".
 - **Known edge (not hit by current data):** if a crate-eligible clamp were ALSO listed as a
   recommended accessory (`accIds`) on some other item, its quick-add would still drop it into the
   normal cart and availability would be capped per path independently. No current item does this.
-- **Status: committed to the working tree only, NOT pushed.** Awaiting Jack's review + deploy, and
-  the journal entry (journal_append.py could not be reached from the device bridge, which is
-  sandboxed to rp_site_work; Jack to run the one-liner).
+- **Status: LIVE.** Pushed to main as commit `8fcddbb` and deployed to www.rarepond.com/rentals
+  (verified the crate code in the live app.js). Journal entry still pending: journal_append.py could
+  not be reached from the device bridge (sandboxed to rp_site_work), so Jack runs the one-liner.
 
 ### 0.0.-59 LOGO HATS: CMS-TOGGLED THEMED HAT ON THE STATIC DUCK LOGOS (Studios + Rentals) (2026-08-28)
 
