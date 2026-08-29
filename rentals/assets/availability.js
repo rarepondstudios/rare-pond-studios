@@ -227,6 +227,9 @@
       }
       if (typeof dpOpen !== "undefined" && dpOpen != null) applyDP(dpOpen);
       if (trimmed) toast("Cart updated to match availability for your dates.");
+      /* Let the Grip Crate re-clamp its own quantities to the fresh, booking-aware
+         caps and repaint (builder + featured card + cart line). Defined in app.js. */
+      if (typeof window.RPonAvail === "function") { try { window.RPonAvail(); } catch (e) {} }
     });
   }
 
@@ -320,6 +323,11 @@
     } catch (e) {}
     syncAvail();  // pull the serviceable baseline now (repair shows without dates), and booking data if dates already set
   }
+
+  /* Exposed so the Grip Crate builder (app.js) can honour the SAME booking-aware
+     availability as the rest of the catalog. capOf -> free count for the chosen
+     dates (serviceable count when no dates yet), Infinity for untracked items. */
+  window.RPAvail = { capOf: capOf, hasDates: hasDates, bookMsg: bookMsg };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();

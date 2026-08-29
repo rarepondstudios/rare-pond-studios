@@ -37,7 +37,54 @@
 
 ---
 
-## 0. LATEST SESSION (2026-08-28), READ THIS FIRST
+## 0. LATEST SESSION (2026-08-29), READ THIS FIRST
+
+### 0.0.-60 RENTALS: GRIP CRATE (Build Your Own) - customer-built clamp/accessory bundle, ONE cart line (2026-08-29)
+
+New rentals feature. A featured card pinned at the TOP of the Grip tab opens a builder where a
+customer checks off grip clamps and small accessories, sets a per-item quantity (hard-capped by live
+availability for their chosen dates), removes them at will, and the whole thing rides in the cart as
+ONE line named "Grip Crate (Build Your Own)".
+
+- **Eligible items (crate-only).** `crateEligible(p)` = cat `Grip`, non-package, and
+  (`sec` matches /clamp/i OR name matches /safety cable/i OR /track wedge/i): the whole Clamps
+  section plus Impact Safety Cable (18") and Matthews Track Wedge. These are filtered OUT of the
+  normal Grip grid (in `renderResults`), so the crate is the ONLY way to rent them (no double-count
+  path with a direct add).
+- **Price.** Crate/day = sum of each chosen item's `price_per_day` + a flat
+  `CRATE_HANDLING_PER_DAY` = $5/day handling fee; crate total = that x rental days. Until items are
+  added the featured card reads "Price depends on your crate / $5/day handling + the items you add".
+- **Availability.** Reuses `availability.js`, which now exposes
+  `window.RPAvail = {capOf,hasDates,bookMsg}` and, at the end of every `syncAvail()`, calls
+  `window.RPonAvail()` (defined in app.js) so the crate re-clamps its per-item quantities to the
+  fresh booking-aware caps and repaints (builder + featured card + cart line). Falls back to the
+  item's unit `qty` when RPAvail is unavailable.
+- **Booking pipeline.** At quote time the crate is EXPANDED into its component dbids inside
+  `rp_order_data` (`s:..|e:..|i:<dbid>:<qty>,..`) via `crateOrderPairs()`, so `hubspot_sync_order`
+  reserves the real units exactly as if each item were added on its own. The $5/day handling is
+  folded into the deal total (`F.total`) but is NOT an `i:` line (nothing physical to reserve).
+  Crate contents are also written into the gear text and the Review step.
+- **One crate per order.** The card, builder and cart line all state that Rare Pond sets the crate
+  SIZE (half or full) and how many crates (up to 2) based on order size (`CRATE_NOTE`). Copy only,
+  no logic.
+- **Files.** `rentals/assets/app.js` (crate state + config hoisted near the top, next to the other
+  state, so `uc()`'s `crateCount()` is safe on the first paint at line ~508; the crate engine is
+  appended at the end of the file; small hooks in `renderResults`, `uc`, the `#quote` handler,
+  `reqTotal`, `reqSubmitData` and the Review step). `rentals/assets/availability.js` (RPAvail export
+  + RPonAvail hook). `rentals/assets/styles.css` (`.rpcrate-*`). Editable knobs at the top of the
+  crate section: `CRATE_HANDLING_PER_DAY`, `CRATE_NAME`, `crateEligible()`.
+- **Verified** headless (Chromium) against the built-in fallback catalog and a live-dbid simulation:
+  featured card present, clamps hidden from the grid, eligible set correct (10 Clamps + safety cable
+  + track wedge), builder add/step/remove, pricing (3 items -> $16/day incl handling -> $80 over
+  5 days), cart line + badge + cart total, and order-data expansion (`i:1036:2,1034:1`). The real
+  Supabase was NOT reachable from the test sandbox, so the LIVE dbid + availability path should be
+  eyeballed once after deploy.
+- **Known edge (not hit by current data):** if a crate-eligible clamp were ALSO listed as a
+  recommended accessory (`accIds`) on some other item, its quick-add would still drop it into the
+  normal cart and availability would be capped per path independently. No current item does this.
+- **Status: committed to the working tree only, NOT pushed.** Awaiting Jack's review + deploy, and
+  the journal entry (journal_append.py could not be reached from the device bridge, which is
+  sandboxed to rp_site_work; Jack to run the one-liner).
 
 ### 0.0.-59 LOGO HATS: CMS-TOGGLED THEMED HAT ON THE STATIC DUCK LOGOS (Studios + Rentals) (2026-08-28)
 

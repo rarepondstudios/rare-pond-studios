@@ -120,22 +120,24 @@ function renderResults(){
  rpEnsureStyles();
  function _match(p){return p.name.toLowerCase().includes(q)||p.sec.toLowerCase().includes(q)||(p.contents||[]).some(x=>x.l.toLowerCase().includes(q));}
  function _sections(rows){var ss=[...new Set(rows.map(x=>x.sec))];return ss.map(s=>'<div class="sub">'+esc(s)+'</div><div class="grid">'+rows.filter(x=>x.sec===s).map(p=>card(p,col)).join('')+'</div>').join('');}
- var items=pool.filter(p=>p.kind!=='package'&&_match(p));
+ var items=pool.filter(p=>p.kind!=='package'&&!crateEligible(p)&&_match(p));
  var pkgs=pool.filter(p=>p.kind==='package'&&_match(p));
  const r=$('results');if(!r)return;
  if(!(c in pkgOpen))pkgOpen[c]=true;
  var html='';
+ if(c===CRATE_CAT){html+=crateFeaturedCard(col);}
  if(pkgs.length){var open=pkgOpen[c];
   html+='<div class="rp-pkgbox'+(open?'':' closed')+'" id="rppkgbox" style="--pc:'+col+';--pcg:'+hx(col,.42)+';--pcb1:'+hx(col,.16)+';--pcb2:'+hx(col,.07)+'">'
    +'<button class="rp-pkgbox-h" id="rppkgh" aria-expanded="'+(open?'true':'false')+'" aria-controls="rppkgbody" data-cursor="off"><span class="rp-pkgbox-lbl" data-cursor="link notilt" data-cursor-pad="10">'+rpBoxSvg()+'<span class="rp-pkgbox-t">Packages</span><span class="rp-pkgbox-n">'+pkgs.length+'</span></span><svg class="rp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>'
    +'<div class="rp-pkgbox-body" id="rppkgbody"><div><div class="grid rp-pkgbox-grid">'+pkgs.map(p=>card(p,col)).join('')+'</div></div></div></div>';
  }
  if(items.length){html+=_sections(items);}
- else if(!pkgs.length){html+='<div class="empty">'+(q?'Nothing matches your search.':'No items yet.')+'</div>';}
+ else if(!pkgs.length&&c!==CRATE_CAT){html+='<div class="empty">'+(q?'Nothing matches your search.':'No items yet.')+'</div>';}
  else if(q){html+='<div class="empty">No individual items match.</div>';}
  r.innerHTML=html;
  var cn=$('cnt');if(cn)cn.textContent=items.length+' item'+(items.length!==1?'s':'')+(pkgs.length?' · '+pkgs.length+' package'+(pkgs.length!==1?'s':''):'');
  bind();
+ var _cf=$('rpCrateCard');if(_cf)_cf.onclick=openCrate;
  var hb=$('rppkgh');if(hb)hb.onclick=function(){pkgOpen[c]=!pkgOpen[c];var bx=$('rppkgbox');if(bx)bx.classList.toggle('closed',!pkgOpen[c]);hb.setAttribute('aria-expanded',pkgOpen[c]?'true':'false');};
 }
 function card(p,col){
@@ -338,25 +340,28 @@ $('dclear').onclick=()=>{D.s='';D.e='';pick='start';calRender();afterDate();};
 $('dpop').onclick=e=>{if(e.target.id==='dpop')$('dpop').classList.remove('show');};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('dpop').classList.contains('show')){$('dpop').classList.remove('show');return;}if($('reqpop').classList.contains('show')){closeReq();return;}closeDP();openCart(false);}});
 function uc(){const ids=cartOrder.filter(id=>id in cart);const dd=days();
- $('badge').textContent=ids.reduce((a,id)=>a+cart[id],0);
- const tot=ids.reduce((a,id)=>a+RENTALS[id].fn*cart[id],0)*(dd||1);
+ $('badge').textContent=ids.reduce((a,id)=>a+cart[id],0)+crateCount();
+ const tot=ids.reduce((a,id)=>a+RENTALS[id].fn*cart[id],0)*(dd||1)+crateTotal();
  $('totlbl').textContent=dd?('Total · '+dd+' day'+(dd>1?'s':'')):copyStr('cart','dailyTotal','Daily total');$('tot').textContent=fmt(tot);
  $('cartdate').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="#bfe3ff" stroke-width="1.6" style="width:15px;height:15px"><path d="M4 5h16v16H4z M4 9h16" stroke-linecap="round"/></svg> '+(dd?fmtRange()+' · '+dd+' days · <u>change</u>':'No dates set · <u>select dates</u>');
  $('cartdate').onclick=openDates;
- const hasG=ids.length>0,hasD=!!(D.s&&D.e);const qb=$('quote'),rm=$('reqmsg');
+ const hasG=ids.length>0||crateHasItems(),hasD=!!(D.s&&D.e);const qb=$('quote'),rm=$('reqmsg');
  if(qb)setFill(qb,(hasG?.5:0)+(hasD?.5:0));
  if(rm){let msg='';if(!hasD&&!hasG)msg='Add your rental dates and at least one item to request a quote.';else if(!hasD)msg='Add your rental dates to request a quote.';else if(!hasG)msg='Add at least one piece of gear to request a quote.';rm.textContent=msg;rm.style.display=msg?'block':'none';}
- if(!ids.length){$('pit').innerHTML='<div class="empty">'+copyStr('cart','emptyMessage','Your cart is empty.<br>Add gear from any category, it stays here as you browse.')+'</div>';return;}
+ if(!ids.length&&!crateHasItems()){$('pit').innerHTML='<div class="empty">'+copyStr('cart','emptyMessage','Your cart is empty.<br>Add gear from any category, it stays here as you browse.')+'</div>';return;}
  const secs=CATS.filter(c=>ids.some(id=>RENTALS[id].cat===c));
- $('pit').innerHTML=secs.map(c=>{const col=COL[c];const rows=ids.filter(id=>RENTALS[id].cat===c).map(id=>{const p=RENTALS[id];const line=p.fn*cart[id]*(dd||1);return '<div class="ci"><div class="info"><b>'+esc(p.name)+'</b><div class="m">'+drTxt(p)+(p.fn?'/day':'')+(dd&&p.fn?' × '+dd+'d = '+fmt(line):'')+'</div></div><div class="q"><button data-cm="'+id+'">−</button><span>'+cart[id]+'</span><button data-cp="'+id+'" '+(cart[id]>=p.qty?'disabled':'')+'>+</button></div></div>';}).join('');return '<div class="csec" style="--scg:'+hx(col,.5)+'"><div class="csec-h" style="color:'+col+'">'+esc(c)+'</div>'+rows+'</div>';}).join('');
+ $('pit').innerHTML=secs.map(c=>{const col=COL[c];const rows=ids.filter(id=>RENTALS[id].cat===c).map(id=>{const p=RENTALS[id];const line=p.fn*cart[id]*(dd||1);return '<div class="ci"><div class="info"><b>'+esc(p.name)+'</b><div class="m">'+drTxt(p)+(p.fn?'/day':'')+(dd&&p.fn?' × '+dd+'d = '+fmt(line):'')+'</div></div><div class="q"><button data-cm="'+id+'">−</button><span>'+cart[id]+'</span><button data-cp="'+id+'" '+(cart[id]>=p.qty?'disabled':'')+'>+</button></div></div>';}).join('');return '<div class="csec" style="--scg:'+hx(col,.5)+'"><div class="csec-h" style="color:'+col+'">'+esc(c)+'</div>'+rows+'</div>';}).join('')+crateCartHtml();
  $('pit').querySelectorAll('[data-cp]').forEach(b=>b.onclick=()=>inc(+b.dataset.cp));
- $('pit').querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>dec(+b.dataset.cm));}
+ $('pit').querySelectorAll('[data-cm]').forEach(b=>b.onclick=()=>dec(+b.dataset.cm));
+ var _ce=$('pit').querySelector('[data-crate-edit]');if(_ce)_ce.onclick=openCrate;
+ var _crm=$('pit').querySelector('[data-crate-rm]');if(_crm)_crm.onclick=function(){crate={};uc();if(active===CRATE_CAT&&typeof renderResults==='function')renderResults();};
+ var _cv=$('pit').querySelector('[data-crate-view]');if(_cv)_cv.onclick=function(){var b=$('crateCartList');if(b)b.classList.toggle('show');};}
 function openCart(o){$('cartp').classList.toggle('show',o);$('ovl').classList.toggle('show',o);}
 $('fab').onclick=()=>openCart(true);$('closeCart').onclick=()=>openCart(false);$('ovl').onclick=()=>openCart(false);
 /* rpAlertBusy: while a warn animation (red flash + pointing arrows) is playing, ignore repeat
    clicks so the arrows can't stack on top of each other. Clears after the ~1.7s animation. */
 var rpAlertBusy=false;
-$('quote').onclick=function(){var ids=cartOrder.filter(function(id){return id in cart;}),hasG=ids.length>0,hasD=!!(D.s&&D.e);if(hasG&&hasD){openReq();return;}if(rpAlertBusy)return;rpAlertBusy=true;setTimeout(function(){rpAlertBusy=false;},1750);if(!hasG){var pe=$('pit').querySelector('.empty')||$('pit');flashRed($('pit'));flashArrow(pe);if(!hasD)flashDateBtn();return;}flashDateBtn();};
+$('quote').onclick=function(){var ids=cartOrder.filter(function(id){return id in cart;}),hasG=ids.length>0||crateHasItems(),hasD=!!(D.s&&D.e);if(hasG&&hasD){openReq();return;}if(rpAlertBusy)return;rpAlertBusy=true;setTimeout(function(){rpAlertBusy=false;},1750);if(!hasG){var pe=$('pit').querySelector('.empty')||$('pit');flashRed($('pit'));flashArrow(pe);if(!hasD)flashDateBtn();return;}flashDateBtn();};
 /* Crew-your-shoot popup is now the shared module - see /assets/crew-form.js
    (loaded root-relative by this page). The #crewbtn trigger calls RPCrew.open(). */
 function setFill(b,fr){if(!b)return;fr=Math.max(0,Math.min(1,fr||0));b.style.setProperty('--fill',(4+fr*96).toFixed(1)+'%');b.classList.toggle('ready',fr>=0.999);}
@@ -383,7 +388,7 @@ let reqStep=0,reqData={},reqErr="";
 RCFG.render.forEach(f=>reqData[f.key]="");
 function openReq(){reqStep=0;reqErr="";renderReq();$('reqpop').classList.add('show');syncFills();}
 function closeReq(){$('reqpop').classList.remove('show');}
-function reqTotal(){const dd=days();const ids=cartOrder.filter(id=>id in cart);return ids.reduce((a,id)=>a+RENTALS[id].fn*cart[id],0)*(dd||1);}
+function reqTotal(){const dd=days();const ids=cartOrder.filter(id=>id in cart);return ids.reduce((a,id)=>a+RENTALS[id].fn*cart[id],0)*(dd||1)+crateTotal();}
 function reqFieldHTML(f){
  const v=esc(reqData[f.key]||"");
  if(f.type==='yesno')return '<div class="crewlab">'+esc(f.label)+'</div><div class="crewseg" data-seg="'+f.key+'">'+["Yes","No"].map(o=>'<button class="segb'+(reqData[f.key]===o?" on":"")+'" data-segv="'+o+'">'+o+'</button>').join("")+'</div>';
@@ -404,7 +409,7 @@ function renderReq(){
    +inner+'<div class="reqwarn" id="qwarn">'+esc(reqErr)+'</div><button class="crewsend pbtn" id="qnext"><span>Review request →</span></button></div>';
  } else if(reqStep===1){
   const dd=days();const ids=cartOrder.filter(id=>id in cart);
-  const gear=ids.map(id=>cart[id]+'× '+esc(RENTALS[id].name)).join('<br>');
+  var _gl=ids.map(id=>cart[id]+'× '+esc(RENTALS[id].name));crateReviewLines().forEach(function(x){_gl.push(x);});const gear=_gl.join('<br>');
   const rows=RCFG.render.map(f=>'<div class="qrow"><span>'+esc(f.label.replace(/\?$/,''))+'</span><b>'+esc(reqData[f.key]||'-')+'</b></div>').join('');
   h='<div class="reqbox"><button class="dpx" id="reqx" aria-label="Close">&times;</button><h2>Confirm your request</h2>'
    +'<div class="qsum">'+rows+'<div class="qrow"><span>Dates</span><b>'+(dd?esc(fmtRange())+' · '+dd+' days':'-')+'</b></div><div class="qrow"><span>Estimated total</span><b>'+fmt(reqTotal())+(dd?' ('+dd+'d)':'')+'</b></div></div>'
@@ -437,7 +442,7 @@ function renderReq(){
 }
 function reqSubmitData(){
  const dd=days();const ids=cartOrder.filter(id=>id in cart);
- const gear=ids.map(id=>cart[id]+'x '+RENTALS[id].name+' ('+drTxt(RENTALS[id])+(RENTALS[id].fn?'/day':'')+')').join('\n');
+ var _gt=ids.map(id=>cart[id]+'x '+RENTALS[id].name+' ('+drTxt(RENTALS[id])+(RENTALS[id].fn?'/day':'')+')');crateTextLines().forEach(function(x){_gt.push(x);});const gear=_gt.join('\n');
  const F=RCFG.fields,out={};
  RCFG.render.forEach(f=>{if(F[f.key])out[F[f.key]]=reqData[f.key]||'';});
  if(F.gear)out[F.gear]=gear;
@@ -447,7 +452,9 @@ function reqSubmitData(){
  // Supabase RPC hubspot_sync_order parses it into orders.starts_on/ends_on/requested_items, which
  // triggers auto-reservation (bookings) once the deal reaches a committed stage.
  if(F.orderData){
-   var _items=ids.map(function(id){return RENTALS[id].dbid+':'+cart[id];}).filter(function(s){return s.indexOf('null')<0&&s.indexOf('undefined')<0;}).join(',');
+   var _pairs=ids.map(function(id){return RENTALS[id].dbid+':'+cart[id];});
+   crateOrderPairs().forEach(function(s){_pairs.push(s);});
+   var _items=_pairs.filter(function(s){return s.indexOf('null')<0&&s.indexOf('undefined')<0;}).join(',');
    out[F.orderData]='s:'+(D.s||'')+'|e:'+(D.e||'')+'|i:'+_items;
  }
  if(F.dates)out[F.dates]=(D.s&&D.e)?fmtRange():'';
@@ -522,7 +529,7 @@ document.addEventListener('keydown',function(e){
   if(e.key!=='Enter'&&e.key!==' ')return;
   var t=e.target;
   if(!t||!t.matches||t.matches('button,a,input,textarea,select'))return;
-  if(!t.matches('.tab,.card[data-open],.kit[data-k],.cd[data-d]'))return;
+  if(!t.matches('.tab,.card[data-open],.kit[data-k],.cd[data-d],.rpcrate-feat'))return;
   e.preventDefault();
   t.click();
 });
@@ -558,4 +565,115 @@ window.RP_setCategories=function(map){
     if(typeof render==="function")render();
   }catch(e){}
 };
+
+/* ============================================================================
+   GRIP CRATE (Build Your Own)  - added 2026-08-29
+   A customer-built bundle of grip clamps + small accessories, shown as ONE cart
+   line priced as the sum of the chosen items' daily fees plus a flat per-day
+   handling fee. Crate-only: the eligible items are NOT shown as individual cards
+   (see crateEligible + the renderResults filter). At quote time the crate is
+   EXPANDED into its component dbids in rp_order_data, so the booking pipeline
+   reserves the real units exactly as if each item were added on its own.
+   Availability per item is booking-aware, reusing availability.js via
+   window.RPAvail.capOf (falls back to the item's unit count when unavailable).
+
+   Editable knobs:
+     CRATE_HANDLING_PER_DAY  flat handling fee added per rental day
+     CRATE_NAME              display + cart + order-payload label
+     crateEligible(p)        which items may go in the crate (Grip clamps +
+                             safety cables + track wedges)
+   ==========================================================================*/
+var CRATE_HANDLING_PER_DAY=5;
+var CRATE_NAME='Grip Crate (Build Your Own)';
+var CRATE_CAT='Grip';
+var CRATE_NOTE='Rare Pond sets the crate size (half or full) and how many crates (up to 2) based on your order size.';
+var crate={};            /* stableKey -> qty */
+var crateBuilderOpen=false;
+function crateEligible(p){return !!(p&&p.cat===CRATE_CAT&&p.kind!=='package'&&(/clamp/i.test(p.sec||'')||/safety cable/i.test(p.name||'')||/track wedge/i.test(p.name||'')));}
+function crateKey(p){return (p&&p.dbid!=null)?('db'+p.dbid):('ix'+(p?p._id:''));}
+function crateItemByKey(k){if(!k)return null;if(k.slice(0,2)==='db'){var i=RP_DBIDX[k.slice(2)];if(i==null)i=RP_DBIDX[+k.slice(2)];return (i==null)?null:RENTALS[i];}return RENTALS[+k.slice(2)]||null;}
+function crateEntries(){return Object.keys(crate).filter(function(k){return crate[k]>0;}).map(function(k){return {key:k,qty:crate[k],p:crateItemByKey(k)};}).filter(function(e){return e.p;});}
+function crateCount(){return crateEntries().reduce(function(a,e){return a+e.qty;},0);}
+function crateHasItems(){return crateCount()>0;}
+function crateDailyItems(){return crateEntries().reduce(function(a,e){return a+(Number(e.p.fn)||0)*e.qty;},0);}
+function crateDaily(){return crateHasItems()?(crateDailyItems()+CRATE_HANDLING_PER_DAY):0;}
+function crateTotal(){if(!crateHasItems())return 0;var dd=days()||1;return crateDaily()*dd;}
+function crateCap(p){try{if(window.RPAvail&&window.RPAvail.capOf){var c=window.RPAvail.capOf(p);return (c===Infinity)?9999:Math.max(0,c|0);}}catch(e){}var q=parseInt(p&&p.qty,10);return (q>0)?q:9999;}
+function crateEligibleItems(){return RENTALS.filter(crateEligible).slice().sort(function(a,b){return (a.sec||'').localeCompare(b.sec||'')||(a.name||'').localeCompare(b.name||'');});}
+function crateTrim(){var ch=false;Object.keys(crate).forEach(function(k){var p=crateItemByKey(k);if(!p){delete crate[k];ch=true;return;}var cap=crateCap(p);if(crate[k]>cap){crate[k]=cap;ch=true;}if(crate[k]<=0){delete crate[k];ch=true;}});return ch;}
+/* ---- featured card at the top of the Grip tab ---------------------------- */
+function crateFeaturedCard(col){var pc=col||COL[CRATE_CAT]||'#5aa0ff';var n=crateCount();var dd=days();var pr;
+ if(n>0){pr=dd?('<div class="pcalc"><div class="dr">'+fmt(crateDaily())+'<span>/day × '+dd+'d</span></div><div class="tot">'+fmt(crateTotal())+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div></div>'):('<div class="pcalc"><div class="dr">'+fmt(crateDaily())+'<span>/day</span></div></div>');}
+ else{pr='<div class="rpcrate-ask">Price depends on your crate<span>'+fmt(CRATE_HANDLING_PER_DAY)+'/day handling + the items you add</span></div>';}
+ var btn=n>0?('Edit your crate · '+n+' item'+(n!==1?'s':'')):'Build your crate';
+ return '<div class="rpcrate-feat" id="rpCrateCard" role="button" tabindex="0" data-cursor="off" style="--pc:'+pc+';--pcg:'+hx(pc,.5)+';--pcb1:'+hx(pc,.2)+';--pcb2:'+hx(pc,.08)+'">'
+  +'<div class="rpcrate-feat-ic">'+rpBoxSvg()+'</div>'
+  +'<div class="rpcrate-feat-body"><div class="rpcrate-feat-eyb">Build your own</div><h3>'+esc(CRATE_NAME)+'</h3>'
+  +'<p class="rpcrate-feat-sub">Pick the clamps and grip accessories you need. Priced by what you add, plus a flat '+fmt(CRATE_HANDLING_PER_DAY)+'/day crate handling fee.</p>'
+  +'<div class="rpcrate-feat-note">'+esc(CRATE_NOTE)+'</div>'
+  +'<div class="rpcrate-feat-foot">'+pr+'<span class="rpcrate-feat-btn">'+esc(btn)+' →</span></div>'
+  +'</div></div>';}
+/* ---- builder (rendered into the #dp overlay) ----------------------------- */
+function crateRowHtml(p){var key=crateKey(p);var q=crate[key]||0;var cap=crateCap(p);var out=cap<=0;
+ var thumb=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
+ var per=(Number(p.fn)||0);var pl=per>0?(fmt(per)+'/day'):'Included';
+ var dated=(window.RPAvail&&window.RPAvail.hasDates&&window.RPAvail.hasDates());
+ var av=out?'<span class="rpcrate-av out">Booked out'+(dated?' for these dates':'')+'</span>':(cap<9999?('<span class="rpcrate-av in">'+cap+' available'+(dated?' for your dates':'')+'</span>'):'');
+ var ctl=out?'<span class="rpcrate-outbtn">Unavailable</span>':(q>0?('<div class="rp-qstep"><button data-crq-m="'+key+'" aria-label="Remove one">−</button><span>'+q+'</span><button data-crq-p="'+key+'" '+(q>=cap?'disabled':'')+' aria-label="Add one">+</button></div>'):('<button class="rpcrate-add" data-crq-a="'+key+'">Add</button>'));
+ return '<div class="rpcrate-row'+(out?' isout':'')+'"><div class="rpcrate-rmedia">'+thumb+'</div><div class="rpcrate-rinfo"><div class="rpcrate-rn">'+esc(p.name)+'</div><div class="rpcrate-rp">'+esc(pl)+'</div>'+av+'</div>'+ctl+'</div>';}
+function crateListHtml(){var col=COL[CRATE_CAT]||'#5aa0ff';var items=crateEligibleItems();if(!items.length)return '<div class="empty">No crate items are available right now.</div>';
+ var secs=[];items.forEach(function(p){var s=p.sec||'Other';if(secs.indexOf(s)<0)secs.push(s);});
+ return secs.map(function(s){return '<div class="rp-sec" style="--dpc:'+col+'">'+esc(s)+'</div><div class="rpcrate-secgrid">'+items.filter(function(p){return (p.sec||'Other')===s;}).map(crateRowHtml).join('')+'</div>';}).join('');}
+function crateSummaryInner(dd){var n=crateCount();if(!n)return '<div class="rpcrate-sum-empty">Add clamps and accessories above to start your crate.</div>';
+ var lines=crateEntries().map(function(e){return '<div class="rpcrate-sum-row"><span>'+e.qty+'× '+esc(e.p.name)+'</span><b>'+fmt((Number(e.p.fn)||0)*e.qty)+'/day</b></div>';}).join('');
+ var foot='<div class="rpcrate-sum-row"><span>Crate handling</span><b>'+fmt(CRATE_HANDLING_PER_DAY)+'/day</b></div>'
+  +'<div class="rpcrate-sum-tot"><span>Crate '+(dd?('total · '+dd+' day'+(dd>1?'s':'')):'per day')+'</span><b>'+fmt(dd?crateTotal():crateDaily())+'</b></div>';
+ return lines+foot;}
+function openCrate(){rpEnsureStyles();crateTrim();crateBuilderOpen=true;var col=COL[CRATE_CAT]||'#5aa0ff';var dd=days();
+ var dateline=(D.s&&D.e)?('Availability shown for '+fmtRange()+' · '+dd+' day'+(dd>1?'s':'')):'Set your rental dates to check live availability.';
+ $('dp').innerHTML='<div class="dpc rpcrate-dpc"><button class="dpx" id="crateX" aria-label="Close">×</button>'
+  +'<div class="rpcrate-head" style="--pc:'+col+'"><div class="rpcrate-head-ic">'+rpBoxSvg()+'</div><div><div class="eyb" style="color:'+col+'">'+esc(CRATE_CAT)+' · Build your own</div><h2>'+esc(CRATE_NAME)+'</h2></div></div>'
+  +'<p class="dpdesc">'+esc(CRATE_NOTE)+'</p>'
+  +'<div class="rpcrate-dateline"><button class="chgdate" id="crateDateBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>'+esc(dateline)+'</button></div>'
+  +'<div class="rpcrate-list">'+crateListHtml()+'</div>'
+  +'<div class="rpcrate-sum" id="rpCrateSum">'+crateSummaryInner(dd)+'</div>'
+  +'<div class="rpcrate-acts"><button class="reqback" id="crateClear">Clear crate</button><button class="pbtn ready" id="crateDone">Done</button></div>'
+  +'</div>';
+ $('dp').classList.add('show');document.body.style.overflow='hidden';
+ $('crateX').onclick=closeCrate;$('dp').onclick=function(e){if(e.target.id==='dp')closeCrate();};
+ var db=$('crateDateBtn');if(db)db.onclick=openDates;
+ var cd=$('crateDone');if(cd)cd.onclick=closeCrate;
+ var cc=$('crateClear');if(cc)cc.onclick=function(){crate={};crateRefresh();};
+ crateBindRows();}
+function crateBindRows(){
+ $('dp').querySelectorAll('[data-crq-a]').forEach(function(b){b.onclick=function(){crateAdd(b.dataset.crqA);};});
+ $('dp').querySelectorAll('[data-crq-p]').forEach(function(b){b.onclick=function(){crateAdd(b.dataset.crqP);};});
+ $('dp').querySelectorAll('[data-crq-m]').forEach(function(b){b.onclick=function(){crateDec(b.dataset.crqM);};});}
+function crateRefresh(){var s=$('rpCrateSum');if(s)s.innerHTML=crateSummaryInner(days());
+ var list=$('dp')?$('dp').querySelector('.rpcrate-list'):null;if(list){list.innerHTML=crateListHtml();crateBindRows();}
+ uc();
+ if(active===CRATE_CAT){var fc=$('rpCrateCard');if(fc){fc.outerHTML=crateFeaturedCard(COL[CRATE_CAT]);var f2=$('rpCrateCard');if(f2)f2.onclick=openCrate;}}}
+function crateAdd(key){var p=crateItemByKey(key);if(!p)return;var cap=crateCap(p);var have=crate[key]||0;
+ if(cap<=0){crateToast((window.RPAvail&&window.RPAvail.bookMsg)?window.RPAvail.bookMsg(p):'Unavailable for these dates.');return;}
+ if(have>=cap){crateToast('Only '+cap+' available'+((window.RPAvail&&window.RPAvail.hasDates&&window.RPAvail.hasDates())?' for these dates.':'.'));return;}
+ crate[key]=have+1;crateRefresh();}
+function crateDec(key){if(!crate[key])return;crate[key]--;if(crate[key]<=0)delete crate[key];crateRefresh();}
+function closeCrate(){crateBuilderOpen=false;$('dp').classList.remove('show');document.body.style.overflow='';if(active===CRATE_CAT&&typeof renderResults==='function')renderResults();uc();}
+function crateToast(msg){try{var el=document.querySelector('.rp-avtoast');if(!el){el=document.createElement('div');el.className='rp-avtoast';document.body.appendChild(el);}el.textContent=msg;el.classList.add('show');clearTimeout(crateToast._t);crateToast._t=setTimeout(function(){el.classList.remove('show');},2200);}catch(e){}}
+/* ---- cart line ----------------------------------------------------------- */
+function crateCartHtml(){if(!crateHasItems())return '';var col=COL[CRATE_CAT]||'#5aa0ff';var dd=days();var n=crateCount();
+ var list=crateEntries().map(function(e){return '<div class="rpcrate-cl-row">'+e.qty+'× '+esc(e.p.name)+'</div>';}).join('');
+ var sub=n+' item'+(n!==1?'s':'')+' + '+fmt(CRATE_HANDLING_PER_DAY)+'/day handling'+(dd?(' · '+fmt(crateDaily())+'/day × '+dd+'d = '+fmt(crateTotal())):(' · '+fmt(crateDaily())+'/day'));
+ return '<div class="csec" style="--scg:'+hx(col,.5)+'"><div class="csec-h" style="color:'+col+'">'+esc(CRATE_CAT)+' crate</div>'
+  +'<div class="ci rpcrate-ci"><div class="info"><b>'+esc(CRATE_NAME)+'</b><div class="m">'+sub+'</div>'
+  +'<div class="rpcrate-cl" id="crateCartList">'+list+'<div class="rpcrate-cl-note">'+esc(CRATE_NOTE)+'</div></div>'
+  +'<div class="rpcrate-cl-acts"><button type="button" data-crate-view>View items</button><button type="button" data-crate-edit>Edit</button><button type="button" data-crate-rm>Remove</button></div>'
+  +'</div></div></div>';}
+/* ---- quote payload helpers ---------------------------------------------- */
+function crateReviewLines(){if(!crateHasItems())return [];var out=['<b>'+esc(CRATE_NAME)+'</b> ('+fmt(CRATE_HANDLING_PER_DAY)+'/day handling)'];crateEntries().forEach(function(e){out.push('&nbsp;&nbsp;'+e.qty+'× '+esc(e.p.name));});return out;}
+function crateTextLines(){if(!crateHasItems())return [];var out=[CRATE_NAME+' ('+fmt(CRATE_HANDLING_PER_DAY)+'/day handling):'];crateEntries().forEach(function(e){out.push('  '+e.qty+'x '+e.p.name+' ('+((Number(e.p.fn)||0)>0?(fmt(Number(e.p.fn))+'/day'):'included')+')');});return out;}
+function crateOrderPairs(){return crateEntries().filter(function(e){return e.p.dbid!=null;}).map(function(e){return e.p.dbid+':'+e.qty;});}
+/* Keep the crate correct after availability.js pulls fresh booking data for the
+   chosen dates (defined here, called from availability.js syncAvail). */
+window.RPonAvail=function(){try{crateTrim();uc();if(crateBuilderOpen)crateRefresh();else if(active===CRATE_CAT&&typeof renderResults==='function')renderResults();}catch(e){}};
 

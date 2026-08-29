@@ -141,4 +141,64 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 @keyframes arrowpulse{0%{opacity:0;transform:translateX(10px)}14%{opacity:1}72%{opacity:1;transform:translateX(-3px)}100%{opacity:0;transform:translateX(-3px)}}
 
 /* keyboard focus ring for the div-based controls now made keyboard-operable (role=button) */
-.tab:focus-visible,.card:focus-visible,.kit:focus-visible,.cd:focus-visible{outline:2px solid #7fc4ff;outline-offset:2px}
+.tab:focus-visible,.card:focus-visible,.kit:focus-visible,.cd:focus-visible,.rpcrate-feat:focus-visible{outline:2px solid #7fc4ff;outline-offset:2px}
+
+/* ============================================================================
+   GRIP CRATE (Build Your Own) - featured card, builder, cart line
+   ==========================================================================*/
+/* featured card pinned at the top of the Grip tab */
+.rpcrate-feat{position:relative;display:flex;gap:16px;align-items:flex-start;margin:6px 0 16px;padding:16px 18px;border:1.5px solid var(--pc,#5aa0ff);border-radius:16px;background:linear-gradient(180deg,var(--pcb1),var(--pcb2));box-shadow:0 7px 24px 1px var(--pcg);cursor:pointer;transition:transform .22s cubic-bezier(.3,.7,.2,1.3),box-shadow .22s}
+.rpcrate-feat:hover{transform:translateY(-2px);box-shadow:0 14px 40px 1px var(--pcg)}
+.rpcrate-feat-ic{flex:none;width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.16);color:#fff}
+.rpcrate-feat-ic svg{width:26px;height:26px}
+.rpcrate-feat-body{flex:1;min-width:0}
+.rpcrate-feat-eyb{font:800 11px/1 Heebo,sans-serif;letter-spacing:1.3px;text-transform:uppercase;color:#fff;opacity:.85;margin-bottom:5px}
+.rpcrate-feat-body h3{margin:0 0 5px;font-size:20px;font-weight:800;color:#fff}
+.rpcrate-feat-sub{margin:0 0 8px;font-size:13.5px;line-height:1.5;color:#e6f0ff}
+.rpcrate-feat-note{font-size:12px;line-height:1.45;color:#cfe0f5;border-left:2px solid var(--pc,#5aa0ff);padding-left:9px;margin-bottom:12px}
+.rpcrate-feat-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.rpcrate-ask{font-size:14px;font-weight:800;color:#fff;display:flex;flex-direction:column;gap:2px}
+.rpcrate-ask span{font-size:11.5px;font-weight:600;color:#cfe0f5}
+.rpcrate-feat-btn{flex:none;padding:9px 16px;border-radius:11px;font-weight:800;font-size:14px;color:#fff;background:linear-gradient(90deg,#5aa0ff,#8f7bff);box-shadow:0 8px 22px -8px rgba(90,140,255,.7);white-space:nowrap}
+/* builder (inside the dark .dpc detail panel) */
+.rpcrate-dpc{max-width:820px;padding:26px 26px 22px}
+.rpcrate-head{display:flex;align-items:center;gap:14px;margin:2px 42px 4px 0}
+.rpcrate-head-ic{flex:none;width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.14);color:#fff}
+.rpcrate-head-ic svg{width:24px;height:24px}
+.rpcrate-head h2{margin:0;font-size:23px;font-weight:800;color:#fff}
+.rpcrate-dateline{margin:6px 0 14px}
+.rpcrate-list{display:block}
+.rpcrate-secgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:10px;margin-bottom:6px}
+.rpcrate-row{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
+.rpcrate-row.isout{opacity:.6}
+.rpcrate-rmedia{flex:none;width:46px;height:46px;border-radius:9px;overflow:hidden;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center}
+.rpcrate-rmedia img{width:46px;height:46px;object-fit:cover}
+.rpcrate-rmedia svg{width:24px;height:24px}
+.rpcrate-rinfo{flex:1;min-width:0}
+.rpcrate-rn{font:700 13.5px/1.3 Heebo,sans-serif;color:#fff}
+.rpcrate-rp{font:600 12px/1.2 Heebo,sans-serif;color:#bcd0ea;margin-top:2px}
+.rpcrate-av{display:inline-block;margin-top:4px;font:700 11px/1.2 Heebo,sans-serif;padding:2px 8px;border-radius:7px}
+.rpcrate-av.in{background:rgba(120,230,180,.15);color:#8ff0c4;border:1px solid rgba(120,230,180,.4)}
+.rpcrate-av.out{background:rgba(255,90,90,.16);color:#ff9a9a;border:1px solid rgba(255,90,90,.5)}
+.rpcrate-add{flex:none;padding:8px 15px;border-radius:10px;border:0;font-weight:800;font-size:13.5px;cursor:pointer;background:linear-gradient(90deg,#5aa0ff,#8f7bff);color:#fff}
+.rpcrate-outbtn{flex:none;font:700 12px/1 Heebo,sans-serif;color:#ff9a9a}
+.rpcrate-sum{margin-top:16px;border:1px solid rgba(255,255,255,.16);border-radius:13px;padding:6px 14px 10px;background:rgba(255,255,255,.05)}
+.rpcrate-sum-empty{color:#bcd0ea;font-size:13.5px;padding:10px 2px;text-align:center}
+.rpcrate-sum-row{display:flex;justify-content:space-between;gap:14px;padding:7px 0;font-size:13px;border-bottom:1px solid rgba(255,255,255,.09)}
+.rpcrate-sum-row span{color:#cfe0f5}.rpcrate-sum-row b{color:#fff}
+.rpcrate-sum-tot{display:flex;justify-content:space-between;gap:14px;padding:10px 0 3px;font-size:15px}
+.rpcrate-sum-tot span{color:#cfe0f5;font-weight:700}.rpcrate-sum-tot b{color:#fff;font-weight:800;font-size:18px}
+.rpcrate-acts{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
+.rpcrate-acts .reqback{margin:0}.rpcrate-acts .pbtn{margin:0;padding:12px 30px;border-radius:12px;border:0;color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+/* cart line */
+.rpcrate-ci{flex-direction:column;align-items:stretch}
+.rpcrate-ci .info{width:100%}
+.rpcrate-cl{display:none;margin:8px 0 2px;padding:8px 10px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+.rpcrate-cl.show{display:block}
+.rpcrate-cl-row{font-size:12.5px;color:#dbe9fb;padding:2px 0}
+.rpcrate-cl-note{font-size:11.5px;color:#9fb6d6;margin-top:6px;line-height:1.45}
+.rpcrate-cl-acts{display:flex;gap:8px;margin-top:9px}
+.rpcrate-cl-acts button{padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.26);background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:12px;cursor:pointer;transition:.15s}
+.rpcrate-cl-acts button:hover{background:rgba(255,255,255,.2)}
+.rpcrate-cl-acts [data-crate-rm]{border-color:rgba(255,120,120,.4);color:#ffb3ac}
+@media(max-width:560px){.rpcrate-secgrid{grid-template-columns:1fr}.rpcrate-feat{flex-direction:column;gap:12px}}
