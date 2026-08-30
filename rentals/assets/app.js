@@ -29,6 +29,10 @@ let CATS=["Camera","Lighting","Grip","Electric","Sound"];
 let LABELS={};
 RENTALS.forEach((p,i)=>p._id=i);
 let active="Home",q="",cart={},cartOrder=[],dpOpen=null,calRef=null,pick='start',badDay=null;
+/* Grip Crate state + config (declared here, before the first render()/uc() below, so
+   uc()'s crateCount() is safe on first paint; the crate engine itself is at end of file). */
+var CRATE_HANDLING_PER_DAY=5,CRATE_NAME='Grip Crate (Build Your Own)',CRATE_CAT='Grip',CRATE_NOTE='Rare Pond sets the crate size (half or full) and how many crates (up to 2) based on your order size.';
+var crate={},crateBuilderOpen=false;
 /* D.s / D.e are a LIVE VIEW over the site-wide shared date state (window.RPDates,
    /assets/date-picker.js) so the rental cart, the crew form and every page share
    ONE set of dates (persisted in sessionStorage). All existing D.s/D.e reads and
@@ -583,12 +587,8 @@ window.RP_setCategories=function(map){
      crateEligible(p)        which items may go in the crate (Grip clamps +
                              safety cables + track wedges)
    ==========================================================================*/
-var CRATE_HANDLING_PER_DAY=5;
-var CRATE_NAME='Grip Crate (Build Your Own)';
-var CRATE_CAT='Grip';
-var CRATE_NOTE='Rare Pond sets the crate size (half or full) and how many crates (up to 2) based on your order size.';
-var crate={};            /* stableKey -> qty */
-var crateBuilderOpen=false;
+/* State + config are declared near the top of this file (before first paint).
+   crate = { stableKey -> qty }. */
 function crateEligible(p){return !!(p&&p.cat===CRATE_CAT&&p.kind!=='package'&&(/clamp/i.test(p.sec||'')||/safety cable/i.test(p.name||'')||/track wedge/i.test(p.name||'')));}
 function crateKey(p){return (p&&p.dbid!=null)?('db'+p.dbid):('ix'+(p?p._id:''));}
 function crateItemByKey(k){if(!k)return null;if(k.slice(0,2)==='db'){var i=RP_DBIDX[k.slice(2)];if(i==null)i=RP_DBIDX[+k.slice(2)];return (i==null)?null:RENTALS[i];}return RENTALS[+k.slice(2)]||null;}
