@@ -202,3 +202,7 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .rpcrate-cl-acts button:hover{background:rgba(255,255,255,.2)}
 .rpcrate-cl-acts [data-crate-rm]{border-color:rgba(255,120,120,.4);color:#ffb3ac}
 @media(max-width:560px){.rpcrate-secgrid{grid-template-columns:1fr}.rpcrate-feat{flex-direction:column;gap:12px}}
+/* crate builder modal: dim the page behind it, contain scroll to the modal, and put the
+   close X in the TOP-RIGHT (the shared .dpx is top-left, which overlapped the crate header). */
+.dp.rpcrate-modal{background:rgba(4,12,30,.72);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);overscroll-behavior:contain}
+.dp.rpcrate-modal .dpx.rpcrate-x{left:auto;right:14px}

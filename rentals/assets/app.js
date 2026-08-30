@@ -631,7 +631,7 @@ function crateSummaryInner(dd){var n=crateCount();if(!n)return '<div class="rpcr
  return lines+foot;}
 function openCrate(){rpEnsureStyles();crateTrim();crateBuilderOpen=true;var col=COL[CRATE_CAT]||'#5aa0ff';var dd=days();
  var dateline=(D.s&&D.e)?('Availability shown for '+fmtRange()+' · '+dd+' day'+(dd>1?'s':'')):'Set your rental dates to check live availability.';
- $('dp').innerHTML='<div class="dpc rpcrate-dpc"><button class="dpx" id="crateX" aria-label="Close">×</button>'
+ $('dp').innerHTML='<div class="dpc rpcrate-dpc"><button class="dpx rpcrate-x" id="crateX" aria-label="Close">×</button>'
   +'<div class="rpcrate-head" style="--pc:'+col+'"><div class="rpcrate-head-ic">'+rpBoxSvg()+'</div><div><div class="eyb" style="color:'+col+'">'+esc(CRATE_CAT)+' · Build your own</div><h2>'+esc(CRATE_NAME)+'</h2></div></div>'
   +'<p class="dpdesc">'+esc(CRATE_NOTE)+'</p>'
   +'<div class="rpcrate-dateline"><button class="chgdate" id="crateDateBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>'+esc(dateline)+'</button></div>'
@@ -639,7 +639,7 @@ function openCrate(){rpEnsureStyles();crateTrim();crateBuilderOpen=true;var col=
   +'<div class="rpcrate-sum" id="rpCrateSum">'+crateSummaryInner(dd)+'</div>'
   +'<div class="rpcrate-acts"><button class="reqback" id="crateClear">Clear crate</button><button class="pbtn ready" id="crateDone">Done</button></div>'
   +'</div>';
- $('dp').classList.add('show');document.body.style.overflow='hidden';
+ $('dp').classList.add('show','rpcrate-modal');document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden';
  $('crateX').onclick=closeCrate;$('dp').onclick=function(e){if(e.target.id==='dp')closeCrate();};
  var db=$('crateDateBtn');if(db)db.onclick=openDates;
  var cd=$('crateDone');if(cd)cd.onclick=closeCrate;
@@ -658,7 +658,7 @@ function crateAdd(key){var p=crateItemByKey(key);if(!p)return;var cap=crateCap(p
  if(have>=cap){crateToast('Only '+cap+' available'+((window.RPAvail&&window.RPAvail.hasDates&&window.RPAvail.hasDates())?' for these dates.':'.'));return;}
  crate[key]=have+1;crateRefresh();}
 function crateDec(key){if(!crate[key])return;crate[key]--;if(crate[key]<=0)delete crate[key];crateRefresh();}
-function closeCrate(){crateBuilderOpen=false;$('dp').classList.remove('show');document.body.style.overflow='';if(active===CRATE_CAT&&typeof renderResults==='function')renderResults();uc();}
+function closeCrate(){crateBuilderOpen=false;$('dp').classList.remove('show','rpcrate-modal');document.documentElement.style.overflow='';document.body.style.overflow='';if(active===CRATE_CAT&&typeof renderResults==='function')renderResults();uc();}
 function crateToast(msg){try{var el=document.querySelector('.rp-avtoast');if(!el){el=document.createElement('div');el.className='rp-avtoast';document.body.appendChild(el);}el.textContent=msg;el.classList.add('show');clearTimeout(crateToast._t);crateToast._t=setTimeout(function(){el.classList.remove('show');},2200);}catch(e){}}
 /* ---- cart line ----------------------------------------------------------- */
 function crateCartHtml(){if(!crateHasItems())return '';var col=COL[CRATE_CAT]||'#5aa0ff';var dd=days();var n=crateCount();
