@@ -601,13 +601,50 @@ function crateTotal(){if(!crateHasItems())return 0;var dd=days()||1;return crate
 function crateCap(p){try{if(window.RPAvail&&window.RPAvail.capOf){var c=window.RPAvail.capOf(p);return (c===Infinity)?9999:Math.max(0,c|0);}}catch(e){}var q=parseInt(p&&p.qty,10);return (q>0)?q:9999;}
 function crateEligibleItems(){return RENTALS.filter(crateEligible).slice().sort(function(a,b){return (a.sec||'').localeCompare(b.sec||'')||(a.name||'').localeCompare(b.name||'');});}
 function crateTrim(){var ch=false;Object.keys(crate).forEach(function(k){var p=crateItemByKey(k);if(!p){delete crate[k];ch=true;return;}var cap=crateCap(p);if(crate[k]>cap){crate[k]=cap;ch=true;}if(crate[k]<=0){delete crate[k];ch=true;}});return ch;}
+/* ---- milk-crate imagery + the side fill meter ---------------------------
+   crateImg pulls the real Impact Milk Crate photos from the live catalog (by
+   name), falling back to the built-in gear photos. The meter is a fixed panel
+   on the left of the screen whose crate stack GROWS through four stages as the
+   crate fills, with a brand glow rising inside:
+     half crate  ->  full crate (glow starts half full)  ->  full + half
+     stacked  ->  two full crates stacked (glow across both).
+   "Full" every stage means the crate holds all the units currently available. */
+function crateImg(kind){var re=kind==='full'?/milk crate full/i:/milk crate half/i;
+ var it=(RENTALS||[]).filter(function(p){return re.test(p.name||'');})[0];
+ if(it&&it.img)return it.img;
+ return kind==='full'?'media/gear/g_4e75c9a9e48194ec.jpg':'media/gear/g_3bffb891d2f38617.jpg';}
+function crateItemMax(p){var c=crateCap(p);if(c>=9999){var q=parseInt(p&&p.qty,10);return q>0?q:1;}return c;}
+function crateMax(){var s=crateEligibleItems().reduce(function(a,p){return a+crateItemMax(p);},0);return s>0?s:1;}
+function crateMeterShow(){var m=document.getElementById('rpCrateMeter');if(!m){m=document.createElement('div');m.id='rpCrateMeter';m.innerHTML='<div class="rpcm-cap">Your crate</div><div class="rpcm-stack"></div><div class="rpcm-count">0 items</div>';document.body.appendChild(m);}m.dataset.stage='';crateMeterUpdate();}
+function crateMeterHide(){var m=document.getElementById('rpCrateMeter');if(m)m.remove();}
+function crateMeterUpdate(){var m=document.getElementById('rpCrateMeter');if(!m)return;
+ var units=crateCount(),max=crateMax();
+ var frac=max>0?Math.min(1,units/max):0;var c=frac*4;/* content in half-crate units, 0..4 */
+ var stage,cap;
+ if(units<=0){stage='half';cap=1;c=0;}
+ else if(c<=1){stage='half';cap=1;}
+ else if(c<=2){stage='full';cap=2;}
+ else if(c<=3){stage='fullhalf';cap=3;}
+ else{stage='twofull';cap=4;}
+ var glowFrac=Math.max(0,Math.min(1,c/cap));
+ var Hh=60,Hf=112;
+ var order=stage==='half'?[['half',Hh]]:stage==='full'?[['full',Hf]]:stage==='fullhalf'?[['half',Hh],['full',Hf]]:[['full',Hf],['full',Hf]];
+ var totalH=order.reduce(function(a,x){return a+x[1];},0);
+ var stack=m.querySelector('.rpcm-stack');if(!stack)return;
+ if(m.dataset.stage!==stage){m.dataset.stage=stage;var full=crateImg('full'),half=crateImg('half');
+  var imgs=order.map(function(x){var src=x[0]==='full'?full:half;return '<img class="rpcm-img" src="'+esc(src)+'" alt="" draggable="false" style="height:'+x[1]+'px">';}).join('');
+  stack.innerHTML=imgs+'<div class="rpcm-wash"></div><div class="rpcm-glow"></div>';stack.style.height=totalH+'px';}
+ var glowPx=Math.round(glowFrac*totalH);
+ var g=stack.querySelector('.rpcm-glow'),w=stack.querySelector('.rpcm-wash');
+ if(g)g.style.height=glowPx+'px';if(w)w.style.height=glowPx+'px';
+ var cnt=m.querySelector('.rpcm-count');if(cnt)cnt.textContent=units+(units===1?' item':' items');}
 /* ---- featured card at the top of the Grip tab ---------------------------- */
 function crateFeaturedCard(col){var pc=col||COL[CRATE_CAT]||'#5aa0ff';var n=crateCount();var dd=days();var pr;
  if(n>0){pr=dd?('<div class="pcalc"><div class="dr">'+fmt(crateDaily())+'<span>/day × '+dd+'d</span></div><div class="tot">'+fmt(crateTotal())+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div></div>'):('<div class="pcalc"><div class="dr">'+fmt(crateDaily())+'<span>/day</span></div></div>');}
  else{pr='<div class="rpcrate-ask">Price depends on your crate<span>'+fmt(CRATE_HANDLING_PER_DAY)+'/day handling + the items you add</span></div>';}
  var btn=n>0?('Edit your crate · '+n+' item'+(n!==1?'s':'')):'Build your crate';
  return '<div class="rpcrate-feat" id="rpCrateCard" role="button" tabindex="0" data-cursor="off" style="--pc:'+pc+';--pcg:'+hx(pc,.5)+';--pcb1:'+hx(pc,.2)+';--pcb2:'+hx(pc,.08)+'">'
-  +'<div class="rpcrate-feat-ic">'+rpBoxSvg()+'</div>'
+  +'<div class="rpcrate-feat-ic"><img class="rpcrate-icimg" src="'+esc(crateImg('full'))+'" alt="" draggable="false"></div>'
   +'<div class="rpcrate-feat-body"><div class="rpcrate-feat-eyb">Build your own</div><h3>'+esc(CRATE_NAME)+'</h3>'
   +'<p class="rpcrate-feat-sub">Pick the clamps and grip accessories you need. Priced by what you add, plus a flat '+fmt(CRATE_HANDLING_PER_DAY)+'/day crate handling fee.</p>'
   +'<div class="rpcrate-feat-note">'+esc(CRATE_NOTE)+'</div>'
@@ -632,7 +669,7 @@ function crateSummaryInner(dd){var n=crateCount();if(!n)return '<div class="rpcr
 function openCrate(){rpEnsureStyles();crateTrim();crateBuilderOpen=true;var col=COL[CRATE_CAT]||'#5aa0ff';var dd=days();
  var dateline=(D.s&&D.e)?('Availability shown for '+fmtRange()+' · '+dd+' day'+(dd>1?'s':'')):'Set your rental dates to check live availability.';
  $('dp').innerHTML='<div class="dpc rpcrate-dpc"><button class="dpx rpcrate-x" id="crateX" aria-label="Close">×</button>'
-  +'<div class="rpcrate-head" style="--pc:'+col+'"><div class="rpcrate-head-ic">'+rpBoxSvg()+'</div><div><div class="eyb" style="color:'+col+'">'+esc(CRATE_CAT)+' · Build your own</div><h2>'+esc(CRATE_NAME)+'</h2></div></div>'
+  +'<div class="rpcrate-head" style="--pc:'+col+'"><div class="rpcrate-head-ic"><img class="rpcrate-icimg" src="'+esc(crateImg('full'))+'" alt="" draggable="false"></div><div><div class="eyb" style="color:'+col+'">'+esc(CRATE_CAT)+' · Build your own</div><h2>'+esc(CRATE_NAME)+'</h2></div></div>'
   +'<p class="dpdesc">'+esc(CRATE_NOTE)+'</p>'
   +'<div class="rpcrate-dateline"><button class="chgdate" id="crateDateBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>'+esc(dateline)+'</button></div>'
   +'<div class="rpcrate-list">'+crateListHtml()+'</div>'
@@ -644,6 +681,7 @@ function openCrate(){rpEnsureStyles();crateTrim();crateBuilderOpen=true;var col=
  var db=$('crateDateBtn');if(db)db.onclick=openDates;
  var cd=$('crateDone');if(cd)cd.onclick=closeCrate;
  var cc=$('crateClear');if(cc)cc.onclick=function(){crate={};crateRefresh();};
+ crateMeterShow();
  crateBindRows();}
 function crateBindRows(){
  $('dp').querySelectorAll('[data-crq-a]').forEach(function(b){b.onclick=function(){crateAdd(b.dataset.crqA);};});
@@ -651,6 +689,7 @@ function crateBindRows(){
  $('dp').querySelectorAll('[data-crq-m]').forEach(function(b){b.onclick=function(){crateDec(b.dataset.crqM);};});}
 function crateRefresh(){var s=$('rpCrateSum');if(s)s.innerHTML=crateSummaryInner(days());
  var list=$('dp')?$('dp').querySelector('.rpcrate-list'):null;if(list){list.innerHTML=crateListHtml();crateBindRows();}
+ crateMeterUpdate();
  uc();
  if(active===CRATE_CAT){var fc=$('rpCrateCard');if(fc){fc.outerHTML=crateFeaturedCard(COL[CRATE_CAT]);var f2=$('rpCrateCard');if(f2)f2.onclick=openCrate;}}}
 function crateAdd(key){var p=crateItemByKey(key);if(!p)return;var cap=crateCap(p);var have=crate[key]||0;
@@ -658,7 +697,7 @@ function crateAdd(key){var p=crateItemByKey(key);if(!p)return;var cap=crateCap(p
  if(have>=cap){crateToast('Only '+cap+' available'+((window.RPAvail&&window.RPAvail.hasDates&&window.RPAvail.hasDates())?' for these dates.':'.'));return;}
  crate[key]=have+1;crateRefresh();}
 function crateDec(key){if(!crate[key])return;crate[key]--;if(crate[key]<=0)delete crate[key];crateRefresh();}
-function closeCrate(){crateBuilderOpen=false;$('dp').classList.remove('show','rpcrate-modal');document.documentElement.style.overflow='';document.body.style.overflow='';if(active===CRATE_CAT&&typeof renderResults==='function')renderResults();uc();}
+function closeCrate(){crateBuilderOpen=false;$('dp').classList.remove('show','rpcrate-modal');document.documentElement.style.overflow='';document.body.style.overflow='';crateMeterHide();if(active===CRATE_CAT&&typeof renderResults==='function')renderResults();uc();}
 function crateToast(msg){try{var el=document.querySelector('.rp-avtoast');if(!el){el=document.createElement('div');el.className='rp-avtoast';document.body.appendChild(el);}el.textContent=msg;el.classList.add('show');clearTimeout(crateToast._t);crateToast._t=setTimeout(function(){el.classList.remove('show');},2200);}catch(e){}}
 /* ---- cart line ----------------------------------------------------------- */
 function crateCartHtml(){if(!crateHasItems())return '';var col=COL[CRATE_CAT]||'#5aa0ff';var dd=days();var n=crateCount();
