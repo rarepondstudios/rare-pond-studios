@@ -39,6 +39,12 @@
 
 ## 0. LATEST SESSION (2026-09-09), READ THIS FIRST
 
+### 0.0.-62 GO-LINKS: color-coded groups + inline stats charts (2026-09-09)
+
+- **Groups.** New D1 `groups` table (id, name, color, sort) and a `links.group_id` column, both added lazily by `ensureSchema()` in the API on first request (no separate migration). Links sort into color-coded groups that collapse/expand on the dashboard (state remembered per browser via localStorage); group headers show aggregate link + scan counts. One group per link (folder-style). Deleting a group just ungroups its links.
+- **Inline stats + chart.** The per-link "Stats" button now expands an inline panel (not a modal) with the total, a scans-per-day bar chart (hand-drawn SVG, self-hosted, no chart library), by-country and by-device breakdowns, recent scans, and 7d / 30d / 90d / All range switching. Group headers have the same panel, aggregated across the group's links.
+- **API.** `functions/admin/api/links.js`: group_id on upsert, `groups` in the list payload, and a stats endpoint taking `from`/`to` plus a `group=<id>` aggregation. New `functions/admin/api/groups.js` (list / create / update / delete). Both under `/admin`, gated by the existing Basic auth. Schema changes ship via the D1 binding at runtime, so no Cloudflare token is needed.
+
 ### 0.0.-61 GO-LINKS: self-hosted branded short links + scans on Cloudflare, retires Shlink for marketing (2026-09-09)
 
 New system for public/marketing short links, on Cloudflare Pages so links keep working even if the mini is offline (unlike Shlink, which depends on the mini + Tailscale Funnel). Same architecture as the rentals /g resolver.

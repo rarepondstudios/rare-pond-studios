@@ -14,31 +14,42 @@ a{color:var(--accent)}
 header{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
 h1{font-size:20px;margin:0}
 .mut{color:var(--mut)}
-.wrap{max-width:1100px;margin:0 auto;padding:20px}
+.wrap{max-width:1150px;margin:0 auto;padding:20px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:20px}
 label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
-input[type=text],input[type=url]{width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:#0a2145;color:var(--fg);font-size:14px}
+input[type=text],input[type=url],select{width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:#0a2145;color:var(--fg);font-size:14px}
 button{cursor:pointer;border-radius:8px;border:1px solid var(--line);background:#12305a;color:var(--fg);padding:8px 12px;font-size:14px}
 button.primary{background:var(--accent);color:#06122a;border-color:var(--accent);font-weight:600}
 button.link{background:none;border:none;color:var(--accent);padding:4px 6px}
 button.danger{color:var(--danger)}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
 .pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid var(--line)}
 .pill.off{color:var(--mut)}
-.row-actions button{margin-right:2px}
 code{background:#0a2145;padding:1px 5px;border-radius:5px;font-size:13px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.small{font-size:12px;color:var(--mut)}
+.spacer{flex:1}
+input[type=color]{width:38px;height:30px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;vertical-align:middle}
+.colhead{display:grid;grid-template-columns:2fr 2fr 60px 130px minmax(230px,auto);gap:8px;padding:0 10px 6px;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.gblock{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px;background:var(--panel)}
+.ghead{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0d264a}
+.swatch{width:13px;height:13px;border-radius:3px;display:inline-block;flex:none}
+.gbody{}
+.lrow{display:grid;grid-template-columns:2fr 2fr 60px 130px minmax(230px,auto);gap:8px;padding:8px 10px;border-top:1px solid var(--line);align-items:start}
+.lact{display:flex;flex-wrap:wrap;gap:2px;align-items:center}
+.gsel{max-width:150px;font-size:12px;padding:4px 6px}
+.stats{grid-column:1/-1;background:#0a2145;border-radius:8px;padding:12px;margin-top:8px}
+.stbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.rbtn{font-size:12px}
+.rbtn.on{color:#06122a;background:var(--accent);border-radius:6px}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:8px 0}
+.chart{margin:6px 0}
 dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;max-width:560px;width:92%}
 dialog::backdrop{background:rgba(3,10,24,.7)}
 .msg{padding:8px 10px;border-radius:8px;margin-bottom:10px;display:none}
 .msg.err{display:block;background:#3a1620;color:var(--danger);border:1px solid #66232f}
 .msg.ok{display:block;background:#123a2a;color:var(--ok);border:1px solid #1e6b4b}
-.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.small{font-size:12px;color:var(--mut)}
-input[type=color]{width:38px;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;vertical-align:middle}
+@media(max-width:760px){.colhead{display:none}.lrow{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -49,34 +60,40 @@ input[type=color]{width:38px;height:28px;padding:0;border:1px solid var(--line);
 <div class="wrap">
   <div id="msg" class="msg"></div>
 
-  <div class="card">
-    <strong id="formTitle">New link</strong>
-    <div class="grid2">
-      <div>
-        <label>Slug (the part after /go/)</label>
-        <input id="f_slug" type="text" placeholder="card" autocomplete="off">
-        <div class="small" id="preview">https://www.rarepond.com/go/…</div>
-      </div>
-      <div>
-        <label>Destination URL</label>
-        <input id="f_dest" type="url" placeholder="https://www.rarepond.com/media" autocomplete="off">
+  <div class="grid2">
+    <div class="card">
+      <strong id="formTitle">New link</strong>
+      <label>Slug (the part after /go/)</label>
+      <input id="f_slug" type="text" placeholder="card" autocomplete="off">
+      <div class="small" id="preview">https://www.rarepond.com/go/…</div>
+      <label>Destination URL</label>
+      <input id="f_dest" type="url" placeholder="https://www.rarepond.com/media" autocomplete="off">
+      <label>Title (optional)</label>
+      <input id="f_title" type="text" autocomplete="off">
+      <label>Group</label>
+      <select id="f_group"><option value="">— no group —</option></select>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px"><input id="f_active" type="checkbox" checked style="width:auto"> Active</label>
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button class="primary" id="saveBtn">Save link</button>
+        <button id="clearBtn">Clear</button>
       </div>
     </div>
-    <label>Title (optional, for your reference)</label>
-    <input id="f_title" type="text" autocomplete="off">
-    <label style="display:flex;align-items:center;gap:8px;margin-top:12px"><input id="f_active" type="checkbox" checked style="width:auto"> Active</label>
-    <div style="margin-top:14px;display:flex;gap:8px">
-      <button class="primary" id="saveBtn">Save link</button>
-      <button id="clearBtn">Clear</button>
+    <div class="card">
+      <strong id="gFormTitle">New group</strong>
+      <label>Group name</label>
+      <input id="g_name" type="text" placeholder="Rare Pond Media" autocomplete="off">
+      <label>Color</label>
+      <input id="g_color" type="color" value="#7aa2ff">
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button class="primary" id="g_add">Add group</button>
+        <button id="g_clear">Clear</button>
+      </div>
+      <div class="small" style="margin-top:10px">Assign a link to a group with the dropdown on its row. Collapse a group with the ▾ caret. Deleting a group just ungroups its links.</div>
     </div>
   </div>
 
-  <div class="card">
-    <table>
-      <thead><tr><th>Link</th><th>Destination</th><th>Scans</th><th>Last scan</th><th></th></tr></thead>
-      <tbody id="rows"><tr><td colspan="5" class="mut">Loading…</td></tr></tbody>
-    </table>
-  </div>
+  <div class="colhead"><div>Link</div><div>Destination</div><div>Scans</div><div>Last scan</div><div>Group / actions</div></div>
+  <div id="list"><div class="small mut" style="padding:10px">Loading…</div></div>
 </div>
 
 <dialog id="qrDlg"><div style="padding:16px">
@@ -88,7 +105,7 @@ input[type=color]{width:38px;height:28px;padding:0;border:1px solid var(--line);
     <label style="margin:0">Background <input type="color" id="qrBg" value="#ffffff"></label>
     <label style="margin:0;display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="qrTransparent" style="width:auto"> Transparent background</label>
   </div>
-  <div class="small" style="margin-top:6px">The checkerboard behind the preview just shows transparency; it is not part of the file.</div>
+  <div class="small" style="margin-top:6px">The checkerboard behind the preview only shows transparency; it is not part of the file.</div>
   <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
     <button class="primary" id="dlPng">Download PNG</button>
     <button id="dlSvg">Download SVG (best for print)</button>
@@ -96,92 +113,170 @@ input[type=color]{width:38px;height:28px;padding:0;border:1px solid var(--line);
   </div>
 </div></dialog>
 
-<dialog id="statDlg"><div style="padding:16px;max-width:480px">
-  <strong id="statTitle">Stats</strong>
-  <div id="statBody" class="small" style="margin-top:10px">…</div>
-  <div style="margin-top:14px"><button id="statClose">Close</button></div>
-</div></dialog>
-
 <script>
 const GO_BASE='https://www.rarepond.com/go/';
 const API='/admin/api/links';
+const GAPI='/admin/api/groups';
 const $=(id)=>document.getElementById(id);
+let LINKS=[], GROUPS=[], editingGroup=null;
 
 function msg(t,ok){const m=$('msg');m.textContent=t;m.className='msg '+(ok?'ok':'err');setTimeout(()=>{m.className='msg';},4000);}
 function fmtTs(ts){if(!ts)return '—';return new Date(ts*1000).toLocaleString();}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function ckey(g){return 'golinks.collapsed.'+g;}
+function isCollapsed(g){try{return localStorage.getItem(ckey(g))==='1';}catch(e){return false;}}
+function setCollapsed(g,v){try{localStorage.setItem(ckey(g),v?'1':'0');}catch(e){}}
 
 $('f_slug').addEventListener('input',()=>{$('preview').textContent=GO_BASE+($('f_slug').value.trim()||'…');});
 
 async function load(){
-  let r;
-  try{ r=await fetch(API,{headers:{'Accept':'application/json'}}); }
-  catch(e){ $('rows').innerHTML='<tr><td colspan="5" class="err">Network error</td></tr>'; return; }
-  if(!r.ok){$('rows').innerHTML='<tr><td colspan="5">Failed to load ('+r.status+')</td></tr>';return;}
-  const d=await r.json();
-  $('grand').textContent=d.grand_total_scans;
-  window.__links=d.links||[];
-  const rows=(d.links||[]).map(l=>{
-    const url=GO_BASE+l.slug;
-    return '<tr>'+
-      '<td><code>'+esc(l.slug)+'</code>'+(l.active?'':' <span class="pill off">disabled</span>')+
-      '<div class="small">'+esc(l.title||'')+'</div>'+
-      '<div class="small"><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(url)+'</a> '+
-      '<button class="link" data-copy="'+esc(url)+'">copy</button></div></td>'+
-      '<td class="small" style="word-break:break-all">'+esc(l.dest)+'</td>'+
-      '<td>'+l.scans_total+'</td>'+
-      '<td class="small">'+fmtTs(l.last_scan)+'</td>'+
-      '<td class="row-actions" style="white-space:nowrap">'+
-        '<button class="link" data-qr="'+esc(l.slug)+'">QR</button>'+
-        '<button class="link" data-stats="'+esc(l.slug)+'">Stats</button>'+
-        '<button class="link" data-edit="'+esc(l.slug)+'">Edit</button>'+
-        '<button class="link danger" data-del="'+esc(l.slug)+'">Delete</button>'+
-      '</td></tr>';
-  }).join('');
-  $('rows').innerHTML=rows||'<tr><td colspan="5" class="mut">No links yet. Create one above.</td></tr>';
+  let d;
+  try{ const r=await fetch(API,{headers:{'Accept':'application/json'}}); if(!r.ok){$('list').innerHTML='<div class="small err">Failed to load ('+r.status+')</div>';return;} d=await r.json(); }
+  catch(e){ $('list').innerHTML='<div class="small err">Network error</div>'; return; }
+  LINKS=d.links||[]; GROUPS=d.groups||[]; $('grand').textContent=d.grand_total_scans;
+  const opts='<option value="">— no group —</option>'+GROUPS.map(g=>'<option value="'+g.id+'">'+esc(g.name)+'</option>').join('');
+  $('f_group').innerHTML=opts;
+  render();
 }
 
+function groupSelect(slug,gid){
+  return '<select class="gsel" data-assign="'+esc(slug)+'"><option value="">— no group —</option>'+
+    GROUPS.map(g=>'<option value="'+g.id+'"'+(gid==g.id?' selected':'')+'>'+esc(g.name)+'</option>').join('')+'</select>';
+}
+function linkRow(l){
+  const url=GO_BASE+l.slug;
+  return '<div class="lrow" data-slug="'+esc(l.slug)+'">'+
+    '<div><code>'+esc(l.slug)+'</code>'+(l.active?'':' <span class="pill off">disabled</span>')+
+      '<div class="small">'+esc(l.title||'')+'</div>'+
+      '<div class="small"><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(url)+'</a> <button class="link" data-copy="'+esc(url)+'">copy</button></div></div>'+
+    '<div class="small" style="word-break:break-all">'+esc(l.dest)+'</div>'+
+    '<div>'+l.scans_total+'</div>'+
+    '<div class="small">'+fmtTs(l.last_scan)+'</div>'+
+    '<div class="lact">'+groupSelect(l.slug,l.group_id)+
+      ' <button class="link" data-qr="'+esc(l.slug)+'">QR</button>'+
+      '<button class="link" data-lstats="'+esc(l.slug)+'">Stats ▾</button>'+
+      '<button class="link" data-edit="'+esc(l.slug)+'">Edit</button>'+
+      '<button class="link danger" data-del="'+esc(l.slug)+'">Delete</button></div>'+
+    '<div class="stats" id="st-'+esc(l.slug)+'" hidden></div>'+
+  '</div>';
+}
+function groupBlock(g){
+  const links=LINKS.filter(l=>l.group_id==g.id);
+  const col=isCollapsed(g.id);
+  return '<div class="gblock" style="border-left:5px solid '+esc(g.color)+'">'+
+    '<div class="ghead">'+
+      '<button class="link" data-toggle="'+g.id+'" style="font-size:15px">'+(col?'▸':'▾')+'</button>'+
+      '<span class="swatch" style="background:'+esc(g.color)+'"></span>'+
+      '<strong>'+esc(g.name)+'</strong>'+
+      '<span class="small">'+links.length+' links · '+g.scans_total+' scans</span>'+
+      '<span class="spacer"></span>'+
+      '<button class="link" data-gstats="'+g.id+'">Stats ▾</button>'+
+      '<button class="link" data-gedit="'+g.id+'">Edit</button>'+
+      '<button class="link danger" data-gdel="'+g.id+'">Delete</button>'+
+    '</div>'+
+    '<div class="stats" id="gst-'+g.id+'" hidden></div>'+
+    '<div '+(col?'hidden':'')+'>'+(links.map(linkRow).join('')||'<div class="small mut" style="padding:10px">No links yet. Use a link’s group dropdown to add it here.</div>')+'</div>'+
+  '</div>';
+}
+function render(){
+  let html='';
+  GROUPS.forEach(g=>{html+=groupBlock(g);});
+  const ung=LINKS.filter(l=>!l.group_id);
+  html+='<div class="gblock"><div class="ghead">'+
+    '<button class="link" data-toggle="none" style="font-size:15px">'+(isCollapsed('none')?'▸':'▾')+'</button>'+
+    '<strong>Ungrouped</strong><span class="small">'+ung.length+' links</span></div>'+
+    '<div '+(isCollapsed('none')?'hidden':'')+'>'+(ung.map(linkRow).join('')||'<div class="small mut" style="padding:10px">Nothing ungrouped.</div>')+'</div></div>';
+  $('list').innerHTML=html;
+}
+
+/* ---- stats + chart ---- */
+const RANGES=[['7d',7],['30d',30],['90d',90],['All',3650]];
+function fillDays(byDay,from,to){
+  const map={}; (byDay||[]).forEach(x=>map[x.k]=x.c);
+  const out=[]; let cur=new Date(from*1000); cur.setUTCHours(0,0,0,0); const end=new Date(to*1000); let guard=0;
+  while(cur<=end && guard<4000){const k=cur.toISOString().slice(0,10);out.push({label:k,count:map[k]||0});cur.setUTCDate(cur.getUTCDate()+1);guard++;}
+  if(out.length>140){const wk=[];for(let i=0;i<out.length;i+=7){const c=out.slice(i,i+7);wk.push({label:c[0].label,count:c.reduce((a,b)=>a+b.count,0)});}return wk;}
+  return out;
+}
+function drawBars(series,color){
+  if(!series.length) return '<div class="small mut">No data in range.</div>';
+  const H=130,pad=16,step=6,gap=1,W=Math.max(series.length*step,step);
+  const max=Math.max(1,...series.map(s=>s.count));
+  let bars='';
+  series.forEach((s,i)=>{const h=Math.round((s.count/max)*(H-pad*2));const y=H-pad-h;bars+='<rect x="'+(i*step)+'" y="'+y+'" width="'+(step-gap)+'" height="'+Math.max(h,s.count>0?1:0)+'" fill="'+color+'"><title>'+esc(s.label)+': '+s.count+'</title></rect>';});
+  return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="width:100%;height:130px;display:block">'+
+    '<line x1="0" y1="'+(H-pad)+'" x2="'+W+'" y2="'+(H-pad)+'" stroke="#24406e"/>'+bars+'</svg>'+
+    '<div class="small mut" style="display:flex;justify-content:space-between"><span>'+esc(series[0].label)+'</span><span>peak '+max+'/'+(series.length>140?'wk':'day')+'</span><span>'+esc(series[series.length-1].label)+'</span></div>';
+}
+async function openStats(kind,key,el,days){
+  days=days||30; el.hidden=false; el.innerHTML='<div class="small">Loading…</div>';
+  const to=Math.floor(Date.now()/1000), from=to-days*86400;
+  const q=(kind==='group'?'group=':'slug=')+encodeURIComponent(key);
+  let d;
+  try{ const r=await fetch(API+'?'+q+'&stats=1&from='+from+'&to='+to); d=await r.json(); if(d.error) throw 0; }
+  catch(e){ el.innerHTML='<div class="small err">Failed to load stats.</div>'; return; }
+  const color=kind==='group'?((GROUPS.find(g=>g.id==key)||{}).color||'#7aa2ff'):'#7aa2ff';
+  const filled=fillDays(d.byDay||[],from,to);
+  const list=(arr,label)=>'<div><div class="mut" style="margin:6px 0 2px">'+label+'</div>'+((arr&&arr.length)?arr.map(x=>esc(x.k)+': '+x.c).join('<br>'):'—')+'</div>';
+  const recent=(d.recent||[]).map(s=>fmtTs(s.ts)+' · '+esc(s.country||'?')+' · '+esc(s.device||'?')+' · '+esc(s.browser||'?')+(kind==='group'?(' · '+esc(s.slug||'')):'')).join('<br>')||'—';
+  const rbtns=RANGES.map(r=>'<button class="link rbtn'+(r[1]===days?' on':'')+'" data-range="'+r[1]+'">'+r[0]+'</button>').join('');
+  el.innerHTML='<div class="stbar"><b>'+d.total+'</b> scans in range<span class="spacer"></span>'+rbtns+'</div>'+
+    '<div class="chart">'+drawBars(filled,color)+'</div>'+
+    '<div class="statgrid">'+list(d.byCountry,'By country')+list(d.byDevice,'By device')+'</div>'+
+    '<div class="mut" style="margin:6px 0 2px">Recent scans</div><div class="small">'+recent+'</div>';
+  el.querySelectorAll('.rbtn').forEach(b=>b.addEventListener('click',()=>openStats(kind,key,el,parseInt(b.dataset.range,10))));
+}
+
+/* ---- link form ---- */
 async function save(){
-  const payload={slug:$('f_slug').value.trim(),dest:$('f_dest').value.trim(),title:$('f_title').value.trim(),active:$('f_active').checked};
-  let r,d;
-  try{ r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); d=await r.json(); }
-  catch(e){ msg('Network error',false); return; }
+  const p={slug:$('f_slug').value.trim(),dest:$('f_dest').value.trim(),title:$('f_title').value.trim(),active:$('f_active').checked,group_id:$('f_group').value||null};
+  let r,d; try{ r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)}); d=await r.json(); }catch(e){ msg('Network error',false); return; }
   if(!r.ok||d.error){msg(d.error||'Save failed',false);return;}
   msg('Saved '+d.slug,true);clearForm();load();
 }
-function clearForm(){$('f_slug').value='';$('f_dest').value='';$('f_title').value='';$('f_active').checked=true;$('f_slug').disabled=false;$('formTitle').textContent='New link';$('preview').textContent=GO_BASE+'…';}
-function editRow(slug){const l=(window.__links||[]).find(x=>x.slug===slug);if(!l)return;$('f_slug').value=l.slug;$('f_slug').disabled=true;$('f_dest').value=l.dest;$('f_title').value=l.title||'';$('f_active').checked=!!l.active;$('formTitle').textContent='Edit '+l.slug;$('preview').textContent=GO_BASE+l.slug;window.scrollTo({top:0,behavior:'smooth'});}
+function clearForm(){$('f_slug').value='';$('f_dest').value='';$('f_title').value='';$('f_group').value='';$('f_active').checked=true;$('f_slug').disabled=false;$('formTitle').textContent='New link';$('preview').textContent=GO_BASE+'…';}
+function editRow(slug){const l=LINKS.find(x=>x.slug===slug);if(!l)return;$('f_slug').value=l.slug;$('f_slug').disabled=true;$('f_dest').value=l.dest;$('f_title').value=l.title||'';$('f_group').value=l.group_id||'';$('f_active').checked=!!l.active;$('formTitle').textContent='Edit '+l.slug;$('preview').textContent=GO_BASE+l.slug;window.scrollTo({top:0,behavior:'smooth'});}
 async function del(slug){if(!confirm('Delete /go/'+slug+' and its scan history?'))return;let r,d;try{r=await fetch(API+'?slug='+encodeURIComponent(slug),{method:'DELETE'});d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Delete failed',false);return;}msg('Deleted '+slug,true);load();}
 
-/* ---- QR with color + transparency controls ---- */
+/* ---- groups ---- */
+function clearGroupForm(){editingGroup=null;$('g_name').value='';$('g_color').value='#7aa2ff';$('gFormTitle').textContent='New group';$('g_add').textContent='Add group';}
+async function saveGroup(){
+  const name=$('g_name').value.trim(); const color=$('g_color').value;
+  if(!name){msg('Group name required',false);return;}
+  const body=editingGroup?{id:editingGroup,name,color}:{name,color};
+  let r,d;try{r=await fetch(GAPI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});d=await r.json();}catch(e){msg('Network error',false);return;}
+  if(!r.ok||d.error){msg(d.error||'Failed',false);return;}
+  msg(editingGroup?'Group updated':'Group created',true);clearGroupForm();load();
+}
+function editGroup(id){const g=GROUPS.find(x=>x.id==id);if(!g)return;editingGroup=g.id;$('g_name').value=g.name;$('g_color').value=g.color;$('gFormTitle').textContent='Edit group';$('g_add').textContent='Save group';window.scrollTo({top:0,behavior:'smooth'});}
+async function delGroup(id){const g=GROUPS.find(x=>x.id==id);if(!confirm('Delete group "'+(g?g.name:id)+'"? Its links stay, just ungrouped.'))return;let r,d;try{r=await fetch(GAPI+'?id='+encodeURIComponent(id),{method:'DELETE'});d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Failed',false);return;}msg('Group deleted',true);load();}
+
+/* ---- QR ---- */
 let QRSTATE={qr:null,slug:''};
-function buildQR(text){const qr=qrcode(0,'M');qr.addData(text);qr.make();return qr;}
+function buildQR(t){const qr=qrcode(0,'M');qr.addData(t);qr.make();return qr;}
 function qrOpts(){return {fg:$('qrFg').value,bg:$('qrBg').value,transparent:$('qrTransparent').checked};}
-function qrCanvas(qr,scale,opt){const n=qr.getModuleCount(),margin=4,size=(n+margin*2)*scale;const cv=document.createElement('canvas');cv.width=size;cv.height=size;const ctx=cv.getContext('2d');if(!opt.transparent){ctx.fillStyle=opt.bg;ctx.fillRect(0,0,size,size);}ctx.fillStyle=opt.fg;for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))ctx.fillRect((c+margin)*scale,(r+margin)*scale,scale,scale);}return cv;}
-function qrSvg(qr,cell,opt){const n=qr.getModuleCount(),margin=4,dim=(n+margin*2)*cell;let rects='';for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))rects+='<rect x="'+((c+margin)*cell)+'" y="'+((r+margin)*cell)+'" width="'+cell+'" height="'+cell+'"/>';}const bg=opt.transparent?'':'<rect width="100%" height="100%" fill="'+opt.bg+'"/>';return '<svg xmlns="http://www.w3.org/2000/svg" width="'+dim+'" height="'+dim+'" viewBox="0 0 '+dim+' '+dim+'" shape-rendering="crispEdges">'+bg+'<g fill="'+opt.fg+'">'+rects+'</g></svg>';}
+function qrCanvas(qr,scale,o){const n=qr.getModuleCount(),m=4,size=(n+m*2)*scale;const cv=document.createElement('canvas');cv.width=size;cv.height=size;const x=cv.getContext('2d');if(!o.transparent){x.fillStyle=o.bg;x.fillRect(0,0,size,size);}x.fillStyle=o.fg;for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))x.fillRect((c+m)*scale,(r+m)*scale,scale,scale);}return cv;}
+function qrSvg(qr,cell,o){const n=qr.getModuleCount(),m=4,dim=(n+m*2)*cell;let rc='';for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))rc+='<rect x="'+((c+m)*cell)+'" y="'+((r+m)*cell)+'" width="'+cell+'" height="'+cell+'"/>';}const bg=o.transparent?'':'<rect width="100%" height="100%" fill="'+o.bg+'"/>';return '<svg xmlns="http://www.w3.org/2000/svg" width="'+dim+'" height="'+dim+'" viewBox="0 0 '+dim+' '+dim+'" shape-rendering="crispEdges">'+bg+'<g fill="'+o.fg+'">'+rc+'</g></svg>';}
 function renderQR(){if(!QRSTATE.qr)return;const cv=qrCanvas(QRSTATE.qr,8,qrOpts());cv.style.width='220px';cv.style.height='220px';cv.style.imageRendering='pixelated';$('qrBox').innerHTML='';$('qrBox').appendChild(cv);}
 function showQR(slug){QRSTATE={qr:buildQR(GO_BASE+slug),slug:slug};$('qrUrl').textContent=GO_BASE+slug;renderQR();$('qrDlg').showModal();}
 function dl(href,name){const a=document.createElement('a');a.href=href;a.download=name;a.click();if(href.indexOf('blob:')===0)setTimeout(()=>URL.revokeObjectURL(href),1500);}
 
-async function showStats(slug){let r,d;try{r=await fetch(API+'?slug='+encodeURIComponent(slug)+'&stats=1');d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Stats failed',false);return;}
-  $('statTitle').textContent='Stats — /go/'+slug;
-  const list=(arr,label)=>'<div><div class="mut" style="margin:8px 0 2px">'+label+'</div>'+((arr&&arr.length)?arr.map(x=>esc(x.k)+': '+x.c).join('<br>'):'—')+'</div>';
-  const recent=(d.recent||[]).map(s=>fmtTs(s.ts)+' · '+esc(s.country||'?')+' · '+esc(s.device||'?')+' · '+esc(s.browser||'?')).join('<br>')||'—';
-  $('statBody').innerHTML='<div style="font-size:15px;color:var(--fg)"><b>'+d.total+'</b> total scans</div>'+
-    '<div class="statgrid">'+list(d.byCountry,'By country')+list(d.byDevice,'By device')+'</div>'+
-    list(d.byDay,'By day (recent)')+
-    '<div class="mut" style="margin:8px 0 2px">Recent scans</div>'+recent;
-  $('statDlg').showModal();}
-
-document.addEventListener('click',(e)=>{const t=e.target;if(!t||!t.dataset)return;
-  if(t.dataset.copy!=null){if(navigator.clipboard)navigator.clipboard.writeText(t.dataset.copy);msg('Copied',true);}
-  else if(t.dataset.qr)showQR(t.dataset.qr);
-  else if(t.dataset.stats)showStats(t.dataset.stats);
-  else if(t.dataset.edit)editRow(t.dataset.edit);
-  else if(t.dataset.del)del(t.dataset.del);
+document.addEventListener('click',(e)=>{const t=e.target;if(!t||!t.dataset)return;const ds=t.dataset;
+  if(ds.copy!=null){if(navigator.clipboard)navigator.clipboard.writeText(ds.copy);msg('Copied',true);}
+  else if(ds.qr){showQR(ds.qr);}
+  else if(ds.lstats){const el=$('st-'+ds.lstats);if(el.hidden)openStats('link',ds.lstats,el,30);else el.hidden=true;}
+  else if(ds.gstats){const el=$('gst-'+ds.gstats);if(el.hidden)openStats('group',ds.gstats,el,30);else el.hidden=true;}
+  else if(ds.edit){editRow(ds.edit);}
+  else if(ds.del){del(ds.del);}
+  else if(ds.toggle){setCollapsed(ds.toggle,!isCollapsed(ds.toggle));render();}
+  else if(ds.gedit){editGroup(ds.gedit);}
+  else if(ds.gdel){delGroup(ds.gdel);}
 });
+document.addEventListener('change',async(e)=>{const t=e.target;if(t&&t.dataset&&t.dataset.assign!=null){const slug=t.dataset.assign;const l=LINKS.find(x=>x.slug===slug);if(!l)return;const gid=t.value||null;let r,d;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:l.slug,dest:l.dest,title:l.title,active:!!l.active,group_id:gid})});d=await r.json();}catch(err){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Failed',false);return;}msg('Moved '+slug,true);load();}});
+
 $('saveBtn').onclick=save;$('clearBtn').onclick=clearForm;
-$('qrClose').onclick=()=>$('qrDlg').close();$('statClose').onclick=()=>$('statDlg').close();
+$('g_add').onclick=saveGroup;$('g_clear').onclick=clearGroupForm;
+$('qrClose').onclick=()=>$('qrDlg').close();
 ['qrFg','qrBg','qrTransparent'].forEach(id=>$(id).addEventListener('input',renderQR));
 $('dlPng').onclick=()=>dl(qrCanvas(QRSTATE.qr,20,qrOpts()).toDataURL('image/png'),'rarepond-go-'+QRSTATE.slug+'.png');
 $('dlSvg').onclick=()=>dl(URL.createObjectURL(new Blob([qrSvg(QRSTATE.qr,8,qrOpts())],{type:'image/svg+xml'})),'rarepond-go-'+QRSTATE.slug+'.svg');
