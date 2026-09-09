@@ -31,13 +31,14 @@ th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;lett
 code{background:#0a2145;padding:1px 5px;border-radius:5px;font-size:13px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media(max-width:760px){.grid2{grid-template-columns:1fr}}
-dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;max-width:540px;width:92%}
+dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;max-width:560px;width:92%}
 dialog::backdrop{background:rgba(3,10,24,.7)}
 .msg{padding:8px 10px;border-radius:8px;margin-bottom:10px;display:none}
 .msg.err{display:block;background:#3a1620;color:var(--danger);border:1px solid #66232f}
 .msg.ok{display:block;background:#123a2a;color:var(--ok);border:1px solid #1e6b4b}
 .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .small{font-size:12px;color:var(--mut)}
+input[type=color]{width:38px;height:28px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -81,7 +82,13 @@ dialog::backdrop{background:rgba(3,10,24,.7)}
 <dialog id="qrDlg"><div style="padding:16px">
   <strong>QR code</strong>
   <div id="qrUrl" class="small" style="margin:6px 0 12px;word-break:break-all"></div>
-  <div id="qrBox" style="background:#fff;padding:12px;border-radius:10px;display:inline-block"></div>
+  <div id="qrBox" style="padding:12px;border-radius:10px;display:inline-block;background:repeating-conic-gradient(#c7cfda 0% 25%, #eef2f7 0% 50%) 50%/18px 18px"></div>
+  <div style="margin-top:12px;display:flex;gap:18px;flex-wrap:wrap;align-items:center">
+    <label style="margin:0">QR color <input type="color" id="qrFg" value="#000000"></label>
+    <label style="margin:0">Background <input type="color" id="qrBg" value="#ffffff"></label>
+    <label style="margin:0;display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="qrTransparent" style="width:auto"> Transparent background</label>
+  </div>
+  <div class="small" style="margin-top:6px">The checkerboard behind the preview just shows transparency; it is not part of the file.</div>
   <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
     <button class="primary" id="dlPng">Download PNG</button>
     <button id="dlSvg">Download SVG (best for print)</button>
@@ -146,12 +153,15 @@ function clearForm(){$('f_slug').value='';$('f_dest').value='';$('f_title').valu
 function editRow(slug){const l=(window.__links||[]).find(x=>x.slug===slug);if(!l)return;$('f_slug').value=l.slug;$('f_slug').disabled=true;$('f_dest').value=l.dest;$('f_title').value=l.title||'';$('f_active').checked=!!l.active;$('formTitle').textContent='Edit '+l.slug;$('preview').textContent=GO_BASE+l.slug;window.scrollTo({top:0,behavior:'smooth'});}
 async function del(slug){if(!confirm('Delete /go/'+slug+' and its scan history?'))return;let r,d;try{r=await fetch(API+'?slug='+encodeURIComponent(slug),{method:'DELETE'});d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Delete failed',false);return;}msg('Deleted '+slug,true);load();}
 
+/* ---- QR with color + transparency controls ---- */
+let QRSTATE={qr:null,slug:''};
 function buildQR(text){const qr=qrcode(0,'M');qr.addData(text);qr.make();return qr;}
-function qrCanvas(qr,scale){const n=qr.getModuleCount(),margin=4,size=(n+margin*2)*scale;const cv=document.createElement('canvas');cv.width=size;cv.height=size;const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,size,size);ctx.fillStyle='#000';for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))ctx.fillRect((c+margin)*scale,(r+margin)*scale,scale,scale);}return cv;}
-function showQR(slug){const url=GO_BASE+slug;$('qrUrl').textContent=url;const qr=buildQR(url);const cv=qrCanvas(qr,8);cv.style.width='220px';cv.style.height='220px';cv.style.imageRendering='pixelated';$('qrBox').innerHTML='';$('qrBox').appendChild(cv);
-  $('dlPng').onclick=()=>{const a=document.createElement('a');a.href=qrCanvas(qr,20).toDataURL('image/png');a.download='rarepond-go-'+slug+'.png';a.click();};
-  $('dlSvg').onclick=()=>{const svg=qr.createSvgTag({cellSize:8,margin:4,scalable:true});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));a.download='rarepond-go-'+slug+'.svg';a.click();};
-  $('qrDlg').showModal();}
+function qrOpts(){return {fg:$('qrFg').value,bg:$('qrBg').value,transparent:$('qrTransparent').checked};}
+function qrCanvas(qr,scale,opt){const n=qr.getModuleCount(),margin=4,size=(n+margin*2)*scale;const cv=document.createElement('canvas');cv.width=size;cv.height=size;const ctx=cv.getContext('2d');if(!opt.transparent){ctx.fillStyle=opt.bg;ctx.fillRect(0,0,size,size);}ctx.fillStyle=opt.fg;for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))ctx.fillRect((c+margin)*scale,(r+margin)*scale,scale,scale);}return cv;}
+function qrSvg(qr,cell,opt){const n=qr.getModuleCount(),margin=4,dim=(n+margin*2)*cell;let rects='';for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))rects+='<rect x="'+((c+margin)*cell)+'" y="'+((r+margin)*cell)+'" width="'+cell+'" height="'+cell+'"/>';}const bg=opt.transparent?'':'<rect width="100%" height="100%" fill="'+opt.bg+'"/>';return '<svg xmlns="http://www.w3.org/2000/svg" width="'+dim+'" height="'+dim+'" viewBox="0 0 '+dim+' '+dim+'" shape-rendering="crispEdges">'+bg+'<g fill="'+opt.fg+'">'+rects+'</g></svg>';}
+function renderQR(){if(!QRSTATE.qr)return;const cv=qrCanvas(QRSTATE.qr,8,qrOpts());cv.style.width='220px';cv.style.height='220px';cv.style.imageRendering='pixelated';$('qrBox').innerHTML='';$('qrBox').appendChild(cv);}
+function showQR(slug){QRSTATE={qr:buildQR(GO_BASE+slug),slug:slug};$('qrUrl').textContent=GO_BASE+slug;renderQR();$('qrDlg').showModal();}
+function dl(href,name){const a=document.createElement('a');a.href=href;a.download=name;a.click();if(href.indexOf('blob:')===0)setTimeout(()=>URL.revokeObjectURL(href),1500);}
 
 async function showStats(slug){let r,d;try{r=await fetch(API+'?slug='+encodeURIComponent(slug)+'&stats=1');d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Stats failed',false);return;}
   $('statTitle').textContent='Stats — /go/'+slug;
@@ -172,6 +182,9 @@ document.addEventListener('click',(e)=>{const t=e.target;if(!t||!t.dataset)retur
 });
 $('saveBtn').onclick=save;$('clearBtn').onclick=clearForm;
 $('qrClose').onclick=()=>$('qrDlg').close();$('statClose').onclick=()=>$('statDlg').close();
+['qrFg','qrBg','qrTransparent'].forEach(id=>$(id).addEventListener('input',renderQR));
+$('dlPng').onclick=()=>dl(qrCanvas(QRSTATE.qr,20,qrOpts()).toDataURL('image/png'),'rarepond-go-'+QRSTATE.slug+'.png');
+$('dlSvg').onclick=()=>dl(URL.createObjectURL(new Blob([qrSvg(QRSTATE.qr,8,qrOpts())],{type:'image/svg+xml'})),'rarepond-go-'+QRSTATE.slug+'.svg');
 load();
 </script>
 </body>
