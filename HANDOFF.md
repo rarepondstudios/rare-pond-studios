@@ -37,7 +37,22 @@
 
 ---
 
-## 0. LATEST SESSION (2026-08-29), READ THIS FIRST
+## 0. LATEST SESSION (2026-09-09), READ THIS FIRST
+
+### 0.0.-61 GO-LINKS: self-hosted branded short links + scans on Cloudflare, retires Shlink for marketing (2026-09-09)
+
+New system for public/marketing short links, on Cloudflare Pages so links keep working even if the mini is offline (unlike Shlink, which depends on the mini + Tailscale Funnel). Same architecture as the rentals /g resolver.
+
+- **Branded link:** `https://www.rarepond.com/go/<slug>` -> 302 to the destination, logging each scan (time, country/region/city from Cloudflare, device, browser, referrer). Function: `functions/go/[slug].js`. Unknown or disabled slugs bounce to the home page. NOTE: the apex `rarepond.com` still 404s deep paths (pending the DNS cutover), so put the **www** host on printed material for now; once the apex is cut over to Pages, `/go` serves there automatically too.
+- **Storage:** Cloudflare **D1** database `rp-golinks`, bound to the `rare-pond-studios` Pages project as **GOLINKS** (Production + Preview). Tables `links` (slug PK, dest, title, active, timestamps) and `scans`. The existing `COLORLOOKS_PASSWORD` secret was preserved.
+- **Admin (self-serve):** `/admin/links`, behind the existing `/admin` Basic-auth gate (same `COLORLOOKS_PASSWORD`). Create / edit / disable / delete links, view per-link and total scan stats, and download each link's QR as PNG or SVG. QR is generated in-browser from a self-hosted MIT lib (`assets/vendor/qrcode-generator.js`), so it needs no code, no AI, and no external service.
+- **API:** `functions/admin/api/links.js` (GET list, GET `?slug=&stats=1` detail, POST upsert, DELETE), gated by the same `/admin` middleware.
+- **Reserved route:** added `'go'` to `RESERVED_SEGS` in `functions/_middleware.js` so a CMS custom page can never shadow `/go`.
+- **Migrated** the 7 existing Shlink short codes in as `/go` links (JackMedia, KarinaMedia, RPJack, Qr6my, ELDHD, 1Vyrv, pqlV7) with their destinations. This does NOT change any already-printed `pond.tail8c2778.ts.net` QR codes: those still resolve via Shlink + Tailscale Funnel, and Shlink stays running to honor them. New/marketing QR codes use the `/go` links.
+- **Untouched:** the rentals `/g` resolver (`functions/g/[id].js`) and its tailnet scan app. Rentals stays its own system.
+- Provisioning used a short-lived Cloudflare API token (D1 + Pages edit), since revoked; runtime uses the D1 binding, not any token. No secrets in this repo.
+
+
 
 ### 0.0.-60 RENTALS: GRIP CRATE (Build Your Own) - customer-built clamp/accessory bundle, ONE cart line (2026-08-29)
 

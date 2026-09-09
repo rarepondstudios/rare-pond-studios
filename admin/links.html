@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Go Links — Rare Pond</title>
+<script src="/assets/vendor/qrcode-generator.js"></script>
+<style>
+:root{--bg:#0a1f3c;--panel:#0f2a4f;--line:#24406e;--fg:#eaf1ff;--mut:#a9c2e8;--accent:#7aa2ff;--danger:#ff8a8a;--ok:#8ff0c0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px}
+a{color:var(--accent)}
+header{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+h1{font-size:20px;margin:0}
+.mut{color:var(--mut)}
+.wrap{max-width:1100px;margin:0 auto;padding:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:20px}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+input[type=text],input[type=url]{width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:#0a2145;color:var(--fg);font-size:14px}
+button{cursor:pointer;border-radius:8px;border:1px solid var(--line);background:#12305a;color:var(--fg);padding:8px 12px;font-size:14px}
+button.primary{background:var(--accent);color:#06122a;border-color:var(--accent);font-weight:600}
+button.link{background:none;border:none;color:var(--accent);padding:4px 6px}
+button.danger{color:var(--danger)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid var(--line)}
+.pill.off{color:var(--mut)}
+.row-actions button{margin-right:2px}
+code{background:#0a2145;padding:1px 5px;border-radius:5px;font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;max-width:540px;width:92%}
+dialog::backdrop{background:rgba(3,10,24,.7)}
+.msg{padding:8px 10px;border-radius:8px;margin-bottom:10px;display:none}
+.msg.err{display:block;background:#3a1620;color:var(--danger);border:1px solid #66232f}
+.msg.ok{display:block;background:#123a2a;color:var(--ok);border:1px solid #1e6b4b}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.small{font-size:12px;color:var(--mut)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Go Links</h1>
+  <span class="mut">rarepond.com short links &middot; <span id="grand">—</span> total scans</span>
+</header>
+<div class="wrap">
+  <div id="msg" class="msg"></div>
+
+  <div class="card">
+    <strong id="formTitle">New link</strong>
+    <div class="grid2">
+      <div>
+        <label>Slug (the part after /go/)</label>
+        <input id="f_slug" type="text" placeholder="card" autocomplete="off">
+        <div class="small" id="preview">https://www.rarepond.com/go/…</div>
+      </div>
+      <div>
+        <label>Destination URL</label>
+        <input id="f_dest" type="url" placeholder="https://www.rarepond.com/media" autocomplete="off">
+      </div>
+    </div>
+    <label>Title (optional, for your reference)</label>
+    <input id="f_title" type="text" autocomplete="off">
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px"><input id="f_active" type="checkbox" checked style="width:auto"> Active</label>
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="primary" id="saveBtn">Save link</button>
+      <button id="clearBtn">Clear</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead><tr><th>Link</th><th>Destination</th><th>Scans</th><th>Last scan</th><th></th></tr></thead>
+      <tbody id="rows"><tr><td colspan="5" class="mut">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<dialog id="qrDlg"><div style="padding:16px">
+  <strong>QR code</strong>
+  <div id="qrUrl" class="small" style="margin:6px 0 12px;word-break:break-all"></div>
+  <div id="qrBox" style="background:#fff;padding:12px;border-radius:10px;display:inline-block"></div>
+  <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="primary" id="dlPng">Download PNG</button>
+    <button id="dlSvg">Download SVG (best for print)</button>
+    <button id="qrClose">Close</button>
+  </div>
+</div></dialog>
+
+<dialog id="statDlg"><div style="padding:16px;max-width:480px">
+  <strong id="statTitle">Stats</strong>
+  <div id="statBody" class="small" style="margin-top:10px">…</div>
+  <div style="margin-top:14px"><button id="statClose">Close</button></div>
+</div></dialog>
+
+<script>
+const GO_BASE='https://www.rarepond.com/go/';
+const API='/admin/api/links';
+const $=(id)=>document.getElementById(id);
+
+function msg(t,ok){const m=$('msg');m.textContent=t;m.className='msg '+(ok?'ok':'err');setTimeout(()=>{m.className='msg';},4000);}
+function fmtTs(ts){if(!ts)return '—';return new Date(ts*1000).toLocaleString();}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+$('f_slug').addEventListener('input',()=>{$('preview').textContent=GO_BASE+($('f_slug').value.trim()||'…');});
+
+async function load(){
+  let r;
+  try{ r=await fetch(API,{headers:{'Accept':'application/json'}}); }
+  catch(e){ $('rows').innerHTML='<tr><td colspan="5" class="err">Network error</td></tr>'; return; }
+  if(!r.ok){$('rows').innerHTML='<tr><td colspan="5">Failed to load ('+r.status+')</td></tr>';return;}
+  const d=await r.json();
+  $('grand').textContent=d.grand_total_scans;
+  window.__links=d.links||[];
+  const rows=(d.links||[]).map(l=>{
+    const url=GO_BASE+l.slug;
+    return '<tr>'+
+      '<td><code>'+esc(l.slug)+'</code>'+(l.active?'':' <span class="pill off">disabled</span>')+
+      '<div class="small">'+esc(l.title||'')+'</div>'+
+      '<div class="small"><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(url)+'</a> '+
+      '<button class="link" data-copy="'+esc(url)+'">copy</button></div></td>'+
+      '<td class="small" style="word-break:break-all">'+esc(l.dest)+'</td>'+
+      '<td>'+l.scans_total+'</td>'+
+      '<td class="small">'+fmtTs(l.last_scan)+'</td>'+
+      '<td class="row-actions" style="white-space:nowrap">'+
+        '<button class="link" data-qr="'+esc(l.slug)+'">QR</button>'+
+        '<button class="link" data-stats="'+esc(l.slug)+'">Stats</button>'+
+        '<button class="link" data-edit="'+esc(l.slug)+'">Edit</button>'+
+        '<button class="link danger" data-del="'+esc(l.slug)+'">Delete</button>'+
+      '</td></tr>';
+  }).join('');
+  $('rows').innerHTML=rows||'<tr><td colspan="5" class="mut">No links yet. Create one above.</td></tr>';
+}
+
+async function save(){
+  const payload={slug:$('f_slug').value.trim(),dest:$('f_dest').value.trim(),title:$('f_title').value.trim(),active:$('f_active').checked};
+  let r,d;
+  try{ r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); d=await r.json(); }
+  catch(e){ msg('Network error',false); return; }
+  if(!r.ok||d.error){msg(d.error||'Save failed',false);return;}
+  msg('Saved '+d.slug,true);clearForm();load();
+}
+function clearForm(){$('f_slug').value='';$('f_dest').value='';$('f_title').value='';$('f_active').checked=true;$('f_slug').disabled=false;$('formTitle').textContent='New link';$('preview').textContent=GO_BASE+'…';}
+function editRow(slug){const l=(window.__links||[]).find(x=>x.slug===slug);if(!l)return;$('f_slug').value=l.slug;$('f_slug').disabled=true;$('f_dest').value=l.dest;$('f_title').value=l.title||'';$('f_active').checked=!!l.active;$('formTitle').textContent='Edit '+l.slug;$('preview').textContent=GO_BASE+l.slug;window.scrollTo({top:0,behavior:'smooth'});}
+async function del(slug){if(!confirm('Delete /go/'+slug+' and its scan history?'))return;let r,d;try{r=await fetch(API+'?slug='+encodeURIComponent(slug),{method:'DELETE'});d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Delete failed',false);return;}msg('Deleted '+slug,true);load();}
+
+function buildQR(text){const qr=qrcode(0,'M');qr.addData(text);qr.make();return qr;}
+function qrCanvas(qr,scale){const n=qr.getModuleCount(),margin=4,size=(n+margin*2)*scale;const cv=document.createElement('canvas');cv.width=size;cv.height=size;const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,size,size);ctx.fillStyle='#000';for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))ctx.fillRect((c+margin)*scale,(r+margin)*scale,scale,scale);}return cv;}
+function showQR(slug){const url=GO_BASE+slug;$('qrUrl').textContent=url;const qr=buildQR(url);const cv=qrCanvas(qr,8);cv.style.width='220px';cv.style.height='220px';cv.style.imageRendering='pixelated';$('qrBox').innerHTML='';$('qrBox').appendChild(cv);
+  $('dlPng').onclick=()=>{const a=document.createElement('a');a.href=qrCanvas(qr,20).toDataURL('image/png');a.download='rarepond-go-'+slug+'.png';a.click();};
+  $('dlSvg').onclick=()=>{const svg=qr.createSvgTag({cellSize:8,margin:4,scalable:true});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));a.download='rarepond-go-'+slug+'.svg';a.click();};
+  $('qrDlg').showModal();}
+
+async function showStats(slug){let r,d;try{r=await fetch(API+'?slug='+encodeURIComponent(slug)+'&stats=1');d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Stats failed',false);return;}
+  $('statTitle').textContent='Stats — /go/'+slug;
+  const list=(arr,label)=>'<div><div class="mut" style="margin:8px 0 2px">'+label+'</div>'+((arr&&arr.length)?arr.map(x=>esc(x.k)+': '+x.c).join('<br>'):'—')+'</div>';
+  const recent=(d.recent||[]).map(s=>fmtTs(s.ts)+' · '+esc(s.country||'?')+' · '+esc(s.device||'?')+' · '+esc(s.browser||'?')).join('<br>')||'—';
+  $('statBody').innerHTML='<div style="font-size:15px;color:var(--fg)"><b>'+d.total+'</b> total scans</div>'+
+    '<div class="statgrid">'+list(d.byCountry,'By country')+list(d.byDevice,'By device')+'</div>'+
+    list(d.byDay,'By day (recent)')+
+    '<div class="mut" style="margin:8px 0 2px">Recent scans</div>'+recent;
+  $('statDlg').showModal();}
+
+document.addEventListener('click',(e)=>{const t=e.target;if(!t||!t.dataset)return;
+  if(t.dataset.copy!=null){if(navigator.clipboard)navigator.clipboard.writeText(t.dataset.copy);msg('Copied',true);}
+  else if(t.dataset.qr)showQR(t.dataset.qr);
+  else if(t.dataset.stats)showStats(t.dataset.stats);
+  else if(t.dataset.edit)editRow(t.dataset.edit);
+  else if(t.dataset.del)del(t.dataset.del);
+});
+$('saveBtn').onclick=save;$('clearBtn').onclick=clearForm;
+$('qrClose').onclick=()=>$('qrDlg').close();$('statClose').onclick=()=>$('statDlg').close();
+load();
+</script>
+</body>
+</html>
