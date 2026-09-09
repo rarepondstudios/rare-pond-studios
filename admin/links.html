@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Go Links — Rare Pond</title>
+<title>Go Links · Rare Pond</title>
 <script src="/assets/vendor/qrcode-generator.js"></script>
 <style>
 :root{--bg:#0a1f3c;--panel:#0f2a4f;--line:#24406e;--fg:#eaf1ff;--mut:#a9c2e8;--accent:#7aa2ff;--danger:#ff8a8a;--ok:#8ff0c0;--on:#3ec97a;--off:#e5533d}
@@ -50,6 +50,7 @@ input[type=color]{width:38px;height:30px;padding:0;border:1px solid var(--line);
 .switch .slider:before{content:"";position:absolute;height:16px;width:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s}
 .switch input:checked + .slider{background:var(--on)}
 .switch input:checked + .slider:before{transform:translateX(20px)}
+.swlabel{font-size:12px;font-weight:600;min-width:58px}
 .stats{grid-column:1/-1;background:#0a2145;border-radius:8px;padding:12px;margin-top:8px}
 .stbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .rbtn{font-size:12px}
@@ -78,7 +79,7 @@ dialog::backdrop{background:rgba(3,10,24,.7)}
 <body>
 <header>
   <h1>Go Links</h1>
-  <span class="mut">rarepond.com short links &middot; <span id="grand">—</span> total scans</span>
+  <span class="mut">rarepond.com short links &middot; <span id="grand">0</span> total scans</span>
 </header>
 <div class="wrap">
   <div id="msg" class="msg"></div>
@@ -94,7 +95,7 @@ dialog::backdrop{background:rgba(3,10,24,.7)}
       <label>Title (optional)</label>
       <input id="f_title" type="text" autocomplete="off">
       <label>Group</label>
-      <select id="f_group"><option value="">— no group —</option></select>
+      <select id="f_group"><option value="">no group</option></select>
       <label style="display:flex;align-items:center;gap:8px;margin-top:12px"><input id="f_active" type="checkbox" checked style="width:auto"> Active</label>
       <div style="margin-top:14px;display:flex;gap:8px">
         <button class="primary" id="saveBtn">Save link</button>
@@ -153,7 +154,7 @@ const $=(id)=>document.getElementById(id);
 let LINKS=[], GROUPS=[], editingGroup=null, dragSlug=null, dragGroupId=null;
 
 function msg(t,ok){const m=$('msg');m.textContent=t;m.className='msg '+(ok?'ok':'err');setTimeout(()=>{m.className='msg';},4000);}
-function fmtTs(ts){if(!ts)return '—';return new Date(ts*1000).toLocaleString();}
+function fmtTs(ts){if(!ts)return 'never';return new Date(ts*1000).toLocaleString();}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function ckey(g){return 'golinks.collapsed.'+g;}
 function isCollapsed(g){try{return localStorage.getItem(ckey(g))==='1';}catch(e){return false;}}
@@ -169,12 +170,12 @@ async function load(){
   try{ const r=await fetch(API,{headers:{'Accept':'application/json'}}); if(!r.ok){$('list').innerHTML='<div class="small err">Failed to load ('+r.status+')</div>';return;} d=await r.json(); }
   catch(e){ $('list').innerHTML='<div class="small err">Network error</div>'; return; }
   LINKS=d.links||[]; GROUPS=d.groups||[]; $('grand').textContent=d.grand_total_scans;
-  $('f_group').innerHTML='<option value="">— no group —</option>'+GROUPS.map(g=>'<option value="'+g.id+'">'+esc(g.name)+'</option>').join('');
+  $('f_group').innerHTML='<option value="">no group</option>'+GROUPS.map(g=>'<option value="'+g.id+'">'+esc(g.name)+'</option>').join('');
   render();
 }
 
 function groupSelect(slug,gid){
-  return '<select class="gsel" data-assign="'+esc(slug)+'"><option value="">— no group —</option>'+
+  return '<select class="gsel" data-assign="'+esc(slug)+'"><option value="">no group</option>'+
     GROUPS.map(g=>'<option value="'+g.id+'"'+(gid==g.id?' selected':'')+'>'+esc(g.name)+'</option>').join('')+'</select>';
 }
 function linkRow(l){
@@ -187,7 +188,8 @@ function linkRow(l){
     '<div data-label="Scans">'+l.scans_total+'</div>'+
     '<div class="small" data-label="Last scan">'+fmtTs(l.last_scan)+'</div>'+
     '<div class="lact"><span class="lact-main">'+
-      '<label class="switch" title="'+(l.active?'Enabled — tap to disable':'Disabled — tap to enable')+'"><input type="checkbox" data-toggle-active="'+esc(l.slug)+'"'+(l.active?' checked':'')+'><span class="slider"></span></label>'+
+      '<label class="switch" title="'+(l.active?'Enabled (tap to disable)':'Disabled (tap to enable)')+'"><input type="checkbox" data-toggle-active="'+esc(l.slug)+'"'+(l.active?' checked':'')+'><span class="slider"></span></label>'+
+      '<span class="swlabel" style="color:'+(l.active?'var(--on)':'var(--off)')+'">'+(l.active?'Enabled':'Disabled')+'</span>'+
       groupSelect(l.slug,l.group_id)+
       '<button class="link" data-qr="'+esc(l.slug)+'">QR</button>'+
       '<button class="link" data-lstats="'+esc(l.slug)+'">Stats ▾</button>'+
@@ -238,7 +240,7 @@ async function applyMove(slug,targetKey,refSlug,after){
   Object.keys(lists).forEach(k=>{lists[k].forEach((sl,i)=>{const gid=(k==='none'?null:parseInt(k,10));payload.push({slug:sl,group_id:gid,sort:i});const l=bySlug[sl];if(l){l.group_id=gid;l.sort=i;}});});
   render();
   try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reorder:payload})});const d=await r.json();if(!r.ok||d.error)throw 0;}
-  catch(e){msg('Order not saved (network) — reloading',false);load();}
+  catch(e){msg('Order not saved (network), reloading',false);load();}
 }
 async function applyGroupMove(draggedId,refId,after){
   let order=GROUPS.map(g=>String(g.id)).filter(id=>id!==String(draggedId));
@@ -249,7 +251,7 @@ async function applyGroupMove(draggedId,refId,after){
   render();
   const payload=order.map((id,i)=>({id:parseInt(id,10),sort:i}));
   try{const r=await fetch(GAPI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reorder:payload})});const d=await r.json();if(!r.ok||d.error)throw 0;}
-  catch(e){msg('Group order not saved (network) — reloading',false);load();}
+  catch(e){msg('Group order not saved (network), reloading',false);load();}
 }
 function wireDnD(){
   const el=$('list');
@@ -303,8 +305,8 @@ async function openStats(kind,key,el,days,activeOnly){
   catch(e){ el.innerHTML='<div class="small err">Failed to load stats.</div>'; return; }
   const color=kind==='group'?((GROUPS.find(g=>g.id==key)||{}).color||'#7aa2ff'):'#7aa2ff';
   const filled=fillDays(d.byDay||[],from,to);
-  const list=(arr,label)=>'<div><div class="mut" style="margin:6px 0 2px">'+label+'</div>'+((arr&&arr.length)?arr.map(x=>esc(x.k)+': '+x.c).join('<br>'):'—')+'</div>';
-  const recent=(d.recent||[]).map(s=>fmtTs(s.ts)+' · '+esc(s.country||'?')+' · '+esc(s.device||'?')+' · '+esc(s.browser||'?')+(kind==='group'?(' · '+esc(s.slug||'')):'')).join('<br>')||'—';
+  const list=(arr,label)=>'<div><div class="mut" style="margin:6px 0 2px">'+label+'</div>'+((arr&&arr.length)?arr.map(x=>esc(x.k)+': '+x.c).join('<br>'):'none')+'</div>';
+  const recent=(d.recent||[]).map(s=>fmtTs(s.ts)+' · '+esc(s.country||'?')+' · '+esc(s.device||'?')+' · '+esc(s.browser||'?')+(kind==='group'?(' · '+esc(s.slug||'')):'')).join('<br>')||'none';
   const rbtns=RANGES.map(r=>'<button class="link rbtn'+(r[1]===days?' on':'')+'" data-range="'+r[1]+'">'+r[0]+'</button>').join('');
   const modeBtns=kind==='group'?('<button class="link rbtn'+(!activeOnly?' on':'')+'" data-mode="all">All</button><button class="link rbtn'+(activeOnly?' on':'')+'" data-mode="active">Active only</button><span class="sep"></span>'):'';
   el.innerHTML='<div class="stbar"><b>'+d.total+'</b> scans in range<span class="spacer"></span>'+modeBtns+rbtns+'</div>'+
@@ -362,7 +364,7 @@ document.addEventListener('click',(e)=>{const t=e.target;if(!t||!t.dataset)retur
 });
 document.addEventListener('change',async(e)=>{const t=e.target;if(!t||!t.dataset)return;
   if(t.dataset.assign!=null){const slug=t.dataset.assign;const l=LINKS.find(x=>x.slug===slug);if(!l)return;const gid=t.value||null;let r,d;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:l.slug,dest:l.dest,title:l.title,active:!!l.active,group_id:gid})});d=await r.json();}catch(err){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Failed',false);return;}l.group_id=gid?parseInt(gid,10):null;msg('Moved '+slug,true);render();}
-  else if(t.dataset.toggleActive!=null){const slug=t.dataset.toggleActive;const l=LINKS.find(x=>x.slug===slug);if(!l)return;const active=t.checked;let r,d;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:l.slug,dest:l.dest,title:l.title,active:active,group_id:l.group_id})});d=await r.json();}catch(err){msg('Network error',false);t.checked=!active;return;}if(!r.ok||d.error){msg(d.error||'Failed',false);t.checked=!active;return;}l.active=active?1:0;t.closest('.switch').title=active?'Enabled — tap to disable':'Disabled — tap to enable';msg((active?'Enabled ':'Disabled ')+slug,true);}
+  else if(t.dataset.toggleActive!=null){const slug=t.dataset.toggleActive;const l=LINKS.find(x=>x.slug===slug);if(!l)return;const active=t.checked;let r,d;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:l.slug,dest:l.dest,title:l.title,active:active,group_id:l.group_id})});d=await r.json();}catch(err){msg('Network error',false);t.checked=!active;return;}if(!r.ok||d.error){msg(d.error||'Failed',false);t.checked=!active;return;}l.active=active?1:0;t.closest('.switch').title=active?'Enabled (tap to disable)':'Disabled (tap to enable)';const lab=t.closest('.lact-main').querySelector('.swlabel');if(lab){lab.textContent=active?'Enabled':'Disabled';lab.style.color=active?'var(--on)':'var(--off)';}msg((active?'Enabled ':'Disabled ')+slug,true);}
 });
 
 $('saveBtn').onclick=save;$('clearBtn').onclick=clearForm;
