@@ -59,7 +59,8 @@ export async function onRequest(context) {
         if (groupId != null && groupId !== '') {
           const gid = parseInt(groupId, 10);
           const group = await DB.prepare('SELECT * FROM groups WHERE id=?1').bind(gid).first();
-          const slugRows = (await DB.prepare('SELECT slug FROM links WHERE group_id=?1').bind(gid).all()).results || [];
+          const activeOnly = url.searchParams.get('activeOnly') === '1';
+          const slugRows = (await DB.prepare('SELECT slug FROM links WHERE group_id=?1' + (activeOnly ? ' AND active=1' : '')).bind(gid).all()).results || [];
           const s = await statsForSlugs(DB, slugRows.map(r => r.slug), from, to);
           return json({ group, from, to, ...s });
         }

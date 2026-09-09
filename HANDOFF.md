@@ -39,6 +39,13 @@
 
 ## 0. LATEST SESSION (2026-09-09), READ THIS FIRST
 
+### 0.0.-65 GO-LINKS: live active toggle, group active-only stats, styled delete, mobile pass (2026-09-09)
+
+- **Active toggle.** Each link row has an inline green(on)/red(off) slider switch that enables/disables the link live (POST upsert flipping `active`); a disabled link's `/go` redirect bounces to home. No need to open Edit.
+- **Group stats scope.** Group stats panels have an All / Active-only switch; `functions/admin/api/links.js` group-stats branch takes `activeOnly=1` and aggregates only `active=1` links.
+- **Styled delete.** Native `confirm()` replaced with an in-page themed confirm dialog (`#confirmDlg`, red confirm button) for both link and group deletion.
+- **Mobile.** Rows collapse to a labelled single-column card (data-label ::before), actions wrap full-width, group dropdown goes full width, stat grid single column, dialogs cap at 92vh and scroll, QR preview capped to 60vw, larger tap targets. Drag is desktop-pointer only; touch uses the group dropdown to move links.
+
 ### 0.0.-64 GO-LINKS: draggable group reordering (2026-09-09)
 
 - Group headers are now draggable (⠿ handle) to reorder the group blocks on the dashboard. Order persists in the existing `groups.sort` column via a `{reorder:[{id,sort}]}` path added to `functions/admin/api/groups.js`; the list already returns groups ordered by sort. Group drags and link drags are tracked separately (dragGroupId vs dragSlug) so they do not interfere; the Ungrouped block stays pinned last and is not draggable. Desktop pointer only (native DnD).

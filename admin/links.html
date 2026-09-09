@@ -7,7 +7,7 @@
 <title>Go Links — Rare Pond</title>
 <script src="/assets/vendor/qrcode-generator.js"></script>
 <style>
-:root{--bg:#0a1f3c;--panel:#0f2a4f;--line:#24406e;--fg:#eaf1ff;--mut:#a9c2e8;--accent:#7aa2ff;--danger:#ff8a8a;--ok:#8ff0c0}
+:root{--bg:#0a1f3c;--panel:#0f2a4f;--line:#24406e;--fg:#eaf1ff;--mut:#a9c2e8;--accent:#7aa2ff;--danger:#ff8a8a;--ok:#8ff0c0;--on:#3ec97a;--off:#e5533d}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px}
 a{color:var(--accent)}
@@ -20,44 +20,59 @@ label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 input[type=text],input[type=url],select{width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:#0a2145;color:var(--fg);font-size:14px}
 button{cursor:pointer;border-radius:8px;border:1px solid var(--line);background:#12305a;color:var(--fg);padding:8px 12px;font-size:14px}
 button.primary{background:var(--accent);color:#06122a;border-color:var(--accent);font-weight:600}
-button.link{background:none;border:none;color:var(--accent);padding:4px 6px}
+button.link{background:none;border:none;color:var(--accent);padding:6px 6px}
 button.danger{color:var(--danger)}
-.pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid var(--line)}
-.pill.off{color:var(--mut)}
 code{background:#0a2145;padding:1px 5px;border-radius:5px;font-size:13px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media(max-width:760px){.grid2{grid-template-columns:1fr}}
 .small{font-size:12px;color:var(--mut)}
 .spacer{flex:1}
 input[type=color]{width:38px;height:30px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;vertical-align:middle}
-.colhead{display:grid;grid-template-columns:2fr 2fr 60px 130px minmax(230px,auto);gap:8px;padding:0 10px 6px;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.colhead{display:grid;grid-template-columns:2fr 2fr 60px 130px minmax(250px,auto);gap:8px;padding:0 10px 6px;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
 .gblock{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px;background:var(--panel)}
 .ghead{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0d264a}
 .swatch{width:13px;height:13px;border-radius:3px;display:inline-block;flex:none}
 .gbodyzone{min-height:10px}
-.lrow{display:grid;grid-template-columns:2fr 2fr 60px 130px minmax(230px,auto);gap:8px;padding:8px 10px;border-top:1px solid var(--line);align-items:start}
+.lrow{display:grid;grid-template-columns:2fr 2fr 60px 130px minmax(250px,auto);gap:8px;padding:8px 10px;border-top:1px solid var(--line);align-items:start}
 .lrow.dragging{opacity:.4}
 .lrow.dover-before{box-shadow:inset 0 3px 0 var(--accent)}
 .lrow.dover-after{box-shadow:inset 0 -3px 0 var(--accent)}
 .gbodyzone.dover{outline:2px dashed var(--accent);outline-offset:-3px}
 .ghead[draggable=true]{cursor:grab}.ghead.dragging{opacity:.5}.ghead.gover-before{box-shadow:inset 0 3px 0 var(--accent)}.ghead.gover-after{box-shadow:inset 0 -3px 0 var(--accent)}
 .draghandle{cursor:grab;color:var(--mut);margin-right:4px;user-select:none;font-size:13px}
-.lact{display:flex;gap:6px;align-items:flex-start}
-.lact-main{display:flex;flex-wrap:wrap;gap:2px;align-items:center;flex:1;min-width:0}
+.lact{display:flex;gap:6px;align-items:center}
+.lact-main{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1;min-width:0}
 .gsel{max-width:150px;font-size:12px;padding:4px 6px}
 .del{margin-left:auto;flex:none}
+.switch{position:relative;display:inline-block;width:42px;height:22px;flex:none}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch .slider{position:absolute;inset:0;background:var(--off);border-radius:22px;transition:.15s;cursor:pointer}
+.switch .slider:before{content:"";position:absolute;height:16px;width:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s}
+.switch input:checked + .slider{background:var(--on)}
+.switch input:checked + .slider:before{transform:translateX(20px)}
 .stats{grid-column:1/-1;background:#0a2145;border-radius:8px;padding:12px;margin-top:8px}
 .stbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .rbtn{font-size:12px}
 .rbtn.on{color:#06122a;background:var(--accent);border-radius:6px}
+.sep{width:1px;height:16px;background:var(--line);display:inline-block}
 .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:8px 0}
 .chart{margin:6px 0}
-dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;max-width:560px;width:92%}
+dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;max-width:560px;width:92%;max-height:92vh;overflow:auto}
 dialog::backdrop{background:rgba(3,10,24,.7)}
 .msg{padding:8px 10px;border-radius:8px;margin-bottom:10px;display:none}
 .msg.err{display:block;background:#3a1620;color:var(--danger);border:1px solid #66232f}
 .msg.ok{display:block;background:#123a2a;color:var(--ok);border:1px solid #1e6b4b}
-@media(max-width:760px){.colhead{display:none}.lrow{grid-template-columns:1fr}}
+@media(max-width:760px){
+  .colhead{display:none}
+  .lrow{grid-template-columns:1fr;gap:4px;padding:12px 10px}
+  .lrow>div[data-label]::before{content:attr(data-label)": ";color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+  .lact{flex-wrap:wrap;align-items:flex-start;margin-top:6px}
+  .lact-main{width:100%}
+  .del{margin-left:0}
+  .gsel{max-width:none;flex:1}
+  .statgrid{grid-template-columns:1fr}
+  button.link{padding:8px 8px}
+}
 </style>
 </head>
 <body>
@@ -96,11 +111,11 @@ dialog::backdrop{background:rgba(3,10,24,.7)}
         <button class="primary" id="g_add">Add group</button>
         <button id="g_clear">Clear</button>
       </div>
-      <div class="small" style="margin-top:10px">Drag the ⠿ handle to reorder links or move them between groups. Or use a link’s group dropdown. Collapse a group with the ▾ caret. Deleting a group just ungroups its links.</div>
+      <div class="small" style="margin-top:10px">Toggle the green/red switch to enable or disable a link live. Drag the ⠿ handles to reorder links or whole groups, or move a link between groups. Collapse a group with the ▾ caret.</div>
     </div>
   </div>
 
-  <div class="colhead"><div>Link</div><div>Destination</div><div>Scans</div><div>Last scan</div><div>Group / actions</div></div>
+  <div class="colhead"><div>Link</div><div>Destination</div><div>Scans</div><div>Last scan</div><div>Active / group / actions</div></div>
   <div id="list"><div class="small mut" style="padding:10px">Loading…</div></div>
 </div>
 
@@ -121,6 +136,15 @@ dialog::backdrop{background:rgba(3,10,24,.7)}
   </div>
 </div></dialog>
 
+<dialog id="confirmDlg"><div style="padding:18px">
+  <strong id="confirmTitle">Are you sure?</strong>
+  <div id="confirmMsg" class="small" style="margin:10px 0 16px"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+    <button id="confirmCancel">Cancel</button>
+    <button class="primary" id="confirmOk" style="background:var(--off);border-color:var(--off);color:#2a0a08">Delete</button>
+  </div>
+</div></dialog>
+
 <script>
 const GO_BASE='https://www.rarepond.com/go/';
 const API='/admin/api/links';
@@ -136,6 +160,7 @@ function isCollapsed(g){try{return localStorage.getItem(ckey(g))==='1';}catch(e)
 function setCollapsed(g,v){try{localStorage.setItem(ckey(g),v?'1':'0');}catch(e){}}
 function gkey(l){return l.group_id==null?'none':String(l.group_id);}
 function byOrder(a,b){return ((a.sort||0)-(b.sort||0))||((b.created_at||0)-(a.created_at||0));}
+function confirmDialog(message,okLabel){return new Promise(res=>{$('confirmMsg').textContent=message;$('confirmOk').textContent=okLabel||'Delete';const dlg=$('confirmDlg');const done=(v)=>{try{dlg.close();}catch(e){}$('confirmOk').onclick=null;$('confirmCancel').onclick=null;res(v);};$('confirmOk').onclick=()=>done(true);$('confirmCancel').onclick=()=>done(false);dlg.showModal();});}
 
 $('f_slug').addEventListener('input',()=>{$('preview').textContent=GO_BASE+($('f_slug').value.trim()||'…');});
 
@@ -155,14 +180,16 @@ function groupSelect(slug,gid){
 function linkRow(l){
   const url=GO_BASE+l.slug;
   return '<div class="lrow" draggable="true" data-group="'+gkey(l)+'" data-slug="'+esc(l.slug)+'">'+
-    '<div><span class="draghandle" title="Drag to reorder or move between groups">⠿</span><code>'+esc(l.slug)+'</code>'+(l.active?'':' <span class="pill off">disabled</span>')+
+    '<div><span class="draghandle" title="Drag to reorder or move between groups">⠿</span><code>'+esc(l.slug)+'</code>'+
       '<div class="small">'+esc(l.title||'')+'</div>'+
       '<div class="small"><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(url)+'</a> <button class="link" data-copy="'+esc(url)+'">copy</button></div></div>'+
-    '<div class="small" style="word-break:break-all">'+esc(l.dest)+'</div>'+
-    '<div>'+l.scans_total+'</div>'+
-    '<div class="small">'+fmtTs(l.last_scan)+'</div>'+
-    '<div class="lact"><span class="lact-main">'+groupSelect(l.slug,l.group_id)+
-      ' <button class="link" data-qr="'+esc(l.slug)+'">QR</button>'+
+    '<div class="small" data-label="Destination" style="word-break:break-all">'+esc(l.dest)+'</div>'+
+    '<div data-label="Scans">'+l.scans_total+'</div>'+
+    '<div class="small" data-label="Last scan">'+fmtTs(l.last_scan)+'</div>'+
+    '<div class="lact"><span class="lact-main">'+
+      '<label class="switch" title="'+(l.active?'Enabled — tap to disable':'Disabled — tap to enable')+'"><input type="checkbox" data-toggle-active="'+esc(l.slug)+'"'+(l.active?' checked':'')+'><span class="slider"></span></label>'+
+      groupSelect(l.slug,l.group_id)+
+      '<button class="link" data-qr="'+esc(l.slug)+'">QR</button>'+
       '<button class="link" data-lstats="'+esc(l.slug)+'">Stats ▾</button>'+
       '<button class="link" data-edit="'+esc(l.slug)+'">Edit</button></span>'+
       '<button class="link danger del" data-del="'+esc(l.slug)+'">Delete</button></div>'+
@@ -199,20 +226,30 @@ function render(){
   $('list').innerHTML=html;
 }
 
-/* ---- drag & drop reorder / move ---- */
+/* ---- drag & drop ---- */
 function currentLists(){const m={};LINKS.slice().sort(byOrder).forEach(l=>{const k=gkey(l);(m[k]=m[k]||[]).push(l.slug);});return m;}
 async function applyMove(slug,targetKey,refSlug,after){
   const lists=currentLists();
   Object.keys(lists).forEach(k=>{const i=lists[k].indexOf(slug);if(i>=0)lists[k].splice(i,1);});
   const tgt=lists[targetKey]=lists[targetKey]||[];
-  let idx=tgt.length;
-  if(refSlug){const ri=tgt.indexOf(refSlug);idx=ri<0?tgt.length:(after?ri+1:ri);}
+  let idx=tgt.length; if(refSlug){const ri=tgt.indexOf(refSlug);idx=ri<0?tgt.length:(after?ri+1:ri);}
   tgt.splice(idx,0,slug);
   const payload=[]; const bySlug={}; LINKS.forEach(l=>bySlug[l.slug]=l);
   Object.keys(lists).forEach(k=>{lists[k].forEach((sl,i)=>{const gid=(k==='none'?null:parseInt(k,10));payload.push({slug:sl,group_id:gid,sort:i});const l=bySlug[sl];if(l){l.group_id=gid;l.sort=i;}});});
   render();
-  try{ const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reorder:payload})}); const d=await r.json(); if(!r.ok||d.error) throw 0; }
-  catch(e){ msg('Order not saved (network) — reloading',false); load(); }
+  try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reorder:payload})});const d=await r.json();if(!r.ok||d.error)throw 0;}
+  catch(e){msg('Order not saved (network) — reloading',false);load();}
+}
+async function applyGroupMove(draggedId,refId,after){
+  let order=GROUPS.map(g=>String(g.id)).filter(id=>id!==String(draggedId));
+  const ri=order.indexOf(String(refId));let idx=ri<0?order.length:(after?ri+1:ri);
+  order.splice(idx,0,String(draggedId));
+  const pos={};order.forEach((id,i)=>pos[id]=i);
+  GROUPS.forEach(g=>{g.sort=pos[String(g.id)];});GROUPS.sort((a,b)=>a.sort-b.sort);
+  render();
+  const payload=order.map((id,i)=>({id:parseInt(id,10),sort:i}));
+  try{const r=await fetch(GAPI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reorder:payload})});const d=await r.json();if(!r.ok||d.error)throw 0;}
+  catch(e){msg('Group order not saved (network) — reloading',false);load();}
 }
 function wireDnD(){
   const el=$('list');
@@ -220,7 +257,7 @@ function wireDnD(){
     const gh=e.target.closest('.ghead');
     if(gh&&gh.dataset.gid){if(e.target.closest('button,select,a,input')){e.preventDefault();return;}dragGroupId=gh.dataset.gid;dragSlug=null;gh.classList.add('dragging');try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','g:'+dragGroupId);}catch(_){}return;}
     const row=e.target.closest('.lrow');
-    if(row){if(e.target.closest('button,select,a,input,option')){e.preventDefault();return;}dragSlug=row.dataset.slug;dragGroupId=null;row.classList.add('dragging');try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragSlug);}catch(_){}return;}
+    if(row){if(e.target.closest('button,select,a,input,option,label')){e.preventDefault();return;}dragSlug=row.dataset.slug;dragGroupId=null;row.classList.add('dragging');try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragSlug);}catch(_){}return;}
     e.preventDefault();
   });
   el.addEventListener('dragend',()=>{dragSlug=null;dragGroupId=null;el.querySelectorAll('.dragging,.dover-before,.dover-after,.gover-before,.gover-after').forEach(x=>x.classList.remove('dragging','dover-before','dover-after','gover-before','gover-after'));el.querySelectorAll('.gbodyzone.dover').forEach(x=>x.classList.remove('dover'));});
@@ -235,17 +272,6 @@ function wireDnD(){
     if(row&&row.dataset.slug!==dragged){const r=row.getBoundingClientRect();const after=(e.clientY-r.top)>r.height/2;applyMove(dragged,row.dataset.group,row.dataset.slug,after);}
     else if(zone){applyMove(dragged,zone.dataset.dropgroup,null,false);}
   });
-}
-async function applyGroupMove(draggedId,refId,after){
-  let order=GROUPS.map(g=>String(g.id)).filter(id=>id!==String(draggedId));
-  const ri=order.indexOf(String(refId));let idx=ri<0?order.length:(after?ri+1:ri);
-  order.splice(idx,0,String(draggedId));
-  const pos={};order.forEach((id,i)=>pos[id]=i);
-  GROUPS.forEach(g=>{g.sort=pos[String(g.id)];});GROUPS.sort((a,b)=>a.sort-b.sort);
-  render();
-  const payload=order.map((id,i)=>({id:parseInt(id,10),sort:i}));
-  try{const r=await fetch(GAPI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reorder:payload})});const d=await r.json();if(!r.ok||d.error)throw 0;}
-  catch(e){msg('Group order not saved (network) — reloading',false);load();}
 }
 
 /* ---- stats + chart ---- */
@@ -267,10 +293,11 @@ function drawBars(series,color){
     '<line x1="0" y1="'+(H-pad)+'" x2="'+W+'" y2="'+(H-pad)+'" stroke="#24406e"/>'+bars+'</svg>'+
     '<div class="small mut" style="display:flex;justify-content:space-between"><span>'+esc(series[0].label)+'</span><span>peak '+max+'/'+(series.length>140?'wk':'day')+'</span><span>'+esc(series[series.length-1].label)+'</span></div>';
 }
-async function openStats(kind,key,el,days){
-  days=days||30; el.hidden=false; el.innerHTML='<div class="small">Loading…</div>';
+async function openStats(kind,key,el,days,activeOnly){
+  days=days||30; activeOnly=!!activeOnly; el.hidden=false; el.innerHTML='<div class="small">Loading…</div>';
   const to=Math.floor(Date.now()/1000), from=to-days*86400;
-  const q=(kind==='group'?'group=':'slug=')+encodeURIComponent(key);
+  let q=(kind==='group'?'group=':'slug=')+encodeURIComponent(key);
+  if(kind==='group'&&activeOnly) q+='&activeOnly=1';
   let d;
   try{ const r=await fetch(API+'?'+q+'&stats=1&from='+from+'&to='+to); d=await r.json(); if(d.error) throw 0; }
   catch(e){ el.innerHTML='<div class="small err">Failed to load stats.</div>'; return; }
@@ -279,11 +306,13 @@ async function openStats(kind,key,el,days){
   const list=(arr,label)=>'<div><div class="mut" style="margin:6px 0 2px">'+label+'</div>'+((arr&&arr.length)?arr.map(x=>esc(x.k)+': '+x.c).join('<br>'):'—')+'</div>';
   const recent=(d.recent||[]).map(s=>fmtTs(s.ts)+' · '+esc(s.country||'?')+' · '+esc(s.device||'?')+' · '+esc(s.browser||'?')+(kind==='group'?(' · '+esc(s.slug||'')):'')).join('<br>')||'—';
   const rbtns=RANGES.map(r=>'<button class="link rbtn'+(r[1]===days?' on':'')+'" data-range="'+r[1]+'">'+r[0]+'</button>').join('');
-  el.innerHTML='<div class="stbar"><b>'+d.total+'</b> scans in range<span class="spacer"></span>'+rbtns+'</div>'+
+  const modeBtns=kind==='group'?('<button class="link rbtn'+(!activeOnly?' on':'')+'" data-mode="all">All</button><button class="link rbtn'+(activeOnly?' on':'')+'" data-mode="active">Active only</button><span class="sep"></span>'):'';
+  el.innerHTML='<div class="stbar"><b>'+d.total+'</b> scans in range<span class="spacer"></span>'+modeBtns+rbtns+'</div>'+
     '<div class="chart">'+drawBars(filled,color)+'</div>'+
     '<div class="statgrid">'+list(d.byCountry,'By country')+list(d.byDevice,'By device')+'</div>'+
     '<div class="mut" style="margin:6px 0 2px">Recent scans</div><div class="small">'+recent+'</div>';
-  el.querySelectorAll('.rbtn').forEach(b=>b.addEventListener('click',()=>openStats(kind,key,el,parseInt(b.dataset.range,10))));
+  el.querySelectorAll('.rbtn[data-range]').forEach(b=>b.addEventListener('click',()=>openStats(kind,key,el,parseInt(b.dataset.range,10),activeOnly)));
+  el.querySelectorAll('.rbtn[data-mode]').forEach(b=>b.addEventListener('click',()=>openStats(kind,key,el,days,b.dataset.mode==='active')));
 }
 
 /* ---- link form ---- */
@@ -295,7 +324,7 @@ async function save(){
 }
 function clearForm(){$('f_slug').value='';$('f_dest').value='';$('f_title').value='';$('f_group').value='';$('f_active').checked=true;$('f_slug').disabled=false;$('formTitle').textContent='New link';$('preview').textContent=GO_BASE+'…';}
 function editRow(slug){const l=LINKS.find(x=>x.slug===slug);if(!l)return;$('f_slug').value=l.slug;$('f_slug').disabled=true;$('f_dest').value=l.dest;$('f_title').value=l.title||'';$('f_group').value=l.group_id||'';$('f_active').checked=!!l.active;$('formTitle').textContent='Edit '+l.slug;$('preview').textContent=GO_BASE+l.slug;window.scrollTo({top:0,behavior:'smooth'});}
-async function del(slug){if(!confirm('Delete /go/'+slug+' and its scan history?'))return;let r,d;try{r=await fetch(API+'?slug='+encodeURIComponent(slug),{method:'DELETE'});d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Delete failed',false);return;}msg('Deleted '+slug,true);load();}
+async function del(slug){if(!(await confirmDialog('This deletes /go/'+slug+' and its scan history. This cannot be undone.','Delete link')))return;let r,d;try{r=await fetch(API+'?slug='+encodeURIComponent(slug),{method:'DELETE'});d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Delete failed',false);return;}msg('Deleted '+slug,true);load();}
 
 /* ---- groups ---- */
 function clearGroupForm(){editingGroup=null;$('g_name').value='';$('g_color').value='#7aa2ff';$('gFormTitle').textContent='New group';$('g_add').textContent='Add group';}
@@ -308,7 +337,7 @@ async function saveGroup(){
   msg(editingGroup?'Group updated':'Group created',true);clearGroupForm();load();
 }
 function editGroup(id){const g=GROUPS.find(x=>x.id==id);if(!g)return;editingGroup=g.id;$('g_name').value=g.name;$('g_color').value=g.color;$('gFormTitle').textContent='Edit group';$('g_add').textContent='Save group';window.scrollTo({top:0,behavior:'smooth'});}
-async function delGroup(id){const g=GROUPS.find(x=>x.id==id);if(!confirm('Delete group "'+(g?g.name:id)+'"? Its links stay, just ungrouped.'))return;let r,d;try{r=await fetch(GAPI+'?id='+encodeURIComponent(id),{method:'DELETE'});d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Failed',false);return;}msg('Group deleted',true);load();}
+async function delGroup(id){const g=GROUPS.find(x=>x.id==id);if(!(await confirmDialog('Delete the group "'+(g?g.name:id)+'"? The links inside stay, just ungrouped.','Delete group')))return;let r,d;try{r=await fetch(GAPI+'?id='+encodeURIComponent(id),{method:'DELETE'});d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Failed',false);return;}msg('Group deleted',true);load();}
 
 /* ---- QR ---- */
 let QRSTATE={qr:null,slug:''};
@@ -316,7 +345,7 @@ function buildQR(t){const qr=qrcode(0,'M');qr.addData(t);qr.make();return qr;}
 function qrOpts(){return {fg:$('qrFg').value,bg:$('qrBg').value,transparent:$('qrTransparent').checked};}
 function qrCanvas(qr,scale,o){const n=qr.getModuleCount(),m=4,size=(n+m*2)*scale;const cv=document.createElement('canvas');cv.width=size;cv.height=size;const x=cv.getContext('2d');if(!o.transparent){x.fillStyle=o.bg;x.fillRect(0,0,size,size);}x.fillStyle=o.fg;for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))x.fillRect((c+m)*scale,(r+m)*scale,scale,scale);}return cv;}
 function qrSvg(qr,cell,o){const n=qr.getModuleCount(),m=4,dim=(n+m*2)*cell;let rc='';for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))rc+='<rect x="'+((c+m)*cell)+'" y="'+((r+m)*cell)+'" width="'+cell+'" height="'+cell+'"/>';}const bg=o.transparent?'':'<rect width="100%" height="100%" fill="'+o.bg+'"/>';return '<svg xmlns="http://www.w3.org/2000/svg" width="'+dim+'" height="'+dim+'" viewBox="0 0 '+dim+' '+dim+'" shape-rendering="crispEdges">'+bg+'<g fill="'+o.fg+'">'+rc+'</g></svg>';}
-function renderQR(){if(!QRSTATE.qr)return;const cv=qrCanvas(QRSTATE.qr,8,qrOpts());cv.style.width='220px';cv.style.height='220px';cv.style.imageRendering='pixelated';$('qrBox').innerHTML='';$('qrBox').appendChild(cv);}
+function renderQR(){if(!QRSTATE.qr)return;const cv=qrCanvas(QRSTATE.qr,8,qrOpts());cv.style.width='220px';cv.style.height='220px';cv.style.maxWidth='60vw';cv.style.imageRendering='pixelated';$('qrBox').innerHTML='';$('qrBox').appendChild(cv);}
 function showQR(slug){QRSTATE={qr:buildQR(GO_BASE+slug),slug:slug};$('qrUrl').textContent=GO_BASE+slug;renderQR();$('qrDlg').showModal();}
 function dl(href,name){const a=document.createElement('a');a.href=href;a.download=name;a.click();if(href.indexOf('blob:')===0)setTimeout(()=>URL.revokeObjectURL(href),1500);}
 
@@ -331,7 +360,10 @@ document.addEventListener('click',(e)=>{const t=e.target;if(!t||!t.dataset)retur
   else if(ds.gedit){editGroup(ds.gedit);}
   else if(ds.gdel){delGroup(ds.gdel);}
 });
-document.addEventListener('change',async(e)=>{const t=e.target;if(t&&t.dataset&&t.dataset.assign!=null){const slug=t.dataset.assign;const l=LINKS.find(x=>x.slug===slug);if(!l)return;const gid=t.value||null;let r,d;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:l.slug,dest:l.dest,title:l.title,active:!!l.active,group_id:gid})});d=await r.json();}catch(err){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Failed',false);return;}msg('Moved '+slug,true);load();}});
+document.addEventListener('change',async(e)=>{const t=e.target;if(!t||!t.dataset)return;
+  if(t.dataset.assign!=null){const slug=t.dataset.assign;const l=LINKS.find(x=>x.slug===slug);if(!l)return;const gid=t.value||null;let r,d;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:l.slug,dest:l.dest,title:l.title,active:!!l.active,group_id:gid})});d=await r.json();}catch(err){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Failed',false);return;}l.group_id=gid?parseInt(gid,10):null;msg('Moved '+slug,true);render();}
+  else if(t.dataset.toggleActive!=null){const slug=t.dataset.toggleActive;const l=LINKS.find(x=>x.slug===slug);if(!l)return;const active=t.checked;let r,d;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:l.slug,dest:l.dest,title:l.title,active:active,group_id:l.group_id})});d=await r.json();}catch(err){msg('Network error',false);t.checked=!active;return;}if(!r.ok||d.error){msg(d.error||'Failed',false);t.checked=!active;return;}l.active=active?1:0;t.closest('.switch').title=active?'Enabled — tap to disable':'Disabled — tap to enable';msg((active?'Enabled ':'Disabled ')+slug,true);}
+});
 
 $('saveBtn').onclick=save;$('clearBtn').onclick=clearForm;
 $('g_add').onclick=saveGroup;$('g_clear').onclick=clearGroupForm;
