@@ -39,6 +39,11 @@
 
 ## 0. LATEST SESSION (2026-09-09), READ THIS FIRST
 
+### 0.0.-66 GO-LINKS: smaller QR codes via alphanumeric mode (2026-09-09)
+
+- `buildQR()` in `admin/links.html` now uppercases the `/go/<slug>` URL and encodes it in QR **Alphanumeric** mode when every character is in the QR alphanumeric set (byte-mode fallback otherwise). Go-link URLs are always safe to uppercase: scheme and host are case-insensitive per RFC, and the `/go` resolver matches slugs with `lower(slug)=lower(?)`. This drops density a full version or more: `General-Media-Card` 33x33 -> 29x29, a short slug like `DUCK` 29x29 -> 25x25. Verified an uppercase QR decodes and resolves identically. Only the QR encoding changed; the stored dest and the displayed link text are untouched.
+- Smallest scannable printed codes come from short slugs. Practical floor for this domain at error-correction M is 25x25 (version 2): the fixed prefix `HTTPS://WWW.RAREPOND.COM/GO/` is 28 chars, so slugs up to ~10 chars stay at v2. The deferred branded `go.rarepond.com` domain would shorten it further.
+
 ### 0.0.-65 GO-LINKS: live active toggle, group active-only stats, styled delete, mobile pass (2026-09-09)
 
 - **Active toggle.** Each link row has an inline green(on)/red(off) slider switch that enables/disables the link live (POST upsert flipping `active`); a disabled link's `/go` redirect bounces to home. No need to open Edit.
