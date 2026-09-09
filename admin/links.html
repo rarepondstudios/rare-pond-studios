@@ -36,7 +36,7 @@ input[type=color]{width:38px;height:30px;padding:0;border:1px solid var(--line);
 .swatch{width:13px;height:13px;border-radius:3px;display:inline-block;flex:none}
 .gbody{}
 .lrow{display:grid;grid-template-columns:2fr 2fr 60px 130px minmax(230px,auto);gap:8px;padding:8px 10px;border-top:1px solid var(--line);align-items:start}
-.lact{display:flex;flex-wrap:wrap;gap:2px;align-items:center}
+.lact{display:flex;gap:6px;align-items:flex-start}.lact-main{display:flex;flex-wrap:wrap;gap:2px;align-items:center;flex:1;min-width:0}.del{margin-left:auto;flex:none}
 .gsel{max-width:150px;font-size:12px;padding:4px 6px}
 .stats{grid-column:1/-1;background:#0a2145;border-radius:8px;padding:12px;margin-top:8px}
 .stbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
@@ -152,11 +152,11 @@ function linkRow(l){
     '<div class="small" style="word-break:break-all">'+esc(l.dest)+'</div>'+
     '<div>'+l.scans_total+'</div>'+
     '<div class="small">'+fmtTs(l.last_scan)+'</div>'+
-    '<div class="lact">'+groupSelect(l.slug,l.group_id)+
+    '<div class="lact"><span class="lact-main">'+groupSelect(l.slug,l.group_id)+
       ' <button class="link" data-qr="'+esc(l.slug)+'">QR</button>'+
       '<button class="link" data-lstats="'+esc(l.slug)+'">Stats ▾</button>'+
-      '<button class="link" data-edit="'+esc(l.slug)+'">Edit</button>'+
-      '<button class="link danger" data-del="'+esc(l.slug)+'">Delete</button></div>'+
+      '<button class="link" data-edit="'+esc(l.slug)+'">Edit</button></span>'+
+      '<button class="link danger del" data-del="'+esc(l.slug)+'">Delete</button></div>'+
     '<div class="stats" id="st-'+esc(l.slug)+'" hidden></div>'+
   '</div>';
 }
