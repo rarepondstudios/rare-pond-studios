@@ -26,6 +26,10 @@ export async function onRequest(context) {
     }
     if (method === 'POST') {
       const b = await request.json().catch(() => ({}));
+      if (Array.isArray(b.reorder)) {
+        for (const it of b.reorder) { const id = parseInt(it && it.id, 10); if (!id) continue; const so = parseInt(it.sort, 10) || 0; await DB.prepare('UPDATE groups SET sort=?1 WHERE id=?2').bind(so, id).run(); }
+        return json({ ok: true, reordered: b.reorder.length });
+      }
       const name = String(b.name || '').trim();
       const color = normColor(b.color);
       if (!name) return json({ error: 'Group name required.' }, 400);
