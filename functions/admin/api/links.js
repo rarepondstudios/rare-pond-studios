@@ -19,6 +19,7 @@ function validDest(u) { try { const x = new URL(u); return x.protocol === 'http:
 async function ensureSchema(DB) {
   await DB.prepare("CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, color TEXT NOT NULL DEFAULT '#7aa2ff', sort INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')))").run();
   try { await DB.prepare('ALTER TABLE links ADD COLUMN group_id INTEGER').run(); } catch (e) { /* column already exists */ }
+  try { await DB.prepare('ALTER TABLE links ADD COLUMN sort INTEGER NOT NULL DEFAULT 0').run(); } catch (e) { /* column already exists */ }
 }
 
 function rangeOf(url) {
@@ -71,7 +72,7 @@ export async function onRequest(context) {
         return json({ error: 'slug or group required' }, 400);
       }
       const links = (await DB.prepare(
-        'SELECT l.slug, l.dest, l.title, l.active, l.group_id, l.created_at, l.updated_at, ' +
+        'SELECT l.slug, l.dest, l.title, l.active, l.group_id, l.sort, l.created_at, l.updated_at, ' +
         '(SELECT COUNT(*) FROM scans s WHERE s.slug=l.slug) AS scans_total, ' +
         '(SELECT MAX(ts) FROM scans s WHERE s.slug=l.slug) AS last_scan ' +
         'FROM links l ORDER BY l.created_at DESC'
@@ -88,6 +89,17 @@ export async function onRequest(context) {
 
     if (method === 'POST') {
       const body = await request.json().catch(() => ({}));
+      if (Array.isArray(body.reorder)) {
+        const now = Math.floor(Date.now() / 1000);
+        for (const it of body.reorder) {
+          const sl = cleanSlug(it && it.slug); if (!sl) continue;
+          let g = (it.group_id === '' || it.group_id == null) ? null : parseInt(it.group_id, 10);
+          if (Number.isNaN(g)) g = null;
+          const so = parseInt(it.sort, 10) || 0;
+          await DB.prepare('UPDATE links SET group_id=?1, sort=?2, updated_at=?3 WHERE slug=?4').bind(g, so, now, sl).run();
+        }
+        return json({ ok: true, reordered: body.reorder.length });
+      }
       const slug = cleanSlug(body.slug);
       const dest = String(body.dest || '').trim();
       const title = (body.title != null && String(body.title).trim() !== '') ? String(body.title).trim() : null;

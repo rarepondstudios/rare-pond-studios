@@ -34,10 +34,17 @@ input[type=color]{width:38px;height:30px;padding:0;border:1px solid var(--line);
 .gblock{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px;background:var(--panel)}
 .ghead{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0d264a}
 .swatch{width:13px;height:13px;border-radius:3px;display:inline-block;flex:none}
-.gbody{}
+.gbodyzone{min-height:10px}
 .lrow{display:grid;grid-template-columns:2fr 2fr 60px 130px minmax(230px,auto);gap:8px;padding:8px 10px;border-top:1px solid var(--line);align-items:start}
-.lact{display:flex;gap:6px;align-items:flex-start}.lact-main{display:flex;flex-wrap:wrap;gap:2px;align-items:center;flex:1;min-width:0}.del{margin-left:auto;flex:none}
+.lrow.dragging{opacity:.4}
+.lrow.dover-before{box-shadow:inset 0 3px 0 var(--accent)}
+.lrow.dover-after{box-shadow:inset 0 -3px 0 var(--accent)}
+.gbodyzone.dover{outline:2px dashed var(--accent);outline-offset:-3px}
+.draghandle{cursor:grab;color:var(--mut);margin-right:4px;user-select:none;font-size:13px}
+.lact{display:flex;gap:6px;align-items:flex-start}
+.lact-main{display:flex;flex-wrap:wrap;gap:2px;align-items:center;flex:1;min-width:0}
 .gsel{max-width:150px;font-size:12px;padding:4px 6px}
+.del{margin-left:auto;flex:none}
 .stats{grid-column:1/-1;background:#0a2145;border-radius:8px;padding:12px;margin-top:8px}
 .stbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .rbtn{font-size:12px}
@@ -88,7 +95,7 @@ dialog::backdrop{background:rgba(3,10,24,.7)}
         <button class="primary" id="g_add">Add group</button>
         <button id="g_clear">Clear</button>
       </div>
-      <div class="small" style="margin-top:10px">Assign a link to a group with the dropdown on its row. Collapse a group with the ▾ caret. Deleting a group just ungroups its links.</div>
+      <div class="small" style="margin-top:10px">Drag the ⠿ handle to reorder links or move them between groups. Or use a link’s group dropdown. Collapse a group with the ▾ caret. Deleting a group just ungroups its links.</div>
     </div>
   </div>
 
@@ -118,7 +125,7 @@ const GO_BASE='https://www.rarepond.com/go/';
 const API='/admin/api/links';
 const GAPI='/admin/api/groups';
 const $=(id)=>document.getElementById(id);
-let LINKS=[], GROUPS=[], editingGroup=null;
+let LINKS=[], GROUPS=[], editingGroup=null, dragSlug=null;
 
 function msg(t,ok){const m=$('msg');m.textContent=t;m.className='msg '+(ok?'ok':'err');setTimeout(()=>{m.className='msg';},4000);}
 function fmtTs(ts){if(!ts)return '—';return new Date(ts*1000).toLocaleString();}
@@ -126,6 +133,8 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','
 function ckey(g){return 'golinks.collapsed.'+g;}
 function isCollapsed(g){try{return localStorage.getItem(ckey(g))==='1';}catch(e){return false;}}
 function setCollapsed(g,v){try{localStorage.setItem(ckey(g),v?'1':'0');}catch(e){}}
+function gkey(l){return l.group_id==null?'none':String(l.group_id);}
+function byOrder(a,b){return ((a.sort||0)-(b.sort||0))||((b.created_at||0)-(a.created_at||0));}
 
 $('f_slug').addEventListener('input',()=>{$('preview').textContent=GO_BASE+($('f_slug').value.trim()||'…');});
 
@@ -134,8 +143,7 @@ async function load(){
   try{ const r=await fetch(API,{headers:{'Accept':'application/json'}}); if(!r.ok){$('list').innerHTML='<div class="small err">Failed to load ('+r.status+')</div>';return;} d=await r.json(); }
   catch(e){ $('list').innerHTML='<div class="small err">Network error</div>'; return; }
   LINKS=d.links||[]; GROUPS=d.groups||[]; $('grand').textContent=d.grand_total_scans;
-  const opts='<option value="">— no group —</option>'+GROUPS.map(g=>'<option value="'+g.id+'">'+esc(g.name)+'</option>').join('');
-  $('f_group').innerHTML=opts;
+  $('f_group').innerHTML='<option value="">— no group —</option>'+GROUPS.map(g=>'<option value="'+g.id+'">'+esc(g.name)+'</option>').join('');
   render();
 }
 
@@ -145,8 +153,8 @@ function groupSelect(slug,gid){
 }
 function linkRow(l){
   const url=GO_BASE+l.slug;
-  return '<div class="lrow" data-slug="'+esc(l.slug)+'">'+
-    '<div><code>'+esc(l.slug)+'</code>'+(l.active?'':' <span class="pill off">disabled</span>')+
+  return '<div class="lrow" draggable="true" data-group="'+gkey(l)+'" data-slug="'+esc(l.slug)+'">'+
+    '<div><span class="draghandle" title="Drag to reorder or move between groups">⠿</span><code>'+esc(l.slug)+'</code>'+(l.active?'':' <span class="pill off">disabled</span>')+
       '<div class="small">'+esc(l.title||'')+'</div>'+
       '<div class="small"><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(url)+'</a> <button class="link" data-copy="'+esc(url)+'">copy</button></div></div>'+
     '<div class="small" style="word-break:break-all">'+esc(l.dest)+'</div>'+
@@ -161,7 +169,7 @@ function linkRow(l){
   '</div>';
 }
 function groupBlock(g){
-  const links=LINKS.filter(l=>l.group_id==g.id);
+  const links=LINKS.filter(l=>l.group_id==g.id).sort(byOrder);
   const col=isCollapsed(g.id);
   return '<div class="gblock" style="border-left:5px solid '+esc(g.color)+'">'+
     '<div class="ghead">'+
@@ -175,18 +183,45 @@ function groupBlock(g){
       '<button class="link danger" data-gdel="'+g.id+'">Delete</button>'+
     '</div>'+
     '<div class="stats" id="gst-'+g.id+'" hidden></div>'+
-    '<div '+(col?'hidden':'')+'>'+(links.map(linkRow).join('')||'<div class="small mut" style="padding:10px">No links yet. Use a link’s group dropdown to add it here.</div>')+'</div>'+
+    '<div class="gbodyzone" data-dropgroup="'+g.id+'" '+(col?'hidden':'')+'>'+(links.map(linkRow).join('')||'<div class="small mut" style="padding:10px">No links yet. Drag one here, or use a link’s group dropdown.</div>')+'</div>'+
   '</div>';
 }
 function render(){
   let html='';
   GROUPS.forEach(g=>{html+=groupBlock(g);});
-  const ung=LINKS.filter(l=>!l.group_id);
+  const ung=LINKS.filter(l=>!l.group_id).sort(byOrder);
   html+='<div class="gblock"><div class="ghead">'+
     '<button class="link" data-toggle="none" style="font-size:15px">'+(isCollapsed('none')?'▸':'▾')+'</button>'+
     '<strong>Ungrouped</strong><span class="small">'+ung.length+' links</span></div>'+
-    '<div '+(isCollapsed('none')?'hidden':'')+'>'+(ung.map(linkRow).join('')||'<div class="small mut" style="padding:10px">Nothing ungrouped.</div>')+'</div></div>';
+    '<div class="gbodyzone" data-dropgroup="none" '+(isCollapsed('none')?'hidden':'')+'>'+(ung.map(linkRow).join('')||'<div class="small mut" style="padding:10px">Nothing ungrouped. Drag a link here to remove it from its group.</div>')+'</div></div>';
   $('list').innerHTML=html;
+}
+
+/* ---- drag & drop reorder / move ---- */
+function currentLists(){const m={};LINKS.slice().sort(byOrder).forEach(l=>{const k=gkey(l);(m[k]=m[k]||[]).push(l.slug);});return m;}
+async function applyMove(slug,targetKey,refSlug,after){
+  const lists=currentLists();
+  Object.keys(lists).forEach(k=>{const i=lists[k].indexOf(slug);if(i>=0)lists[k].splice(i,1);});
+  const tgt=lists[targetKey]=lists[targetKey]||[];
+  let idx=tgt.length;
+  if(refSlug){const ri=tgt.indexOf(refSlug);idx=ri<0?tgt.length:(after?ri+1:ri);}
+  tgt.splice(idx,0,slug);
+  const payload=[]; const bySlug={}; LINKS.forEach(l=>bySlug[l.slug]=l);
+  Object.keys(lists).forEach(k=>{lists[k].forEach((sl,i)=>{const gid=(k==='none'?null:parseInt(k,10));payload.push({slug:sl,group_id:gid,sort:i});const l=bySlug[sl];if(l){l.group_id=gid;l.sort=i;}});});
+  render();
+  try{ const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reorder:payload})}); const d=await r.json(); if(!r.ok||d.error) throw 0; }
+  catch(e){ msg('Order not saved (network) — reloading',false); load(); }
+}
+function wireDnD(){
+  const el=$('list');
+  el.addEventListener('dragstart',(e)=>{const row=e.target.closest('.lrow');if(!row)return;if(e.target.closest('button,select,a,input,option')){e.preventDefault();return;}dragSlug=row.dataset.slug;row.classList.add('dragging');try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragSlug);}catch(_){}});
+  el.addEventListener('dragend',()=>{dragSlug=null;el.querySelectorAll('.dragging,.dover-before,.dover-after').forEach(x=>x.classList.remove('dragging','dover-before','dover-after'));el.querySelectorAll('.gbodyzone.dover').forEach(x=>x.classList.remove('dover'));});
+  el.addEventListener('dragover',(e)=>{if(!dragSlug)return;const row=e.target.closest('.lrow');const zone=e.target.closest('.gbodyzone');if(row){e.preventDefault();const r=row.getBoundingClientRect();const after=(e.clientY-r.top)>r.height/2;row.classList.toggle('dover-after',after);row.classList.toggle('dover-before',!after);}else if(zone){e.preventDefault();zone.classList.add('dover');}});
+  el.addEventListener('dragleave',(e)=>{const row=e.target.closest('.lrow');if(row){row.classList.remove('dover-before','dover-after');}const zone=e.target.closest('.gbodyzone');if(zone&&!zone.contains(e.relatedTarget))zone.classList.remove('dover');});
+  el.addEventListener('drop',(e)=>{if(!dragSlug)return;e.preventDefault();const dragged=dragSlug;const row=e.target.closest('.lrow');const zone=e.target.closest('.gbodyzone');
+    if(row&&row.dataset.slug!==dragged){const r=row.getBoundingClientRect();const after=(e.clientY-r.top)>r.height/2;applyMove(dragged,row.dataset.group,row.dataset.slug,after);}
+    else if(zone){applyMove(dragged,zone.dataset.dropgroup,null,false);}
+  });
 }
 
 /* ---- stats + chart ---- */
@@ -280,6 +315,7 @@ $('qrClose').onclick=()=>$('qrDlg').close();
 ['qrFg','qrBg','qrTransparent'].forEach(id=>$(id).addEventListener('input',renderQR));
 $('dlPng').onclick=()=>dl(qrCanvas(QRSTATE.qr,20,qrOpts()).toDataURL('image/png'),'rarepond-go-'+QRSTATE.slug+'.png');
 $('dlSvg').onclick=()=>dl(URL.createObjectURL(new Blob([qrSvg(QRSTATE.qr,8,qrOpts())],{type:'image/svg+xml'})),'rarepond-go-'+QRSTATE.slug+'.svg');
+wireDnD();
 load();
 </script>
 </body>

@@ -39,6 +39,10 @@
 
 ## 0. LATEST SESSION (2026-09-09), READ THIS FIRST
 
+### 0.0.-63 GO-LINKS: drag-and-drop reorder + move between groups (2026-09-09)
+
+- Link rows are now draggable (⠿ handle). Drag to reorder within a group or drop onto another group / the Ungrouped zone to move a link between groups; empty group bodies are drop zones too. Order persists via a new `links.sort` column (added lazily by ensureSchema). On drop the dashboard sends `{reorder:[{slug,group_id,sort}]}` to `functions/admin/api/links.js`, which updates group_id+sort per row. Rows render sorted by `sort` (ties by created_at desc). Drag starting on a button/select is suppressed so controls still work. Native HTML5 DnD = desktop pointer only; on touch/iPad use the per-row group dropdown to move links.
+
 ### 0.0.-62 GO-LINKS: color-coded groups + inline stats charts (2026-09-09)
 
 - **Groups.** New D1 `groups` table (id, name, color, sort) and a `links.group_id` column, both added lazily by `ensureSchema()` in the API on first request (no separate migration). Links sort into color-coded groups that collapse/expand on the dashboard (state remembered per browser via localStorage); group headers show aggregate link + scan counts. One group per link (folder-style). Deleting a group just ungroups its links.
