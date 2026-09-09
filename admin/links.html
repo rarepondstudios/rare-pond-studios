@@ -28,15 +28,18 @@ code{background:#0a2145;padding:1px 5px;border-radius:5px;font-size:13px}
 .small{font-size:12px;color:var(--mut)}
 .spacer{flex:1}
 input[type=color]{width:38px;height:30px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;vertical-align:middle}
-.colhead{display:grid;grid-template-columns:2fr 2fr 60px 130px minmax(250px,auto);gap:8px;padding:0 10px 6px;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.colhead{display:grid;grid-template-columns:minmax(160px,2fr) minmax(150px,2fr) 56px 120px minmax(300px,1.5fr);gap:8px;padding:0 10px 6px;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
 .gblock{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px;background:var(--panel)}
 .ghead{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0d264a}
 .swatch{width:13px;height:13px;border-radius:3px;display:inline-block;flex:none}
 .gbodyzone{min-height:10px}
-.lrow{display:grid;grid-template-columns:2fr 2fr 60px 130px minmax(250px,auto);gap:8px;padding:8px 10px;border-top:1px solid var(--line);align-items:start}
+.lrow{display:grid;grid-template-columns:minmax(160px,2fr) minmax(150px,2fr) 56px 120px minmax(300px,1.5fr);gap:8px;padding:8px 10px;border-top:1px solid var(--line);align-items:start}
 .lrow.dragging{opacity:.4}
 .lrow.dover-before{box-shadow:inset 0 3px 0 var(--accent)}
 .lrow.dover-after{box-shadow:inset 0 -3px 0 var(--accent)}
+.lrow>div{min-width:0}
+.lrow .small{overflow-wrap:anywhere}
+.lrow code{overflow-wrap:anywhere}
 .gbodyzone.dover{outline:2px dashed var(--accent);outline-offset:-3px}
 .ghead[draggable=true]{cursor:grab}.ghead.dragging{opacity:.5}.ghead.gover-before{box-shadow:inset 0 3px 0 var(--accent)}.ghead.gover-after{box-shadow:inset 0 -3px 0 var(--accent)}
 .draghandle{cursor:grab;color:var(--mut);margin-right:4px;user-select:none;font-size:13px}
@@ -63,7 +66,7 @@ dialog::backdrop{background:rgba(3,10,24,.7)}
 .msg{padding:8px 10px;border-radius:8px;margin-bottom:10px;display:none}
 .msg.err{display:block;background:#3a1620;color:var(--danger);border:1px solid #66232f}
 .msg.ok{display:block;background:#123a2a;color:var(--ok);border:1px solid #1e6b4b}
-@media(max-width:760px){
+@media(max-width:900px){
   .colhead{display:none}
   .lrow{grid-template-columns:1fr;gap:4px;padding:12px 10px}
   .lrow>div[data-label]::before{content:attr(data-label)": ";color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
@@ -184,7 +187,7 @@ function linkRow(l){
     '<div><span class="draghandle" title="Drag to reorder or move between groups">⠿</span><code>'+esc(l.slug)+'</code>'+
       '<div class="small">'+esc(l.title||'')+'</div>'+
       '<div class="small"><a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(url)+'</a> <button class="link" data-copy="'+esc(url)+'">copy</button></div></div>'+
-    '<div class="small" data-label="Destination" style="word-break:break-all">'+esc(l.dest)+'</div>'+
+    '<div class="small" data-label="Destination" style="overflow-wrap:anywhere">'+esc(l.dest)+'</div>'+
     '<div data-label="Scans">'+l.scans_total+'</div>'+
     '<div class="small" data-label="Last scan">'+fmtTs(l.last_scan)+'</div>'+
     '<div class="lact"><span class="lact-main">'+
