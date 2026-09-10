@@ -39,6 +39,11 @@
 
 ## 0. LATEST SESSION (2026-09-09), READ THIS FIRST
 
+### 0.0.-67 GO-LINKS: slug field forces uppercase QR-safe input + live min-QR-size meter (2026-09-10)
+
+- Admin `/admin/links` slug field now forces uppercase and strips to the QR-safe set (A-Z, 0-9, hyphen) as you type, so new slugs match what the QR encodes. Case does not affect size (the generator already uppercases and the resolver is case-insensitive); this is for clarity and consistency. Editing an existing link leaves its stored slug untouched (the field stays disabled).
+- Added a live Min QR indicator under the slug field and in the QR dialog: shows module size and version for the current slug (e.g. 25x25 v2), green at the 25x25 floor, amber when larger with how many characters over the 10-char budget. Print convention: keep slugs to 10 uppercase-alphanumeric chars to stay at 25x25.
+
 ### 0.0.-66 GO-LINKS: smaller QR codes via alphanumeric mode (2026-09-09)
 
 - `buildQR()` in `admin/links.html` now uppercases the `/go/<slug>` URL and encodes it in QR **Alphanumeric** mode when every character is in the QR alphanumeric set (byte-mode fallback otherwise). Go-link URLs are always safe to uppercase: scheme and host are case-insensitive per RFC, and the `/go` resolver matches slugs with `lower(slug)=lower(?)`. This drops density a full version or more: `General-Media-Card` 33x33 -> 29x29, a short slug like `DUCK` 29x29 -> 25x25. Verified an uppercase QR decodes and resolves identically. Only the QR encoding changed; the stored dest and the displayed link text are untouched.

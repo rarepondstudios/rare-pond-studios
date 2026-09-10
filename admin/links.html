@@ -93,6 +93,7 @@ dialog::backdrop{background:rgba(3,10,24,.7)}
       <label>Slug (the part after /go/)</label>
       <input id="f_slug" type="text" placeholder="card" autocomplete="off">
       <div class="small" id="preview">https://www.rarepond.com/go/…</div>
+      <div class="small" id="qrsize" style="margin-top:4px"></div>
       <label>Destination URL</label>
       <input id="f_dest" type="url" placeholder="https://www.rarepond.com/media" autocomplete="off">
       <label>Title (optional)</label>
@@ -166,7 +167,9 @@ function gkey(l){return l.group_id==null?'none':String(l.group_id);}
 function byOrder(a,b){return ((a.sort||0)-(b.sort||0))||((b.created_at||0)-(a.created_at||0));}
 function confirmDialog(message,okLabel){return new Promise(res=>{$('confirmMsg').textContent=message;$('confirmOk').textContent=okLabel||'Delete';const dlg=$('confirmDlg');const done=(v)=>{try{dlg.close();}catch(e){}$('confirmOk').onclick=null;$('confirmCancel').onclick=null;res(v);};$('confirmOk').onclick=()=>done(true);$('confirmCancel').onclick=()=>done(false);dlg.showModal();});}
 
-$('f_slug').addEventListener('input',()=>{$('preview').textContent=GO_BASE+($('f_slug').value.trim()||'…');});
+function slugSize(x){var qr=buildQR(GO_BASE+x);var n=qr.getModuleCount();return {n:n,v:(n-17)/4};}
+function updateSlugMeta(){var el=$('qrsize');var val=$('f_slug').value;if(!$('f_slug').disabled){var raw=val.toUpperCase().replace(/[^A-Z0-9-]/g,'');if(val!==raw)$('f_slug').value=raw;val=raw;}val=val.trim();$('preview').textContent=GO_BASE+(val||'\u2026');if(!val){el.textContent='';return;}var z=slugSize(val);if(z.n<=25){el.innerHTML='Min QR: <strong>'+z.n+'\u00d7'+z.n+'</strong> (v'+z.v+'). Smallest for this domain.';el.style.color='#1a7f37';}else{var over=val.length-10;el.innerHTML='Min QR: <strong>'+z.n+'\u00d7'+z.n+'</strong> (v'+z.v+'). Larger than the 25\u00d725 minimum'+(over>0?' by '+over+' character'+(over>1?'s':''):'')+'; keep the slug to 10 characters or fewer.';el.style.color='#b26a00';}}
+$('f_slug').addEventListener('input',updateSlugMeta);
 
 async function load(){
   let d;
@@ -327,8 +330,8 @@ async function save(){
   if(!r.ok||d.error){msg(d.error||'Save failed',false);return;}
   msg('Saved '+d.slug,true);clearForm();load();
 }
-function clearForm(){$('f_slug').value='';$('f_dest').value='';$('f_title').value='';$('f_group').value='';$('f_active').checked=true;$('f_slug').disabled=false;$('formTitle').textContent='New link';$('preview').textContent=GO_BASE+'…';}
-function editRow(slug){const l=LINKS.find(x=>x.slug===slug);if(!l)return;$('f_slug').value=l.slug;$('f_slug').disabled=true;$('f_dest').value=l.dest;$('f_title').value=l.title||'';$('f_group').value=l.group_id||'';$('f_active').checked=!!l.active;$('formTitle').textContent='Edit '+l.slug;$('preview').textContent=GO_BASE+l.slug;window.scrollTo({top:0,behavior:'smooth'});}
+function clearForm(){$('f_slug').value='';$('f_dest').value='';$('f_title').value='';$('f_group').value='';$('f_active').checked=true;$('f_slug').disabled=false;$('formTitle').textContent='New link';updateSlugMeta();}
+function editRow(slug){const l=LINKS.find(x=>x.slug===slug);if(!l)return;$('f_slug').value=l.slug;$('f_slug').disabled=true;$('f_dest').value=l.dest;$('f_title').value=l.title||'';$('f_group').value=l.group_id||'';$('f_active').checked=!!l.active;$('formTitle').textContent='Edit '+l.slug;updateSlugMeta();window.scrollTo({top:0,behavior:'smooth'});}
 async function del(slug){if(!(await confirmDialog('This deletes /go/'+slug+' and its scan history. This cannot be undone.','Delete link')))return;let r,d;try{r=await fetch(API+'?slug='+encodeURIComponent(slug),{method:'DELETE'});d=await r.json();}catch(e){msg('Network error',false);return;}if(!r.ok||d.error){msg(d.error||'Delete failed',false);return;}msg('Deleted '+slug,true);load();}
 
 /* ---- groups ---- */
@@ -351,7 +354,7 @@ function qrOpts(){return {fg:$('qrFg').value,bg:$('qrBg').value,transparent:$('q
 function qrCanvas(qr,scale,o){const n=qr.getModuleCount(),m=4,size=(n+m*2)*scale;const cv=document.createElement('canvas');cv.width=size;cv.height=size;const x=cv.getContext('2d');if(!o.transparent){x.fillStyle=o.bg;x.fillRect(0,0,size,size);}x.fillStyle=o.fg;for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))x.fillRect((c+m)*scale,(r+m)*scale,scale,scale);}return cv;}
 function qrSvg(qr,cell,o){const n=qr.getModuleCount(),m=4,dim=(n+m*2)*cell;let rc='';for(let r=0;r<n;r++)for(let c=0;c<n;c++){if(qr.isDark(r,c))rc+='<rect x="'+((c+m)*cell)+'" y="'+((r+m)*cell)+'" width="'+cell+'" height="'+cell+'"/>';}const bg=o.transparent?'':'<rect width="100%" height="100%" fill="'+o.bg+'"/>';return '<svg xmlns="http://www.w3.org/2000/svg" width="'+dim+'" height="'+dim+'" viewBox="0 0 '+dim+' '+dim+'" shape-rendering="crispEdges">'+bg+'<g fill="'+o.fg+'">'+rc+'</g></svg>';}
 function renderQR(){if(!QRSTATE.qr)return;const cv=qrCanvas(QRSTATE.qr,8,qrOpts());cv.style.width='220px';cv.style.height='220px';cv.style.maxWidth='60vw';cv.style.imageRendering='pixelated';$('qrBox').innerHTML='';$('qrBox').appendChild(cv);}
-function showQR(slug){QRSTATE={qr:buildQR(GO_BASE+slug),slug:slug};$('qrUrl').textContent=GO_BASE+slug;renderQR();$('qrDlg').showModal();}
+function showQR(slug){var qr=buildQR(GO_BASE+slug);QRSTATE={qr:qr,slug:slug};var n=qr.getModuleCount();$('qrUrl').innerHTML=GO_BASE+slug+' <span style="opacity:.7">('+n+'\u00d7'+n+', v'+((n-17)/4)+')</span>';renderQR();$('qrDlg').showModal();}
 function dl(href,name){const a=document.createElement('a');a.href=href;a.download=name;a.click();if(href.indexOf('blob:')===0)setTimeout(()=>URL.revokeObjectURL(href),1500);}
 
 document.addEventListener('click',(e)=>{const t=e.target;if(!t||!t.dataset)return;const ds=t.dataset;
