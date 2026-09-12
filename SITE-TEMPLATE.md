@@ -210,24 +210,22 @@ film with no tagline shows no caption line, rather than a gap where one should b
 5. Register the repo with the exporters and the backup job, then add the row to the parity table
    above and to `04-automations-and-tools.md`.
 
-## Cross-page navigation chrome: the SAME-PAGE NAV guard and its reset hook (added 2026-09-12)
+## Cross-page navigation chrome: the SAME-PAGE NAV guard and #hash-arrival URLs (added 2026-09-12)
 
 Every site ships a capture-phase click guard in `<head>` (comment "SAME-PAGE NAV = smooth scroll
-to top"). When a link points at the path already in the address bar, it scrolls to the top
-instead of re-running a page transition or a reload. Two rules keep it safe on an SPA:
+to top"). When a link points at the path ALREADY in the address bar it scrolls to the top instead
+of re-running a transition or a reload. It decides "same page" from `location.pathname`, so on an
+SPA it is only correct while the pathname reflects the view on screen.
 
-- Any page that has SPA views (a `data-go` / `data-page` router: the studio and jackcarlsen
-  `index.html`) MUST define `window.__samePageHome()`. When the guard fires it calls this hook to
-  re-assert the view named by the CURRENT pathname. Rentals defines it in
-  `rentals/assets/app.js`; studio and jackcarlsen define it inline next to their router. A static
-  landing page with no router (media `index.html`) does not need it.
-- The guard falls through (does not trap the click) for any `data-go` / `data-page` link when no
-  `__samePageHome` is defined, so a page that includes the guard but forgets the hook still routes
-  through its own SPA handler instead of leaving a dead wordmark.
+The rule: when a view is opened from a `#hash` arrival, normalise the address bar so the pathname
+matches the view. Cross-site header links land on the studio and on jackcarlsen via a hash
+(`/#team`, `/#projects`, `/#<role>`); `routeHash()` on each site now `history.replaceState()`s the
+canonical path (`/team`, `/projects`, `/portfolios`, `/<role>`) as it shows the view, and drops
+the hash. Home and scroll-only hashes (`#about`, `#contact`) are left alone.
 
-Why it exists: cross-site header links land on the studio via a `#hash` (`/#team`, `/#projects`),
-and on jackcarlsen the same way. On that arrival the view is shown from the hash while
-`location.pathname` stays `/`, so the home wordmark (`href="/"`) looked like "you are already
-here" and only scrolled. The hook re-asserts the pathname's view (and drops the stale hash); the
-fall-through is the belt-and-suspenders so the class of bug cannot silently return on a new site.
-Fixed 2026-09-12, see `HANDOFF.md` 0.0.-68.
+Why it matters: without the rewrite the view showed from the hash while `location.pathname` stayed
+`/`, so the home wordmark (`href="/"`) looked like "you are already here" and only scrolled, the
+home view never came back, and even when nudged it skipped the normal page fade. With the pathname
+normalised, the wordmark is a genuine `/team -> /` navigation, so it routes through the standard
+`__pageFade` transition exactly like an in-app home -> subpage click. The shared guard itself is
+unchanged. Fixed 2026-09-12, see `HANDOFF.md` 0.0.-68.

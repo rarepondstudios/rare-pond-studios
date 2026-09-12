@@ -1059,7 +1059,7 @@ html.xw-active{overflow:hidden}
     background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.55),rgba(255,255,255,.12) 42%,rgba(120,180,255,.09) 70%,transparent 74%);
     border:1px solid rgba(255,255,255,.22);animation:bob 9s ease-in-out infinite alternate}
 </style>
-<script>/* SAME-PAGE NAV = smooth scroll to top (no transition / reload). A nav control pointing at the page the user is already on (wordmark, header or footer links) scrolls to the top instead of re-running a transition. Capture-phase and registered first so it wins before the SPA/fade/wipe handlers; links with a #hash, data-contact/net/wipe, other pages, or modified clicks are untouched. Escape is dispatched so an open hamburger menu closes via its existing handler. */(function(){function n(p){p=(p||"/").replace(/\/+$/,"");return p||"/";}document.addEventListener("click",function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;var a=e.target.closest&&e.target.closest("a[href]");if(!a)return;if(a.target&&a.target!=="_self")return;if(a.hasAttribute("data-contact")||a.hasAttribute("data-net")||a.hasAttribute("data-wipe"))return;var h=a.getAttribute("href")||"";if(!h||h.charAt(0)==="#")return;var u;try{u=new URL(h,location.href);}catch(_){return;}if(u.origin!==location.origin||u.hash)return;if(n(u.pathname)!==n(location.pathname))return;if((a.hasAttribute("data-go")||a.hasAttribute("data-page"))&&!window.__samePageHome)return;e.preventDefault();e.stopImmediatePropagation();var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;window.scrollTo({top:0,behavior:rm?"auto":"smooth"});if(window.__samePageHome)try{window.__samePageHome()}catch(_){}try{document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape"}))}catch(_){}},true);})();</script>
+<script>/* SAME-PAGE NAV = smooth scroll to top (no transition / reload). A nav control pointing at the page the user is already on (wordmark, header or footer links) scrolls to the top instead of re-running a transition. Capture-phase and registered first so it wins before the SPA/fade/wipe handlers; links with a #hash, data-contact/net/wipe, other pages, or modified clicks are untouched. Escape is dispatched so an open hamburger menu closes via its existing handler. */(function(){function n(p){p=(p||"/").replace(/\/+$/,"");return p||"/";}document.addEventListener("click",function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;var a=e.target.closest&&e.target.closest("a[href]");if(!a)return;if(a.target&&a.target!=="_self")return;if(a.hasAttribute("data-contact")||a.hasAttribute("data-net")||a.hasAttribute("data-wipe"))return;var h=a.getAttribute("href")||"";if(!h||h.charAt(0)==="#")return;var u;try{u=new URL(h,location.href);}catch(_){return;}if(u.origin!==location.origin||u.hash)return;if(n(u.pathname)!==n(location.pathname))return;e.preventDefault();e.stopImmediatePropagation();var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;window.scrollTo({top:0,behavior:rm?"auto":"smooth"});if(window.__samePageHome)try{window.__samePageHome()}catch(_){}try{document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape"}))}catch(_){}},true);})();</script>
 </head>
 <body>
   <div id="pageveil" aria-hidden="true"></div>
@@ -2636,23 +2636,10 @@ function __pageFade(swap){
   v.addEventListener('transitionend',function h(e){if(e.propertyName&&e.propertyName!=='opacity')return;v.removeEventListener('transitionend',h);clearTimeout(t);go();});
 }
 document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();const d=a.getAttribute('data-go');if(d==='contact'||d==='about'){nav('/');showView('home','#'+d);}else{const _doNav=function(){nav(pathForDest(d));};/* If a film is open, its circle-retract (closeUniverse) IS the transition - run it alone, never with the page-fade veil layered on top. */if(currentOpen)_doNav();else __pageFade(_doNav);}});
-/* Same-page nav reset hook (used by the capture-phase SAME-PAGE NAV guard in <head>). When a
-   wordmark/home or section link points at the path already in the address bar, re-assert the
-   view that path names. Without this, a view opened from a #hash arrival (landing on /#team or
-   /#projects from the media or rentals header) left location.pathname at "/" while a non-home
-   view showed, so clicking the logo (href="/") read as "already here" and only scrolled - the
-   home view never came back until an in-app nav changed the pathname. */
-window.__samePageHome=function(){
-  try{ if(typeof currentOpen!=='undefined'&&currentOpen) closeUniverse(currentOpen); }catch(e){}
-  var p=(location.pathname||'/').replace(/\/+$/,'')||'/';
-  if(p==='/'){ if(location.hash){try{history.replaceState({},'','/');}catch(e){}} if(activeView!=='home') showView('home'); }
-  else if(p==='/team'){ if(activeView!=='team') showView('team'); }
-  else if(p==='/projects'){ if(activeView!=='projects') showView('projects'); }
-};
 /* browser back / forward drives the view (this is how the universe closes on Back) */
 addEventListener('popstate',()=>renderRoute());
 /* hash links from other pages (rentals): /#team /#projects /#contact /#about */
-function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if(currentOpen)closeUniverse(currentOpen);if(h==='team')showView('team');else if(h==='projects')showView('projects');else if(h==='contact'){if(window.RP_openContact)RP_openContact();}else if(h==='about')showView('home','#about');}
+function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if(currentOpen)closeUniverse(currentOpen);if(h==='team'){try{history.replaceState({},'','/team');}catch(e){}showView('team');}else if(h==='projects'){try{history.replaceState({},'','/projects');}catch(e){}showView('projects');}else if(h==='contact'){if(window.RP_openContact)RP_openContact();}else if(h==='about')showView('home','#about');}
 addEventListener('hashchange',routeHash);
 /* initial route */
 (function initRoute(){const __l=cpLegacySlug();if(__l&&PAGE_BY_SLUG[__l])history.replaceState({},'',cpUrl(__l));const __s=cpSlugFromUrl();if(__s){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
