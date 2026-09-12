@@ -1825,13 +1825,17 @@ const ORB_SPEC=[
       }); }
       function start(){ var ps=[],k; for(k=0;k<N;k++)ps.push(loadFrame(k));
         Promise.all(ps).then(function(){ ready=true; bubble.classList.add('anim-on');
-          // Seed to the current scroll position WITHOUT auto-playing: already comfortably in view
-          // (deep link / short viewport) -> show the finished logo; otherwise the palette. A real
-          // scroll from here plays forward / fades back to the palette.
+          // Seed by initial visibility: already comfortably in view at load (tall / 4K monitor
+          // with #about above the fold, or a deep link) -> PLAY the intro forward once so it is
+          // actually seen (Save-Data snaps to the finished logo; reduced-motion kept the static
+          // logo and returned earlier); otherwise seed the palette and let a scroll-in play it.
           var r=(slot||host).getBoundingClientRect(), vh=innerHeight||document.documentElement.clientHeight;
           var vis=Math.max(0,Math.min(r.bottom,vh)-Math.max(r.top,0))/(r.height||1);
-          if(vis>=0.45){ curF=N-1; mode='done'; } else { curF=0; mode='palette'; }
-          drawn=-1; paint(); orb(curF/(N-1)); }); }
+          var saveData=!!(navigator.connection&&navigator.connection.saveData);
+          if(vis>=0.45&&!saveData){ /* Already in view at load (tall / 4K monitor with #about above the fold, or a deep link): PLAY the intro forward once from the palette so it is actually seen, instead of snapping straight to the finished logo. reduced-motion is handled above (static logo kept); Save-Data snaps to the end without autoplay. */ curF=0; mode='fwd'; drawn=-1; paint(); orb(0); kick(); }
+          else if(vis>=0.45){ curF=N-1; mode='done'; drawn=-1; paint(); orb(1); }
+          else { curF=0; mode='palette'; drawn=-1; paint(); orb(0); }
+          }); }
       // Defer the loading burst until the browser is idle after first paint, so it never competes with
       // the initial page load (another source of the scroll-in hitch).
       if('requestIdleCallback'in window) requestIdleCallback(start,{timeout:2500}); else setTimeout(start,800);

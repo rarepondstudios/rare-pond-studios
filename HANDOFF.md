@@ -39,6 +39,11 @@
 
 ## 0. LATEST SESSION (2026-09-12), READ THIS FIRST
 
+### 0.0.-69 HOME: about-logo intro auto-plays on load when #about is already in view (tall / 4K) (2026-09-12)
+
+- **Bug.** On a tall or 4K monitor the "Worlds worth escaping into." `#about` block sits above the fold at page load, so the logo intro animation (`media/brand/home-logo-anim` frames, normally played forward on scroll-in) was seeded straight to the finished logo (`mode='done'`) and never played. On a normal-height screen the block is below the fold, so scrolling in triggers the forward play, which is why it only broke on large displays.
+- **Fix.** In the about-anim `start()` seed (`index.html`), when the bubble is already >=45% in view at load, PLAY forward once from the palette (`mode='fwd'; kick()`) instead of snapping to the finished frame. reduced-motion still returns early and keeps the static logo; Save-Data snaps to the finished logo without autoplaying. Scroll-away fade-back-to-palette and scroll-in replay are unchanged. Studios only (the jackcarlsen hero is a separate mechanism).
+
 ### 0.0.-68 NAV: home wordmark dead (then transition-less) on #hash arrival - fixed at the source (2026-09-12)
 
 - **Bug.** Cross-site header links land on the studio at `/#team` or `/#projects` (jackcarlsen the same way, incl. `/#<role>`). On that arrival `routeHash()` showed the team/projects view FROM THE HASH while `location.pathname` stayed `/`. The capture-phase SAME-PAGE NAV guard decides "same page" from `location.pathname` only, so the home wordmark (`href="/"`) matched `/` == `/`, was treated as "already here", and just scrolled: the home view never came back. It looked like it "started working" only after an in-app nav (projects -> team) had pushed a real pathname (`/team`), which then no longer matched `/`.
