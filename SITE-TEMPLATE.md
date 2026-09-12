@@ -209,3 +209,25 @@ film with no tagline shows no caption line, rather than a gap where one should b
 4. Copy `.pages.yml` and cut the sections the site genuinely lacks. Keep the order.
 5. Register the repo with the exporters and the backup job, then add the row to the parity table
    above and to `04-automations-and-tools.md`.
+
+## Cross-page navigation chrome: the SAME-PAGE NAV guard and its reset hook (added 2026-09-12)
+
+Every site ships a capture-phase click guard in `<head>` (comment "SAME-PAGE NAV = smooth scroll
+to top"). When a link points at the path already in the address bar, it scrolls to the top
+instead of re-running a page transition or a reload. Two rules keep it safe on an SPA:
+
+- Any page that has SPA views (a `data-go` / `data-page` router: the studio and jackcarlsen
+  `index.html`) MUST define `window.__samePageHome()`. When the guard fires it calls this hook to
+  re-assert the view named by the CURRENT pathname. Rentals defines it in
+  `rentals/assets/app.js`; studio and jackcarlsen define it inline next to their router. A static
+  landing page with no router (media `index.html`) does not need it.
+- The guard falls through (does not trap the click) for any `data-go` / `data-page` link when no
+  `__samePageHome` is defined, so a page that includes the guard but forgets the hook still routes
+  through its own SPA handler instead of leaving a dead wordmark.
+
+Why it exists: cross-site header links land on the studio via a `#hash` (`/#team`, `/#projects`),
+and on jackcarlsen the same way. On that arrival the view is shown from the hash while
+`location.pathname` stays `/`, so the home wordmark (`href="/"`) looked like "you are already
+here" and only scrolled. The hook re-asserts the pathname's view (and drops the stale hash); the
+fall-through is the belt-and-suspenders so the class of bug cannot silently return on a new site.
+Fixed 2026-09-12, see `HANDOFF.md` 0.0.-68.

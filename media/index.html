@@ -179,7 +179,7 @@ html.xw-active{overflow:hidden}
   .showgrid .s-a{grid-column:span 2}
 }
 </style>
-<script>/* SAME-PAGE NAV = smooth scroll to top (no transition / reload). A nav control pointing at the page the user is already on (wordmark, header or footer links) scrolls to the top instead of re-running a transition. Capture-phase and registered first so it wins before the SPA/fade/wipe handlers; links with a #hash, data-contact/net/wipe, other pages, or modified clicks are untouched. Escape is dispatched so an open hamburger menu closes via its existing handler. */(function(){function n(p){p=(p||"/").replace(/\/+$/,"");return p||"/";}document.addEventListener("click",function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;var a=e.target.closest&&e.target.closest("a[href]");if(!a)return;if(a.target&&a.target!=="_self")return;if(a.hasAttribute("data-contact")||a.hasAttribute("data-net")||a.hasAttribute("data-wipe"))return;var h=a.getAttribute("href")||"";if(!h||h.charAt(0)==="#")return;var u;try{u=new URL(h,location.href);}catch(_){return;}if(u.origin!==location.origin||u.hash)return;if(n(u.pathname)!==n(location.pathname))return;e.preventDefault();e.stopImmediatePropagation();var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;window.scrollTo({top:0,behavior:rm?"auto":"smooth"});if(window.__samePageHome)try{window.__samePageHome()}catch(_){}try{document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape"}))}catch(_){}},true);})();</script>
+<script>/* SAME-PAGE NAV = smooth scroll to top (no transition / reload). A nav control pointing at the page the user is already on (wordmark, header or footer links) scrolls to the top instead of re-running a transition. Capture-phase and registered first so it wins before the SPA/fade/wipe handlers; links with a #hash, data-contact/net/wipe, other pages, or modified clicks are untouched. Escape is dispatched so an open hamburger menu closes via its existing handler. */(function(){function n(p){p=(p||"/").replace(/\/+$/,"");return p||"/";}document.addEventListener("click",function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;var a=e.target.closest&&e.target.closest("a[href]");if(!a)return;if(a.target&&a.target!=="_self")return;if(a.hasAttribute("data-contact")||a.hasAttribute("data-net")||a.hasAttribute("data-wipe"))return;var h=a.getAttribute("href")||"";if(!h||h.charAt(0)==="#")return;var u;try{u=new URL(h,location.href);}catch(_){return;}if(u.origin!==location.origin||u.hash)return;if(n(u.pathname)!==n(location.pathname))return;if((a.hasAttribute("data-go")||a.hasAttribute("data-page"))&&!window.__samePageHome)return;e.preventDefault();e.stopImmediatePropagation();var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;window.scrollTo({top:0,behavior:rm?"auto":"smooth"});if(window.__samePageHome)try{window.__samePageHome()}catch(_){}try{document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape"}))}catch(_){}},true);})();</script>
 </head>
 <body>
 <script>/* pre-paint: cover before first paint if arriving via a directional wipe (no flash) */(function(){try{var d=sessionStorage.getItem('__xw');if(d==='L'||d==='R'){document.documentElement.classList.add('xw-cover');window.__XW_IN=d;if(window.__setThemeColor)window.__setThemeColor('#3f6bff');}}catch(e){}})();</script>
@@ -248,7 +248,6 @@ html.xw-active{overflow:hidden}
   <section class="blk">
     <div class="split">
       <div class="col-txt reveal">
-        <span class="tag-badge"><span class="dot"></span>Why&nbsp;us?</span>
         <h2>Filmmaking is what we <span class="grad">love</span> doing.</h2>
         <p class="lead">This is more than a business to us, it's how we spend our free time, and we enjoy the process. We aren't in this to just get the job done, we're here to have fun doing it, and we believe your audience will be able to see that through our work.</p>
       </div>
@@ -265,7 +264,6 @@ html.xw-active{overflow:hidden}
         <img loading="lazy" src="/media/projects/revelations/bts/img_3108-full.jpg" srcset="/media/projects/revelations/bts/img_3108.jpg 1024w,/media/projects/revelations/bts/img_3108-full.jpg 2048w" sizes="(max-width:820px) 100vw, 46vw" alt="The Rare Pond team collaborating during a shoot">
       </div>
       <div class="col-txt reveal d1">
-        <span class="tag-badge"><span class="dot"></span>How&nbsp;we&nbsp;work</span>
         <h2>Collaboration is <span class="grad">Key</span>.</h2>
         <p class="lead">In order to tell your story, we want to understand your story. We're willing to take the time to get to know you and what you're really looking for, rather than leave you in the dark.</p>
       </div>
@@ -276,7 +274,6 @@ html.xw-active{overflow:hidden}
   <section class="blk">
     <div class="split">
       <div class="col-txt reveal">
-        <span class="tag-badge"><span class="dot"></span>What&nbsp;sets&nbsp;us&nbsp;apart</span>
         <h2>We're <span class="grad">Human</span>.</h2>
         <p class="lead">In a time where businesses are embracing a corner cutting approach to content, people are starving for a HUMAN message. Now more than ever, businesses that put people first stand out in the market, and we know our work has a unique personality people are looking for.</p>
       </div>

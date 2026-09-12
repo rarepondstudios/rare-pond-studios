@@ -37,7 +37,15 @@
 
 ---
 
-## 0. LATEST SESSION (2026-09-09), READ THIS FIRST
+## 0. LATEST SESSION (2026-09-12), READ THIS FIRST
+
+### 0.0.-68 NAV: home wordmark dead on #hash arrival - fixed + template hardened (2026-09-12)
+
+- **Bug.** Cross-site header links land on the studio at `/#team` or `/#projects` (jackcarlsen the same way). On that arrival `initRoute`/`routeHash` shows the team/projects view FROM THE HASH while `location.pathname` stays `/`. The capture-phase SAME-PAGE NAV guard compares the clicked link's path to `location.pathname` only, so the home wordmark (`href="/"`) matched `/` == `/`, was treated as "already here", and just scrolled: the home view never came back. It looked like it "started working" only after an in-app nav (projects -> team) had pushed a real pathname (`/team`), which then no longer matched `/`.
+- **Root cause.** The guard calls `window.__samePageHome()` to reset the view, but the studio and jackcarlsen never DEFINED it (only rentals did, in `rentals/assets/app.js`). Missing hook = the intercept swallowed the click with nothing to switch the view.
+- **Fix.** Defined `window.__samePageHome()` on the studio (`index.html`) and jackcarlsen (`index.html`): it re-asserts the view named by the current pathname and drops a stale `#hash` when the pathname is `/`. Also hardened the shared guard in all four `index.html` (studio, media, rentals, jackcarlsen): a `data-go`/`data-page` link now falls through to the SPA router when no `__samePageHome` is defined, so a forgotten hook can never leave a dead wordmark again. Written up as a standard in `SITE-TEMPLATE.md`.
+- **Also this session.** Removed the three glowing-dot `tag-badge` bubbles ("Why us?", "How we work", "What sets us apart") from the media page (`media/index.html`). The section headings and copy are untouched; the CMS `sections[].badge` field is now inert (the JS injection guard is a no-op with the span gone). The `.tag-badge` CSS is left in place, unused and harmless.
+- **Deploy.** `rp_site_work`: stage the changed paths only (never `git add -A`) and push (deploys from cloud or mini). `jackcarlsen-website` pushes from the mini ONLY: `gh auth switch --user Jackjrrc && git -C ~/jackcarlsen-website add index.html && git -C ~/jackcarlsen-website commit -m "nav: define __samePageHome so the home wordmark works after a #hash arrival" && git push origin main && gh auth switch --user rarepondstudios`.
 
 ### 0.0.-67 GO-LINKS: slug field forces uppercase QR-safe input + live min-QR-size meter (2026-09-10)
 
