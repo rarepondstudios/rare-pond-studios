@@ -135,10 +135,10 @@
     "formId": "2f174b0e-b67d-4ca2-b12c-bd877ac8cab3"
   },
   "eventBanner": {
-    "enabled": false,
-    "title": "We're At San Diego Comic-Con!",
-    "buttonText": "Woa Really?",
-    "buttonLink": "/rentals",
+    "enabled": true,
+    "title": "Geri-Action WORLD PREMIERE! ",
+    "buttonText": "Watch in LA",
+    "buttonLink": "/geriaction",
     "colorLook": "geri",
     "gradientStyle": "stream"
   }
