@@ -2535,7 +2535,7 @@ Two editing surfaces, one repo:
 |---|---|---|
 | Studio site | `www.rarepond.com` | Cloudflare Pages, static, from GitHub `main`. Build ~1–2 min. |
 | Repo | `github.com/rarepondstudios/rare-pond-studios` (branch `main`) | **PUBLIC**. Never put secrets/passwords in it or in Pages CMS. |
-| Local repo clone | `/Users/rarepondstudios/rp_site_work` | On the always-on **Mac Mini**. Synced across machines + Google Drive via **Synology NAS DS1422+**. |
+| Local repo clone | `/Users/rarepondstudios/rp_site_work` | On the always-on **Mac Mini**. Synced across machines + Google Drive via **Synology NAS DS1522+**. |
 | NAS (on-device, Finder) | direct network mount | **READ-ONLY**, pull assets only. To *write*, go through Google Drive. |
 | NocoDB | Docker container `nocodb` (`nocodb/nocodb:latest`) at `http://localhost:8080` | UI over the external Supabase Postgres. |
 | n8n | Docker container `n8n` (`n8nio/n8n:latest`) at `http://localhost:5678` | Automations. Server-side schedules run headless regardless of browser login. |
