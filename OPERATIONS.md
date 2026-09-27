@@ -204,8 +204,8 @@ Workflows (mind the **Status** column - some are inactive *by design*):
 | HubSpot → Rental DB Sync | **ACTIVE** | polls HubSpot, writes orders/bookings to Supabase |
 | Rental DB → HubSpot Stage Push | **ACTIVE** | pushes stage changes back |
 | ~~Projects: DB to site (rarepond)~~ | **RETIRED 2026-08-03** | replaced by the Python exporter `projects_sync.py` on launchd (see the projects pipeline). n8n no longer builds any site content. |
-| **[Alerts] Workflow Failure → Email** | **ACTIVE** | fires on ANY workflow error |
-| **[Alerts] Watchdog - workflow gone silent** | **ACTIVE** | every 30 min, flags a workflow that has stopped running at all |
+| ~~[Alerts] Workflow Failure → Email~~ | **RETIRED 2026-09-27** | replaced by autoheal on the mini (see below); unpublished, kept for rollback |
+| ~~[Alerts] Watchdog - workflow gone silent~~ | **RETIRED 2026-09-27** | replaced by autoheal on the mini (see below); unpublished, kept for rollback |
 | *...plus the non-site glue* | ACTIVE | The table lists the site-facing workflows. The full live inventory (11 active workflows as of 2026-08-09: also weekly backup, Apple/ClickUp/iMessage/Gemini HubSpot glue, chores) is on the ClickUp **Automation Health** doc, rewritten every 15 min. |
 | ~~`[Website Forms]` Jotform Intake / Crew / Rental → HubSpot + Calendar~~ | **DELETED 2026-08-03** | The old n8n copy of the form → HubSpot + Calendar job. **Jotform's own native integrations do this now** (see "The rental pipeline" above); after a live end-to-end proof the inactive workflows were deleted (backed up to `bts-automation/backups/n8n_20260803/`). Do not resurrect them - running them alongside native previously created duplicate deals + duplicate calendar events. |
 
@@ -218,14 +218,19 @@ Workflows (mind the **Status** column - some are inactive *by design*):
 > warns about.
 
 ### The alerting, and why it is shaped this way
-- **Layer 1** is an n8n *Error Workflow*. On n8n 2.x an error workflow **must itself be ACTIVE**
-  or it silently does nothing. This was missed once and only caught by deliberately breaking a
-  workflow to test it. **If you rebuild it, test it by actually causing a failure.**
-- **Layer 2** is a watchdog that catches the case Layer 1 cannot: a workflow that isn't failing
-  because it isn't *running*. It **auto-discovers** active workflows from the n8n API, so new
-  workflows are covered with zero maintenance. "Silent" means *no execution of any status* - a failing workflow is Layer 1's job, not the watchdog's.
-- Alerts go to an internal admin address configured inside n8n. Email only - a chat-tool alert
-  would depend on the very integrations that might be down.
+**Since 2026-09-27 n8n alerting lives outside n8n, in `~/bts-automation/autoheal.py`** (every
+10 min on the mini). It reads every active workflow's last success/failure and schedule, re-runs a
+failed weekly backup itself, lets a frequent job retry on its own next run, restarts n8n if a
+workflow goes silent, and emails `rp_admin` only when a problem survives that (plus a "Recovered"
+email). Full rules: `AI_System_Context/04-automations-and-tools.md`, autoheal section.
+- Why: the old in-n8n error workflow emailed on every single failure, including network blips that
+  passed on the next run, and could fix nothing; the old watchdog duplicated the silence check.
+  Both are unpublished and renamed "[Retired 2026-09-27] ...", and no workflow has an
+  `errorWorkflow` setting any more. Do not re-enable them alongside autoheal (double alerts).
+- **Never use `execSync` in an n8n Code node.** It freezes the task runner, which misses its
+  heartbeat and is killed ("Task execution aborted because runner became unresponsive"), taking
+  any other workflow running at that moment down with it. Use async `exec` in a Promise.
+- Alerts are email only - a chat-tool alert would depend on the very integrations that might be down.
 
 ### Secrets
 SMTP credentials and the n8n API key live **only in n8n's own credential store** (encrypted in

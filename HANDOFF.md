@@ -37,7 +37,19 @@
 
 ---
 
-## 0. LATEST SESSION (2026-09-12), READ THIS FIRST
+## 0. LATEST SESSION (2026-09-27), READ THIS FIRST
+
+### 0.0.-70 N8N: weekly backup + sync failures fixed; n8n alerting moved into autoheal (2026-09-27)
+- The rp_admin "workflow FAILING" emails in September came from blocking `execSync` in n8n Code
+  nodes: the task runner froze, missed its heartbeat and was killed ("runner became unresponsive"),
+  killing the weekly backup (no rentals DB snapshot Sep 6, 20, 27) and the ClickUp sync running
+  beside it. `rpbackupwkly1` and `aphubsync001` now use async `exec`; network nodes in
+  `Gazw7lunDNNd9HO2` / `cjav2Eobu0LZR70p` retry 3x. Rule: never `execSync` in a Code node.
+- `rpalertmail01` / `rpwatchdog01` are RETIRED (unpublished, renamed); no workflow has an
+  `errorWorkflow`. `~/bts-automation/autoheal.py` + `n8n_status.js` now watch n8n: re-run a failed
+  weekly backup (new "Run on demand (autoheal re-run)" trigger node), let frequent jobs retry on
+  their next run, restart n8n on silence, email only if it persists. See OPERATIONS.md "The
+  alerting" and AI_System_Context 04, autoheal section.
 
 ### 0.0.-69 HOME: about-logo intro auto-plays on load when #about is already in view (tall / 4K) (2026-09-12)
 
