@@ -1,7 +1,6 @@
 {
+  "publicAccess": false,
   "route": "/news",
-  "pageName": "News",
-  "publicAccess": true,
   "headings": {
     "eyebrow": "What we're up to",
     "heading": "News",
