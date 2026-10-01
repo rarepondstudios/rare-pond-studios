@@ -37,7 +37,78 @@
 
 ---
 
-## 0. LATEST SESSION (2026-09-27), READ THIS FIRST
+## 0. LATEST SESSION (2026-09-30), READ THIS FIRST
+
+### 0.0.-71 NEWS SECTION: /news CARDS + EXPANDING ARTICLES, NocoDB `news` TABLE, FOLDER-DRIVEN PHOTOS, EDGE SEO (2026-09-30)
+
+A News section that works like projects: write a row in NocoDB, drop photos in a folder, and the
+site rebuilds itself. Three seed articles are live (Geri-Action ISA premiere, OIAF 2026 interview,
+Geri-Action Indie Short Fest selection), all reviewable in NocoDB.
+
+- **Data.** NocoDB table `news` (id `m2i3qzsfbkzu3f9`, same base as projects, Postgres `rp.news`).
+  Columns: `key` (slug = the address `/news/<key>`), `title`, `date`, `category` (free text,
+  suggested values in the description), `body` (paragraphs separated by a blank line; light markdown:
+  `**bold**`, `*italic*`, `[text](url)`, `## subhead`; the FIRST paragraph is the card teaser and the
+  search description), `thumbnail` + `images` (AUTOMATIC, folder-driven), `social_links` (one URL per
+  line -> the "See the posts" buttons, same auto-detect icons as film socials), `color_look` (card glow
+  + category chip; blank -> signature at export), `pinned`, `on_rarepond` (publish switch, new rows
+  start OFF). `updated_at` has a BEFORE UPDATE trigger (`rp.news_set_updated_at`, EXECUTE revoked from
+  PUBLIC/anon). The Supabase source is schema-read-only in NocoDB, so the table was created in
+  Postgres through the NocoDB-stored connection + a meta-diff sync (`bts-automation/_create_news_table.py`,
+  idempotent; it also sets the column descriptions). **Display TYPES are set one column at a time**
+  with `_news_col_type.py <table> <col> <uidt>`: a loop of type PATCHes exhausted NocoDB's Postgres
+  pool ("Knex: Timeout acquiring a connection"), every API call hung, and it took `docker restart
+  nocodb` to clear (HANDOFF 11 "Mistakes", now with a second data point).
+- **Folders.** `Website Repository/News (Web)/<Title>/` with `Thumbnail/` (first image wins: card
+  image + article hero) and `Images/` (photo strip after the text, name order, then the order of the
+  lines in `images`). Provisioned/renamed/recycled by `projects_folder_sync.py --profile news` (the
+  reconciler grew a PROFILES table; `--profile projects` is the unchanged default; state in
+  `news_folder_state.json`). Both subfolders carry `.noletterbox`.
+- **Media.** `news_media_sync.py` publishes `media/news/<key>/thumb-800.webp, thumb-1600.webp, thumb.jpg`
+  and `images/<stem>-800.webp, -1600.webp, .jpg`, writes the NocoDB `thumbnail` / `images` columns,
+  archives removals to `_archive/news/` (git-ignored), content-hash state in `news_media_state.json`.
+  Never upscales. Only strips the ladder suffixes (-800/-1600) when matching published files to
+  masters: a generic 3-4 digit strip ate the real "-2026" at the end of a laurel filename on the
+  first run.
+- **Export.** `news_sync.py` -> `data/news.json` (`{news:[{key,title,date,updated,category,colorLook,
+  pinned,thumbnail?h=,images[],socials[],body,teaser}]}`, pinned first then newest first, `on_rarepond`
+  only, semantic diff, zero-row abort) and maintains the `<!-- BEGIN GENERATED: news -->` block in
+  `sitemap.xml`. Commits only those two paths under the repo lock.
+- **launchd.** `com.rarepond.rpnewssync` (news_sync.py --publish, 300 s) and
+  `com.rarepond.newsmediasync` (`news_media_job.sh`: folder profile then media sync, 300 s). Both in
+  the `JOBS` registry of `automation_health_launchd.py`. 34 `com.rarepond.*` jobs loaded
+  *(verified 2026-09-30, `launchctl list`)*.
+- **Site (`index.html`).** `#view-news` (hidden at first paint) renders `.ncard` buttons: frosted
+  rounded cards, category chip + date, headline, 3-line teaser, "Read more". The hover glow is a
+  separate `::before` layer, `visibility:hidden` when idle (the bubble rule). Click -> `openNews()`
+  pushes `/news/<key>` and expands the ONE `#newsArt` overlay with a `clip-path: inset()` wipe that
+  starts on the card's own rectangle (measured AFTER `body.locked`, same reasoning as the film
+  circle) and grows to the viewport; close retracts into the card (unlock first, re-measure). No
+  blur / backdrop-filter / box-shadow on the clipped element; the static `.na-panel` inside carries
+  the shadow. Body rendered by `newsMd()` (escape first, then the light markdown). Photo strip reuses
+  `.stills-grid` + the shared lightbox. Socials reuse `detectNet` + `SOCIAL_SVG`. Escape / Back pill /
+  "All news" all `history.back()`; a deep link arrives with `/news` underneath it so Back lands on the
+  list. `<picture>` is `display:contents` so the hero fills its box when `max-height` caps it (seen
+  live in the desktop-app pane). Nav: header + hamburger + footer (`site.json` nav gained
+  `{label:"News", go:"news"}`), `routeHash` accepts `#news` (rentals footer), `RESERVED` + the slug
+  regex + `_middleware.js RESERVED_SEGS` all include `news`.
+- **Pages CMS.** "News page" screen on `data/news-page.json`: the open/closed switch (covers `/news`
+  AND every article), headings, search title/description. `page-index.json` regenerated;
+  `check-page-switches` passes.
+- **Edge SEO.** `functions/_news_seo.js` (called from `_middleware.js` after the cover check): for
+  `/news` and `/news/<key>` it rewrites the SPA shell's `<title>`, description, canonical, OG/Twitter
+  tags and appends a JSON-LD `NewsArticle` (list: `CollectionPage`) from `data/news.json`, so crawlers
+  and link previews see the article without JavaScript. Unknown key -> the shell with a real 404.
+  Fails OPEN. Verified live with curl (title + JSON-LD present on both routes, `/news/nope` -> 404).
+- **Tests.** `smoke-test.mjs` opens and closes every published article; `check-slugs.mjs --write`
+  no longer splices the file (its replacement string ended in `$'`, which `String.replace` reads as
+  "text after the match"; that corrupted `.pages.yml` once this session and was restored from git).
+  Verified at 1440 / 820 / 390 with Playwright and live in the desktop app's browser pane (desktop +
+  mobile emulation).
+- **Known / next.** The OIAF article says the interview is not yet published; update the row when
+  the Animation Platform posts it (and add the post URL to `social_links`). Article 2 has no
+  thumbnail yet (the card shows the duck placeholder): drop one in its `Thumbnail/` folder. Dates on
+  the two Geri-Action articles are Jack's to confirm.
 
 ### 0.0.-70 N8N: weekly backup + sync failures fixed; n8n alerting moved into autoheal (2026-09-27)
 - The rp_admin "workflow FAILING" emails in September came from blocking `execSync` in n8n Code
@@ -2603,6 +2674,8 @@ package.json, tools/  ← test/QA harness.
 | `form-fields.json` | Input `type` per field for the rental/crew forms. | Pages CMS → "Form input types" |
 | `maintenance.json` | Random "back soon" messages/images for closed pages. | Pages CMS → "Maintenance Cover" |
 | `pages.json` | Custom pages (slug, blocks, nav toggles, per-page public switch). | Pages CMS → "Custom Pages" |
+| `news.json` | The News articles (array under `news`). | **GENERATED by news_sync.py from NocoDB.** Never hand-edit. |
+| `news-page.json` | News page switch, headings, search title/description. | Pages CMS → "News page" |
 | `stills-hd.json` | HD stills manifest (responsive srcset source). | Generated/managed by the stills pipeline (see `STILLS.md`). |
 
 ---

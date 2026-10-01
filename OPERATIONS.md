@@ -127,6 +127,22 @@ commit). *(This exporter replaced the old n8n "Projects: DB to site (rarepond)" 
 **One source of truth:** never edit the project list inside Pages CMS, it's a read-only mirror and
 the sync overwrites it. Projects + colour looks = NocoDB; team, settings, page copy = Pages CMS.
 
+### News (added 2026-09-30), same shape as projects
+
+**The chain:** write a row in the NocoDB `news` table (`key` = the address `/news/<key>`, `title`,
+`date`, `category`, `body`, `social_links`, tick `on_rarepond` when it is ready) -> within ~5 min
+`projects_folder_sync.py --profile news` (launchd `com.rarepond.newsmediasync`) creates
+`Website Repository/News (Web)/<Title>/` with `Thumbnail/` and `Images/` -> drop the photos there ->
+`news_media_sync.py` (same job) publishes them to `media/news/<key>/` and fills the `thumbnail` /
+`images` columns -> `news_sync.py` (launchd `com.rarepond.rpnewssync`) rebuilds `data/news.json`
+and the generated news block in `sitemap.xml` -> Cloudflare redeploys. The body is paragraphs
+separated by a blank line, with `**bold**`, `*italic*`, `[text](url)` and `## subhead`; the first
+paragraph is the card teaser and the search description. Un-tick `on_rarepond` to take an article
+down (row and folder are kept). Delete the row and the folder moves to `#recycling/`. The page's
+open/closed switch and headings live in Pages CMS -> "News page" (`data/news-page.json`).
+`functions/_news_seo.js` gives `/news` and `/news/<key>` real titles, descriptions, Open Graph tags
+and JSON-LD at the edge, from the same `news.json`. Detail: HANDOFF.md section 0.0.-71.
+
 ---
 
 ## The rental pipeline (the part with moving parts)

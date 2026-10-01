@@ -28,6 +28,8 @@ data/
   site.json           Logos, hero, About, SOCIAL LINKS, HubSpot form ids, event banner
   projects.json       One entry per project (home bubble + project page). GENERATED from NocoDB, never hand-edit.
   team.json           Team members
+  news.json           News articles. GENERATED from the NocoDB news table, never hand-edit.
+  news-page.json      News page switch + headings (Pages CMS -> News page)
   rentals.json        Rentals page copy + logos
   colorlooks.json     Every colour look. GENERATED from the NocoDB color_looks table, never hand-edit.
   pages.json          Custom pages (see CUSTOM_PAGES.md)

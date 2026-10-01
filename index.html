@@ -2623,6 +2623,7 @@ const viewPage=document.getElementById('view-page');
 const NEWS=Array.isArray(__d[11]&&__d[11].news)?__d[11].news:[];
 const NEWS_PAGE=__d[12]||{};
 const NEWS_BY_KEY=Object.fromEntries(NEWS.map(a=>[a.key,a]));
+const NEWS_LIST_TITLE=(NEWS_PAGE.seo&&NEWS_PAGE.seo.title)||'News | Rare Pond Studios';
 const viewNews=document.getElementById('view-news');
 const newsArt=document.getElementById('newsArt'), newsArtInner=document.getElementById('newsArtInner');
 let newsOpen=null;          /* key of the article currently expanded, or null */
@@ -2715,7 +2716,7 @@ function closeNews(instant){
   if(!newsOpen)return;
   const key=newsOpen;newsOpen=null;
   document.body.classList.remove('locked');
-  document.title='Rare Pond Studios';
+  document.title=NEWS_LIST_TITLE;
   newsArt.setAttribute('aria-hidden','true');
   const hide=()=>{newsArt.style.visibility='hidden';newsArt.classList.remove('closing','open');newsArt.style.transition='';};
   if(instant||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches&&instant!==false)){newsArt.style.transition='none';newsArt.classList.remove('open');hide();void newsArt.offsetWidth;newsArt.style.transition='';return;}
@@ -2751,7 +2752,7 @@ const SLUG2KEY={},KEY2SLUG={};
 __projects.filter(p=>!p.placeholder).forEach(p=>{const sl=p.slug||slugify(p.title);SLUG2KEY[sl]=p.key;KEY2SLUG[p.key]=sl;});
 function pathForDest(d){return d==='team'?'/team':d==='projects'?'/projects':d==='news'?'/news':'/';}
 /* render app state for a path (no history writes) */
-function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]){/* A film opens OVER the projects view. Custom pages can show bubbles, so a film can now be opened from one - make sure we swap the backdrop to projects first, exactly as a fresh load of /geriaction does, instead of leaving the custom page sitting underneath. */if(activeView==='page'){cpMarkNav('');showView('projects');}openUniverse(SLUG2KEY[seg]);return;}if(currentOpen)closeUniverse(currentOpen);/* /news and /news/<key>: the list view, plus the article expanded over it */const nm=/^news(?:\/([^\/]+))?$/.exec(seg);if(nm){if(activeView!=='news')showView('news');const nk=nm[1]?decodeURIComponent(nm[1]):'';if(nk&&NEWS_BY_KEY[nk]){if(newsOpen!==nk){if(newsOpen)closeNews(true);openNews(nk);}}else if(newsOpen)closeNews();return;}if(seg==='team')showView('team');else if(seg==='projects')showView('projects');else showView('home');}
+function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]){/* A film opens OVER the projects view. Custom pages can show bubbles, so a film can now be opened from one - make sure we swap the backdrop to projects first, exactly as a fresh load of /geriaction does, instead of leaving the custom page sitting underneath. */if(activeView==='page'){cpMarkNav('');showView('projects');}openUniverse(SLUG2KEY[seg]);return;}if(currentOpen)closeUniverse(currentOpen);/* /news and /news/<key>: the list view, plus the article expanded over it */const nm=/^news(?:\/([^\/]+))?$/.exec(seg);if(nm){if(activeView!=='news')showView('news');document.title=NEWS_LIST_TITLE;const nk=nm[1]?decodeURIComponent(nm[1]):'';if(nk&&NEWS_BY_KEY[nk]){if(newsOpen!==nk){if(newsOpen)closeNews(true);openNews(nk);}}else if(newsOpen)closeNews();return;}if(seg==='team')showView('team');else if(seg==='projects')showView('projects');else showView('home');}
 /* push a URL then render (in-page nav clicks) */
 /* --- custom-page routing -------------------------------------------------
    Custom pages live at  /<slug>   (e.g. /submit-a-screenplay).

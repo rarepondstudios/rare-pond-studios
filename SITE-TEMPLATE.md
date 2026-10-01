@@ -40,6 +40,7 @@ In this order. A site omits a section only when it genuinely has no such surface
 | 2 | **&lt;Name&gt; Sub Site** | `data/<name>.json` | One per sub site, grouped directly under Site Settings. |
 | 3 | **Projects** | `data/section-templates.json` | The shared text templates for project pages. The project LIST lives in NocoDB. |
 | 4 | **Team** | `data/team.json` | Only where the site has a team page. |
+| 4b | **News page** | `data/news-page.json` | Only where the site has a news section. The switch, headings and search listing; the ARTICLES live in NocoDB (`news` table), exported to `data/news.json`. |
 | 5 | **Custom Pages** | `data/pages.json` | Ad-hoc pages with their own slugs and blocks. |
 | 6 | **Contact Popup** | `data/contact.json` | Heading text and the HubSpot form connection. |
 | 7 | **Form Input Types** | `data/form-fields.json` | Every CUSTOM form on the site and the input type of each field. |
