@@ -109,6 +109,23 @@ Geri-Action Indie Short Fest selection), all reviewable in NocoDB.
   the Animation Platform posts it (and add the post URL to `social_links`). Article 2 has no
   thumbnail yet (the card shows the duck placeholder): drop one in its `Thumbnail/` folder. Dates on
   the two Geri-Action articles are Jack's to confirm.
+- **Review pass (2026-09-30, independent session).** Verified end to end with an adversarial
+  Playwright script at 1440 / 820 / 390 (routing, Back/Escape/popstate, deep link, hash arrival,
+  custom pages, films, lightbox, socials, poisoned `news.json`), all backend scripts (DRY), launchd
+  logs, the edge meta live, and the article facts (ISA 8th annual / 3,409 submissions and the OIAF
+  dates + venues match the festivals' own announcements). Fixed: (1) a film arriving over the News
+  view through Back/Forward (`/news/<key>` -> `/geriaction`) stacked the universe on the open article
+  (both z-index 100) and left the body lock behind; `renderPath` now closes the article and swaps
+  the backdrop to projects, as it already did for custom pages. (2) A malformed escape in the
+  address (`/news/%E0%A4%A`) threw `URIError` out of `initRoute` and killed the rest of `__main`
+  (home + stacked views, nav dead); routes now decode through `newsKey()` (try/catch). (3) The photo
+  strip's `onerror` fallback interpolated the image path into inline JS, so a quote in a filename
+  (`Jack's photo.jpg`) was a SyntaxError and a crafted one would have run; it now reads
+  `data-fallback`. (4) `newsMd()` links: protocol-relative `//host` rejected, and the href no longer
+  double-escapes `&quot;`. (5) `#view-news` added to the stylesheet's hidden-views rule (the inline
+  style already covered first paint). `news_sync.py` now skips (and logs) a row whose `key` is not a
+  slug instead of exporting a broken route / malformed sitemap `<loc>`. Left for Jack: unchanged
+  from the list above (OIAF thumbnail + interview link, the two Geri-Action dates).
 
 ### 0.0.-70 N8N: weekly backup + sync failures fixed; n8n alerting moved into autoheal (2026-09-27)
 - The rp_admin "workflow FAILING" emails in September came from blocking `execSync` in n8n Code
