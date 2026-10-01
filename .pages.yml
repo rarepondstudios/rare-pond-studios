@@ -132,7 +132,7 @@ content:
         list: true
         fields:
           - { name: label, label: Label, type: string }
-          - { name: go, label: In-site target (home/team/projects/contact - blank if it's a link to another site), type: string }
+          - { name: go, label: In-site target (home/team/projects/news/contact - blank if it's a link to another site), type: string }
           - { name: href, label: "Site/URL link (e.g. / , /media , /rentals) - blank if in-site", type: string }
           - { name: header, label: Show in header nav, type: boolean }
       - name: sectionHeadings
@@ -377,6 +377,44 @@ content:
         type: string
         default: "{kicker}"
         description: "The small caption under each bubble in the Projects grid / carousel. Default '{kicker}' shows each film's kicker. EXAMPLE: '{genre} · {year}' would show 'Sci-Fi · 2026'."
+  - name: newspage
+    label: "News page"
+    type: file
+    path: data/news-page.json
+    fields:
+      - name: publicAccess
+        label: "🚧 THIS PAGE IS OPEN TO THE PUBLIC"
+        type: boolean
+        default: true
+        description: "ON is normal. OFF sends anyone visiting this page a 'back soon' cover instead, with a message picked at random from MAINTENANCE COVER. THE ADDRESS KEEPS WORKING: shared links do not break, nobody gets a 404, and the page comes straight back the moment you switch it on again. Cloudflare serves the cover before the page is sent, so a closed page never reaches the browser at all. Takes effect within about a minute of saving. Every page has this switch at the top of its own screen; there is no second place to look. This switch covers /news AND every article under it."
+
+      - name: route
+        label: "🔗 The address this screen controls"
+        type: string
+        readonly: true
+        description: "Which page the switch above opens and closes. It is also how the site wires this screen into the cover system: a screen that declares an address IS a page, and page_index_sync.py picks it up automatically, so a page added later cannot end up without a switch. Do not change it by hand."
+
+      - name: nocodbNote
+        label: "📋 The articles themselves are written in NocoDB (read-only here)"
+        type: string
+        readonly: true
+        description: "Every article (headline, date, category, the text, social post links, which are published) is a row in the NocoDB `news` table at http://localhost:8080. Its photos come from the article's folder in the Website Repository: News (Web)/<article title>/ with Thumbnail/ (the card + hero image, first file wins) and Images/ (the photo strip after the text, name order first, then the order of the lines in the images field). The folder is created for you about five minutes after you add the row; the site republishes within about five minutes of any change. Only the boxes below are editable here: the page's headings and its search listing."
+
+      - name: headings
+        label: "🏷️ Page headings"
+        type: object
+        fields:
+          - { name: eyebrow, label: "Small uppercase line above the title", type: string, default: "What we're up to" }
+          - { name: heading, label: "Page title", type: string, default: "News" }
+          - { name: sub, label: "One-line intro under the title", type: string, default: "Festival runs, events, new projects and studio updates from the pond." }
+
+      - name: seo
+        label: "🔎 Search / browser tab (the list page; each article uses its own headline + first paragraph)"
+        type: object
+        fields:
+          - { name: title, label: "Browser tab + search title", type: string, default: "News | Rare Pond Studios" }
+          - { name: description, label: "Search description (under 160 characters)", type: string }
+
   - name: team
     label: Team
     type: file
@@ -455,7 +493,7 @@ content:
           - name: slug
             label: URL slug (lowercase, no spaces - e.g. summer-open-house)
             type: string
-            pattern: '^(?!(?:admin|assets|data|functions|geriaction|invalidopinion|media|projects|rentals|revelations|team|tools)$)[a-z0-9]+(?:-[a-z0-9]+)*$'
+            pattern: '^(?!(?:admin|assets|data|functions|geriaction|invalidopinion|media|news|projects|rentals|revelations|team|tools)$)[a-z0-9]+(?:-[a-z0-9]+)*$'
             description: "The page's web address. Slug 'summer-open-house' → rarepond.com/summer-open-house. Use lowercase letters, numbers and single dashes only. Certain words are refused because a film or a built-in page already answers to them (team, projects, rentals, admin, geriaction, revelations, invalidopinion) - if a page used one of those it could never open, so it is blocked here rather than failing silently later. This list is generated from the live films by tools/check-slugs.mjs; after adding or renaming a film, run `node tools/check-slugs.mjs --write` (the tests fail if you forget)."
           - name: publicAccess
             label: "🚧 This page is OPEN to the public"

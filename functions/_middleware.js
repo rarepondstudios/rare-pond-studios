@@ -1,4 +1,5 @@
 import { maintenanceFor } from './_maintenance.js';
+import { newsSeo } from './_news_seo.js';
 /* Cloudflare Pages Function - password gate for every internal page (/admin/*).
  *
  * WHY THIS EXISTS
@@ -128,7 +129,7 @@ const LEGACY = [
 /* Segments that are real routes, so a custom page can never be slugged one of them and stand in
    front of a real page. Keeping /admin here means a page slugged "admin" can never sit in front
    of the auth gate. */
-const RESERVED_SEGS = new Set(['admin','assets','data','functions','media','tools','maintenance','rentals','team','projects','g','go']);
+const RESERVED_SEGS = new Set(['admin','assets','data','functions','media','tools','maintenance','rentals','team','projects','news','g','go']);
 
 const MAINT = { legacy: LEGACY, reservedSegs: RESERVED_SEGS, customPages: '/data/pages.json' };
 
@@ -149,6 +150,15 @@ export async function onRequest(context) {
   let cover = null;
   try { cover = await maintenanceFor(context, pathname, MAINT); } catch (e) { cover = null; }
   if (cover) return cover;
+
+  // /news and /news/<key>: rewrite the SPA shell's <head> with the article's own title,
+  // description, Open Graph tags and JSON-LD so crawlers and link previews see the article
+  // (functions/_news_seo.js). Fails OPEN: null means serve the page untouched.
+  if (pathname === '/news' || pathname.startsWith('/news/')) {
+    let seo = null;
+    try { seo = await newsSeo(context, pathname); } catch (e) { seo = null; }
+    if (seo) return seo;
+  }
 
   // A missing file under /media/ must 404, not fall through to the SPA. Cloudflare Pages cannot
   // express this statically: a root 404.html HIJACKS the SPA /* catch-all (it 404'd every film

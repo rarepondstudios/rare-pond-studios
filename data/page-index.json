@@ -4,12 +4,17 @@
     {
       "route": "/",
       "file": "/data/site.json",
-      "name": "Home"
+      "name": "/"
     },
     {
       "route": "/media",
       "file": "/data/media.json",
       "name": "Media"
+    },
+    {
+      "route": "/news",
+      "file": "/data/news-page.json",
+      "name": "News"
     },
     {
       "route": "/projects",

@@ -96,13 +96,33 @@ async function main() {
 
     // 4) OTHER VIEWS - navigate the real URLs and require: no new errors + the shared nav
     //    chrome present (the SPA swapped views without throwing).
-    for (const [path, label] of [['/team', 'team'], ['/projects', 'projects']]) {
+    for (const [path, label] of [['/team', 'team'], ['/projects', 'projects'], ['/news', 'news']]) {
       const before = errs.length;
       await page.goto(BASE + path, { waitUntil: 'networkidle' });
       const nav = await page.$('.nav [data-go], nav [data-go]');
       (nav && errs.length === before)
         ? ok(label + ' view loads cleanly')
         : fail(label + ' view: nav=' + !!nav + ', newErrors=' + (errs.length - before));
+    }
+
+    // 4b) NEWS (2026-09-30): the card list builds from data/news.json and every published article
+    //     opens over it by its real URL (/news/<key>), closes on Escape, and leaves no errors.
+    {
+      const keys = await page.evaluate(async () => {
+        try { const r = await fetch('/data/news.json'); const d = await r.json(); return (d.news || []).map((a) => a.key); } catch (e) { return null; }
+      });
+      if (keys === null) fail('could not read data/news.json');
+      else if (!keys.length) ok('news: no published articles yet (list renders its empty state)');
+      for (const k of keys || []) {
+        const before = errs.length;
+        await page.goto(BASE + '/news/' + encodeURIComponent(k), { waitUntil: 'networkidle' });
+        const opened = await page.waitForSelector('#newsArt.open .na-panel h1', { state: 'visible', timeout: 6000 }).then(() => true).catch(() => false);
+        await page.keyboard.press('Escape'); await page.waitForTimeout(900);
+        const closed = await page.evaluate(() => getComputedStyle(document.getElementById('newsArt')).visibility === 'hidden' && !document.body.classList.contains('locked'));
+        (opened && closed && errs.length === before)
+          ? ok('news article "/news/' + k + '" opened and closed cleanly')
+          : fail('news article "/news/' + k + '" failed (opened=' + opened + ', closed=' + closed + ', newErrors=' + (errs.length - before) + ')');
+      }
     }
 
     // 5) RENTALS URL - currently the maintenance cover (rentals is closed in CMS). Either way

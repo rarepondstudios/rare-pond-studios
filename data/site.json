@@ -78,6 +78,11 @@
       "header": true
     },
     {
+      "label": "News",
+      "go": "news",
+      "header": true
+    },
+    {
       "label": "Studio",
       "href": "/",
       "header": false

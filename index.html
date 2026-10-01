@@ -134,7 +134,7 @@ html.xw-active{overflow:hidden}
   /* Scroll lock while a still lightbox is open: the lightbox owns the screen, so the project page
      (.universe is its own overflow-y:auto scroll container) must not scroll behind it. Released on
      close. overscroll-behavior stops the scroll-chain leaking to the page on trackpad/touch. */
-  body.lb-lock .universe{overflow:hidden!important;overscroll-behavior:none}
+  body.lb-lock .universe,body.lb-lock .news-art{overflow:hidden!important;overscroll-behavior:none}
   body.lb-lock{overscroll-behavior:none;touch-action:none}
   section{scroll-margin-top:100px;position:relative}
   a{color:inherit}
@@ -571,6 +571,83 @@ html.xw-active{overflow:hidden}
   .pp-head p{color:#1f4e86;font-size:15px;margin:0 auto;max-width:560px}
   .grid{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:24px clamp(40px,6vw,84px);justify-content:center;align-items:center;padding:16px 0 20px;perspective:1200px}
   .grid .bubble{margin:clamp(64px,9vh,92px) 0 clamp(44px,6vh,56px)}
+
+  /* ===== News (added 2026-09-30) =====================================================
+     /news is a scrolling list of rounded "bubble" cards (data/news.json, exported from the NocoDB
+     `news` table by bts-automation/news_sync.py). Clicking a card expands it into a full-screen
+     article (.news-art) with a clip-path inset() wipe that starts ON the card's own rectangle and
+     grows to the viewport: the same mechanism as the film universes' circle wipe, so it rides the
+     same compositor path. PERF RULES honoured here (OPERATIONS.md "blurred layer"): the expanding
+     overlay carries NO blur / backdrop-filter / box-shadow while it animates (the shadows live on
+     the static inner panel, which is not the element being clipped); the card hover glow is a
+     separate layer that is visibility:hidden when idle, exactly like the project bubbles; the view
+     starts display:none (first-paint rule) and its ambient bubbles only animate while shown. */
+  #news-page{position:relative;background:linear-gradient(180deg,#dcefff 0%,#79b3e6 26%,#2f6cb0 60%,#0c2c57 100%);min-height:100vh;padding:calc(var(--header-h) + 34px) clamp(18px,5vw,60px) 80px}
+  .news-list{position:relative;z-index:1;max-width:1040px;margin:30px auto 0;display:flex;flex-direction:column;gap:clamp(18px,3vh,28px)}
+  .news-empty{position:relative;z-index:1;text-align:center;color:#eaf2ff;opacity:.85;padding:40px 0}
+  /* the card: a frosted bubble. --h1/--h2/--h3 are set inline from the article's colour look. */
+  .ncard{--h1:var(--g1);--h2:var(--g2);--h3:var(--g3);position:relative;display:grid;grid-template-columns:minmax(0,38%) minmax(0,1fr);gap:clamp(16px,2.6vw,30px);align-items:center;width:100%;text-align:left;padding:clamp(14px,1.8vw,20px);border:0;border-radius:26px;cursor:pointer;color:#0b2c55;font:inherit;
+    background:rgba(255,255,255,.66);box-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 18px 44px rgba(12,44,87,.14);transition:transform .22s ease,background .22s ease}
+  .ncard:hover,.ncard.rpc-kbsel,.ncard:focus-visible{transform:translateY(-3px);background:rgba(255,255,255,.78)}
+  .ncard:focus-visible{outline:3px solid #0b59c4;outline-offset:3px}
+  /* hover glow ring: its own layer, hidden when idle (never a box-shadow on the moving card) */
+  .ncard::before{content:"";position:absolute;inset:-3px;border-radius:29px;pointer-events:none;z-index:-1;visibility:hidden;opacity:0;transition:opacity .25s ease,visibility 0s linear .25s;
+    background:conic-gradient(from 210deg,var(--h3),var(--h1) 35%,var(--h2) 68%,var(--h3));filter:blur(6px)}
+  .ncard:hover::before,.ncard.rpc-kbsel::before,.ncard:focus-visible::before{visibility:visible;opacity:.55;transition:opacity .25s ease,visibility 0s}
+  .ncard-thumb{position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#0a1226;isolation:isolate}
+  .ncard-thumb img{display:block;width:100%;height:100%;object-fit:cover}
+  /* no thumbnail yet: a clear placeholder in the look's colours with the duck mark, never a fake photo */
+  .ncard-thumb.ph{display:grid;place-items:center;background:linear-gradient(135deg,var(--h1),var(--h2) 55%,var(--h3))}
+  .ncard-thumb.ph img{width:38%;height:auto;opacity:.9;filter:drop-shadow(0 6px 14px rgba(0,10,40,.35))}
+  .ncard-thumb.ph::after{content:"Photo coming soon";position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.85)}
+  .ncard-body{min-width:0}
+  .ncard-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:#0e3e7a}
+  .ncard-meta .ncat{color:#fff;background:linear-gradient(90deg,var(--h1),var(--h2));padding:5px 10px;border-radius:50px;letter-spacing:.16em;font-size:11px}
+  .ncard-meta time{color:#1f4e86;letter-spacing:.14em}
+  .ncard h2{font-size:clamp(20px,2.4vw,27px);line-height:1.15;font-weight:800;letter-spacing:-.01em;color:#0b2c55;margin:10px 0 8px}
+  .ncard p{margin:0;color:#1f3f66;font-size:15px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .ncard .nmore{display:inline-block;margin-top:12px;font-weight:800;font-size:14px;color:#0b59c4}
+  @media(max-width:700px){.ncard{grid-template-columns:1fr;gap:12px;padding:12px;border-radius:22px}.ncard-thumb{border-radius:14px}.ncard h2{font-size:21px}.ncard p{-webkit-line-clamp:4}}
+
+  /* ----- the expanded article (one fixed overlay, reused for every article) ----- */
+  .news-art{position:fixed;inset:0;z-index:100;visibility:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+    clip-path:inset(var(--ct,40%) var(--cr,30%) var(--cb,40%) var(--cl,30%) round 26px);-webkit-clip-path:inset(var(--ct,40%) var(--cr,30%) var(--cb,40%) var(--cl,30%) round 26px);
+    transition:clip-path .55s cubic-bezier(.6,0,.2,1),-webkit-clip-path .55s cubic-bezier(.6,0,.2,1);
+    background:linear-gradient(180deg,#dcefff 0%,#79b3e6 26%,#2f6cb0 60%,#0c2c57 100%);color:#0b2c55;
+    --h1:var(--g1);--h2:var(--g2);--h3:var(--g3)}
+  .news-art.open{clip-path:inset(0 0 0 0 round 0px);-webkit-clip-path:inset(0 0 0 0 round 0px)}
+  .news-art.closing{transition:clip-path .42s cubic-bezier(.6,0,.2,1),-webkit-clip-path .42s cubic-bezier(.6,0,.2,1)}
+  @media(prefers-reduced-motion:reduce){.news-art{transition:clip-path .25s ease,-webkit-clip-path .25s ease}}
+  .na-inner{position:relative;max-width:980px;margin:0 auto;padding:calc(var(--header-h) + 64px) clamp(14px,4vw,40px) 130px;opacity:0;transform:translateY(12px);transition:opacity .45s .2s,transform .45s .2s}
+  .news-art.open .na-inner{opacity:1;transform:none}.news-art.closing .na-inner{opacity:0;transition:opacity .2s}
+  /* light variant of the floating back pill (same geometry as .back on the film pages) */
+  .back.back-light{color:#0b2c55;background:rgba(255,255,255,.72);border-color:rgba(15,62,122,.22);box-shadow:0 6px 22px rgba(12,44,87,.18)}
+  .back.back-light:hover{background:rgba(255,255,255,.92);border-color:rgba(15,62,122,.4);box-shadow:0 8px 26px rgba(12,44,87,.24)}
+  .na-panel{background:rgba(255,255,255,.80);border:1px solid rgba(255,255,255,.9);border-radius:28px;box-shadow:0 30px 80px rgba(4,20,50,.28);overflow:hidden}
+  .na-hero{position:relative;aspect-ratio:16/9;max-height:min(58vh,560px);background:#0a1226;isolation:isolate}
+  .na-hero img{display:block;width:100%;height:100%;object-fit:cover}
+  .na-hero.ph{display:grid;place-items:center;background:linear-gradient(135deg,var(--h1),var(--h2) 55%,var(--h3));aspect-ratio:21/9}
+  .na-hero.ph img{width:22%;height:auto;opacity:.9;filter:drop-shadow(0 6px 14px rgba(0,10,40,.35))}
+  .na-text{padding:clamp(22px,3.4vw,40px) clamp(18px,5vw,64px) clamp(28px,4vw,48px)}
+  .na-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:#0e3e7a}
+  .na-meta .ncat{color:#fff;background:linear-gradient(90deg,var(--h1),var(--h2));padding:5px 10px;border-radius:50px;letter-spacing:.16em;font-size:11px}
+  .na-meta time{color:#1f4e86;letter-spacing:.14em}
+  .na-text h1{font-size:clamp(26px,4vw,44px);line-height:1.08;font-weight:800;letter-spacing:-.02em;color:#0b2c55;margin:12px 0 18px;max-width:820px}
+  .na-body{max-width:740px;font-size:clamp(16px,1.3vw,18px);line-height:1.72;color:#17365c}
+  .na-body p{margin:0 0 1.1em}.na-body p:last-child{margin-bottom:0}
+  .na-body h2{font-size:clamp(19px,2vw,24px);font-weight:800;color:#0b2c55;margin:1.5em 0 .5em;letter-spacing:-.01em}
+  .na-body a{color:#0b59c4;font-weight:700;text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px}
+  .na-body strong{color:#0b2c55}
+  .na-gallery{margin-top:28px}
+  .na-gallery .stills-h{color:#0e3e7a}
+  .na-gallery .still{border-color:rgba(15,62,122,.18);box-shadow:0 10px 26px rgba(12,44,87,.18)}
+  .na-soc{margin-top:28px;padding-top:22px;border-top:1px solid rgba(15,62,122,.14);display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px}
+  .na-soc .na-soc-label{font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:#0e3e7a}
+  .na-soc .proj-soc-row{display:flex;gap:12px;flex-wrap:wrap}
+  .na-soc .proj-soc{color:#0b2c55;background:rgba(255,255,255,.7);border-color:rgba(15,62,122,.22)}
+  .na-foot{display:flex;justify-content:center;margin-top:30px}
+  .na-foot .learn-btn{font:inherit}
+  @media(max-width:700px){.na-inner{padding-top:calc(var(--header-h) + 58px)}.na-panel{border-radius:22px}.na-text{padding:18px 16px 24px}.news-art{clip-path:inset(var(--ct,40%) var(--cr,30%) var(--cb,40%) var(--cl,30%) round 22px);-webkit-clip-path:inset(var(--ct,40%) var(--cr,30%) var(--cb,40%) var(--cl,30%) round 22px)}}
 
   /* ===== About ===== */
   #about{padding:clamp(24px,4vh,52px) clamp(18px,5vw,60px) clamp(56px,8vh,90px)}
@@ -1108,7 +1185,7 @@ html.xw-active{overflow:hidden}
   <header class="site-header">
     <div class="hdr-bg"></div>
     <a class="hdr-logo" href="/" data-go="home" data-cursor="glow"><img class="hdr-duck" id="hdrDuck" src="/media/logos/duck-mark.webp" alt="Rare Pond Studios"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-studios">Studios</span></span></a>
-    <nav class="nav"><a href="/team" data-go="team">Our&nbsp;Team</a><a href="/projects" data-go="projects" id="navProjects">Projects</a><a href="/#contact" data-contact>Contact</a></nav>
+    <nav class="nav"><a href="/team" data-go="team">Our&nbsp;Team</a><a href="/projects" data-go="projects" id="navProjects">Projects</a><a href="/news" data-go="news" id="navNews">News</a><a href="/#contact" data-contact>Contact</a></nav>
     <div class="hright2"><div class="xnav"><a class="xchip" href="/media" data-wipe="R" data-dir="l" data-site="media" title="Go to Rare Pond Media"><span class="xar">&larr;</span>Media</a><span class="xchip xcur" data-site="studio">Studio</span><a class="xchip" href="/rentals" data-wipe="L" data-dir="r" data-site="rentals" title="Go to the Rare Pond Rentals site">Rentals<span class="xar">&rarr;</span></a></div><div class="socials rp-soc" id="socialsHost"></div><button class="hmenu-btn" id="hmenuBtn" aria-label="Menu" aria-controls="hmenu" aria-expanded="false"><span></span></button></div>
   </header>
   <!-- mobile menu: nav + socials, opened from the header hamburger (right of Rentals) -->
@@ -1116,6 +1193,7 @@ html.xw-active{overflow:hidden}
     <nav class="hmenu-links">
       <a href="/team" data-go="team">Our&nbsp;Team</a>
       <a href="/projects" data-go="projects">Projects</a>
+      <a href="/news" data-go="news">News</a>
       <a href="/#contact" data-contact>Contact</a>
       <a href="/media" class="hmenu-rentals hmenu-media" data-wipe="R"><span aria-hidden="true">&larr;</span>&nbsp;Media</a>
       <a href="/rentals" class="hmenu-rentals" data-wipe="L">Rentals&nbsp;<span aria-hidden="true">&rarr;</span></a>
@@ -1193,6 +1271,17 @@ html.xw-active{overflow:hidden}
     </section>
   </div>
 
+  <!-- News (2026-09-30): list of article cards from data/news.json; a card expands into the
+       #newsArt overlay below. Starts hidden (first-paint rule, OPERATIONS.md). -->
+  <div id="view-news" class="view" style="display:none">
+    <section id="news-page">
+      <div class="surface-rays"></div>
+      <div class="pp-head news-head"><div class="ey">What we're up to</div><h1>News</h1><p>Festival runs, events, new projects and studio updates from the pond.</p></div>
+      <div class="news-list" id="newsList"></div>
+      <footer class="site-footer rp-footer" data-footer></footer>
+    </section>
+  </div>
+
   <div id="view-page" class="view" style="display:none">
     <section id="custom-page">
       <div class="cp-wrap"><h1 class="cp-h1" id="cp-title"></h1><div id="cp-body"></div></div>
@@ -1204,12 +1293,14 @@ html.xw-active{overflow:hidden}
     <a class="fwm" href="/" data-go="home" data-cursor="glow" aria-label="Rare Pond Studios home"><img src="/media/logos/duck-mark.webp" loading="lazy" decoding="async" alt=""><span class="fwm-txt"><span class="fwm-rare">Rare Pond</span><span class="fwm-sub">Studios</span></span></a>
     <div class="tag">Let's Make Something Amazing...</div>
     <div class="fsoc" data-socials></div>
-    <div class="flinks"><a href="/team" data-go="team" data-cursor-pad="6">Our Team</a><a href="/projects" data-go="projects" data-cursor-pad="6">Projects</a><a href="/rentals" data-cursor-pad="6">Rentals</a><a href="/#contact" data-contact data-cursor-pad="6">Contact</a></div>
+    <div class="flinks"><a href="/team" data-go="team" data-cursor-pad="6">Our Team</a><a href="/projects" data-go="projects" data-cursor-pad="6">Projects</a><a href="/news" data-go="news" data-cursor-pad="6">News</a><a href="/rentals" data-cursor-pad="6">Rentals</a><a href="/#contact" data-contact data-cursor-pad="6">Contact</a></div>
     <div class="copy"><a href="https://rarepond.com" target="_blank" rel="noopener">rarepond.com</a> · © Rare Pond Studios 2026</div>
     <div class="rpc-a11y"><span>This site is keyboard accessible, try it out!</span><span class="rpc-a11y-cur">Use cool dynamic mouse: <button type="button" class="rpc-toggle" data-rpc-toggle role="switch" aria-checked="true" aria-label="Toggle dynamic cursor"><span class="rpc-knob"></span></button></span></div>
   </template>
 
   <div id="universes"></div>
+  <!-- the one expanded-article overlay, filled per article by openNews() -->
+  <div class="news-art" id="newsArt" aria-hidden="true"><button class="back back-light" type="button" id="newsBack">‹ Back to news</button><div class="na-inner" id="newsArtInner"></div></div>
 
 <script>async function __main(){
 
@@ -1224,7 +1315,9 @@ const __d=await Promise.all([
   fetch('/data/platforms.json').then(r=>r.json()).catch(()=>({platforms:[]})),
   fetch('/data/socials.json').then(r=>r.json()).catch(()=>({socials:[]})),
   fetch('/data/colorlooks.json').then(r=>r.json()).catch(()=>({looks:[]})),
-  fetch('/data/video-variants.json').then(r=>r.json()).catch(()=>({}))
+  fetch('/data/video-variants.json').then(r=>r.json()).catch(()=>({})),
+  fetch('/data/news.json').then(r=>r.json()).catch(()=>({news:[]})),        /* [11] News articles (generated by news_sync.py) */
+  fetch('/data/news-page.json').then(r=>r.json()).catch(()=>({}))           /* [12] News page copy + switch (Pages CMS) */
 ]);
 const SITE=__d[0];
 const __projects=__d[1].projects;
@@ -2407,7 +2500,7 @@ function closeUniverse(sec){
   stopSideVid(sec.querySelector('.u-vid'));   // PAUSE the background reel (keep currentTime) - stops decoding once the film is closed
   syncFocusVideo();     // back on the carousel - the featured card picks up where it left off
 }
-addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){/* preventDefault = arrows HANDLED here; the deferred custom-cursor kb nav sees defaultPrevented and stays out of the page behind the viewer */if(e.key==='Escape')closeLB();else if(e.key==='ArrowRight'){e.preventDefault();lbShow(lbIdx+1);}else if(e.key==='ArrowLeft'){e.preventDefault();lbShow(lbIdx-1);}return;}if(e.key==='Escape'&&currentOpen)history.back();});
+addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){/* preventDefault = arrows HANDLED here; the deferred custom-cursor kb nav sees defaultPrevented and stays out of the page behind the viewer */if(e.key==='Escape')closeLB();else if(e.key==='ArrowRight'){e.preventDefault();lbShow(lbIdx+1);}else if(e.key==='ArrowLeft'){e.preventDefault();lbShow(lbIdx-1);}return;}if(e.key==='Escape'&&(currentOpen||newsOpen))history.back();});
 
 /* ===== CUSTOM PAGES =====================================================
    Data: /data/pages.json   (edited in Pages CMS → "Custom Pages")
@@ -2511,23 +2604,150 @@ function renderCustomPage(pg){
 let activeView='home';
 const viewHome=document.getElementById('view-home'),viewProjects=document.getElementById('view-projects'),viewTeam=document.getElementById('view-team');
 const viewPage=document.getElementById('view-page');
+/* ===== NEWS ==========================================================================
+   Data: /data/news.json  (GENERATED by bts-automation/news_sync.py from the NocoDB `news` table;
+         never hand-edit) + /data/news-page.json (Pages CMS -> "News page": the switch + headings).
+   URL:  /news            the list of cards (pinned first, newest first, as exported)
+         /news/<key>      one article, opened over the list (deep-linkable; the edge function in
+                          functions/_middleware.js injects its title/description/OG/JSON-LD so
+                          crawlers and link previews see the article without running this script)
+   The site does ALL formatting: the body arrives as raw text with light markdown (blank line =
+   paragraph, **bold**, *italic*, [text](url), "## " subhead) and is rendered by newsMd() below,
+   HTML-escaped first so nothing in the database can inject markup. The teaser (first paragraph,
+   stripped) is exported ready-made so the card, the edge meta and the sitemap agree.
+   ================================================================================== */
+const NEWS=Array.isArray(__d[11]&&__d[11].news)?__d[11].news:[];
+const NEWS_PAGE=__d[12]||{};
+const NEWS_BY_KEY=Object.fromEntries(NEWS.map(a=>[a.key,a]));
+const viewNews=document.getElementById('view-news');
+const newsArt=document.getElementById('newsArt'), newsArtInner=document.getElementById('newsArtInner');
+let newsOpen=null;          /* key of the article currently expanded, or null */
+let newsCloseTimer=null;
+(function newsHeadings(){
+  const h=NEWS_PAGE.headings||{};const el=document.querySelector('#news-page .news-head');if(!el)return;
+  const set=(sel,v)=>{const n=el.querySelector(sel);if(n&&v)n.textContent=v;};
+  set('.ey',h.eyebrow);set('h1',h.heading);set('p',h.sub);
+})();
+/* YYYY-MM-DD -> "September 19, 2026" (parsed as a plain date, never shifted by the viewer's zone) */
+function newsDate(d){const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(d||'');if(!m)return '';const dt=new Date(+m[1],+m[2]-1,+m[3]);return dt.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});}
+/* colour look -> --h1/--h2/--h3 on an element (white when the look does not exist: OPERATIONS.md
+   "unassigned renders WHITE", no hidden fallback; the exporter already turned blank into signature) */
+const NEWS_LOOKS=Object.fromEntries(((__d[9]&&__d[9].looks)||[]).filter(l=>l&&l.key).map(l=>[l.key,l]));
+function newsLookStyle(a){
+  const L=NEWS_LOOKS[a.colorLook];
+  if(!L)return a.colorLook==='signature'?'':'--h1:#fff;--h2:#fff;--h3:#fff;';
+  const ok=c=>/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(c||'').trim())?c.trim():'#fff';
+  return `--h1:${ok(L.c1)};--h2:${ok(L.c2||L.c1)};--h3:${ok(L.c3||L.c1)};`;   /* colorlooks.json keys: c1/c2/c3 */
+}
+/* /media/news/<key>/thumb.jpg?h=x -> <picture> with the -800/-1600 webp variants the sync wrote */
+function newsPic(src,alt,sizes,eager){
+  const m=/^(.*)\.jpe?g(\?[^#]*)?$/i.exec(src||'');const q=(m&&m[2])||'';
+  const ws=m?`<source type="image/webp" sizes="${sizes}" srcset="${_wEsc(m[1])}-800.webp${q} 800w, ${_wEsc(m[1])}-1600.webp${q} 1600w">`:'';
+  return `<picture>${ws}<img src="${_wEsc(src)}" alt="${_wEsc(alt)}" loading="${eager?'eager':'lazy'}" decoding="async" onerror="this.onerror=null;var p=this.parentNode;if(p&&p.querySelector('source'))p.querySelector('source').remove()"></picture>`;
+}
+const NEWS_PH=`<img src="/media/logos/duck-mark.webp" alt="" loading="lazy" decoding="async">`;
+/* light markdown -> HTML. Escape first, then: **bold**, *italic*, [text](url), "## " subheads,
+   blank-line paragraphs, single newlines -> <br>. Links: http(s) or site-relative only. */
+function newsMd(raw){
+  const inline=t=>{
+    t=_wEsc(t);
+    t=t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,(m,txt,url)=>{url=url.replace(/&amp;/g,'&');if(!/^(https?:\/\/|\/)/i.test(url))return txt;const ext=/^https?:/i.test(url);return `<a href="${_wEsc(url)}"${ext?' target="_blank" rel="noopener"':''}>${txt}</a>`;});
+    t=t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+    t=t.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');
+    return t.replace(/\n/g,'<br>');
+  };
+  return String(raw||'').replace(/\r/g,'').trim().split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean)
+    .map(p=>/^##\s+/.test(p)?`<h2>${inline(p.replace(/^##\s+/,''))}</h2>`:`<p>${inline(p)}</p>`).join('');
+}
+function newsSocials(list){
+  const urls=(list||[]).filter(u=>_wUrl(u));if(!urls.length)return '';
+  const items=urls.map(u=>{const n=detectNet(u);const svg=SOCIAL_SVG[n.icon]||SOCIAL_SVG.web||'';return `<a class="proj-soc" href="${_wEsc(u)}" target="_blank" rel="noopener" data-net="${n.icon}" aria-label="${_wEsc(n.label)}" title="${_wEsc(n.label)}">${svg}</a>`;}).join('');
+  return `<div class="na-soc"><span class="na-soc-label">See the posts</span><div class="proj-soc-row">${items}</div></div>`;
+}
+function renderNewsList(){
+  const host=document.getElementById('newsList');if(!host)return;
+  if(!NEWS.length){host.innerHTML='<p class="news-empty">Nothing posted yet. Check back soon.</p>';return;}
+  host.innerHTML=NEWS.map(a=>{
+    const thumb=a.thumbnail?`<div class="ncard-thumb">${newsPic(a.thumbnail,a.title,'(max-width:700px) 92vw, 380px')}</div>`:`<div class="ncard-thumb ph">${NEWS_PH}</div>`;
+    const meta=`<div class="ncard-meta">${a.category?`<span class="ncat">${_wEsc(a.category)}</span>`:''}${a.date?`<time datetime="${_wEsc(a.date)}">${_wEsc(newsDate(a.date))}</time>`:''}</div>`;
+    return `<button class="ncard" type="button" data-news="${_wEsc(a.key)}" style="${newsLookStyle(a)}" aria-label="${_wEsc(a.title)}">${thumb}<div class="ncard-body">${meta}<h2>${_wEsc(a.title)}</h2><p>${_wEsc(a.teaser||'')}</p><span class="nmore">Read more →</span></div></button>`;
+  }).join('');
+}
+function renderNewsArticle(a){
+  const hero=a.thumbnail?`<div class="na-hero">${newsPic(a.thumbnail,a.title,'(max-width:1000px) 100vw, 980px',true)}</div>`:`<div class="na-hero ph">${NEWS_PH}</div>`;
+  const meta=`<div class="na-meta">${a.category?`<span class="ncat">${_wEsc(a.category)}</span>`:''}${a.date?`<time datetime="${_wEsc(a.date)}">${_wEsc(newsDate(a.date))}</time>`:''}</div>`;
+  const imgs=(a.images||[]);
+  const gallery=imgs.length?`<div class="u-stills na-gallery" style="padding:0;max-width:none"><h3 class="stills-h">Photos</h3><div class="stills-grid">${imgs.map(src=>{const m=/^(.*)\.jpe?g(\?[^#]*)?$/i.exec(src);const q=(m&&m[2])||'';const w800=m?`${m[1]}-800.webp${q}`:src;const w1600=m?`${m[1]}-1600.webp${q}`:src;return `<button class="still" type="button" data-full="${_wEsc(w1600)}" data-fallback="${_wEsc(src)}"><img src="${_wEsc(w800)}" loading="lazy" decoding="async" alt="" onerror="this.onerror=null;this.src='${_wEsc(src)}'"></button>`;}).join('')}</div></div>`:'';
+  newsArtInner.innerHTML=`<article class="na-panel">${hero}<div class="na-text">${meta}<h1>${_wEsc(a.title)}</h1><div class="na-body">${newsMd(a.body)}</div>${gallery}${newsSocials(a.socials)}</div></article><div class="na-foot"><button class="learn-btn" type="button" data-news-close>‹ All news</button></div>`;
+}
+/* the card's rectangle -> inset() variables on the overlay (viewport px, measured AFTER the body
+   lock, same reasoning as openUniverse: the lock removes the scrollbar and re-centres the page) */
+function newsSetOrigin(key){
+  const card=document.querySelector(`.ncard[data-news="${CSS.escape(key)}"]`);
+  const vw=innerWidth,vh=innerHeight;let t=vh*.42,l=vw*.3,b=vh*.42,r=vw*.3;
+  if(card&&activeView==='news'){const rc=card.getBoundingClientRect();t=Math.max(0,rc.top);l=Math.max(0,rc.left);b=Math.max(0,vh-rc.bottom);r=Math.max(0,vw-rc.right);
+    /* a card scrolled fully out of view would start the wipe off-screen; clamp to a thin band at that edge instead */
+    if(rc.bottom<0){t=0;b=vh-4;}if(rc.top>vh){t=vh-4;b=0;}}
+  newsArt.style.setProperty('--ct',t+'px');newsArt.style.setProperty('--cl',l+'px');newsArt.style.setProperty('--cb',b+'px');newsArt.style.setProperty('--cr',r+'px');
+}
+function openNews(key){
+  const a=NEWS_BY_KEY[key];if(!a)return false;
+  if(currentOpen)closeUniverse(currentOpen);
+  clearTimeout(newsCloseTimer);
+  const already=newsOpen===key&&newsArt.classList.contains('open');
+  newsOpen=key;
+  if(!already){renderNewsArticle(a);newsArt.setAttribute('style',newsLookStyle(a));}
+  document.title=a.title+' | Rare Pond Studios';
+  document.body.classList.add('locked');
+  if(already)return true;
+  newsArt.style.transition='none';newsArt.classList.remove('open','closing');
+  newsSetOrigin(key);
+  newsArt.style.visibility='visible';newsArt.setAttribute('aria-hidden','false');newsArt.scrollTop=0;
+  void newsArt.offsetWidth;newsArt.style.transition='';
+  requestAnimationFrame(()=>newsArt.classList.add('open'));
+  return true;
+}
+function closeNews(instant){
+  if(!newsOpen)return;
+  const key=newsOpen;newsOpen=null;
+  document.body.classList.remove('locked');
+  document.title='Rare Pond Studios';
+  newsArt.setAttribute('aria-hidden','true');
+  const hide=()=>{newsArt.style.visibility='hidden';newsArt.classList.remove('closing','open');newsArt.style.transition='';};
+  if(instant||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches&&instant!==false)){newsArt.style.transition='none';newsArt.classList.remove('open');hide();void newsArt.offsetWidth;newsArt.style.transition='';return;}
+  /* retract INTO the card: unlock first, then re-measure (the scrollbar came back), commit the
+     origin at full size with the transition off, then animate the inset back on */
+  newsArt.style.transition='none';newsSetOrigin(key);void newsArt.offsetWidth;newsArt.style.transition='';
+  newsArt.classList.add('closing');newsArt.classList.remove('open');
+  const done=e=>{if(e.target!==newsArt||(e.propertyName!=='clip-path'&&e.propertyName!=='-webkit-clip-path'))return;newsArt.removeEventListener('transitionend',done);clearTimeout(newsCloseTimer);hide();};
+  newsArt.addEventListener('transitionend',done);
+  newsCloseTimer=setTimeout(()=>{newsArt.removeEventListener('transitionend',done);hide();},700);
+}
+document.getElementById('newsList').addEventListener('click',e=>{const c=e.target.closest('.ncard');if(!c)return;const k=c.getAttribute('data-news');const url='/news/'+encodeURIComponent(k);if(location.pathname!==url)history.pushState({},'',url);openNews(k);});
+document.getElementById('newsBack').addEventListener('click',()=>history.back());
+newsArt.addEventListener('click',e=>{if(e.target.closest('[data-news-close]'))history.back();});
+renderNewsList();
+makeBgBubbles(document.getElementById('news-page'),Math.round(BG_BUBBLES*0.6),'fade-b');
+
 /* INSTANT scroll reset (no smooth glide). html{scroll-behavior:smooth} turns a bare
    window.scrollTo(0,0) into an ANIMATED scroll, so arriving on a new view visibly
    "landed at the bottom and scrolled up" (worst from links far down the page, e.g. the
    about CTAs / footer). Suspend the CSS behavior for the jump, then restore. */
 function __instTop(){const de=document.documentElement;const p=de.style.scrollBehavior;de.style.scrollBehavior='auto';try{window.scrollTo({top:0,left:0,behavior:'instant'});}catch(_){window.scrollTo(0,0);}de.style.scrollBehavior=p;}
 function showView(name,scrollTo){
-  activeView=name;viewHome.style.display=name==='home'?'block':'none';viewProjects.style.display=name==='projects'?'block':'none';viewTeam.style.display=name==='team'?'block':'none';viewPage.style.display=name==='page'?'block':'none';
+  if(newsOpen&&name!=='news')closeNews(true);   /* leaving the News view drops any expanded article instantly */
+  activeView=name;viewHome.style.display=name==='home'?'block':'none';viewProjects.style.display=name==='projects'?'block':'none';viewTeam.style.display=name==='team'?'block':'none';viewPage.style.display=name==='page'?'block':'none';viewNews.style.display=name==='news'?'block':'none';
   document.getElementById('navProjects').classList.toggle('active',name==='projects');
+  document.getElementById('navNews').classList.toggle('active',name==='news');
   if(scrollTo){const t=document.querySelector(scrollTo);if(t){__instTop();requestAnimationFrame(()=>t.scrollIntoView({behavior:'smooth'}));}}else __instTop();
 }
 /* slug <-> key (auto from title; optional "slug" in projects.json overrides) */
 const slugify=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
 const SLUG2KEY={},KEY2SLUG={};
 __projects.filter(p=>!p.placeholder).forEach(p=>{const sl=p.slug||slugify(p.title);SLUG2KEY[sl]=p.key;KEY2SLUG[p.key]=sl;});
-function pathForDest(d){return d==='team'?'/team':d==='projects'?'/projects':'/';}
+function pathForDest(d){return d==='team'?'/team':d==='projects'?'/projects':d==='news'?'/news':'/';}
 /* render app state for a path (no history writes) */
-function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]){/* A film opens OVER the projects view. Custom pages can show bubbles, so a film can now be opened from one - make sure we swap the backdrop to projects first, exactly as a fresh load of /geriaction does, instead of leaving the custom page sitting underneath. */if(activeView==='page'){cpMarkNav('');showView('projects');}openUniverse(SLUG2KEY[seg]);return;}if(currentOpen)closeUniverse(currentOpen);if(seg==='team')showView('team');else if(seg==='projects')showView('projects');else showView('home');}
+function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]){/* A film opens OVER the projects view. Custom pages can show bubbles, so a film can now be opened from one - make sure we swap the backdrop to projects first, exactly as a fresh load of /geriaction does, instead of leaving the custom page sitting underneath. */if(activeView==='page'){cpMarkNav('');showView('projects');}openUniverse(SLUG2KEY[seg]);return;}if(currentOpen)closeUniverse(currentOpen);/* /news and /news/<key>: the list view, plus the article expanded over it */const nm=/^news(?:\/([^\/]+))?$/.exec(seg);if(nm){if(activeView!=='news')showView('news');const nk=nm[1]?decodeURIComponent(nm[1]):'';if(nk&&NEWS_BY_KEY[nk]){if(newsOpen!==nk){if(newsOpen)closeNews(true);openNews(nk);}}else if(newsOpen)closeNews();return;}if(seg==='team')showView('team');else if(seg==='projects')showView('projects');else showView('home');}
 /* push a URL then render (in-page nav clicks) */
 /* --- custom-page routing -------------------------------------------------
    Custom pages live at  /<slug>   (e.g. /submit-a-screenplay).
@@ -2543,7 +2763,7 @@ function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'')
    mistake, not a code failure, so it is surfaced loudly in the page directory
    (/admin/pagesindex) rather than silently swallowed here. */
 const RESERVED = new Set([
-  '', 'team', 'projects', 'rentals', 'admin',      // built-in views + real folders
+  '', 'team', 'projects', 'news', 'rentals', 'admin',   // built-in views + real folders
   'data', 'assets', 'media', 'functions', 'tools', // real folders in the repo
 ]);
 const cpLegacySlug = () => (new URLSearchParams(location.search).get('p') || '').trim();
@@ -2643,10 +2863,10 @@ document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]')
 /* browser back / forward drives the view (this is how the universe closes on Back) */
 addEventListener('popstate',()=>renderRoute());
 /* hash links from other pages (rentals): /#team /#projects /#contact /#about */
-function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if(currentOpen)closeUniverse(currentOpen);if(h==='team'){try{history.replaceState({},'','/team');}catch(e){}showView('team');}else if(h==='projects'){try{history.replaceState({},'','/projects');}catch(e){}showView('projects');}else if(h==='contact'){if(window.RP_openContact)RP_openContact();}else if(h==='about')showView('home','#about');}
+function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if(currentOpen)closeUniverse(currentOpen);if(h==='team'){try{history.replaceState({},'','/team');}catch(e){}showView('team');}else if(h==='projects'){try{history.replaceState({},'','/projects');}catch(e){}showView('projects');}else if(h==='news'){try{history.replaceState({},'','/news');}catch(e){}showView('news');}else if(h==='contact'){if(window.RP_openContact)RP_openContact();}else if(h==='about')showView('home','#about');}
 addEventListener('hashchange',routeHash);
 /* initial route */
-(function initRoute(){const __l=cpLegacySlug();if(__l&&PAGE_BY_SLUG[__l])history.replaceState({},'',cpUrl(__l));const __s=cpSlugFromUrl();if(__s){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
+(function initRoute(){const __l=cpLegacySlug();if(__l&&PAGE_BY_SLUG[__l])history.replaceState({},'',cpUrl(__l));const __s=cpSlugFromUrl();if(__s){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='news'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');const nm0=/^news\/([^\/]+)$/.exec(seg);if(nm0&&NEWS_BY_KEY[decodeURIComponent(nm0[1])]){history.replaceState({},'','/news');showView('news');history.pushState({},'',p);openNews(decodeURIComponent(nm0[1]));}else if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
 
 /* Second half of the reload-jump fix (first half is history.scrollRestoration in <head>).
    Even with restoration off, late layout growth - webfonts swapping in, lazy images landing - can nudge the scroll position after we've rendered. So re-assert the top as things settle.

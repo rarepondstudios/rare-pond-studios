@@ -1,0 +1,14 @@
+{
+  "route": "/news",
+  "pageName": "News",
+  "publicAccess": true,
+  "headings": {
+    "eyebrow": "What we're up to",
+    "heading": "News",
+    "sub": "Festival runs, events, new projects and studio updates from the pond."
+  },
+  "seo": {
+    "title": "News | Rare Pond Studios",
+    "description": "Festival selections, premieres, events and studio updates from Rare Pond Studios, an independent film studio working across live action and animation."
+  }
+}

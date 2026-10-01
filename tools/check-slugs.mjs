@@ -30,7 +30,7 @@ const read = f => JSON.parse(readFileSync(ROOT + f, 'utf8'));
 
 /* Built-in addresses the router answers itself, plus real folders that are served as
    files. Keep in step with RESERVED in index.html. */
-const BUILT_IN = ['team', 'projects', 'rentals', 'admin', 'data', 'assets', 'media', 'functions', 'tools'];
+const BUILT_IN = ['team', 'projects', 'news', 'rentals', 'admin', 'data', 'assets', 'media', 'functions', 'tools'];
 
 /* The router's slug rule for films, copied verbatim from index.html. */
 const slugify = s => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -51,8 +51,11 @@ const pass = m => console.log('PASS  ' + m);
 if (process.argv.includes('--write')) {
   const f = ROOT + '.pages.yml';
   const before = readFileSync(f, 'utf8');
-  const after = before.replace(/(\n\s+pattern:\s*)(?:'[^']*'|"[^"]*")/, `$1'${pattern}'`);
-  if (before === after) { console.log('Could not find a pattern: line to update in .pages.yml'); process.exit(1); }
+  /* function replacement: the pattern ends in `$'`, which String.replace would otherwise read as
+     the "text after the match" token and splice the rest of the file in (bit on 2026-09-30) */
+  const after = before.replace(/(\n\s+pattern:\s*)(?:'[^']*'|"[^"]*")/, (m, lead) => lead + "'" + pattern + "'");
+  if (!/\n\s+pattern:\s*(?:'[^']*'|"[^"]*")/.test(before)) { console.log('Could not find a pattern: line to update in .pages.yml'); process.exit(1); }
+  if (before === after) { console.log('.pages.yml slug pattern already current:\n  ' + pattern); process.exit(0); }
   writeFileSync(f, after);
   console.log('.pages.yml slug pattern regenerated from live data:\n  ' + pattern);
   process.exit(0);
