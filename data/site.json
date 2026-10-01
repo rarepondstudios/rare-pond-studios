@@ -140,7 +140,7 @@
     "formId": "2f174b0e-b67d-4ca2-b12c-bd877ac8cab3"
   },
   "eventBanner": {
-    "enabled": true,
+    "enabled": false,
     "title": "Geri-Action WORLD PREMIERE! ",
     "buttonText": "Watch in LA",
     "buttonLink": "/geriaction",
