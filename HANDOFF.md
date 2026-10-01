@@ -37,7 +37,43 @@
 
 ---
 
-## 0. LATEST SESSION (2026-09-30), READ THIS FIRST
+## 0. LATEST SESSION (2026-10-01), READ THIS FIRST
+
+### 0.0.-72 NEWS, PASS 2: THE SQUARE (collage), keyboard reach, recommended articles, shorter copy (2026-10-01)
+
+Jack's second-pass notes, all applied and live:
+
+- **One square image slot.** The separate `Thumbnail/` folder and the `thumbnail` column are retired
+  (`_drop_news_thumbnail.py`: Postgres column dropped through the NocoDB-stored connection + meta-diff;
+  `projects_folder_sync.py --profile news` now provisions only `Images/`). Every article image slot is
+  1:1: the card thumb (left column) and the top of the article (left of the headline). One image
+  fills it; 2, 3 or 4 images COLLAGE into the same square (`newsCollage()`: CSS grid, 2 = side by side,
+  3 = tall left + two stacked, 4 = 2x2); a fifth and beyond get a "+N" badge and stay in the lightbox.
+  The FIRST line of `images` is the lead (also the OG image at the edge). Supply square masters; a
+  non-square one is centre-cropped by object-fit. The old "Photos" strip under the text is gone; the
+  article's square tiles are the lightbox buttons instead. The `.ncol .ntile` rules use two-class
+  selectors on purpose: the shared `.still` rule is declared later in the sheet and must lose.
+- **Keyboard.** The custom-cursor keyboard nav (`assets/cursor.js` `kbEngage`) refuses any target wider
+  than 62% of the viewport unless it carries `data-cursor="nohug"`, and the news cards are ~72% wide
+  at 1440, so arrows never reached them. Cards (and the recommended mini cards) are now
+  `role="button" tabindex="0" data-cursor="nohug"`: arrows reach them, Enter/Space open them (a
+  keydown handler covers plain Tab users), the glow mirrors `.rpc-kbsel`. Verified with Playwright:
+  ArrowDown lands on a card, Enter opens, arrows then walk hero tiles -> socials -> recommended.
+- **Recommended + All news.** Under the panel, "More from the pond": up to three other articles (list
+  order) as mini cards; choosing one swaps the article IN PLACE (`openNews()` on an open overlay fades
+  `.na-inner`, re-renders, scrolls to top, pushes the new URL; Back returns to the previous article,
+  Back again to the list). "All news" below it.
+- **Links in the body.** `[words](address)`: a site path (`/geriaction`, `/projects`, `/team`,
+  `/rentals`, `/news/<key>`) routes through the SPA (the article closes instantly underneath; a
+  `/news/<key>` target swaps in place); a full `https://` address opens in a new tab. Spelled out in
+  the NocoDB `body` description and the HANDOFF; nothing else becomes a link.
+- **See our posts.** Renamed; rendered only when `social_links` has at least one URL; platform
+  detected by `detectNet` (shared), brand colour on the glyph at rest and the shared brand fill on
+  hover.
+- **Copy.** All three seed bodies cut to 2-3 short paragraphs in a plainer voice (`_seed_news.py`).
+- **CMS.** "News page" screen: switch at the top (covers `/news` and every article), headings, search
+  listing; the NocoDB note rewritten for the single `Images/` folder. NocoDB column descriptions
+  (`body`, `images`, `social_links`) rewritten to match.
 
 ### 0.0.-71 NEWS SECTION: /news CARDS + EXPANDING ARTICLES, NocoDB `news` TABLE, FOLDER-DRIVEN PHOTOS, EDGE SEO (2026-09-30)
 

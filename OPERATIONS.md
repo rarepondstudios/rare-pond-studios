@@ -132,9 +132,9 @@ the sync overwrites it. Projects + colour looks = NocoDB; team, settings, page c
 **The chain:** write a row in the NocoDB `news` table (`key` = the address `/news/<key>`, `title`,
 `date`, `category`, `body`, `social_links`, tick `on_rarepond` when it is ready) -> within ~5 min
 `projects_folder_sync.py --profile news` (launchd `com.rarepond.newsmediasync`) creates
-`Website Repository/News (Web)/<Title>/` with `Thumbnail/` and `Images/` -> drop the photos there ->
-`news_media_sync.py` (same job) publishes them to `media/news/<key>/` and fills the `thumbnail` /
-`images` columns -> `news_sync.py` (launchd `com.rarepond.rpnewssync`) rebuilds `data/news.json`
+`Website Repository/News (Web)/<Title>/Images/` -> drop SQUARE photos there (the first is the lead, two to four collage into the same square) ->
+`news_media_sync.py` (same job) publishes them to `media/news/<key>/images/` and fills the
+`images` column -> `news_sync.py` (launchd `com.rarepond.rpnewssync`) rebuilds `data/news.json`
 and the generated news block in `sitemap.xml` -> Cloudflare redeploys. The body is paragraphs
 separated by a blank line, with `**bold**`, `*italic*`, `[text](url)` and `## subhead`; the first
 paragraph is the card teaser and the search description. Un-tick `on_rarepond` to take an article

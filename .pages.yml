@@ -398,7 +398,7 @@ content:
         label: "📋 The articles themselves are written in NocoDB (read-only here)"
         type: string
         readonly: true
-        description: "Every article (headline, date, category, the text, social post links, which are published) is a row in the NocoDB `news` table at http://localhost:8080. Its photos come from the article's folder in the Website Repository: News (Web)/<article title>/ with Thumbnail/ (the card + hero image, first file wins) and Images/ (the photo strip after the text, name order first, then the order of the lines in the images field). The folder is created for you about five minutes after you add the row; the site republishes within about five minutes of any change. Only the boxes below are editable here: the page's headings and its search listing."
+        description: "Every article (headline, date, category, the text, social post links, which are published) is a row in the NocoDB `news` table at http://localhost:8080. Its photos come from the article's folder in the Website Repository: News (Web)/<article title>/Images/ (SQUARE images; the first one is the lead image on the card and at the top of the article, two to four collage into the same square; name order first, then the order of the lines in the images field). The folder is created for you about five minutes after you add the row; the site republishes within about five minutes of any change. Only the boxes below are editable here: the page's headings and its search listing."
 
       - name: headings
         label: "🏷️ Page headings"

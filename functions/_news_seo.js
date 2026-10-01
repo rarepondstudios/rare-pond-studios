@@ -29,7 +29,7 @@ function clip(s, n) {
 
 function articleMeta(a) {
   const url = ORIGIN + '/news/' + encodeURIComponent(a.key);
-  const img = abs(a.thumbnail) || FALLBACK_IMG;
+  const img = abs(Array.isArray(a.images) && a.images.length ? a.images[0] : '') || FALLBACK_IMG;   /* the first image is the lead */
   const desc = clip(a.teaser || '', 160);
   const ld = {
     '@context': 'https://schema.org',
