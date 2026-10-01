@@ -595,6 +595,10 @@ html.xw-active{overflow:hidden}
     background:conic-gradient(from 210deg,var(--h3),var(--h1) 35%,var(--h2) 68%,var(--h3));filter:blur(6px)}
   .ncard:hover::before,.ncard.rpc-kbsel::before,.ncard:focus-visible::before{visibility:visible;opacity:.55;transition:opacity .25s ease,visibility 0s}
   .ncard-thumb{position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#0a1226}
+  /* <picture> is display:contents so the <img> sizes against the thumb/hero box itself (a
+     percentage height against an inline <picture> is auto, and the hero then shrank to the
+     image's own ratio when max-height capped the box: seen live in the desktop-app pane) */
+  .ncard-thumb picture,.na-hero picture{display:contents}
   .ncard-thumb img{display:block;width:100%;height:100%;object-fit:cover}
   /* no thumbnail yet: a clear placeholder in the look's colours with the duck mark, never a fake photo */
   .ncard-thumb.ph{display:grid;place-items:center;background:linear-gradient(135deg,var(--h1),var(--h2) 55%,var(--h3))}
@@ -2667,8 +2671,8 @@ function newsSocials(list){
 function renderNewsList(){
   const host=document.getElementById('newsList');if(!host)return;
   if(!NEWS.length){host.innerHTML='<p class="news-empty">Nothing posted yet. Check back soon.</p>';return;}
-  host.innerHTML=NEWS.map(a=>{
-    const thumb=a.thumbnail?`<div class="ncard-thumb">${newsPic(a.thumbnail,a.title,'(max-width:700px) 92vw, 380px')}</div>`:`<div class="ncard-thumb ph">${NEWS_PH}</div>`;
+  host.innerHTML=NEWS.map((a,i)=>{
+    const thumb=a.thumbnail?`<div class="ncard-thumb">${newsPic(a.thumbnail,a.title,'(max-width:700px) 92vw, 380px',i<2)}</div>`:`<div class="ncard-thumb ph">${NEWS_PH}</div>`;
     const meta=`<div class="ncard-meta">${a.category?`<span class="ncat">${_wEsc(a.category)}</span>`:''}${a.date?`<time datetime="${_wEsc(a.date)}">${_wEsc(newsDate(a.date))}</time>`:''}</div>`;
     return `<button class="ncard" type="button" data-news="${_wEsc(a.key)}" style="${newsLookStyle(a)}" aria-label="${_wEsc(a.title)}">${thumb}<div class="ncard-body">${meta}<h2>${_wEsc(a.title)}</h2><p>${_wEsc(a.teaser||'')}</p><span class="nmore">Read more →</span></div></button>`;
   }).join('');
