@@ -100,6 +100,10 @@ async function main() {
       const before = errs.length;
       await page.goto(BASE + path, { waitUntil: 'networkidle' });
       const nav = await page.$('.nav [data-go], nav [data-go]');
+      /* a page switched OFF in Pages CMS is served as the maintenance cover by the local
+         Cloudflare-like server, exactly like production: that is a pass, not a failure */
+      const covered = !nav && !!(await page.$('.mwrap, [data-covers]'));
+      if (covered) { ok(label + ' view is closed in the CMS (cover served)'); continue; }
       (nav && errs.length === before)
         ? ok(label + ' view loads cleanly')
         : fail(label + ' view: nav=' + !!nav + ', newErrors=' + (errs.length - before));
@@ -111,7 +115,9 @@ async function main() {
       const keys = await page.evaluate(async () => {
         try { const r = await fetch('/data/news.json'); const d = await r.json(); return (d.news || []).map((a) => a.key); } catch (e) { return null; }
       });
+      const newsClosed = await page.evaluate(async () => { try { const r = await fetch('/data/news-page.json'); const d = await r.json(); return d.publicAccess === false; } catch (e) { return false; } });
       if (keys === null) fail('could not read data/news.json');
+      else if (newsClosed) { ok('news articles skipped: the News page is closed in the CMS'); keys.length = 0; }
       else if (!keys.length) ok('news: no published articles yet (list renders its empty state)');
       for (const k of keys || []) {
         const before = errs.length;

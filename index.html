@@ -572,114 +572,94 @@ html.xw-active{overflow:hidden}
   .grid{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:24px clamp(40px,6vw,84px);justify-content:center;align-items:center;padding:16px 0 20px;perspective:1200px}
   .grid .bubble{margin:clamp(64px,9vh,92px) 0 clamp(44px,6vh,56px)}
 
-  /* ===== News (added 2026-09-30) =====================================================
-     /news is a scrolling list of rounded "bubble" cards (data/news.json, exported from the NocoDB
-     `news` table by bts-automation/news_sync.py). Clicking a card expands it into a full-screen
-     article (.news-art) with a clip-path inset() wipe that starts ON the card's own rectangle and
-     grows to the viewport: the same mechanism as the film universes' circle wipe, so it rides the
-     same compositor path. PERF RULES honoured here (OPERATIONS.md "blurred layer"): the expanding
-     overlay carries NO blur / backdrop-filter / box-shadow while it animates (the shadows live on
-     the static inner panel, which is not the element being clipped); the card hover glow is a
-     separate layer that is visibility:hidden when idle, exactly like the project bubbles; the view
-     starts display:none (first-paint rule) and its ambient bubbles only animate while shown. */
+  /* ===== News (added 2026-09-30, grid + popup since 2026-10-01) ==========================
+     /news is a 3-column grid of article cards (data/news.json, exported from the NocoDB `news`
+     table by bts-automation/news_sync.py). Each card shows the WHOLE article: 3:4 image, title,
+     category + date, the two-sentence body, and "Learn more" social buttons when the row has any.
+     Clicking a card opens the same article in a popup over a darkened page, exactly the still
+     lightbox's treatment (same scrim, same top-left X, same side arrows), with a sliver of the
+     previous / next article showing at either edge; arrows, swipe and the keyboard step through
+     them, X / scrim click / Escape close. PERF RULES honoured (OPERATIONS.md "blurred layer"): the
+     popup panel animates with transform + opacity only (FLIP from the card's rectangle); the
+     scrim's backdrop-filter is on a static full-screen layer that only fades, like the lightbox;
+     the card hover glow is a separate layer that is visibility:hidden when idle; the view starts
+     display:none (first-paint rule) and its ambient bubbles only animate while shown. */
   #news-page{position:relative;background:linear-gradient(180deg,#dcefff 0%,#79b3e6 26%,#2f6cb0 60%,#0c2c57 100%);min-height:100vh;padding:calc(var(--header-h) + 34px) clamp(18px,5vw,60px) 80px}
-  .news-list{position:relative;z-index:1;max-width:1040px;margin:30px auto 0;display:flex;flex-direction:column;gap:clamp(18px,3vh,28px)}
-  .news-empty{position:relative;z-index:1;text-align:center;color:#eaf2ff;opacity:.85;padding:40px 0}
+  .news-grid{position:relative;z-index:1;max-width:1180px;margin:30px auto 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(16px,2.2vw,26px);align-items:start}
+  @media(max-width:980px){.news-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:620px){.news-grid{grid-template-columns:1fr;max-width:440px}}
+  .news-empty{position:relative;z-index:1;text-align:center;color:#eaf2ff;opacity:.85;padding:40px 0;grid-column:1/-1}
   /* the card: a frosted bubble. --h1/--h2/--h3 are set inline from the article's colour look. */
-  .ncard{--h1:var(--g1);--h2:var(--g2);--h3:var(--g3);position:relative;display:grid;grid-template-columns:clamp(150px,26%,250px) minmax(0,1fr);gap:clamp(16px,2.6vw,30px);align-items:center;width:100%;text-align:left;padding:clamp(14px,1.8vw,20px);border:0;border-radius:26px;cursor:pointer;color:#0b2c55;font:inherit;
-    background:rgba(255,255,255,.66);box-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 18px 44px rgba(12,44,87,.14);transition:transform .22s ease,background .22s ease}
-  .ncard:hover,.ncard.rpc-kbsel,.ncard:focus-visible{transform:translateY(-3px);background:rgba(255,255,255,.78)}
+  .ncard{--h1:var(--g1);--h2:var(--g2);--h3:var(--g3);position:relative;display:flex;flex-direction:column;gap:12px;width:100%;text-align:left;padding:14px 14px 18px;border:0;border-radius:24px;cursor:pointer;color:#0b2c55;font:inherit;
+    background:rgba(255,255,255,.68);box-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 18px 44px rgba(12,44,87,.14);transition:transform .22s ease,background .22s ease}
+  .ncard:hover,.ncard.rpc-kbsel,.ncard:focus-visible{transform:translateY(-3px);background:rgba(255,255,255,.8)}
   .ncard:focus-visible{outline:3px solid #0b59c4;outline-offset:3px}
   /* hover glow ring: its own layer, hidden when idle (never a box-shadow on the moving card) */
-  .ncard::before{content:"";position:absolute;inset:-3px;border-radius:29px;pointer-events:none;z-index:-1;visibility:hidden;opacity:0;transition:opacity .25s ease,visibility 0s linear .25s;
+  .ncard::before{content:"";position:absolute;inset:-3px;border-radius:27px;pointer-events:none;z-index:-1;visibility:hidden;opacity:0;transition:opacity .25s ease,visibility 0s linear .25s;
     background:conic-gradient(from 210deg,var(--h3),var(--h1) 35%,var(--h2) 68%,var(--h3));filter:blur(6px)}
   .ncard:hover::before,.ncard.rpc-kbsel::before,.ncard:focus-visible::before{visibility:visible;opacity:.55;transition:opacity .25s ease,visibility 0s}
-  /* THE SQUARE (card). One image fills it; 2-4 collage (see newsCollage). The tiles are the shared
-     .still buttons so the lightbox works, restyled flat here (no per-tile shadow: 4 shadows on a
-     card that translates on hover would be 4 re-rasters). */
-  .ncard-thumb{position:relative;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:#0a1226}
-  /* .ncol.stills-grid: the article hero also carries .stills-grid (for the lightbox walk), whose own
-     grid rule sits later in this sheet, so the collage rules are doubled up to out-rank it */
-  .ncol,.ncol.stills-grid{display:grid;gap:3px;padding:0;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
-  .ncol-1,.ncol-1.stills-grid{grid-template-columns:1fr;grid-template-rows:1fr}
-  .ncol-2,.ncol-2.stills-grid{grid-template-rows:1fr}
-  .ncol-3 .ntile:first-child{grid-row:1/3}
-  /* two-class selectors on purpose: the shared .still rule (16:9, radius, shadow, hover lift) is
-     declared later in this sheet and must lose to these tile resets */
-  .ncol .ntile,.ncol .ntile:hover,.ncol .ntile:focus-visible{position:relative;display:block;padding:0;margin:0;border:0;border-radius:0;overflow:hidden;background:#0a1226;aspect-ratio:auto;box-shadow:none;min-width:0;min-height:0;width:100%;height:100%;cursor:zoom-in;transition:none;transform:none}
-  .ncol .ntile:focus-visible{outline:3px solid #fff;outline-offset:-3px}
-  .ncol .ntile picture{display:contents}
-  .ncol .ntile img{display:block;width:100%;height:100%;object-fit:cover}
-  .ncol .ntile.nhid{display:none}
-  .nmore-badge{position:absolute;right:8px;bottom:8px;padding:4px 9px;border-radius:50px;background:rgba(5,16,31,.72);color:#fff;font-size:12px;font-weight:800;letter-spacing:.04em;pointer-events:none}
-  .ncol span.ntile{cursor:inherit}   /* on a card the whole card is the control; only the article hero tiles zoom */
+  /* THE IMAGE: one per article, 3:4 (a social post's portrait frame), centre-cropped by object-fit */
+  .nimg{position:relative;aspect-ratio:3/4;border-radius:16px;overflow:hidden;background:#0a1226}
+  .nimg picture{display:contents}
+  .nimg img{display:block;width:100%;height:100%;object-fit:cover}
   /* no image yet: a clear placeholder in the look's colours with the duck mark, never a fake photo */
-  .ncard-thumb.ph,.na-hero.ph,.nmini-thumb.ph{display:grid;place-items:center;background:linear-gradient(135deg,var(--h1),var(--h2) 55%,var(--h3))}
-  .ncard-thumb.ph img,.na-hero.ph img{width:42%;height:auto;opacity:.9;filter:drop-shadow(0 6px 14px rgba(0,10,40,.35))}
-  .ncard-thumb.ph::after,.na-hero.ph::after{content:"Photo coming soon";position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.85)}
-  .ncard-body{min-width:0}
-  .ncard-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:#0e3e7a}
-  .ncard-meta .ncat{color:#fff;background:linear-gradient(90deg,var(--h1),var(--h2));padding:5px 10px;border-radius:50px;letter-spacing:.16em;font-size:11px}
-  .ncard-meta time{color:#1f4e86;letter-spacing:.14em}
-  .ncard h2{font-size:clamp(20px,2.4vw,27px);line-height:1.15;font-weight:800;letter-spacing:-.01em;color:#0b2c55;margin:10px 0 8px}
-  .ncard p{margin:0;color:#1f3f66;font-size:15px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-  .ncard .nmore{display:inline-block;margin-top:12px;font-weight:800;font-size:14px;color:#0b59c4}
-  @media(max-width:700px){.ncard{grid-template-columns:1fr;gap:12px;padding:12px;border-radius:22px}.ncard-thumb{border-radius:14px;max-width:min(100%,360px);margin:0 auto;width:100%}.ncard h2{font-size:21px}.ncard p{-webkit-line-clamp:4}}
-
-  /* ----- the expanded article (one fixed overlay, reused for every article) ----- */
-  .news-art{position:fixed;inset:0;z-index:100;visibility:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
-    clip-path:inset(var(--ct,40%) var(--cr,30%) var(--cb,40%) var(--cl,30%) round 26px);-webkit-clip-path:inset(var(--ct,40%) var(--cr,30%) var(--cb,40%) var(--cl,30%) round 26px);
-    transition:clip-path .55s cubic-bezier(.6,0,.2,1),-webkit-clip-path .55s cubic-bezier(.6,0,.2,1);
-    background:linear-gradient(180deg,#dcefff 0%,#79b3e6 26%,#2f6cb0 60%,#0c2c57 100%);color:#0b2c55;
-    --h1:var(--g1);--h2:var(--g2);--h3:var(--g3)}
-  .news-art.open{clip-path:inset(0 0 0 0 round 0px);-webkit-clip-path:inset(0 0 0 0 round 0px)}
-  .news-art.closing{transition:clip-path .42s cubic-bezier(.6,0,.2,1),-webkit-clip-path .42s cubic-bezier(.6,0,.2,1)}
-  @media(prefers-reduced-motion:reduce){.news-art{transition:clip-path .25s ease,-webkit-clip-path .25s ease}}
-  .na-inner{position:relative;max-width:980px;margin:0 auto;padding:calc(var(--header-h) + 64px) clamp(14px,4vw,40px) 130px;opacity:0;transform:translateY(12px);transition:opacity .45s .2s,transform .45s .2s}
-  .news-art.open .na-inner{opacity:1;transform:none}.news-art.closing .na-inner{opacity:0;transition:opacity .2s}
-  /* light variant of the floating back pill (same geometry as .back on the film pages) */
-  .back.back-light{color:#0b2c55;background:rgba(255,255,255,.72);border-color:rgba(15,62,122,.22);box-shadow:0 6px 22px rgba(12,44,87,.18)}
-  .back.back-light:hover{background:rgba(255,255,255,.92);border-color:rgba(15,62,122,.4);box-shadow:0 8px 26px rgba(12,44,87,.24)}
-  .na-panel{background:rgba(255,255,255,.80);border:1px solid rgba(255,255,255,.9);border-radius:28px;box-shadow:0 30px 80px rgba(4,20,50,.28);overflow:hidden}
-  /* article head: THE SQUARE on the left, headline on the right; stacks under 760px */
-  .na-head{display:grid;grid-template-columns:minmax(0,clamp(220px,38%,420px)) minmax(0,1fr);gap:clamp(18px,3vw,36px);align-items:center;padding:clamp(18px,2.6vw,28px) clamp(18px,2.6vw,28px) 0}
-  .na-hero{position:relative;aspect-ratio:1/1;border-radius:20px;overflow:hidden;background:#0a1226;width:100%}
-  .na-title{min-width:0}
-  @media(max-width:760px){.na-head{grid-template-columns:1fr;gap:16px}.na-hero{max-width:min(100%,420px);margin:0 auto}}
-  .na-text{padding:clamp(22px,3.4vw,40px) clamp(18px,5vw,64px) clamp(28px,4vw,48px)}
-  .na-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:#0e3e7a}
-  .na-meta .ncat{color:#fff;background:linear-gradient(90deg,var(--h1),var(--h2));padding:5px 10px;border-radius:50px;letter-spacing:.16em;font-size:11px}
-  .na-meta time{color:#1f4e86;letter-spacing:.14em}
-  .na-title h1{font-size:clamp(26px,3.6vw,42px);line-height:1.08;font-weight:800;letter-spacing:-.02em;color:#0b2c55;margin:12px 0 0;max-width:820px}
-  .na-body{max-width:740px;font-size:clamp(16px,1.3vw,18px);line-height:1.72;color:#17365c}
-  .na-body p{margin:0 0 1.1em}.na-body p:last-child{margin-bottom:0}
-  .na-body h2{font-size:clamp(19px,2vw,24px);font-weight:800;color:#0b2c55;margin:1.5em 0 .5em;letter-spacing:-.01em}
-  .na-body a{color:#0b59c4;font-weight:700;text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px}
-  .na-body strong{color:#0b2c55}
-  .na-soc{margin-top:28px;padding-top:22px;border-top:1px solid rgba(15,62,122,.14);display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px}
-  .na-soc .na-soc-label{font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:#0e3e7a}
-  .na-soc .proj-soc-row{display:flex;gap:12px;flex-wrap:wrap}
-  .na-soc .proj-soc{color:#0b2c55;background:rgba(255,255,255,.7);border-color:rgba(15,62,122,.22)}
-  /* platform colour shows at rest on the light panel (the glyph), the shared hover rules then fill the button */
+  .nimg.ph{display:grid;place-items:center;background:linear-gradient(160deg,var(--h1),var(--h2) 55%,var(--h3))}
+  .nimg.ph img{width:40%;height:auto;opacity:.9;filter:drop-shadow(0 6px 14px rgba(0,10,40,.35))}
+  .nimg.ph::after{content:"Photo coming soon";position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.85)}
+  .ncard h2{font-size:clamp(18px,1.5vw,21px);line-height:1.2;font-weight:800;letter-spacing:-.01em;color:#0b2c55;margin:2px 0 0}
+  .ncard-meta,.na-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:#0e3e7a}
+  .ncat{color:#fff;background:linear-gradient(90deg,var(--h1),var(--h2));padding:5px 10px;border-radius:50px;letter-spacing:.16em;font-size:10.5px}
+  .ncard-meta time,.na-meta time{color:#1f4e86;letter-spacing:.12em}
+  .nbody{color:#1f3f66;font-size:14.5px;line-height:1.6}
+  .nbody p{margin:0 0 .8em}.nbody p:last-child{margin:0}
+  .nbody h2{font-size:16px;font-weight:800;color:#0b2c55;margin:.9em 0 .3em}
+  .nbody a{color:#0b59c4;font-weight:700;text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px}
+  .nbody strong{color:#0b2c55}
+  /* "Learn more": rendered only when the row has social links; platform colour on the glyph at
+     rest (light surface), the shared .proj-soc hover rules fill the button with the brand colour */
+  .na-soc{margin-top:4px;padding-top:12px;border-top:1px solid rgba(15,62,122,.14);display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+  .na-soc .na-soc-label{font-size:11px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:#0e3e7a}
+  .na-soc .proj-soc-row{display:flex;gap:10px;flex-wrap:wrap}
+  .na-soc .proj-soc{width:40px;height:40px;color:#0b2c55;background:rgba(255,255,255,.7);border-color:rgba(15,62,122,.22)}
+  .na-soc .proj-soc svg{width:18px;height:18px}
   .na-soc .proj-soc[data-net=ig]{color:#d62976}.na-soc .proj-soc[data-net=yt]{color:#e00}.na-soc .proj-soc[data-net=fb]{color:#1877f2}
   .na-soc .proj-soc[data-net=li]{color:#0a66c2}.na-soc .proj-soc[data-net=vimeo]{color:#1ab7ea}.na-soc .proj-soc[data-net=web]{color:#6f3fd6}
   .na-soc .proj-soc[data-net=tiktok],.na-soc .proj-soc[data-net=x],.na-soc .proj-soc[data-net=threads]{color:#111}
-  /* recommended articles under the panel */
-  .na-more{margin-top:26px}
-  .na-more .stills-h{color:#eaf2ff;text-shadow:0 1px 8px rgba(0,10,40,.4)}
-  .na-more-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-  .nmini{--h1:var(--g1);--h2:var(--g2);--h3:var(--g3);position:relative;display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;align-items:center;padding:12px;border-radius:18px;cursor:pointer;color:#0b2c55;background:rgba(255,255,255,.66);box-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 12px 30px rgba(12,44,87,.14);transition:transform .2s ease,background .2s ease}
-  .nmini:hover,.nmini.rpc-kbsel,.nmini:focus-visible{transform:translateY(-2px);background:rgba(255,255,255,.8)}
-  .nmini:focus-visible{outline:3px solid #0b59c4;outline-offset:3px}
-  .nmini-thumb{position:relative;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#0a1226}
-  .nmini-thumb.ph img{width:46%;height:auto;opacity:.9}
-  .nmini .ncard-meta{font-size:10.5px;gap:4px 8px}.nmini .ncard-meta .ncat{padding:3px 8px;font-size:9.5px}
-  .nmini h4{margin:6px 0 0;font-size:15px;line-height:1.25;font-weight:800;color:#0b2c55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-  /* in-place article switch (recommended list / Back between articles): short fade, no wipe */
-  .news-art.swap .na-inner{opacity:0;transform:translateY(6px);transition:opacity .18s,transform .18s}
-  .na-foot{display:flex;justify-content:center;margin-top:30px}
-  .na-foot .learn-btn{font:inherit}
-  @media(max-width:700px){.na-inner{padding-top:calc(var(--header-h) + 58px)}.na-panel{border-radius:22px}.na-text{padding:18px 16px 24px}.news-art{clip-path:inset(var(--ct,40%) var(--cr,30%) var(--cb,40%) var(--cl,30%) round 22px);-webkit-clip-path:inset(var(--ct,40%) var(--cr,30%) var(--cb,40%) var(--cl,30%) round 22px)}}
+
+  /* ----- the popup (one overlay, reused for every article) ----- */
+  .news-art{position:fixed;inset:0;z-index:100000;visibility:hidden;opacity:0;transition:opacity .28s ease,visibility 0s linear .28s;
+    background:rgba(3,6,16,.93);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);cursor:zoom-out;
+    --h1:var(--g1);--h2:var(--g2);--h3:var(--g3)}
+  .news-art.open{visibility:visible;opacity:1;transition:opacity .28s ease,visibility 0s}
+  @media(prefers-reduced-motion:reduce){.news-art,.news-art.open{transition:none}}
+  /* the article panel: a card at popup size, centred, scrolls inside itself when taller than the screen */
+  .na-panel{position:absolute;left:50%;top:50%;width:min(92vw,520px);max-height:min(90vh,calc(100vh - 40px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+    transform:translate(-50%,-50%);transform-origin:0 0;will-change:transform;cursor:default;
+    display:flex;flex-direction:column;gap:12px;padding:14px 14px 20px;border-radius:24px;color:#0b2c55;background:rgba(255,255,255,.96);box-shadow:0 30px 80px rgba(0,0,0,.55);
+    transition:transform .42s cubic-bezier(.6,0,.2,1),opacity .3s ease}
+  .na-panel.flip{transition:none}
+  .news-art.closing .na-panel{transition:transform .34s cubic-bezier(.6,0,.2,1),opacity .22s ease}
+  .na-panel h1{font-size:clamp(21px,2.4vw,27px);line-height:1.15;font-weight:800;letter-spacing:-.015em;color:#0b2c55;margin:2px 0 0}
+  .na-panel .nbody{font-size:16px;line-height:1.65}
+  /* previous / next: a sliver at each edge (same card art, dimmed), the arrows sit on top */
+  .na-peek{position:absolute;top:50%;width:min(92vw,520px);max-height:min(90vh,calc(100vh - 40px));overflow:hidden;border-radius:24px;background:rgba(255,255,255,.55);padding:14px;color:#0b2c55;pointer-events:none;opacity:.45;
+    display:flex;flex-direction:column;gap:12px;transition:transform .42s cubic-bezier(.6,0,.2,1),opacity .3s ease}
+  .na-peek.prev{left:0;transform:translate(calc(-100% + var(--peek,56px)),-50%) scale(.9);transform-origin:100% 50%}
+  .na-peek.next{right:0;transform:translate(calc(100% - var(--peek,56px)),-50%) scale(.9);transform-origin:0 50%}
+  .na-peek h2{font-size:18px;line-height:1.2;font-weight:800;margin:0}
+  .na-peek.off{opacity:0}
+  @media(max-width:700px){.news-art{--peek:26px}.na-panel{width:min(94vw,520px)}.na-peek{width:min(94vw,520px)}}
+  /* X (top-left, the site standard) + arrows reuse the lightbox chrome (.lb-close / .lb-nav) */
+  .news-art .lb-close{z-index:3}
+  .news-art .lb-nav{z-index:3;cursor:pointer}
+  .news-art .lb-nav[disabled]{opacity:.25;cursor:default}
+  /* a single article: no arrows, no peeks */
+  .news-art.single .lb-nav,.news-art.single .na-peek{display:none}
+  /* in-place switch (arrows / keys / swipe): the panel slides out one way and back in the other */
+  .na-panel.slide-out-l{transform:translate(calc(-50% - 60px),-50%);opacity:0;transition:transform .22s ease,opacity .2s ease}
+  .na-panel.slide-out-r{transform:translate(calc(-50% + 60px),-50%);opacity:0;transition:transform .22s ease,opacity .2s ease}
+  .na-panel.slide-in-l{transform:translate(calc(-50% + 60px),-50%);opacity:0;transition:none}
+  .na-panel.slide-in-r{transform:translate(calc(-50% - 60px),-50%);opacity:0;transition:none}
 
   /* ===== About ===== */
   #about{padding:clamp(24px,4vh,52px) clamp(18px,5vw,60px) clamp(56px,8vh,90px)}
@@ -1309,7 +1289,7 @@ html.xw-active{overflow:hidden}
     <section id="news-page">
       <div class="surface-rays"></div>
       <div class="pp-head news-head"><div class="ey">What we're up to</div><h1>News</h1><p>Festival runs, events, new projects and studio updates from the pond.</p></div>
-      <div class="news-list" id="newsList"></div>
+      <div class="news-grid" id="newsList"></div>
       <footer class="site-footer rp-footer" data-footer></footer>
     </section>
   </div>
@@ -1331,8 +1311,18 @@ html.xw-active{overflow:hidden}
   </template>
 
   <div id="universes"></div>
-  <!-- the one expanded-article overlay, filled per article by openNews() -->
-  <div class="news-art" id="newsArt" aria-hidden="true"><button class="back back-light" type="button" id="newsBack">‹ Back to news</button><div class="na-inner" id="newsArtInner"></div></div>
+  <!-- the one article popup, filled per article by renderNewsPopup(): lightbox treatment (scrim,
+       top-left X, side arrows), previous / next peeking at the edges. data-kb-modal traps the
+       custom-cursor keyboard nav inside it; data-kb-dir lets a consumed arrow key bounce onto the
+       matching arrow button (see cursor.js). -->
+  <div class="news-art" id="newsArt" aria-hidden="true" role="dialog" aria-label="News article" data-kb-modal>
+    <button class="lb-close" type="button" aria-label="Close">✕</button>
+    <button class="lb-nav lb-prev" type="button" data-kb-dir="-1" aria-label="Previous article">‹</button>
+    <div class="na-peek prev" aria-hidden="true"></div>
+    <article class="na-panel" tabindex="-1"></article>
+    <div class="na-peek next" aria-hidden="true"></div>
+    <button class="lb-nav lb-next" type="button" data-kb-dir="1" aria-label="Next article">›</button>
+  </div>
 
 <script>async function __main(){
 
@@ -1962,8 +1952,17 @@ const ORB_SPEC=[
           else { curF=0; mode='palette'; drawn=-1; paint(); orb(0); }
           }); }
       // Defer the loading burst until the browser is idle after first paint, so it never competes with
-      // the initial page load (another source of the scroll-in hitch).
-      if('requestIdleCallback'in window) requestIdleCallback(start,{timeout:2500}); else setTimeout(start,800);
+      // the initial page load (another source of the scroll-in hitch)...
+      // ...AND (2026-10-01) only once #about is within 1.5 viewports of being seen. The frame set is
+      // ~2.6 MB over 94 files; on a phone the section sits well below the fold, and a visitor who
+      // never scrolls there used to pay for all of it on every visit. Save-Data keeps the static logo.
+      var started=false;
+      function startOnce(){ if(started)return; started=true; if('requestIdleCallback'in window) requestIdleCallback(start,{timeout:2500}); else setTimeout(start,800); }
+      if(navigator.connection&&navigator.connection.saveData){ if(ABOUT_SET_ORBITS)ABOUT_SET_ORBITS(1); }
+      else if('IntersectionObserver'in window){
+        var io=new IntersectionObserver(function(es){ if(es.some(function(e){return e.isIntersecting;})){ io.disconnect(); startOnce(); } },{rootMargin:'150% 0px 150% 0px'});
+        io.observe(slot||host);
+      } else startOnce();
       addEventListener('scroll',onScroll,{passive:true}); addEventListener('resize',onScroll);
     }).catch(function(){ if(ABOUT_SET_ORBITS)ABOUT_SET_ORBITS(1); });  // anim failed to load -> reveal orbits
 })();
@@ -2237,7 +2236,7 @@ requestAnimationFrame(function(){requestAnimationFrame(function(){stage.classLis
 const teamList=document.getElementById('teamList');
 if(teamList){TEAM.forEach((m,i)=>{
   const row=document.createElement('div');row.className='member'+(i%2?' flip':'');row.style.setProperty('--i',i);
-  const ph=m.photo?`<img decoding="async" src="${m.photo}" alt="${m.name}">`:`<div class="m-initials">${m.initials||m.name[0]}</div>`;
+  const ph=m.photo?`<img decoding="async" loading="lazy" src="${m.photo}" alt="${m.name}">`:`<div class="m-initials">${m.initials||m.name[0]}</div>`;
   /* Per-person portfolio links. FIXED order; only the ones that are filled render, so a
      blank field leaves NO gap - the row re-flows to close it. Reuses the shared social-icon
      component (.rp-soc + RP_SOCIAL_ICONS) so a team member's links look and hover exactly
@@ -2476,7 +2475,9 @@ function applyFlashLook(sec,key){
 }
 function openUniverse(key){
   if(!SECTIONS[key])return;
+  const first=!built[key];
   const sec=built[key]||(built[key]=buildUniverse(key));
+  if(first&&window.RP_reapplyLooks)RP_reapplyLooks();   /* a freshly built film page gets its look-driven title style etc. */
   sec.dataset.key=key;
   sec.querySelector('.back').textContent=(activeView==='projects')?'‹ Back to projects':'‹ Back to the pond';
 
@@ -2532,7 +2533,7 @@ function closeUniverse(sec){
   stopSideVid(sec.querySelector('.u-vid'));   // PAUSE the background reel (keep currentTime) - stops decoding once the film is closed
   syncFocusVideo();     // back on the carousel - the featured card picks up where it left off
 }
-addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){/* preventDefault = arrows HANDLED here; the deferred custom-cursor kb nav sees defaultPrevented and stays out of the page behind the viewer */if(e.key==='Escape')closeLB();else if(e.key==='ArrowRight'){e.preventDefault();lbShow(lbIdx+1);}else if(e.key==='ArrowLeft'){e.preventDefault();lbShow(lbIdx-1);}return;}if(e.key==='Escape'&&(currentOpen||newsOpen))history.back();});
+addEventListener('keydown',e=>{if(lightbox.classList.contains('open')){/* preventDefault = arrows HANDLED here; the deferred custom-cursor kb nav sees defaultPrevented and stays out of the page behind the viewer */if(e.key==='Escape')closeLB();else if(e.key==='ArrowRight'){e.preventDefault();lbShow(lbIdx+1);}else if(e.key==='ArrowLeft'){e.preventDefault();lbShow(lbIdx-1);}return;}if(newsOpen&&newsArt.classList.contains('open')){/* popup owns the arrows (preventDefault = consumed, the kb nav bounces onto the matching arrow button) */if(e.key==='ArrowRight'){e.preventDefault();newsStep(1);return;}if(e.key==='ArrowLeft'){e.preventDefault();newsStep(-1);return;}}if(e.key==='Escape'&&(currentOpen||newsOpen))history.back();});
 
 /* ===== CUSTOM PAGES =====================================================
    Data: /data/pages.json   (edited in Pages CMS → "Custom Pages")
@@ -2639,23 +2640,25 @@ const viewPage=document.getElementById('view-page');
 /* ===== NEWS ==========================================================================
    Data: /data/news.json  (GENERATED by bts-automation/news_sync.py from the NocoDB `news` table;
          never hand-edit) + /data/news-page.json (Pages CMS -> "News page": the switch + headings).
-   URL:  /news            the list of cards (pinned first, newest first, as exported)
-         /news/<key>      one article, opened over the list (deep-linkable; the edge function in
-                          functions/_middleware.js injects its title/description/OG/JSON-LD so
+   URL:  /news            the grid (pinned first, newest first, as exported)
+         /news/<key>      one article in the popup over the grid (deep-linkable; the edge function
+                          in functions/_middleware.js injects its title/description/OG/JSON-LD so
                           crawlers and link previews see the article without running this script)
    The site does ALL formatting: the body arrives as raw text with light markdown (blank line =
    paragraph, **bold**, *italic*, [text](url), "## " subhead) and is rendered by newsMd() below,
-   HTML-escaped first so nothing in the database can inject markup. The teaser (first paragraph,
-   stripped) is exported ready-made so the card, the edge meta and the sitemap agree.
+   HTML-escaped first so nothing in the database can inject markup. The whole body is on the card
+   (articles are two sentences by convention); the popup shows the same article larger.
    ================================================================================== */
 const NEWS=Array.isArray(__d[11]&&__d[11].news)?__d[11].news:[];
 const NEWS_PAGE=__d[12]||{};
 const NEWS_BY_KEY=Object.fromEntries(NEWS.map(a=>[a.key,a]));
 const NEWS_LIST_TITLE=(NEWS_PAGE.seo&&NEWS_PAGE.seo.title)||'News | Rare Pond Studios';
 const viewNews=document.getElementById('view-news');
-const newsArt=document.getElementById('newsArt'), newsArtInner=document.getElementById('newsArtInner');
-let newsOpen=null;          /* key of the article currently expanded, or null */
-let newsCloseTimer=null;
+const newsArt=document.getElementById('newsArt');
+const newsPanel=newsArt.querySelector('.na-panel'), newsPeekPrev=newsArt.querySelector('.na-peek.prev'), newsPeekNext=newsArt.querySelector('.na-peek.next');
+const newsPrevBtn=newsArt.querySelector('.lb-prev'), newsNextBtn=newsArt.querySelector('.lb-next');
+let newsOpen=null;          /* key of the article in the popup, or null */
+let newsCloseTimer=null, newsBusy=false;
 (function newsHeadings(){
   const h=NEWS_PAGE.headings||{};const el=document.querySelector('#news-page .news-head');if(!el)return;
   const set=(sel,v)=>{const n=el.querySelector(sel);if(n&&v)n.textContent=v;};
@@ -2681,23 +2684,11 @@ function newsPic(src,alt,sizes,eager){
   return `<picture>${ws}<img src="${_wEsc(src)}" alt="${_wEsc(alt)}" loading="${eager?'eager':'lazy'}" decoding="async" onerror="this.onerror=null;var p=this.parentNode;if(p&&p.querySelector('source'))p.querySelector('source').remove()"></picture>`;
 }
 const NEWS_PH=`<img src="/media/logos/duck-mark.webp" alt="" loading="lazy" decoding="async">`;
-/* THE SQUARE. Every article image slot is 1:1 (the card and the top of the article). One image
-   fills it; 2, 3 or 4 images COLLAGE into the same square (CSS grid: 2 = side by side, 3 = one tall
-   + two stacked, 4 = 2x2); a fifth and beyond stay in the lightbox only, with a "+N" badge on the
-   last tile. Tiles are the shared .still buttons inside a .stills-grid, so the lightbox walks the
-   whole set. No images -> the duck placeholder in the look's colours. */
-function newsCollage(imgs,alt,sizes,eager,cls,lb){
-  /* lb=true: tiles are the shared .still buttons (lightbox); lb=false: plain spans, the enclosing
-     card is the one control (no nested buttons, no double-fire with the lightbox handler) */
-  const list=(imgs||[]).filter(Boolean);
-  if(!list.length)return `<div class="${cls} ph">${NEWS_PH}</div>`;
-  const n=Math.min(list.length,4), extra=list.length-n;
-  const full=src=>{const m=/^(.*)\.jpe?g(\?[^#]*)?$/i.exec(src);return m?`${m[1]}-1600.webp${(m[2]||'')}`:src;};
-  const tile=(src,i,shown)=>lb
-    ?`<button class="still ntile${shown?'':' nhid'}" type="button"${shown?'':' tabindex="-1" aria-hidden="true"'} data-full="${_wEsc(full(src))}" data-fallback="${_wEsc(src)}" aria-label="${_wEsc(alt)}${list.length>1?' (photo '+(i+1)+' of '+list.length+')':''}">${shown?newsPic(src,i?'':alt,sizes,eager&&i<2):''}${(shown&&extra&&i===n-1)?`<span class="nmore-badge">+${extra}</span>`:''}</button>`
-    :(shown?`<span class="ntile">${newsPic(src,i?'':alt,sizes,eager&&i<2)}${(extra&&i===n-1)?`<span class="nmore-badge">+${extra}</span>`:''}</span>`:'');
-  const tiles=list.map((src,i)=>tile(src,i,i<n)).join('');
-  return `<div class="${cls}${lb?' stills-grid':''} ncol ncol-${n}">${tiles}</div>`;
+/* THE IMAGE: one per article (the first line of `images`), 3:4 so a social post's portrait frame
+   drops straight in; anything else is centre-cropped by object-fit. None -> the duck placeholder. */
+function newsImage(a,sizes,eager){
+  const src=(a.images||[]).find(Boolean);
+  return src?`<div class="nimg">${newsPic(src,a.title,sizes,eager)}</div>`:`<div class="nimg ph">${NEWS_PH}</div>`;
 }
 /* light markdown -> HTML. Escape first, then: **bold**, *italic*, [text](url), "## " subheads,
    blank-line paragraphs, single newlines -> <br>. Links: http(s) or site-relative only. */
@@ -2712,41 +2703,54 @@ function newsMd(raw){
   return String(raw||'').replace(/\r/g,'').trim().split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean)
     .map(p=>/^##\s+/.test(p)?`<h2>${inline(p.replace(/^##\s+/,''))}</h2>`:`<p>${inline(p)}</p>`).join('');
 }
+/* "Learn more": only when the row has links; platform auto-detected (shared detectNet + SOCIAL_SVG) */
 function newsSocials(list){
   const urls=(list||[]).filter(u=>_wUrl(u));if(!urls.length)return '';
   const items=urls.map(u=>{const n=detectNet(u);const svg=SOCIAL_SVG[n.icon]||SOCIAL_SVG.web||'';return `<a class="proj-soc" href="${_wEsc(u)}" target="_blank" rel="noopener" data-net="${n.icon}" aria-label="${_wEsc(n.label)}" title="${_wEsc(n.label)}">${svg}</a>`;}).join('');
-  return `<div class="na-soc"><span class="na-soc-label">See our posts</span><div class="proj-soc-row">${items}</div></div>`;
+  return `<div class="na-soc"><span class="na-soc-label">Learn more</span><div class="proj-soc-row">${items}</div></div>`;
+}
+/* one article's inner markup: image, title, category + date, body, Learn more (card and popup share it) */
+function newsInner(a,big,eager){
+  const meta=`<div class="${big?'na-meta':'ncard-meta'}">${a.category?`<span class="ncat">${_wEsc(a.category)}</span>`:''}${a.date?`<time datetime="${_wEsc(a.date)}">${_wEsc(newsDate(a.date))}</time>`:''}</div>`;
+  const title=big?`<h1>${_wEsc(a.title)}</h1>`:`<h2>${_wEsc(a.title)}</h2>`;
+  return `${newsImage(a,big?'(max-width:700px) 94vw, 520px':'(max-width:620px) 94vw, (max-width:980px) 46vw, 360px',eager)}${title}${meta}<div class="nbody">${newsMd(a.body)}</div>${newsSocials(a.socials)}`;
 }
 function renderNewsList(){
   const host=document.getElementById('newsList');if(!host)return;
   if(!NEWS.length){host.innerHTML='<p class="news-empty">Nothing posted yet. Check back soon.</p>';return;}
-  host.innerHTML=NEWS.map((a,i)=>{
-    const thumb=newsCollage(a.images,a.title,'(max-width:700px) 92vw, 300px',i<2,'ncard-thumb',false);
-    const meta=`<div class="ncard-meta">${a.category?`<span class="ncat">${_wEsc(a.category)}</span>`:''}${a.date?`<time datetime="${_wEsc(a.date)}">${_wEsc(newsDate(a.date))}</time>`:''}</div>`;
-    /* data-cursor="nohug": the custom cursor never outlines a card (it glows itself) and, more to the
-       point, the keyboard nav otherwise REFUSES any target wider than 62% of the viewport, which these
-       cards are: nohug is the documented exemption (cursor.js), so arrows reach them and Enter opens. */
-    return `<div class="ncard" role="button" tabindex="0" data-cursor="nohug" data-news="${_wEsc(a.key)}" style="${newsLookStyle(a)}" aria-label="${_wEsc(a.title)}">${thumb}<div class="ncard-body">${meta}<h2>${_wEsc(a.title)}</h2><p>${_wEsc(a.teaser||'')}</p><span class="nmore">Read more →</span></div></div>`;
-  }).join('');
+  /* data-cursor="nohug": the custom cursor never outlines a card (it glows itself) and the keyboard
+     nav otherwise refuses targets wider than 62% of the viewport (one-column phones): nohug is the
+     documented exemption (cursor.js), so arrows reach every card and Enter opens it. */
+  /* lazy on purpose: the News view sits display:none under every other page, and a lazy image in
+     a display:none subtree is never fetched (an eager one is: 3 article images rode along with the
+     home page). On /news itself the in-view cards load immediately regardless. */
+  host.innerHTML=NEWS.map(a=>`<article class="ncard" role="button" tabindex="0" data-cursor="nohug" data-news="${_wEsc(a.key)}" style="${newsLookStyle(a)}" aria-label="${_wEsc(a.title)}">${newsInner(a,false,false)}</article>`).join('');
 }
-function renderNewsArticle(a){
-  const hero=newsCollage(a.images,a.title,'(max-width:760px) 92vw, 420px',true,'na-hero',true);
-  const meta=`<div class="na-meta">${a.category?`<span class="ncat">${_wEsc(a.category)}</span>`:''}${a.date?`<time datetime="${_wEsc(a.date)}">${_wEsc(newsDate(a.date))}</time>`:''}</div>`;
-  /* RECOMMENDED: up to three other articles (same order as the list, pinned first, newest first),
-     so a reader who scrolls to the end has somewhere to go besides "All news". */
-  const others=NEWS.filter(o=>o.key!==a.key).slice(0,3);
-  const more=others.length?`<div class="na-more"><h3 class="stills-h">More from the pond</h3><div class="na-more-list">${others.map(o=>`<div class="nmini" role="button" tabindex="0" data-cursor="nohug" data-news="${_wEsc(o.key)}" style="${newsLookStyle(o)}" aria-label="${_wEsc(o.title)}">${newsCollage(o.images,o.title,'120px',false,'nmini-thumb',false)}<div class="nmini-body"><div class="ncard-meta">${o.category?`<span class="ncat">${_wEsc(o.category)}</span>`:''}${o.date?`<time datetime="${_wEsc(o.date)}">${_wEsc(newsDate(o.date))}</time>`:''}</div><h4>${_wEsc(o.title)}</h4></div></div>`).join('')}</div></div>`:'';
-  newsArtInner.innerHTML=`<article class="na-panel"><header class="na-head">${hero}<div class="na-title">${meta}<h1>${_wEsc(a.title)}</h1></div></header><div class="na-text"><div class="na-body">${newsMd(a.body)}</div>${newsSocials(a.socials)}</div></article>${more}<div class="na-foot"><button class="learn-btn" type="button" data-news-close>\u2039 All news</button></div>`;
+function newsIdx(key){return NEWS.findIndex(a=>a.key===key);}
+function renderNewsPopup(key){
+  const a=NEWS_BY_KEY[key];if(!a)return;
+  const i=newsIdx(key), prev=NEWS[i-1], next=NEWS[i+1];
+  newsPanel.innerHTML=newsInner(a,true,true);
+  newsArt.setAttribute('style',newsLookStyle(a));
+  const peek=(el,o)=>{if(!o){el.classList.add('off');el.innerHTML='';return;}el.classList.remove('off');el.setAttribute('style',newsLookStyle(o));el.innerHTML=`${newsImage(o,'520px',false)}<h2>${_wEsc(o.title)}</h2>`;};
+  peek(newsPeekPrev,prev);peek(newsPeekNext,next);
+  newsPrevBtn.disabled=!prev;newsNextBtn.disabled=!next;
+  newsArt.classList.toggle('single',NEWS.length<2);
+  document.title=a.title+' | Rare Pond Studios';
 }
-/* the card's rectangle -> inset() variables on the overlay (viewport px, measured AFTER the body
-   lock, same reasoning as openUniverse: the lock removes the scrollbar and re-centres the page) */
-function newsSetOrigin(key){
+/* FLIP: the panel starts exactly on the card's rectangle (measured AFTER the body lock, same
+   reasoning as openUniverse: the lock removes the scrollbar and re-centres the page) and eases
+   to its resting place; transform only, nothing is re-laid-out during the animation */
+function newsFlipFrom(key){
   const card=document.querySelector(`.ncard[data-news="${CSS.escape(key)}"]`);
-  const vw=innerWidth,vh=innerHeight;let t=vh*.42,l=vw*.3,b=vh*.42,r=vw*.3;
-  if(card&&activeView==='news'){const rc=card.getBoundingClientRect();t=Math.max(0,rc.top);l=Math.max(0,rc.left);b=Math.max(0,vh-rc.bottom);r=Math.max(0,vw-rc.right);
-    /* a card scrolled fully out of view would start the wipe off-screen; clamp to a thin band at that edge instead */
-    if(rc.bottom<0){t=0;b=vh-4;}if(rc.top>vh){t=vh-4;b=0;}}
-  newsArt.style.setProperty('--ct',t+'px');newsArt.style.setProperty('--cl',l+'px');newsArt.style.setProperty('--cb',b+'px');newsArt.style.setProperty('--cr',r+'px');
+  const to=newsPanel.getBoundingClientRect();
+  if(!card||activeView!=='news'||!to.width){newsPanel.style.transform='translate(-50%,-50%) scale(.94)';newsPanel.style.opacity='0';return;}
+  const from=card.getBoundingClientRect();
+  const sx=from.width/to.width, sy=from.height/to.height;
+  /* the panel's resting transform is translate(-50%,-50%) with origin 0 0 at left:50% top:50%: its
+     untransformed top-left is the viewport centre, so the card offset is measured from there */
+  const dx=from.left-innerWidth/2, dy=from.top-innerHeight/2;
+  newsPanel.style.transform=`translate(${dx}px,${dy}px) scale(${sx},${sy})`;newsPanel.style.opacity='.6';
 }
 function openNews(key){
   const a=NEWS_BY_KEY[key];if(!a)return false;
@@ -2754,54 +2758,67 @@ function openNews(key){
   clearTimeout(newsCloseTimer);
   const isOpen=newsArt.classList.contains('open');
   if(isOpen&&newsOpen===key)return true;
-  document.title=a.title+' | Rare Pond Studios';
-  document.body.classList.add('locked');
-  if(isOpen){
-    /* another article chosen from inside an open one (the "More from the pond" list, or
-       Back/Forward between two articles): swap the content in place with a short fade, no wipe */
-    newsOpen=key;newsArt.classList.add('swap');
-    setTimeout(()=>{renderNewsArticle(a);newsArt.setAttribute('style',newsLookStyle(a));newsArt.scrollTop=0;requestAnimationFrame(()=>newsArt.classList.remove('swap'));},180);
-    return true;
-  }
+  if(isOpen){newsStep(newsIdx(key)>newsIdx(newsOpen)?1:-1,key);return true;}
   newsOpen=key;
-  renderNewsArticle(a);newsArt.setAttribute('style',newsLookStyle(a));
-  newsArt.style.transition='none';newsArt.classList.remove('open','closing');
-  newsSetOrigin(key);
-  newsArt.style.visibility='visible';newsArt.setAttribute('aria-hidden','false');newsArt.scrollTop=0;
-  void newsArt.offsetWidth;newsArt.style.transition='';
-  requestAnimationFrame(()=>newsArt.classList.add('open'));
+  document.body.classList.add('locked');
+  renderNewsPopup(key);
+  newsArt.classList.remove('closing');newsArt.style.visibility='visible';newsArt.setAttribute('aria-hidden','false');
+  newsPanel.scrollTop=0;
+  newsPanel.classList.add('flip');newsFlipFrom(key);void newsPanel.offsetWidth;
+  newsPanel.classList.remove('flip');
+  requestAnimationFrame(()=>{newsArt.classList.add('open');newsPanel.style.transform='';newsPanel.style.opacity='';});
   return true;
 }
 function closeNews(instant){
   if(!newsOpen)return;
-  const key=newsOpen;newsOpen=null;
+  const key=newsOpen;newsOpen=null;newsBusy=false;
   document.body.classList.remove('locked');
   document.title=NEWS_LIST_TITLE;
   newsArt.setAttribute('aria-hidden','true');
-  const hide=()=>{newsArt.style.visibility='hidden';newsArt.classList.remove('closing','open','swap');newsArt.style.transition='';};
-  if(instant||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches&&instant!==false)){newsArt.style.transition='none';newsArt.classList.remove('open');hide();void newsArt.offsetWidth;newsArt.style.transition='';return;}
-  /* retract INTO the card: unlock first, then re-measure (the scrollbar came back), commit the
-     origin at full size with the transition off, then animate the inset back on */
-  newsArt.style.transition='none';newsSetOrigin(key);void newsArt.offsetWidth;newsArt.style.transition='';
+  const hide=()=>{newsArt.classList.remove('open','closing');newsArt.style.visibility='';newsPanel.style.transform='';newsPanel.style.opacity='';newsPanel.className='na-panel';};
+  if(instant||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)){newsArt.classList.remove('open');hide();return;}
+  /* shrink back INTO the card (unlock first, then re-measure: the scrollbar came back) */
   newsArt.classList.add('closing');newsArt.classList.remove('open');
-  const done=e=>{if(e.target!==newsArt||(e.propertyName!=='clip-path'&&e.propertyName!=='-webkit-clip-path'))return;newsArt.removeEventListener('transitionend',done);clearTimeout(newsCloseTimer);hide();};
+  newsFlipFrom(key);
+  const done=e=>{if(e.target!==newsArt||e.propertyName!=='opacity')return;newsArt.removeEventListener('transitionend',done);clearTimeout(newsCloseTimer);hide();};
   newsArt.addEventListener('transitionend',done);
-  newsCloseTimer=setTimeout(()=>{newsArt.removeEventListener('transitionend',done);hide();},700);
+  newsCloseTimer=setTimeout(()=>{newsArt.removeEventListener('transitionend',done);hide();},500);
+}
+/* step to the previous (-1) / next (+1) article in place: slide the panel out, re-render, slide in.
+   The address is REPLACED, not pushed, so Back closes the popup like the lightbox, never walks
+   back through every article you flipped past. */
+function newsStep(dir,toKey){
+  if(newsBusy||!newsOpen)return;
+  const i=newsIdx(newsOpen);const t=toKey?NEWS_BY_KEY[toKey]:NEWS[i+dir];if(!t)return;
+  newsBusy=true;
+  const outCls=dir>0?'slide-out-l':'slide-out-r', inCls=dir>0?'slide-in-l':'slide-in-r';
+  newsPanel.classList.add(outCls);
+  setTimeout(()=>{
+    newsOpen=t.key;renderNewsPopup(t.key);newsPanel.scrollTop=0;
+    try{history.replaceState({},'','/news/'+encodeURIComponent(t.key));}catch(e){}
+    newsPanel.classList.remove(outCls);newsPanel.classList.add(inCls);void newsPanel.offsetWidth;
+    newsPanel.classList.remove(inCls);newsBusy=false;
+    try{newsPanel.focus({preventScroll:true});}catch(e){}
+  },200);
 }
 function newsGo(k){const url='/news/'+encodeURIComponent(k);if(location.pathname!==url)history.pushState({},'',url);openNews(k);}
-document.getElementById('newsList').addEventListener('click',e=>{const c=e.target.closest('.ncard');if(c)newsGo(c.getAttribute('data-news'));});
+document.getElementById('newsList').addEventListener('click',e=>{if(e.target.closest('a[href]'))return;/* a Learn-more button on the card goes to the post, not the popup */const c=e.target.closest('.ncard');if(c)newsGo(c.getAttribute('data-news'));});
 /* keyboard: the cards are role=button, so Enter/Space must open them (the custom-cursor nav
    clicks a focused non-native control on Enter; this covers plain Tab users and Space) */
-document.getElementById('newsList').addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const c=e.target.closest('.ncard');if(!c)return;e.preventDefault();newsGo(c.getAttribute('data-news'));});
-document.getElementById('newsBack').addEventListener('click',()=>history.back());
+document.getElementById('newsList').addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const c=e.target.closest('.ncard');if(!c||e.target.closest('a[href]'))return;e.preventDefault();newsGo(c.getAttribute('data-news'));});
 newsArt.addEventListener('click',e=>{
-  if(e.target.closest('[data-news-close]')){history.back();return;}
-  const mini=e.target.closest('.nmini');if(mini){newsGo(mini.getAttribute('data-news'));return;}
+  if(e.target.closest('.lb-close')){history.back();return;}
+  const nv=e.target.closest('.lb-nav');if(nv){e.stopPropagation();newsStep(nv.classList.contains('lb-next')?1:-1);return;}
   /* a site-relative link in the body ([text](/geriaction), [text](/news/other-key)) routes through
-     the SPA instead of reloading the page; the article closes instantly underneath */
-  const a=e.target.closest('.na-body a[href^="/"]');if(a&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey&&e.button===0){e.preventDefault();const to=a.getAttribute('href');const nm=/^\/news\/([^\/?#]+)/.exec(to);if(nm){newsGo(newsKey(nm[1]));return;}closeNews(true);nav(to);}
+     the SPA instead of reloading the page; the popup closes instantly underneath */
+  const a=e.target.closest('.nbody a[href^="/"]');if(a&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey&&e.button===0){e.preventDefault();const to=a.getAttribute('href');const nm=/^\/news\/([^\/?#]+)/.exec(to);if(nm){const k=newsKey(nm[1]);if(NEWS_BY_KEY[k])newsGo(k);return;}closeNews(true);nav(to);return;}
+  if(e.target===newsArt||e.target.classList.contains('na-peek')||e.target.closest('.na-peek'))history.back();   /* the scrim (or a peek) closes, like the lightbox */
 });
-newsArt.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const mini=e.target.closest('.nmini');if(!mini)return;e.preventDefault();newsGo(mini.getAttribute('data-news'));});
+/* swipe between articles on touch (horizontal, deliberate, mostly sideways) */
+(function newsSwipe(){let sx=0,sy=0,on=false;
+  newsArt.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY;on=true;},{passive:true});
+  newsArt.addEventListener('touchend',e=>{if(!on)return;on=false;const t=e.changedTouches[0];const dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)newsStep(dx<0?1:-1);},{passive:true});
+})();
 renderNewsList();
 makeBgBubbles(document.getElementById('news-page'),Math.round(BG_BUBBLES*0.6),'fade-b');
 
@@ -2943,6 +2960,10 @@ function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if
 addEventListener('hashchange',routeHash);
 /* initial route */
 (function initRoute(){const __l=cpLegacySlug();if(__l&&PAGE_BY_SLUG[__l])history.replaceState({},'',cpUrl(__l));const __s=cpSlugFromUrl();if(__s){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='news'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');const nm0=/^news\/([^\/]+)$/.exec(seg);if(nm0&&NEWS_BY_KEY[newsKey(nm0[1])]){history.replaceState({},'','/news');showView('news');history.pushState({},'',p);openNews(newsKey(nm0[1]));}else if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
+
+/* The colour looks (assets/looks.js) may have been applied before the bubbles above existed:
+   re-apply now that they do (no-op if the looks have not arrived yet). See RP_reapplyLooks. */
+if(window.RP_reapplyLooks)RP_reapplyLooks();
 
 /* Second half of the reload-jump fix (first half is history.scrollRestoration in <head>).
    Even with restoration off, late layout growth - webfonts swapping in, lazy images landing - can nudge the scroll position after we've rendered. So re-assert the top as things settle.

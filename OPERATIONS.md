@@ -132,12 +132,12 @@ the sync overwrites it. Projects + colour looks = NocoDB; team, settings, page c
 **The chain:** write a row in the NocoDB `news` table (`key` = the address `/news/<key>`, `title`,
 `date`, `category`, `body`, `social_links`, tick `on_rarepond` when it is ready) -> within ~5 min
 `projects_folder_sync.py --profile news` (launchd `com.rarepond.newsmediasync`) creates
-`Website Repository/News (Web)/<Title>/Images/` -> drop SQUARE photos there (the first is the lead, two to four collage into the same square) ->
+`Website Repository/News (Web)/<Title>/Images/` -> drop ONE portrait 3:4 photo there (a social post's frame; if several, the first line of `images` is shown) ->
 `news_media_sync.py` (same job) publishes them to `media/news/<key>/images/` and fills the
 `images` column -> `news_sync.py` (launchd `com.rarepond.rpnewssync`) rebuilds `data/news.json`
-and the generated news block in `sitemap.xml` -> Cloudflare redeploys. The body is paragraphs
-separated by a blank line, with `**bold**`, `*italic*`, `[text](url)` and `## subhead`; the first
-paragraph is the card teaser and the search description. Un-tick `on_rarepond` to take an article
+and the generated news block in `sitemap.xml` -> Cloudflare redeploys. The body is TWO SENTENCES
+(`**bold**`, `*italic*`, `[text](url)` links); the whole text shows on the card in the /news grid and
+in the popup, and the first sentence is the search description. Un-tick `on_rarepond` to take an article
 down (row and folder are kept). Delete the row and the folder moves to `#recycling/`. The page's
 open/closed switch and headings live in Pages CMS -> "News page" (`data/news-page.json`).
 `functions/_news_seo.js` gives `/news` and `/news/<key>` real titles, descriptions, Open Graph tags

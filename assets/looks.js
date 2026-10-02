@@ -291,8 +291,22 @@
     } catch (e) { /* leave categories as-is */ }
 
     window.RP_LOOKS = byKey;
+    LAST = { looks: looks, projects: projects, rentals: rentals };
     return byKey;
   }
+  /* RE-APPLY ON DEMAND (2026-10-01). applyLooks() writes inline --h1/--h2/--h3 and --accent onto
+     the bubbles that EXIST when its own fetches resolve. The studio SPA builds those bubbles after
+     ITS fetches resolve, and the two races: when looks.js won, every bubble (and the film-open
+     flash, and the cursor ring that reads the bubble's vars) stayed on the signature colours until
+     the next load. That was the "all projects revert to the signature look at random" bug. The SPA
+     now calls RP_reapplyLooks() after it renders; if the looks have not arrived yet this is a
+     no-op and the normal apply covers it when they do. Idempotent either way. */
+  var LAST = null;
+  window.RP_reapplyLooks = function () {
+    if (!LAST) return false;
+    try { applyLooks(LAST.looks, LAST.projects, LAST.rentals); } catch (e) { return false; }
+    return true;
+  };
 
   function bannerCssOnce() {
     if (document.getElementById("rp-ev-css")) return;

@@ -39,6 +39,57 @@
 
 ## 0. LATEST SESSION (2026-10-01), READ THIS FIRST
 
+### 0.0.-73 NEWS, PASS 3: GRID + LIGHTBOX POPUP, 3:4 IMAGE, LOOKS RACE FIXED, CURSOR RE-SHOW, LOAD DIET (2026-10-01)
+
+Jack's third-pass notes. The News page is a different shape now:
+
+- **Grid.** `/news` is a 3-column grid (2 under 980px, 1 under 620px) of `.ncard` articles, each
+  showing the WHOLE article: 3:4 image, title, category + date, the two-sentence body, and a
+  "Learn more" row of social buttons only when the row has links (platform auto-detected, brand
+  colour on the glyph). One image per article (the first line of `images`; a social post's
+  1080x1440 frame drops straight in; anything else is centre-cropped by object-fit). The collage
+  and the "More from the pond" list from 0.0.-72 are gone.
+- **Popup.** Clicking a card opens the SAME article in `#newsArt`, the still lightbox's treatment:
+  dark blurred scrim, top-left X (`.lb-close`), side arrows (`.lb-nav`), a sliver of the previous /
+  next article at each edge (`.na-peek`, `--peek` 56px, 26px on phones). Open = FLIP from the card's
+  rectangle (transform + opacity only, `newsFlipFrom()`), close = shrink back; arrows, swipe,
+  ArrowLeft/Right step in place (`newsStep()`: slide out, re-render, slide in, `history.replaceState`
+  so Back closes the popup instead of walking every article); X, scrim click, Escape close
+  (`history.back()`). `data-kb-modal` traps the custom-cursor keyboard nav inside; `data-kb-dir` on the
+  arrows lets a consumed arrow key bounce onto the matching button. Cards and the panel are reachable
+  by keyboard (`nohug`, role=button, Enter/Space). Deep links `/news/<key>` still open it; the edge
+  SEO is unchanged (OG image = the first image).
+- **Switch.** Jack closed the News page in Pages CMS on 2026-09-30 21:45 ET (commit 1c0ae66, "via
+  Pages CMS"): the cover is live at /news, which is the switch working end to end. It stays OFF until
+  he flips it; `smoke-test.mjs` treats a covered page as a pass and skips the article checks while
+  it is closed.
+- **THE RANDOM "everything is signature" BUG, root cause + fix.** `assets/looks.js` wrote the inline
+  `--h1/--h2/--h3` (bubble glow, flash, and the cursor ring that reads them) onto the `[data-pk]`
+  bubbles that existed when ITS fetches resolved; the SPA builds those bubbles when ITS OWN fetches
+  resolve. Whichever finished first won: looks.js first = no bubbles yet = every project on the
+  signature colours until the next load. Fix: looks.js keeps its last data and exposes
+  `window.RP_reapplyLooks()`; `index.html` calls it after the initial render and after a film page is
+  built lazily. Idempotent, no-op before the looks arrive. (jackcarlsen has its own looks.js and the
+  same pattern; not changed in this pass.)
+- **Cursor vanishing.** `cursor.js` (shared master in bts-automation, published to both sites by
+  socialuisync) hides the ring on document `mouseleave` / window `blur` while `cursor:none` stays on
+  the page, so if the pointer came back without a mousemove reaching the page (focus back from an
+  iframe, a system dialog, a tab switch with the pointer parked) there was NO cursor until the next
+  move. Added re-show on document `mouseenter`, mouse `pointerover` and window `focus` (pointer inside
+  the viewport). show() is idempotent; touch still hides.
+- **Load diet (measured with `tools/_perfaudit.mjs` / `_imgaudit.mjs` on the local server, wire
+  bytes from the Performance API).** The home page pulled 4.5 MB of images at every size, 2.6 MB of
+  it the 94 logo-animation frames, plus the team photos (hidden view) and the three News images
+  (eager, hidden view). Now: the frames start loading only when `#about` is within 1.5 viewports
+  (IntersectionObserver; never on Save-Data), team photos and News card images are `loading=lazy`
+  (a lazy image in a display:none view is never fetched). Other pages (/news, /team, /projects) went
+  from ~4.5 MB to ~2.1 MB; the home page on a phone saves the team + news images and defers the
+  frames until the about block approaches. Not changed, on purpose: the three featured-card focus
+  stills (~420 KB, they ARE the carousel), the reel (progressive range requests, not a full download;
+  an earlier audit that read whole bodies misreported it as 9 MB), fonts (subset, swap), `/assets/*`
+  caching (no hash-named files yet, so a long max-age could serve a stale cursor.js after a deploy:
+  a future improvement is hashed asset names + immutable caching).
+
 ### 0.0.-72 NEWS, PASS 2: THE SQUARE (collage), keyboard reach, recommended articles, shorter copy (2026-10-01)
 
 Jack's second-pass notes, all applied and live:

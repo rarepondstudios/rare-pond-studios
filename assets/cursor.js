@@ -338,6 +338,16 @@
     }, { passive: true });
     document.addEventListener("mouseleave", hide);
     addEventListener("blur", hide);
+    /* RE-SHOW SAFETY NET (2026-10-01). hide() runs on document mouseleave / window blur, and the
+       page keeps `cursor:none` on everything meanwhile, so if the pointer comes back without a
+       mousemove reaching us (focus returning from an iframe, a system dialog, a tab switch with the
+       pointer parked over the page) the user saw NO cursor at all until they moved. Any sign of the
+       pointer being back over the document shows the ring again; show() is idempotent. */
+    document.addEventListener("mouseenter", function () { show(); wake(); });
+    addEventListener("pointerover", function (e) { if (e.pointerType === "mouse") { show(); wake(); } }, { passive: true });   /* touch keeps the native behaviour (see touchstart below) */
+    addEventListener("focus", function () {
+      if (mx >= 0 && my >= 0 && mx <= innerWidth && my <= innerHeight) { show(); wake(); }
+    });
     /* hybrid devices (touchscreen laptops): a finger tap must never fight the custom cursor,
        hide it on touch and let the tap behave 100% natively (we never intercept clicks anyway). */
     addEventListener("touchstart", function () { applyHover(null, false); hide(); }, { passive: true });
