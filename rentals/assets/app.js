@@ -619,16 +619,16 @@ function crateMeterShow(){var m=document.getElementById('rpCrateMeter');if(!m){m
 function crateMeterHide(){var m=document.getElementById('rpCrateMeter');if(m)m.remove();}
 function crateMeterUpdate(){var m=document.getElementById('rpCrateMeter');if(!m)return;
  var units=crateCount(),max=crateMax();
- var frac=max>0?Math.min(1,units/max):0;var c=frac*4;/* content in half-crate units, 0..4 */
- var stage,cap;
- if(units<=0){stage='half';cap=1;c=0;}
- else if(c<=1){stage='half';cap=1;}
- else if(c<=2){stage='full';cap=2;}
- else if(c<=3){stage='fullhalf';cap=3;}
- else{stage='twofull';cap=4;}
- var glowFrac=Math.max(0,Math.min(1,c/cap));
+ var frac=max>0?Math.min(1,units/max):0;
+ /* Only two states: a HALF crate up to the half-way mark, then a FULL crate
+    (glow already half full at the switch). No stacking. */
+ var stage,glowFrac;
+ if(units<=0){stage='half';glowFrac=0;}
+ else if(frac<0.5){stage='half';glowFrac=frac/0.5;}
+ else{stage='full';glowFrac=frac;}
+ glowFrac=Math.max(0,Math.min(1,glowFrac));
  var Hh=60,Hf=112;
- var order=stage==='half'?[['half',Hh]]:stage==='full'?[['full',Hf]]:stage==='fullhalf'?[['half',Hh],['full',Hf]]:[['full',Hf],['full',Hf]];
+ var order=stage==='half'?[['half',Hh]]:[['full',Hf]];
  var totalH=order.reduce(function(a,x){return a+x[1];},0);
  var stack=m.querySelector('.rpcm-stack');if(!stack)return;
  if(m.dataset.stage!==stage){m.dataset.stage=stage;var full=crateImg('full'),half=crateImg('half');
