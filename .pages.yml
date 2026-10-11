@@ -605,6 +605,14 @@ content:
         fields:
           - { name: label, label: "Label (optional, e.g. Bookings)", type: string }
           - { name: address, label: "Email address", type: string }
+      - name: phones
+        label: "Phone numbers"
+        type: object
+        list: true
+        description: "Shown under the social buttons in the popup as tap-to-call links. Type the number the way you want it displayed, e.g. (213) 222-8166; US numbers dial as +1 automatically. Leave the list empty to show no phone."
+        fields:
+          - { name: label, label: "Label (optional, e.g. Call us)", type: string }
+          - { name: number, label: "Phone number", type: string }
       - name: hubspot
         label: HubSpot form
         type: object

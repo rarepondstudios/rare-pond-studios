@@ -56,8 +56,15 @@ or reveal the item; it should say "Found this item?" and give the rentals contac
   (left | center; stacked centered buttons sit closer together). `url` targets that are mailto:/tel:
   now open in place instead of a new tab. /found uses centered buttons, with "Visit Rare Pond
   Rentals" set to subtle. No phone number exists anywhere in the repo, socials table or live contact
-  popup (the HubSpot form only has a "Phone #" input), so the call button waits on Jack: add a
-  button block with target url and `tel:+1...` in Pages CMS when ready.
+  popup (the HubSpot form only has a "Phone #" input), so the call button waited on Jack.
+- Phone added (Jack gave (213) 222-8166): /found body now reads "call us at (213) 222-8166 or email
+  rentals@rarepond.com" and has a centered "Call (213) 222-8166" button (tel:+12132228166) under the
+  email button. cpRich now allows tel: links in body text. The shared Contact popup gained a
+  `phones` list (data/contact.json + Pages CMS > Contact > Phone numbers), rendered as tap-to-call
+  links under the social bubbles. contact.js/contact.css are SHARED MODULES: edit the masters in
+  ~/bts-automation (social_ui_sync.py copies them to both sites); jackcarlsen.com has no phones
+  entry so nothing shows there. Note: contact.json `emails` (click-to-copy) is configured but has
+  not rendered since the 2026-08-11 shared-module sync replaced the copy that drew it.
 - Checks: tools/test-maintenance.mjs and tools/check-slugs.mjs pass; the function renders with the
   /found target. Sticker redesign in progress in bts-automation (square, QR + ID + email); new QRs
   may encode `WWW.RAREPOND.COM/G/<CODE>` in capitals (alphanumeric mode, smallest QR); verified

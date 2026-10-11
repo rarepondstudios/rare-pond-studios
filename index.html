@@ -2563,7 +2563,7 @@ function cpRich(t){
   s = s.replace(/&lt;(\/?)(b|i|em|strong)&gt;/gi, '<$1$2>');
   s = s.replace(/&lt;br\s*\/?&gt;/gi, '<br>');
   s = s.replace(/&lt;a\s+href=(?:&quot;|&#39;)([^&<>\s]+)(?:&quot;|&#39;)[^&]*?&gt;/gi,
-    (m, url) => /^(https?:\/\/|\/|mailto:)/i.test(url)
+    (m, url) => /^(https?:\/\/|\/|mailto:|tel:)/i.test(url)
       ? '<a href="' + url.replace(/"/g,'') + '"' + (/^https?:/i.test(url) ? ' target="_blank" rel="noopener"' : '') + '>'
       : '');
   s = s.replace(/&lt;\/a&gt;/gi, '</a>');

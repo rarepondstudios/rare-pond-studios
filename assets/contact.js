@@ -28,6 +28,28 @@
     }).join('');
   }
 
+  /* ---- Phone numbers (data/contact.json -> phones: [{label, number}]). Rendered as tap-to-call
+     links under the social bubbles. A site whose contact.json has no phones shows none. ---- */
+  function telHref(n){
+    var raw=String(n||'').replace(/[^0-9+]/g,''); if(!raw)return '';
+    if(raw.charAt(0)!=='+'){ if(raw.length===10)raw='+1'+raw; else if(raw.length===11&&raw.charAt(0)==='1')raw='+'+raw; }
+    return 'tel:'+raw;
+  }
+  function phonesHTML(){
+    var list=(cfg&&Array.isArray(cfg.phones))?cfg.phones.filter(function(p){return p&&telHref(p.number);}):[];
+    return list.map(function(p){
+      var num=String(p.number).replace(/[\u200e\u200f\u202a-\u202e]/g,'').trim();
+      return '<a class="contact-phone" href="'+esc(telHref(num))+'" aria-label="'+esc((p.label||'Call')+' '+num)+'">'
+        +'<span class="cph-main">'+(p.label?'<span class="cph-label">'+esc(p.label)+'</span>':'')+'<span class="cph-num">'+esc(num)+'</span></span>'
+        +'<span class="cbub-arrow" aria-hidden="true">&rarr;</span></a>';
+    }).join('');
+  }
+  var socHTML=null;   // social bubbles, once fetched; phones render after them so nothing jumps
+  function renderSide(){
+    if(!backdrop||socHTML===null)return;
+    var host=backdrop.querySelector('#rpcSocials'); if(host) host.innerHTML=socHTML+phonesHTML();
+  }
+
   function build(){
     if(backdrop)return;
     var c=cfg||DEFAULT, hs=c.hubspot||DEFAULT.hubspot;
@@ -52,7 +74,7 @@
       fetch('/data/colorlooks.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
     ]).then(function(res){
       var soc=(res[0]&&res[0].socials)||[]; var looks=(res[1]&&(res[1].looks||res[1]))||[];
-      var host=backdrop.querySelector('#rpcSocials'); if(host) host.innerHTML=bubblesHTML(soc,looks);
+      socHTML=bubblesHTML(soc,looks); renderSide();
     });
   }
   function loadHubspot(){
@@ -136,6 +158,7 @@
   fetch('/data/contact.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null;}).then(function(d){ if(d)cfg=d; })
     .catch(function(){}).then(function(){
       cfgReady=true;
+      try{ renderSide(); }catch(e){}
       if((location.hash||'')==='#contact') openM();
     });
 })();

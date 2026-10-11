@@ -5,7 +5,16 @@
   "sub": "Tell us about your project and we'll be in touch.",
   "buttonLabel": "Get in touch",
   "emails": [
-    { "label": "General", "address": "contact@rarepond.com" }
+    {
+      "label": "General",
+      "address": "contact@rarepond.com"
+    }
+  ],
+  "phones": [
+    {
+      "label": "Call us",
+      "number": "(213) 222-8166"
+    }
   ],
   "hubspot": {
     "region": "na2",
