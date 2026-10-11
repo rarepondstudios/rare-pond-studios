@@ -44,7 +44,7 @@
 Per Jack: a rental sticker scanned by anyone who is not on the tailnet must not land on the home page
 or reveal the item; it should say "Found this item?" and give the rentals contact.
 - New Pages CMS custom page, slug `found` (data/pages.json): live at `www.rarepond.com/found`,
-  public, not in either nav. Header "Found this item?", short body, mailto button to
+  public, not in either nav. Title "Found this item?", short body, mailto button to
   rentals@rarepond.com (subject "Found Rare Pond gear"), and a button to /rentals. Jack can edit the
   wording or add a phone number in Pages CMS > Custom Pages like any other page.
 - `functions/g/[id].js`: the off-tailnet fallback (probe fails or 2.5s timeout) now goes to `FOUND`

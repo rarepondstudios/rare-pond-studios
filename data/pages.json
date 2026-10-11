@@ -67,7 +67,7 @@
     {
       "slug": "found",
       "publicAccess": true,
-      "title": "Found Rare Pond gear?",
+      "title": "Found this item?",
       "navLabel": "Found gear",
       "showInStudioNav": false,
       "showInRentalsNav": false,
@@ -75,12 +75,6 @@
       "background": "home",
       "bubbles": true,
       "blocks": [
-        {
-          "type": "header",
-          "text": "Found this item?",
-          "buttonTarget": "home",
-          "formHeight": 900
-        },
         {
           "type": "body",
           "text": "It belongs to <b>Rare Pond Rentals</b>. Thank you for scanning it.\n\nPlease email us at <a href=\"mailto:rentals@rarepond.com?subject=Found%20Rare%20Pond%20gear\">rentals@rarepond.com</a> and tell us where you found it. We will get it back to where it belongs.",
