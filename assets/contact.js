@@ -44,10 +44,52 @@
         +'<span class="cbub-arrow" aria-hidden="true">&rarr;</span></a>';
     }).join('');
   }
+  /* ---- Click-to-copy emails (data/contact.json -> emails); restored 2026-10-10 after the
+     2026-08-11 shared-module sync dropped it. Each address is a button that copies
+     itself to the clipboard on click. A copy icon and a "Click to copy" hint are shown up front so
+     the copy is never a surprise; on click the icon becomes a check and the hint reads "Copied". ---- */
+  function copyIcon(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="10" height="12" rx="2"></rect><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path></svg>';}
+  function checkIcon(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 6.5"></path></svg>';}
+  function copyText(t){
+    if(navigator.clipboard&&navigator.clipboard.writeText){ return navigator.clipboard.writeText(t); }
+    return new Promise(function(res,rej){ try{ var ta=document.createElement('textarea'); ta.value=t; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); var ok=document.execCommand('copy'); document.body.removeChild(ta); ok?res():rej(new Error('copy')); }catch(e){ rej(e); } });
+  }
+  function emailMark(btn,ok){
+    var hint=btn.querySelector('.rpe-hint'), st=btn.querySelector('.rpe-status'), addr=btn.getAttribute('data-email');
+    btn.classList.add('is-copied');
+    if(hint) hint.textContent = ok ? 'Copied' : 'Press Ctrl+C';
+    if(st) st.textContent = ok ? ('Copied '+addr+' to clipboard') : 'Could not copy, press Control C';
+    clearTimeout(btn._rpeT);
+    btn._rpeT=setTimeout(function(){ btn.classList.remove('is-copied'); if(hint)hint.textContent='Click to copy'; if(st)st.textContent=''; },1900);
+  }
+  function emailsHTML(){
+    var list=(cfg&&Array.isArray(cfg.emails))?cfg.emails.filter(function(e){return e&&e.address;}):[];
+    if(!list.length)return '';
+    return '<div class="contact-emails">'+list.map(function(e){
+      var lbl=e.label?'<span class="rpe-label">'+esc(e.label)+'</span>':'';
+      return '<button type="button" class="rpc-email" data-email="'+esc(e.address)+'" aria-label="Copy email address '+esc(e.address)+'">'
+        +'<span class="rpe-main">'+lbl+'<span class="rpe-addr">'+esc(e.address)+'</span></span>'
+        +'<span class="rpe-badge rpe-copy">'+copyIcon()+'</span>'
+        +'<span class="rpe-badge rpe-done">'+checkIcon()+'</span>'
+        +'<span class="rpe-hint" aria-hidden="true">Click to copy</span>'
+        +'<span class="rpe-status rpc-sr" role="status" aria-live="polite"></span>'
+        +'</button>';
+    }).join('')+'</div>';
+  }
+  function bindEmails(host){
+    Array.prototype.forEach.call(host.querySelectorAll('.rpc-email'),function(btn){
+      btn.addEventListener('click',function(){
+        var addr=btn.getAttribute('data-email');
+        copyText(addr).then(function(){ emailMark(btn,true); },function(){ emailMark(btn,false); });
+      });
+    });
+  }
+
   var socHTML=null;   // social bubbles, once fetched; phones render after them so nothing jumps
   function renderSide(){
     if(!backdrop||socHTML===null)return;
-    var host=backdrop.querySelector('#rpcSocials'); if(host) host.innerHTML=socHTML+phonesHTML();
+    var host=backdrop.querySelector('#rpcSocials'); if(!host)return;
+    host.innerHTML=socHTML+phonesHTML()+emailsHTML(); bindEmails(host);
   }
 
   function build(){

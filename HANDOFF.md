@@ -63,8 +63,10 @@ or reveal the item; it should say "Found this item?" and give the rentals contac
   `phones` list (data/contact.json + Pages CMS > Contact > Phone numbers), rendered as tap-to-call
   links under the social bubbles. contact.js/contact.css are SHARED MODULES: edit the masters in
   ~/bts-automation (social_ui_sync.py copies them to both sites); jackcarlsen.com has no phones
-  entry so nothing shows there. Note: contact.json `emails` (click-to-copy) is configured but has
-  not rendered since the 2026-08-11 shared-module sync replaced the copy that drew it.
+  entry so nothing shows there.
+- Click-to-copy emails restored in the shared popup (contact.json `emails`, e.g. contact@rarepond.com):
+  they had not rendered since the 2026-08-11 shared-module sync replaced the copy that drew them.
+  Order in the side column is now: social bubbles, phone(s), email(s).
 - Checks: tools/test-maintenance.mjs and tools/check-slugs.mjs pass; the function renders with the
   /found target. Sticker redesign in progress in bts-automation (square, QR + ID + email); new QRs
   may encode `WWW.RAREPOND.COM/G/<CODE>` in capitals (alphanumeric mode, smallest QR); verified
