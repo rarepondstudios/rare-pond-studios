@@ -51,6 +51,13 @@ or reveal the item; it should say "Found this item?" and give the rentals contac
   instead of `HOME`, and the interstitial no longer prints the item ID ("One moment..."); its
   fallback link reads "Found this item?". Staff on the tailnet still go straight to the scan app.
   A malformed code still redirects to the home page.
+- Follow-up (same day): custom-page button blocks gained two optional Pages CMS fields,
+  `buttonStyle` (primary | subtle: subtle is a quiet outlined button) and `buttonAlign`
+  (left | center; stacked centered buttons sit closer together). `url` targets that are mailto:/tel:
+  now open in place instead of a new tab. /found uses centered buttons, with "Visit Rare Pond
+  Rentals" set to subtle. No phone number exists anywhere in the repo, socials table or live contact
+  popup (the HubSpot form only has a "Phone #" input), so the call button waits on Jack: add a
+  button block with target url and `tel:+1...` in Pages CMS when ready.
 - Checks: tools/test-maintenance.mjs and tools/check-slugs.mjs pass; the function renders with the
   /found target. Sticker redesign in progress in bts-automation (square, QR + ID + email); new QRs
   may encode `WWW.RAREPOND.COM/G/<CODE>` in capitals (alphanumeric mode, smallest QR); verified

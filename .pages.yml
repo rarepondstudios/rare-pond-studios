@@ -564,7 +564,17 @@ content:
               - name: buttonUrl
                 label: "Button - page slug or external URL"
                 type: string
-                description: "If 'Button goes to' = page → put the other page's slug here (e.g. summer-open-house). If = url → put the full https:// address."
+                description: "If 'Button goes to' = page → put the other page's slug here (e.g. summer-open-house). If = url → put the full https:// address, or mailto:name@domain / tel:+1XXXXXXXXXX for email and phone links."
+              - name: buttonStyle
+                label: "Button style  (for: button blocks)"
+                type: select
+                options: { values: [primary, subtle] }
+                description: "primary = the bright gradient button (default). subtle = a quiet outlined button for secondary links."
+              - name: buttonAlign
+                label: "Button position  (for: button blocks)"
+                type: select
+                options: { values: [left, center] }
+                description: "left is the default. center centers the button; several centered buttons in a row stack neatly."
               - name: jotformId
                 label: "Jotform form ID  (for: form blocks)"
                 type: string

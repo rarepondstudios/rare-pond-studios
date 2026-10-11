@@ -86,13 +86,17 @@
           "buttonLabel": "Email rentals@rarepond.com",
           "buttonTarget": "url",
           "buttonUrl": "mailto:rentals@rarepond.com?subject=Found%20Rare%20Pond%20gear",
-          "formHeight": 900
+          "formHeight": 900,
+          "buttonAlign": "center",
+          "buttonStyle": "primary"
         },
         {
           "type": "button",
           "buttonLabel": "Visit Rare Pond Rentals",
           "buttonTarget": "rentals",
-          "formHeight": 900
+          "formHeight": 900,
+          "buttonAlign": "center",
+          "buttonStyle": "subtle"
         }
       ]
     }

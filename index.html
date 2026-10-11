@@ -1128,10 +1128,14 @@ html.xw-active{overflow:hidden}
   .cp-img{width:100%;height:auto;display:block;border-radius:18px;box-shadow:0 24px 54px -18px rgba(0,8,30,.6);margin:26px 0 8px}
   .cp-cap{font-size:13px;opacity:.78;margin:0 0 26px;text-align:center}
   .cp-btnrow{margin:26px 0 30px}
+  .cp-btnrow.cp-center{text-align:center}
+  .cp-btnrow.cp-center + .cp-btnrow.cp-center{margin-top:-14px}
   .cp-btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:50px;font-weight:800;font-size:15px;text-decoration:none;cursor:pointer;border:0;
     background:linear-gradient(120deg,var(--g1,#3f6bff),var(--g2,#9b5cff),var(--g3,#56c8ff));background-size:200% 100%;color:#fff;
     box-shadow:0 10px 26px -8px rgba(20,60,160,.6);transition:transform .18s,box-shadow .18s,background-position .5s}
   .cp-btn:hover{transform:translateY(-2px);box-shadow:0 16px 34px -8px rgba(20,60,160,.75);background-position:100% 0}
+  .cp-btn.cp-btn-subtle{background:transparent;color:inherit;box-shadow:none;border:1px solid currentColor;font-weight:600;font-size:14px;padding:10px 22px;opacity:.72}
+  .cp-btn.cp-btn-subtle:hover{opacity:1;box-shadow:none;transform:translateY(-1px)}
   .cp-form{width:100%;border:0;border-radius:18px;background:#fff;box-shadow:0 24px 54px -18px rgba(0,8,30,.5);display:block;margin:24px 0 10px}
   /* text colour adapts to the background so it is always readable */
   #custom-page.cp-bg-home .cp-wrap{color:#0b2c55}
@@ -2567,7 +2571,7 @@ function cpRich(t){
 }
 function cpButtonHref(b){
   const t = b.buttonTarget || 'home';
-  if (t === 'url')     return { href: (b.buttonUrl||'#'), ext: true };
+  if (t === 'url')     { const u = String(b.buttonUrl||'#').trim(); return { href: u, ext: /^https?:/i.test(u) }; }   // mailto:/tel: open in place
   if (t === 'rentals') return { href: '/rentals', ext: false };
   if (t === 'page')    return { page: String(b.buttonUrl||'').trim() };
   return { go: t };                                  // home | team | projects | contact
@@ -2585,10 +2589,12 @@ function cpBlock(b){
     case 'button': {
       if (!b.buttonLabel) return '';
       const d = cpButtonHref(b), L = cpEsc(b.buttonLabel);
-      if (d.ext)  return '<div class="cp-btnrow"><a class="cp-btn" target="_blank" rel="noopener" href="' + cpAttr(d.href) + '">' + L + ' &rarr;</a></div>';
-      if (d.page) return '<div class="cp-btnrow"><a class="cp-btn" data-page="' + cpAttr(d.page) + '">' + L + ' &rarr;</a></div>';
-      if (d.go)   return '<div class="cp-btnrow"><a class="cp-btn" data-go="' + cpAttr(d.go) + '">' + L + ' &rarr;</a></div>';
-      return '<div class="cp-btnrow"><a class="cp-btn" href="' + cpAttr(d.href) + '">' + L + ' &rarr;</a></div>';
+      const row = '<div class="cp-btnrow' + (b.buttonAlign === 'center' ? ' cp-center' : '') + '">';
+      const cls = 'cp-btn' + (b.buttonStyle === 'subtle' ? ' cp-btn-subtle' : '');
+      if (d.ext)  return row + '<a class="' + cls + '" target="_blank" rel="noopener" href="' + cpAttr(d.href) + '">' + L + ' &rarr;</a></div>';
+      if (d.page) return row + '<a class="' + cls + '" data-page="' + cpAttr(d.page) + '">' + L + ' &rarr;</a></div>';
+      if (d.go)   return row + '<a class="' + cls + '" data-go="' + cpAttr(d.go) + '">' + L + ' &rarr;</a></div>';
+      return row + '<a class="' + cls + '" href="' + cpAttr(d.href) + '">' + L + ' &rarr;</a></div>';
     }
     case 'form': {
       const id = String(b.jotformId||'').replace(/[^0-9]/g,'');
