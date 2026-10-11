@@ -37,7 +37,24 @@
 
 ---
 
-## 0. LATEST SESSION (2026-10-01), READ THIS FIRST
+## 0. LATEST SESSION (2026-10-10), READ THIS FIRST
+
+### 0.0.-74 RENTALS: QR SCANS OFF THE TAILNET NOW LAND ON A PUBLIC "FOUND THIS ITEM?" PAGE (2026-10-10)
+
+Per Jack: a rental sticker scanned by anyone who is not on the tailnet must not land on the home page
+or reveal the item; it should say "Found this item?" and give the rentals contact.
+- New Pages CMS custom page, slug `found` (data/pages.json): live at `www.rarepond.com/found`,
+  public, not in either nav. Header "Found this item?", short body, mailto button to
+  rentals@rarepond.com (subject "Found Rare Pond gear"), and a button to /rentals. Jack can edit the
+  wording or add a phone number in Pages CMS > Custom Pages like any other page.
+- `functions/g/[id].js`: the off-tailnet fallback (probe fails or 2.5s timeout) now goes to `FOUND`
+  instead of `HOME`, and the interstitial no longer prints the item ID ("One moment..."); its
+  fallback link reads "Found this item?". Staff on the tailnet still go straight to the scan app.
+  A malformed code still redirects to the home page.
+- Checks: tools/test-maintenance.mjs and tools/check-slugs.mjs pass; the function renders with the
+  /found target. Sticker redesign in progress in bts-automation (square, QR + ID + email); new QRs
+  may encode `WWW.RAREPOND.COM/G/<CODE>` in capitals (alphanumeric mode, smallest QR); verified
+  `/G/` resolves to this same function.
 
 ### 0.0.-73 NEWS, PASS 3: GRID + LIGHTBOX POPUP, 3:4 IMAGE, LOOKS RACE FIXED, CURSOR RE-SHOW, LOAD DIET (2026-10-01)
 

@@ -63,6 +63,44 @@
           "formHeight": 900
         }
       ]
+    },
+    {
+      "slug": "found",
+      "publicAccess": true,
+      "title": "Found Rare Pond gear?",
+      "navLabel": "Found gear",
+      "showInStudioNav": false,
+      "showInRentalsNav": false,
+      "navOrder": 90,
+      "background": "home",
+      "bubbles": true,
+      "blocks": [
+        {
+          "type": "header",
+          "text": "Found this item?",
+          "buttonTarget": "home",
+          "formHeight": 900
+        },
+        {
+          "type": "body",
+          "text": "It belongs to <b>Rare Pond Rentals</b>. Thank you for scanning it.\n\nPlease email us at <a href=\"mailto:rentals@rarepond.com?subject=Found%20Rare%20Pond%20gear\">rentals@rarepond.com</a> and tell us where you found it. We will get it back to where it belongs.",
+          "buttonTarget": "home",
+          "formHeight": 900
+        },
+        {
+          "type": "button",
+          "buttonLabel": "Email rentals@rarepond.com",
+          "buttonTarget": "url",
+          "buttonUrl": "mailto:rentals@rarepond.com?subject=Found%20Rare%20Pond%20gear",
+          "formHeight": 900
+        },
+        {
+          "type": "button",
+          "buttonLabel": "Visit Rare Pond Rentals",
+          "buttonTarget": "rentals",
+          "formHeight": 900
+        }
+      ]
     }
   ]
 }
