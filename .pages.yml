@@ -540,8 +540,8 @@ content:
               - name: type
                 label: Block type
                 type: select
-                options: { values: [image, header, subheader, body, button, form] }
-                description: "image → uses 'Image' + 'Image caption'. header/subheader/body → use 'Text'. button → uses the three Button fields. form → uses 'Jotform form ID'."
+                options: { values: [image, header, subheader, body, button, form, phone-reveal] }
+                description: "image → uses 'Image' + 'Image caption'. header/subheader/body → use 'Text'. button → uses the three Button fields. form → uses 'Jotform form ID'. phone-reveal → a 'Show phone number' button (label, style and position from the Button fields) that reveals the rentals number only after a Cloudflare bot check; the number itself is stored in Cloudflare (FOUND_PHONE), never here."
               - name: text
                 label: "Text  (for: header / subheader / body)"
                 type: text

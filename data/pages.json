@@ -77,7 +77,7 @@
       "blocks": [
         {
           "type": "body",
-          "text": "It belongs to <b>Rare Pond Rentals</b>. Thank you for scanning it.\n\nPlease email us at <a href=\"mailto:rentals@rarepond.com?subject=Found%20Rare%20Pond%20gear\">rentals@rarepond.com</a> and tell us where you found it. We will get it back to where it belongs.",
+          "text": "It belongs to <b>Rare Pond Rentals</b>. Thank you for scanning it.\n\nPlease email us at <a href=\"mailto:rentals@rarepond.com?subject=Found%20Rare%20Pond%20gear\">rentals@rarepond.com</a> or call us, and tell us where you found it. We will get it back to where it belongs.",
           "buttonTarget": "home",
           "formHeight": 900
         },
@@ -89,6 +89,13 @@
           "formHeight": 900,
           "buttonAlign": "center",
           "buttonStyle": "primary"
+        },
+        {
+          "type": "phone-reveal",
+          "buttonLabel": "Show phone number",
+          "buttonStyle": "primary",
+          "buttonAlign": "center",
+          "formHeight": 900
         },
         {
           "type": "button",

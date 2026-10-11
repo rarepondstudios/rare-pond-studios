@@ -67,6 +67,16 @@ or reveal the item; it should say "Found this item?" and give the rentals contac
 - Phone removed again (Jack, 2026-10-11): the number is no longer on /found (body link and Call button
   gone) or in the contact popup (contact.json `phones` removed). The phones/tel: support stays in the
   code and Pages CMS, so a number can be re-added there without code changes.
+- Phone back on /found, scraper-proof (Jack chose "tap to reveal with a bot check"): new custom-page block
+  type `phone-reveal` (index.html cpBlock + cpWireReveal, Pages CMS option) shows "Show phone number";
+  tapping loads Cloudflare Turnstile (only then), and a valid token is POSTed to the new Pages Function
+  `functions/api/found-phone.js`, which verifies it server-side and returns the number. The number is
+  NOT in the repo or any static file: it lives in Cloudflare env vars TURNSTILE_SITE_KEY,
+  TURNSTILE_SECRET_KEY (Secret) and FOUND_PHONE (Secret). Until all three are set, GET
+  /api/found-phone returns enabled:false and the button stays hidden. Tested locally with Turnstile
+  test keys + mocked API (number absent from DOM before the check; tel: link after) and the
+  function with mocked siteverify (cross-origin, missing token, failed token, wrong hostname all
+  rejected). Note: this repo is PUBLIC and the number is in git history from 2026-10-10 commits.
 - Click-to-copy emails restored in the shared popup (contact.json `emails`, e.g. contact@rarepond.com):
   they had not rendered since the 2026-08-11 shared-module sync replaced the copy that drew them.
   Order in the side column is now: social bubbles, phone(s), email(s).

@@ -1130,6 +1130,12 @@ html.xw-active{overflow:hidden}
   .cp-btnrow{margin:26px 0 30px}
   .cp-btnrow.cp-center{text-align:center}
   .cp-btnrow.cp-center + .cp-btnrow.cp-center{margin-top:-14px}
+  .cp-reveal[hidden]{display:none}
+  .cp-reveal-widget:empty{display:none}
+  .cp-reveal-widget{margin:10px auto 0;display:flex;justify-content:center}
+  .cp-reveal-msg{font-size:13px;opacity:.8;margin:8px 0 0;min-height:0}
+  .cp-reveal-msg:empty{display:none}
+  .cp-btn.cp-busy{opacity:.6;pointer-events:none}
   .cp-btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:50px;font-weight:800;font-size:15px;text-decoration:none;cursor:pointer;border:0;
     background:linear-gradient(120deg,var(--g1,#3f6bff),var(--g2,#9b5cff),var(--g3,#56c8ff));background-size:200% 100%;color:#fff;
     box-shadow:0 10px 26px -8px rgba(20,60,160,.6);transition:transform .18s,box-shadow .18s,background-position .5s}
@@ -2603,8 +2609,63 @@ function cpBlock(b){
       return '<iframe class="cp-form" title="Form" loading="lazy" scrolling="no" allowtransparency="true"'
            + ' src="https://form.jotform.com/' + id + '" style="height:' + h + 'px"></iframe>';
     }
+    case 'phone-reveal': {
+      /* The number is NOT in this page or in pages.json: /api/found-phone returns it only after a
+         Cloudflare Turnstile check, so scrapers can't harvest it. Hidden until the API says it is configured. */
+      const row = '<div class="cp-btnrow cp-reveal' + (b.buttonAlign === 'center' ? ' cp-center' : '') + '" hidden>';
+      const cls = 'cp-btn' + (b.buttonStyle === 'subtle' ? ' cp-btn-subtle' : '');
+      return row + '<a class="' + cls + ' cp-reveal-btn" href="#" role="button">' + cpEsc(b.buttonLabel || 'Show phone number') + '</a>'
+           + '<div class="cp-reveal-widget"></div><p class="cp-reveal-msg" aria-live="polite"></p></div>';
+    }
     default: return '';
   }
+}
+/* Wire any phone-reveal blocks on the current custom page (see functions/api/found-phone.js). */
+function cpWireReveal(root){
+  const rows = root.querySelectorAll('.cp-reveal');
+  if (!rows.length) return;
+  fetch('/api/found-phone', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null).then(cfg => {
+    if (!cfg || !cfg.enabled || !cfg.siteKey) return;              // not configured: keep hidden
+    rows.forEach(row => {
+      row.removeAttribute('hidden');
+      const btn = row.querySelector('.cp-reveal-btn'), box = row.querySelector('.cp-reveal-widget'), msg = row.querySelector('.cp-reveal-msg');
+      let started = false;
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        if (started) return; started = true;
+        btn.classList.add('cp-busy'); msg.textContent = 'Checking you are not a bot\u2026';
+        cpLoadTurnstile().then(ts => {
+          ts.render(box, {
+            sitekey: cfg.siteKey, appearance: 'interaction-only',
+            callback: token => {
+              fetch('/api/found-phone', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) })
+                .then(r => r.ok ? r.json() : Promise.reject(r.status))
+                .then(d => {
+                  const a = document.createElement('a');
+                  a.className = btn.className.replace(' cp-busy', '').replace(' cp-reveal-btn', '');
+                  a.href = d.tel; a.textContent = 'Call ' + d.phone + ' \u2192';
+                  btn.replaceWith(a); box.remove(); msg.textContent = '';
+                })
+                .catch(() => { msg.textContent = 'Sorry, that did not work. Please email us instead.'; });
+            },
+            'error-callback': () => { msg.textContent = 'Sorry, the check failed. Please email us instead.'; }
+          });
+        }).catch(() => { msg.textContent = 'Sorry, that did not load. Please email us instead.'; });
+      });
+    });
+  });
+}
+let cpTurnstileP = null;
+function cpLoadTurnstile(){
+  if (window.turnstile) return Promise.resolve(window.turnstile);
+  if (cpTurnstileP) return cpTurnstileP;
+  cpTurnstileP = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'; s.async = true;
+    s.onload = () => window.turnstile ? res(window.turnstile) : rej(); s.onerror = rej;
+    document.head.appendChild(s);
+  });
+  return cpTurnstileP;
 }
 function renderCustomPage(pg){
   const sec = document.getElementById('custom-page');
@@ -2623,6 +2684,7 @@ function renderCustomPage(pg){
   }
   document.getElementById('cp-title').textContent = pg.title || '';
   document.getElementById('cp-body').innerHTML = (Array.isArray(pg.blocks) ? pg.blocks : []).map(cpBlock).join('');
+  cpWireReveal(document.getElementById('cp-body'));
   document.title = (pg.title ? pg.title + ' · ' : '') + 'Rare Pond Studios';
 }
 /* nav banner: append links for pages with showInStudioNav (order by navOrder) */
