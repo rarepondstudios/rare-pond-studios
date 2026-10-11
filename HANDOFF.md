@@ -57,13 +57,16 @@ or reveal the item; it should say "Found this item?" and give the rentals contac
   now open in place instead of a new tab. /found uses centered buttons, with "Visit Rare Pond
   Rentals" set to subtle. No phone number exists anywhere in the repo, socials table or live contact
   popup (the HubSpot form only has a "Phone #" input), so the call button waited on Jack.
-- Phone added (Jack gave (213) 222-8166): /found body now reads "call us at (213) 222-8166 or email
-  rentals@rarepond.com" and has a centered "Call (213) 222-8166" button (tel:+12132228166) under the
+- Phone added (Jack gave the rentals number): /found body now reads "call us at <number> or email
+  rentals@rarepond.com" and has a centered "Call <number>" button (tel: link) under the
   email button. cpRich now allows tel: links in body text. The shared Contact popup gained a
   `phones` list (data/contact.json + Pages CMS > Contact > Phone numbers), rendered as tap-to-call
   links under the social bubbles. contact.js/contact.css are SHARED MODULES: edit the masters in
   ~/bts-automation (social_ui_sync.py copies them to both sites); jackcarlsen.com has no phones
   entry so nothing shows there.
+- Phone removed again (Jack, 2026-10-11): the number is no longer on /found (body link and Call button
+  gone) or in the contact popup (contact.json `phones` removed). The phones/tel: support stays in the
+  code and Pages CMS, so a number can be re-added there without code changes.
 - Click-to-copy emails restored in the shared popup (contact.json `emails`, e.g. contact@rarepond.com):
   they had not rendered since the 2026-08-11 shared-module sync replaced the copy that drew them.
   Order in the side column is now: social bubbles, phone(s), email(s).

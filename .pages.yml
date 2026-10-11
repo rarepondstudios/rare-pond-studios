@@ -609,7 +609,7 @@ content:
         label: "Phone numbers"
         type: object
         list: true
-        description: "Shown under the social buttons in the popup as tap-to-call links. Type the number the way you want it displayed, e.g. (213) 222-8166; US numbers dial as +1 automatically. Leave the list empty to show no phone."
+        description: "Shown under the social buttons in the popup as tap-to-call links. Type the number the way you want it displayed, e.g. (555) 555-0123; US numbers dial as +1 automatically. Leave the list empty to show no phone."
         fields:
           - { name: label, label: "Label (optional, e.g. Call us)", type: string }
           - { name: number, label: "Phone number", type: string }
