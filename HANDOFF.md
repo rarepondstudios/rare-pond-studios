@@ -49,7 +49,16 @@
   `flex:0 0 auto` so it never squeezes and the round social buttons shift / wrap instead; capped only
   by the row width (object-fit contain, never distorted). A document click handler routes it through
   the SPA (`nav('/<slug>')`, closing an open article first). Built from `__projects` directly because
-  `KEY2SLUG`/`slugify` are declared after the first `renderNewsList()` (TDZ). The two
+  `KEY2SLUG`/`slugify` are declared after the first `renderNewsList()` (TDZ).
+  **Transition (follow-up, commit 0d360ff):** the click no longer goes through `nav()` (that swapped
+  to the projects view first, so the grid flashed before the bubble wipe). `openProjectFrom(el,key)`
+  pushes `/<slug>` and calls `openUniverse` with the logo as the wipe origin (`__uFromEl` ->
+  `sec._fromEl`; `setOrigin` asks `elOrigin(sec._fromEl)` before `bubbleOrigin`, a normal open clears
+  it), over the News view. From the popup the film gets `.u-over` (z-index 100001, the popup is
+  100000) and the popup is closed instantly (lock re-applied) once the clip-path transition ends.
+  Back retracts into the logo it came from (card) or where the popup's logo was, and the film's back
+  button reads "Back to news". Verified with Playwright (projects view stays display:none throughout,
+  --ox/--oy = the logo centre, card and popup) and live in Chrome. The two
   `[Geri-Action page](/geriaction)` body links were unlinked (plain text) on Jack's request.
 - **Socials picked per site.** `social_links` is now one POST per line: the link, then every account it
   appears on (`https://www.instagram.com/p/CODE/ @geri_action_film @jackjrrc`); a link that names its
