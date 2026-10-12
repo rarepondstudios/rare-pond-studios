@@ -3056,11 +3056,15 @@ function closeNews(instant){
   newsPanel.style.clipPath=NEWS_FULL;void newsPanel.offsetWidth;
   newsPanel.classList.add('tucked');newsPanel.style.clipPath=newsPanelTuckClip();
   newsCardTuck(card,true,true);card.style.visibility='hidden';
-  const finish=()=>{hide();newsCardReset(card);};
+  /* the fx scrim (::before) has already faded out by the end, so the popup must vanish INSTANTLY:
+     dropping .fx with the normal opacity fade would bring the full dark scrim back for 0.28s (the
+     "blackout flash" Jack saw). Transition off, hide, commit, transition back. */
+  const hideNow=()=>{newsArt.style.transition='none';hide();void newsArt.offsetWidth;newsArt.style.transition='';};
+  const finish=()=>{hideNow();newsCardReset(card);};
   newsFx.undo=finish;
   newsFxLater(300,()=>{newsArt.classList.remove('open');newsFlipFrom(key,true);});
   newsFxLater(300+440,()=>{
-    card.style.visibility='';hide();
+    card.style.visibility='';hideNow();
     void card.offsetWidth;newsCardTuck(card,false);
     newsFx.undo=()=>newsCardReset(card);
   });
