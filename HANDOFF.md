@@ -37,7 +37,35 @@
 
 ---
 
-## 0. LATEST SESSION (2026-10-10), READ THIS FIRST
+## 0. LATEST SESSION (2026-10-11), READ THIS FIRST
+
+### 0.0.-75 CLOSED PAGES NOW HOLD IN THE SPA; NEWS IMAGES FROM THE INSTAGRAM POSTS; NEWS SWITCHED ON (2026-10-11)
+
+- **Bug.** With the News switch off, `/news` loaded fresh showed the cover (edge), but clicking News
+  in the nav, Back/Forward, or `/#news` from rentals rendered the full News view: the cover lives
+  only in `functions/_maintenance.js`, which never sees in-page navigation. Team, Projects and
+  custom pages had the same hole.
+- **Fix (`index.html`, commit 69fe0a2).** `routeClosed(path)` mirrors the edge's sources, in the
+  same order: `site.json` `pageAccess` register (longest match), then the page's own switch
+  (`news-page.json` for `/news` and `/news/<key>`, `team.json`, `section-templates.json` +
+  legacy `projectsPublicAccess`), then custom pages by slug. Absent === open. `renderRoute()` (every
+  nav click, `nav()`, `navPage()`, popstate) reloads the URL when it lands on a closed page, so the
+  edge serves the cover; `routeHash()` does `location.replace('/<view>')` for `#team/#projects/#news`.
+  The FIRST render never reloads (`__routeBooted` is set after `initRoute`): the edge already ruled
+  on that request, and if it failed open a reload would loop. Verified locally with Playwright
+  (News click reloads, Team click does not, no page errors) and live in Chrome (nav click -> "The
+  Pond Is Being Cleaned" cover at /news). A SPA-wide guard was the right size: any new page that
+  joins the register is covered in-page too, no code change.
+- **Images.** One image per article, taken from the Instagram posts about each event (Jack's call):
+  ISA premiere = slide 1 of the @geri_action_film recap carousel (post DdovtaoF0-M, 1080x1350);
+  OIAF = slide 2 of @jackjrrc's Ottawa carousel (post DeAOVMPn7jq, 1080x1440). Both were layout
+  collages built in Instagram, so no master exists in the NAS social folders (checked: Geri-ACTION
+  `Distribution/02_Social Media/September 2026` holds only the 1080x1920 "LAST CHANCE" story and
+  reels; Rare Pond `Social Media Posts/September 2026/OIAF` has raw HEICs, empty Exports); the
+  files were pulled from Instagram. Indie Shorts Fest left blank on purpose (duck placeholder) until
+  Jack has a photo. Old images moved out of the `News (Web)` folders to `~/news_img_work/replaced/`
+  on the mini; the media sync archived the published copies.
+- **Switch.** `data/news-page.json` `publicAccess` -> true (commit 9421eba) at Jack's go-ahead.
 
 ### 0.0.-74 RENTALS: QR SCANS OFF THE TAILNET NOW LAND ON A PUBLIC "FOUND THIS ITEM?" PAGE (2026-10-10)
 
