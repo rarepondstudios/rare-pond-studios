@@ -644,7 +644,30 @@ html.xw-active{overflow:hidden}
   .na-panel{position:absolute;left:50%;top:50%;width:min(92vw,520px);max-height:min(90vh,calc(100vh - 40px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
     transform:translate(-50%,-50%);transform-origin:0 0;will-change:transform;cursor:default;
     display:flex;flex-direction:column;gap:12px;padding:14px 14px 20px;border-radius:24px;color:#0b2c55;background:rgba(255,255,255,.96);box-shadow:0 30px 80px rgba(0,0,0,.55);
-    transition:transform .42s cubic-bezier(.6,0,.2,1),opacity .3s ease}
+    transition:transform .42s cubic-bezier(.6,0,.2,1),opacity .3s ease,clip-path .34s cubic-bezier(.2,.7,.2,1),box-shadow .3s ease}
+  /* ===== the open / close choreography (openNews / closeNews, "fx") =====
+     1. the card's text slides UP under its photo (clipped to the photo), 2. the photo alone grows into
+     place (uniform scale, so it never stretches), 3. the text unfolds out from behind the photo: from
+     its RIGHT side on landscape (text beside), from BELOW on portrait (text under). Close = reverse.
+     The text is never re-wrapped or scaled on screen: it is hidden while the box changes shape. */
+  .na-panel.tucked{box-shadow:none}
+  .na-panel .na-text{transition:opacity .28s ease,transform .36s cubic-bezier(.2,.7,.2,1)}
+  .na-panel.tucked .na-text{opacity:0;transform:var(--tuck-tx,translateX(-28px))}
+  .na-panel.flip .na-text{transition:none}
+  .na-panel .nimg{z-index:1}   /* the text tucks UNDER the photo, never over it */
+  /* fx: the scrim is its own layer so the panel never fades with it (the panel IS the card's photo) */
+  .news-art.fx{opacity:1;visibility:visible;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;transition:none}
+  .news-art.fx::before{content:"";position:absolute;inset:0;z-index:-1;background:rgba(3,6,16,.93);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transition:opacity .34s ease}
+  .news-art.fx.open::before{opacity:1}
+  .news-art.fx .lb-close,.news-art.fx .lb-nav{transition:opacity .3s ease}
+  .news-art.fx:not(.open) .lb-close,.news-art.fx:not(.open) .lb-nav{opacity:0}
+  .ncard .nimg{z-index:1}
+  .ncard.nanim{transition:clip-path .22s cubic-bezier(.4,0,.2,1)}
+  .ncard.nanim>*:not(.nimg){transition:transform .22s cubic-bezier(.4,0,.2,1),opacity .2s ease}
+  .ncard.nanim.snap,.ncard.nanim.snap>*{transition:none!important}
+  /* step between articles: the current one swipes off one side, the next swipes in from the other */
+  .na-panel.swipe{transition:transform .5s cubic-bezier(.22,.8,.2,1),opacity .4s ease}
+  .na-ghost{pointer-events:none}
   .na-panel.flip{transition:none}
   /* The panel and the peeks are max-height flex columns: without this, a long article made flex SHRINK the
      3:4 image box (overflow:hidden lets it go below its aspect height), so object-fit re-cropped the photo
@@ -2917,7 +2940,7 @@ function renderNewsPopup(key){
 /* FLIP: the panel starts exactly on the card's rectangle (measured AFTER the body lock, same
    reasoning as openUniverse: the lock removes the scrollbar and re-centres the page) and eases
    to its resting place; transform only, nothing is re-laid-out during the animation */
-function newsFlipFrom(key){
+function newsFlipFrom(key,keep){
   const card=document.querySelector(`.ncard[data-news="${CSS.escape(key)}"]`);
   const to=newsPanel.getBoundingClientRect();
   if(!card||activeView!=='news'||!to.width){newsPanel.style.transform='translate(-50%,-50%) scale(.94)';newsPanel.style.opacity='0';return;}
@@ -2932,12 +2955,43 @@ function newsFlipFrom(key){
      untransformed top-left is the viewport centre; ox/oy = the image's offset inside the panel */
   const ox=tgt.left-to.left, oy=tgt.top-to.top;
   const dx=from.left-innerWidth/2-s*ox, dy=from.top-innerHeight/2-s*oy;
-  newsPanel.style.transform=`translate(${dx}px,${dy}px) scale(${s})`;newsPanel.style.opacity='.6';
+  newsPanel.style.transform=`translate(${dx}px,${dy}px) scale(${s})`;newsPanel.style.opacity=keep?'1':'.6';
 }
+/* ===== choreography helpers ===== */
+const newsRM=()=>!!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);
+const newsWideNow=()=>!!(NEWS_WIDE&&NEWS_WIDE.matches);
+let newsFx={timers:[],undo:null};
+function newsFxLater(ms,fn){newsFx.timers.push(setTimeout(fn,ms));}
+function newsFxCancel(){newsFx.timers.forEach(clearTimeout);newsFx.timers=[];const u=newsFx.undo;newsFx.undo=null;if(u)u();}
+function newsCardOf(key){return document.querySelector(`.ncard[data-news="${CSS.escape(key)}"]`);}
+const newsCardKids=card=>[...card.children].filter(c=>!c.classList.contains('nimg'));
+/* the card collapsed to its photo: clip to photo + its padding, text slid up under the photo (never
+   above the photo's top: at most one photo-height), faded */
+function newsCardTuck(card,on,instant){
+  const img=card.querySelector('.nimg');if(!img)return;
+  card.classList.add('nanim');card.classList.toggle('snap',!!instant);
+  if(!on){card.style.clipPath='inset(0px 0px 0px 0px round 24px)';newsCardKids(card).forEach(k=>{k.style.transform='';k.style.opacity='';});return;}
+  const pad=img.offsetLeft, b=Math.max(0,card.offsetHeight-(img.offsetTop+img.offsetHeight+pad));
+  const up=Math.min(img.offsetHeight,card.offsetHeight-(img.offsetTop+img.offsetHeight));
+  if(!card.style.clipPath){card.style.clipPath='inset(0px 0px 0px 0px round 24px)';void card.offsetWidth;}
+  card.style.clipPath=`inset(0px 0px ${b}px 0px round 24px)`;
+  newsCardKids(card).forEach(k=>{k.style.transform=`translateY(${-up}px)`;k.style.opacity='0';});
+}
+function newsCardReset(card){if(!card)return;card.classList.remove('nanim','snap');card.style.clipPath='';card.style.visibility='';newsCardKids(card).forEach(k=>{k.style.transform='';k.style.opacity='';});}
+/* the panel collapsed to its photo (+ the panel padding), text tucked behind it toward the side it
+   will unfold from. Geometry is read untransformed (offset*), so it is right mid-FLIP too. */
+function newsPanelTuckClip(){
+  const img=newsPanel.querySelector('.nimg');if(!img)return 'inset(0px 0px 0px 0px round 24px)';
+  const pad=parseFloat(getComputedStyle(newsPanel).paddingTop)||14, W=newsPanel.offsetWidth, H=newsPanel.offsetHeight;
+  const t=Math.max(0,img.offsetTop-pad), l=Math.max(0,img.offsetLeft-pad);
+  const r=Math.max(0,W-(img.offsetLeft+img.offsetWidth+pad)), b=Math.max(0,H-(img.offsetTop+img.offsetHeight+pad));
+  return `inset(${t}px ${r}px ${b}px ${l}px round 24px)`;
+}
+const NEWS_FULL='inset(0px 0px 0px 0px round 24px)';
 function openNews(key){
   const a=NEWS_BY_KEY[key];if(!a)return false;
   if(currentOpen)closeUniverse(currentOpen);
-  clearTimeout(newsCloseTimer);
+  clearTimeout(newsCloseTimer);newsFxCancel();
   const isOpen=newsArt.classList.contains('open');
   if(isOpen&&newsOpen===key)return true;
   if(isOpen){newsStep(newsIdx(key)>newsIdx(newsOpen)?1:-1,key);return true;}
@@ -2946,45 +3000,97 @@ function openNews(key){
   renderNewsPopup(key);
   newsArt.classList.remove('closing');newsArt.style.visibility='visible';newsArt.setAttribute('aria-hidden','false');
   newsPanel.scrollTop=0;
-  newsMoving(520);
-  newsPanel.classList.add('flip');newsFlipFrom(key);void newsPanel.offsetWidth;
-  newsPanel.classList.remove('flip');
-  requestAnimationFrame(()=>{newsArt.classList.add('open');newsPanel.style.transform='';newsPanel.style.opacity='';});
+  const card=newsCardOf(key);
+  if(!card||activeView!=='news'||newsRM()||!card.getBoundingClientRect().width){
+    newsMoving(520);
+    newsPanel.classList.add('flip');newsFlipFrom(key);void newsPanel.offsetWidth;
+    newsPanel.classList.remove('flip');
+    requestAnimationFrame(()=>{newsArt.classList.add('open');newsPanel.style.transform='';newsPanel.style.opacity='';});
+    return true;
+  }
+  /* 1. the card's text slides up under its photo; the panel, collapsed to its photo, sits exactly on
+        the card's photo (uniform FLIP), so the text visibly goes in UNDER the photo */
+  newsBusy=true;newsMoving(1300);
+  newsArt.classList.add('fx');
+  newsPanel.classList.add('flip','tucked');
+  newsPanel.style.setProperty('--tuck-tx',newsWideNow()?'translateX(-28px)':'translateY(-28px)');
+  newsPanel.style.clipPath=newsPanelTuckClip();
+  newsFlipFrom(key,true);void newsPanel.offsetWidth;
+  newsCardTuck(card,true);
+  newsFx.undo=()=>{newsCardReset(card);newsPanel.classList.remove('flip','tucked');newsPanel.style.clipPath='';newsArt.classList.remove('fx');newsBusy=false;};
+  /* 2. the photo grows into place, the scrim fades in, the card's slot is now empty */
+  newsFxLater(210,()=>{
+    card.style.visibility='hidden';
+    newsPanel.classList.remove('flip');newsArt.classList.add('open');
+    newsPanel.style.transform='';
+  });
+  /* 3. the text unfolds out of the photo (right side on landscape, below on portrait) */
+  newsFxLater(210+440,()=>{newsPanel.style.clipPath=NEWS_FULL;newsPanel.classList.remove('tucked');});
+  /* 4. tidy: the scrim becomes the normal one, the card is restored under it */
+  newsFxLater(210+440+380,()=>{newsFx.undo=null;newsPanel.style.clipPath='';newsArt.classList.remove('fx');newsCardReset(card);newsBusy=false;newsFx.timers=[];});
   return true;
 }
 function closeNews(instant){
   if(!newsOpen)return;
+  newsFxCancel();
   const key=newsOpen;newsOpen=null;newsBusy=false;
   document.body.classList.remove('locked');
   document.title=NEWS_LIST_TITLE;
   newsArt.setAttribute('aria-hidden','true');
-  const hide=()=>{newsArt.classList.remove('open','closing','moving');newsArt.style.visibility='';newsPanel.style.transform='';newsPanel.style.opacity='';newsPanel.className='na-panel';};
-  if(instant||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)){newsArt.classList.remove('open');hide();return;}
-  /* shrink back INTO the card (unlock first, then re-measure: the scrollbar came back) */
-  newsArt.classList.add('closing','moving');newsArt.classList.remove('open');
-  newsFlipFrom(key);
-  const done=e=>{if(e.target!==newsArt||e.propertyName!=='opacity')return;newsArt.removeEventListener('transitionend',done);clearTimeout(newsCloseTimer);hide();};
-  newsArt.addEventListener('transitionend',done);
-  newsCloseTimer=setTimeout(()=>{newsArt.removeEventListener('transitionend',done);hide();},500);
+  const hide=()=>{newsArt.classList.remove('open','closing','moving','fx');newsArt.style.visibility='';newsPanel.style.transform='';newsPanel.style.opacity='';newsPanel.style.clipPath='';newsPanel.className='na-panel';newsArt.querySelectorAll('.na-ghost').forEach(g=>g.remove());};
+  if(instant||newsRM()){newsArt.classList.remove('open');hide();return;}
+  const card=newsCardOf(key);
+  if(!card||activeView!=='news'||!card.getBoundingClientRect().width){
+    /* shrink back INTO the card (unlock first, then re-measure: the scrollbar came back) */
+    newsArt.classList.add('closing','moving');newsArt.classList.remove('open');
+    newsFlipFrom(key);
+    const done=e=>{if(e.target!==newsArt||e.propertyName!=='opacity')return;newsArt.removeEventListener('transitionend',done);clearTimeout(newsCloseTimer);hide();};
+    newsArt.addEventListener('transitionend',done);
+    newsCloseTimer=setTimeout(()=>{newsArt.removeEventListener('transitionend',done);hide();},500);
+    return;
+  }
+  /* the reverse: 1. text folds back behind the photo, 2. the photo shrinks onto the card's photo while
+     the scrim fades, 3. the card takes over and its text slides back down from under the photo */
+  newsArt.classList.add('fx','moving');
+  newsPanel.style.setProperty('--tuck-tx',newsWideNow()?'translateX(-28px)':'translateY(-28px)');
+  newsPanel.style.clipPath=NEWS_FULL;void newsPanel.offsetWidth;
+  newsPanel.classList.add('tucked');newsPanel.style.clipPath=newsPanelTuckClip();
+  newsCardTuck(card,true,true);card.style.visibility='hidden';
+  const finish=()=>{hide();newsCardReset(card);};
+  newsFx.undo=finish;
+  newsFxLater(300,()=>{newsArt.classList.remove('open');newsFlipFrom(key,true);});
+  newsFxLater(300+440,()=>{
+    card.style.visibility='';hide();
+    void card.offsetWidth;newsCardTuck(card,false);
+    newsFx.undo=()=>newsCardReset(card);
+  });
+  newsFxLater(300+440+300,()=>{newsFx.undo=null;newsCardReset(card);newsFx.timers=[];});
 }
-/* step to the previous (-1) / next (+1) article in place: slide the panel out, re-render, slide in.
-   The address is REPLACED, not pushed, so Back closes the popup like the lightbox, never walks
-   back through every article you flipped past. */
 let newsMoveTimer=0;
 function newsMoving(ms){newsArt.classList.add('moving');clearTimeout(newsMoveTimer);newsMoveTimer=setTimeout(()=>newsArt.classList.remove('moving'),ms);}
+/* step to the previous (-1) / next (+1) article in place (swipe). The address is REPLACED, not pushed,
+   so Back closes the popup like the lightbox, never walks back through every article you flipped past. */
 function newsStep(dir,toKey){
   if(newsBusy||!newsOpen)return;
   const i=newsIdx(newsOpen);const t=toKey?NEWS_BY_KEY[toKey]:NEWS[i+dir];if(!t)return;
-  newsBusy=true;newsMoving(520);
-  const outCls=dir>0?'slide-out-l':'slide-out-r', inCls=dir>0?'slide-in-l':'slide-in-r';
-  newsPanel.classList.add(outCls);
-  setTimeout(()=>{
-    newsOpen=t.key;renderNewsPopup(t.key);newsPanel.scrollTop=0;
-    try{history.replaceState({},'','/news/'+encodeURIComponent(t.key));}catch(e){}
-    newsPanel.classList.remove(outCls);newsPanel.classList.add(inCls);void newsPanel.offsetWidth;
-    newsPanel.classList.remove(inCls);newsBusy=false;
-    try{newsPanel.focus({preventScroll:true});}catch(e){}
-  },200);
+  if(newsRM()){newsOpen=t.key;renderNewsPopup(t.key);try{history.replaceState({},'','/news/'+encodeURIComponent(t.key));}catch(e){}return;}
+  newsBusy=true;newsMoving(620);
+  /* SWIPE: a snapshot of the current article (ghost) slides fully off one side while the real panel,
+     already showing the next article, slides in from the other side. Peeks are hidden meanwhile. */
+  newsArt.querySelectorAll('.na-ghost').forEach(g=>g.remove());
+  const ghost=newsPanel.cloneNode(true);
+  ghost.classList.add('na-ghost');ghost.removeAttribute('tabindex');ghost.setAttribute('aria-hidden','true');
+  ghost.style.transform='';ghost.style.clipPath='';
+  newsPanel.parentNode.insertBefore(ghost,newsPanel.nextSibling);
+  const gw=ghost.offsetWidth;
+  newsOpen=t.key;renderNewsPopup(t.key);newsPanel.scrollTop=0;
+  try{history.replaceState({},'','/news/'+encodeURIComponent(t.key));}catch(e){}
+  const din=(innerWidth+newsPanel.offsetWidth)/2+30, dout=(innerWidth+gw)/2+30;
+  newsPanel.classList.remove('swipe');newsPanel.classList.add('flip');
+  newsPanel.style.transform=`translate(calc(-50% + ${dir*din}px),-50%)`;void newsPanel.offsetWidth;
+  newsPanel.classList.remove('flip');newsPanel.classList.add('swipe');ghost.classList.add('swipe');
+  requestAnimationFrame(()=>{newsPanel.style.transform='';ghost.style.transform=`translate(calc(-50% - ${dir*dout}px),-50%)`;});
+  setTimeout(()=>{ghost.remove();newsPanel.classList.remove('swipe');newsBusy=false;try{newsPanel.focus({preventScroll:true});}catch(e){}},540);
 }
 function newsGo(k){const url='/news/'+encodeURIComponent(k);if(location.pathname!==url)history.pushState({},'',url);openNews(k);}
 /* The project logo button opens the film STRAIGHT from the button: the same expanding-circle wipe as a
