@@ -650,6 +650,19 @@ html.xw-active{overflow:hidden}
      3:4 image box (overflow:hidden lets it go below its aspect height), so object-fit re-cropped the photo
      wider than the card's. Children keep their natural height; the panel scrolls instead (2026-10-11). */
   .na-panel>*,.na-peek>*{flex-shrink:0}
+  .na-panel .nimg,.na-peek .nimg{max-width:100%}   /* newsFit() narrows the image box (3:4 kept) so the whole post fits */
+  .na-text{display:flex;flex-direction:column;gap:12px;min-width:0}
+  /* LANDSCAPE SCREENS: image left at the full available height (3:4 kept, so the crop is the card's),
+     text column right. The whole post fits without scrolling and the photo stays big; a portrait
+     screen keeps the stacked card layout (newsFit shrinks only the image there). */
+  @media (orientation:landscape) and (min-width:760px){
+    .na-panel{flex-direction:row;align-items:stretch;gap:22px;width:auto;max-width:94vw;padding:14px 22px 14px 14px}
+    .na-panel .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px);width:auto;max-width:none;align-self:flex-start}
+    .na-text{width:clamp(280px,30vw,420px);justify-content:center;overflow-y:auto}
+    .na-peek{flex-direction:row;align-items:center;width:auto;max-width:none;padding:14px}
+    .na-peek .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px);width:auto;max-width:none}
+    .na-peek h2{width:clamp(280px,30vw,420px)}
+  }
   .news-art.closing .na-panel{transition:transform .34s cubic-bezier(.6,0,.2,1),opacity .22s ease}
   .na-panel h1{font-size:clamp(21px,2.4vw,27px);line-height:1.15;font-weight:800;letter-spacing:-.015em;color:#0b2c55;margin:2px 0 0}
   .na-panel .nbody{font-size:16px;line-height:1.65}
@@ -661,6 +674,9 @@ html.xw-active{overflow:hidden}
   .na-peek h2{font-size:18px;line-height:1.2;font-weight:800;margin:0}
   .na-peek.off{opacity:0}
   @media(max-width:700px){.news-art{--peek:26px}.na-panel{width:min(94vw,520px)}.na-peek{width:min(94vw,520px)}}
+  /* phones: the card's text size in the popup too, so the photo keeps more of the screen */
+  @media(max-width:700px) and (orientation:portrait){.na-panel .nbody{font-size:14.5px;line-height:1.55}.na-panel h1{font-size:20px}.na-panel{gap:10px;padding:12px 12px 16px}}
+  @media(orientation:landscape) and (max-height:500px){.na-panel .nbody{font-size:14px;line-height:1.5}.na-panel h1{font-size:19px}.na-text{gap:8px}}
   /* X (top-left, the site standard) + arrows reuse the lightbox chrome (.lb-close / .lb-nav) */
   .news-art .lb-close{z-index:3}
   .news-art .lb-nav{z-index:3;cursor:pointer}
@@ -2816,7 +2832,10 @@ function newsSocials(list,project){
 function newsInner(a,big,eager){
   const meta=`<div class="${big?'na-meta':'ncard-meta'}">${a.category?`<span class="ncat">${_wEsc(a.category)}</span>`:''}${a.date?`<time datetime="${_wEsc(a.date)}">${_wEsc(newsDate(a.date))}</time>`:''}</div>`;
   const title=big?`<h1>${_wEsc(a.title)}</h1>`:`<h2>${_wEsc(a.title)}</h2>`;
-  return `${newsImage(a,big?'(max-width:700px) 94vw, 520px':'(max-width:620px) 94vw, (max-width:980px) 46vw, 360px',eager)}${title}${meta}<div class="nbody">${newsMd(a.body)}</div>${newsSocials(a.socials,a.project)}`;
+  const img=newsImage(a,big?'(max-width:700px) 94vw, 720px':'(max-width:620px) 94vw, (max-width:980px) 46vw, 360px',eager);
+  const text=`${title}${meta}<div class="nbody">${newsMd(a.body)}</div>${newsSocials(a.socials,a.project)}`;
+  /* the popup wraps the text so a landscape screen can lay it BESIDE the image (.na-text) */
+  return big?`${img}<div class="na-text">${text}</div>`:`${img}${text}`;
 }
 function renderNewsList(){
   const host=document.getElementById('newsList');if(!host)return;
@@ -2830,6 +2849,44 @@ function renderNewsList(){
   host.innerHTML=NEWS.map(a=>`<article class="ncard" role="button" tabindex="0" data-cursor="nohug" data-news="${_wEsc(a.key)}" style="${newsLookStyle(a)}" aria-label="${_wEsc(a.title)}">${newsInner(a,false,false)}</article>`).join('');
 }
 function newsIdx(key){return NEWS.findIndex(a=>a.key===key);}
+/* FIT THE WHOLE POST ON SCREEN, NO SCROLL. The panel is capped at the viewport height; when an
+   article is taller than that, only the IMAGE gives way: its box narrows (and so shortens) at its
+   exact 3:4, centred, until panel and content are the same height. The crop never changes, the text
+   keeps the full panel width (so it wraps the same and the maths is exact), and the peeks get the same
+   image width so the neighbours match. Re-run on resize / font load. A floor keeps the image
+   recognisable; only a viewport too short even for that falls back to scrolling inside the panel. */
+const NEWS_WIDE=window.matchMedia?matchMedia('(orientation:landscape) and (min-width:760px)'):null;
+function newsFit(){
+  const img=newsPanel.querySelector('.nimg');if(!img)return;
+  const peeks=[newsPeekPrev,newsPeekNext].map(el=>el&&el.querySelector('.nimg')).filter(Boolean);
+  [img,...peeks].forEach(el=>{el.style.width='';el.style.alignSelf='';});
+  const tx=newsPanel.querySelector('.na-text');
+  if(tx){tx.style.width='';}
+  [img,...peeks].forEach(el=>{el.style.height='';});
+  if(NEWS_WIDE&&NEWS_WIDE.matches){
+    /* side by side: the image already fills the screen height. If the text column still overflows
+       (a short landscape phone), first widen the text into the spare width, then shorten the image. */
+    if(!tx)return;
+    let over=tx.scrollHeight-tx.clientHeight;
+    const cs=getComputedStyle(newsPanel), chrome=parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight)+parseFloat(cs.columnGap||cs.gap||0);
+    const maxW=Math.min(560,innerWidth*0.94-img.offsetWidth-chrome-2);
+    let w=tx.offsetWidth;
+    while(over>0&&w<maxW){w=Math.min(maxW,w+40);tx.style.width=w+'px';over=tx.scrollHeight-tx.clientHeight;}
+    if(over>0){
+      /* the text column's height IS the panel's, which the image sets: grow neither, so give the
+         panel its height back by trimming the image (3:4 kept via aspect-ratio) */
+      const h=Math.max(140,img.offsetHeight-over-1)+'px';
+      [img,...peeks].forEach(el=>{el.style.height=h;});
+    }
+    return;
+  }
+  const over=newsPanel.scrollHeight-newsPanel.clientHeight;
+  if(over<=0)return;
+  const h=Math.max(110,img.offsetHeight-over-1), w=Math.floor(h*3/4)+'px';
+  [img,...peeks].forEach(el=>{el.style.width=w;el.style.alignSelf='center';});
+}
+addEventListener('resize',()=>{if(newsOpen)newsFit();});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(newsOpen)newsFit();});
 function renderNewsPopup(key){
   const a=NEWS_BY_KEY[key];if(!a)return;
   const i=newsIdx(key), prev=NEWS[i-1], next=NEWS[i+1];
@@ -2837,6 +2894,7 @@ function renderNewsPopup(key){
   newsArt.setAttribute('style',newsLookStyle(a));
   const peek=(el,o)=>{if(!o){el.classList.add('off');el.innerHTML='';return;}el.classList.remove('off');el.setAttribute('style',newsLookStyle(o));el.innerHTML=`${newsImage(o,'520px',false)}<h2>${_wEsc(o.title)}</h2>`;};
   peek(newsPeekPrev,prev);peek(newsPeekNext,next);
+  newsFit();
   newsPrevBtn.disabled=!prev;newsNextBtn.disabled=!next;
   newsArt.classList.toggle('single',NEWS.length<2);
   document.title=a.title+' | Rare Pond Studios';
