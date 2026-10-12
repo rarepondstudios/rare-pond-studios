@@ -1,5 +1,5 @@
 {
-  "publicAccess": false,
+  "publicAccess": true,
   "route": "/news",
   "headings": {
     "eyebrow": "What we're up to",
