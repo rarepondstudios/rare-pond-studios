@@ -749,7 +749,7 @@ html.xw-active{overflow:hidden}
   /* the logo/animation, centred on the SETTLED logo (which sits low in the frame). The inner wrapper
      is the positioned box; the img/canvas are in-flow width:100% + height:auto, so they scale by the
      frame's intrinsic ratio and can never distort. */
-  .about-anim-inner{position:absolute;left:50%;top:50%;width:74%;transform:translate(-50%,-64%);z-index:1}
+  .about-anim-inner{position:absolute;left:50%;top:50%;width:74%;transform:translate(-50%,-64%);z-index:2}
   .about-anim-inner img.rpColor,.about-anim-inner canvas.about-anim{width:100%;height:auto;display:block}
   /* Drop-shadow stays on the STATIC fallback logo only. It must NOT be on the animated <canvas>:
      a CSS filter forces the continuously-repainted canvas onto its own GPU layer, which Safari tears
@@ -1136,9 +1136,14 @@ html.xw-active{overflow:hidden}
   .proj-soc[data-net=web]:hover{color:#fff;background:#9b5cff;border-color:transparent;box-shadow:0 0 20px rgba(155,92,255,.65)}
   /* ===== v24: About-logo film-still orbit bubbles ===== */
   .about-logo{position:relative}
-  .about-logo .about-bubble{position:relative;z-index:2}
+  /* LAYERING (2026-10-11, Jack): back bubble < orbit bubbles < logo animation < glass highlight.
+     .about-bubble must NOT form a stacking context (z-index auto), so the orbits (z 1, a sibling of
+     the bubble) can slot BETWEEN the slot's own bubble face + rim (painted at z auto / 0) and the logo
+     (.about-anim-inner, z 2). The orbits grow out of the centre, so they now emerge from BEHIND the
+     logo, still fading in with --op; the specular ::after (z 3) stays on top. */
+  .about-logo .about-bubble{position:relative;z-index:auto}
   .about-wrap .about-copy{position:relative;z-index:3}
-  .orbits{position:absolute;left:50%;top:50%;width:0;height:0;z-index:2;pointer-events:none}
+  .orbits{position:absolute;left:50%;top:50%;width:0;height:0;z-index:1;pointer-events:none}
   .orb{position:absolute;left:0;top:0;width:var(--sz,80px);height:var(--sz,80px);margin:calc(var(--sz,80px) / -2) 0 0 calc(var(--sz,80px) / -2);transform:rotate(calc(var(--spin,0deg) * (1 - var(--op,0)))) translate(calc(var(--tx,0px) * var(--op,0)),calc(var(--ty,0px) * var(--op,0))) scale(var(--op,0));opacity:var(--op,0);will-change:transform,opacity}
   /* --oc1/2/3 = the colour look of the project this still comes from (set in buildOrbits). The edge
      is a soft COLOURED gradient rim + outer glow in those colours, not a hard white line. */
