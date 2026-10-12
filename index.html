@@ -2909,12 +2909,18 @@ function newsFlipFrom(key){
   const card=document.querySelector(`.ncard[data-news="${CSS.escape(key)}"]`);
   const to=newsPanel.getBoundingClientRect();
   if(!card||activeView!=='news'||!to.width){newsPanel.style.transform='translate(-50%,-50%) scale(.94)';newsPanel.style.opacity='0';return;}
-  const from=card.getBoundingClientRect();
-  const sx=from.width/to.width, sy=from.height/to.height;
-  /* the panel's resting transform is translate(-50%,-50%) with origin 0 0 at left:50% top:50%: its
-     untransformed top-left is the viewport centre, so the card offset is measured from there */
-  const dx=from.left-innerWidth/2, dy=from.top-innerHeight/2;
-  newsPanel.style.transform=`translate(${dx}px,${dy}px) scale(${sx},${sy})`;newsPanel.style.opacity='.6';
+  /* UNIFORM scale, anchored on the IMAGE: the photo grows straight out of the card's photo at its own
+     3:4, never stretched, even though the popup (image beside text on landscape screens) is a different
+     shape from the card. The rest of the panel rides along and fades in. Falls back to the panel's
+     own box when either image box is missing. */
+  const fi=card.querySelector('.nimg'), ti=newsPanel.querySelector('.nimg');
+  const from=(fi||card).getBoundingClientRect(), tgt=(ti||newsPanel).getBoundingClientRect();
+  const s=tgt.width?from.width/tgt.width:1;
+  /* the panel's resting transform is translate(-50%,-50%) with origin 0 0 at left:50% top:50%, so its
+     untransformed top-left is the viewport centre; ox/oy = the image's offset inside the panel */
+  const ox=tgt.left-to.left, oy=tgt.top-to.top;
+  const dx=from.left-innerWidth/2-s*ox, dy=from.top-innerHeight/2-s*oy;
+  newsPanel.style.transform=`translate(${dx}px,${dy}px) scale(${s})`;newsPanel.style.opacity='.6';
 }
 function openNews(key){
   const a=NEWS_BY_KEY[key];if(!a)return false;
