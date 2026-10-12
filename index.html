@@ -646,6 +646,10 @@ html.xw-active{overflow:hidden}
     display:flex;flex-direction:column;gap:12px;padding:14px 14px 20px;border-radius:24px;color:#0b2c55;background:rgba(255,255,255,.96);box-shadow:0 30px 80px rgba(0,0,0,.55);
     transition:transform .42s cubic-bezier(.6,0,.2,1),opacity .3s ease}
   .na-panel.flip{transition:none}
+  /* The panel and the peeks are max-height flex columns: without this, a long article made flex SHRINK the
+     3:4 image box (overflow:hidden lets it go below its aspect height), so object-fit re-cropped the photo
+     wider than the card's. Children keep their natural height; the panel scrolls instead (2026-10-11). */
+  .na-panel>*,.na-peek>*{flex-shrink:0}
   .news-art.closing .na-panel{transition:transform .34s cubic-bezier(.6,0,.2,1),opacity .22s ease}
   .na-panel h1{font-size:clamp(21px,2.4vw,27px);line-height:1.15;font-weight:800;letter-spacing:-.015em;color:#0b2c55;margin:2px 0 0}
   .na-panel .nbody{font-size:16px;line-height:1.65}
