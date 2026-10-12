@@ -63,7 +63,21 @@
   1.03 to 1.93 instead of 0.75): `.na-panel` / `.na-peek` are max-height flex columns, so a long
   article flex-SHRANK the overflow:hidden image box and object-fit re-cropped it. Now
   `.na-panel>*,.na-peek>*{flex-shrink:0}`: the image is 0.750 in card, panel and peeks at 1440x900,
-  1280x720 and 390x844 (Playwright); on a short screen the panel scrolls inside itself instead. The two
+  1280x720 and 390x844 (Playwright). (Superseded the same day: see "No scroll" below.)
+- **No scroll in the popup (Jack: the whole post must show).** The popup text is wrapped in `.na-text`
+  (big variant of `newsInner` only; cards unchanged). LANDSCAPE >= 760px wide: `.na-panel` is a row,
+  image at full available height `min(90vh/100vh-40 minus padding, 760px, (94vw - text column - 58px)
+  * 4/3)` beside a `clamp(280px,30vw,420px)` text column; peeks match. PORTRAIT: stacked, and
+  `newsFit()` (run on render, resize, fonts.ready) narrows the image box at exactly 3:4, centred,
+  until the panel has no overflow (floor 110px tall). In landscape `newsFit()` instead widens the
+  text column into spare width, then trims the image, if text still overflows (short phones in
+  landscape). Smaller popup type on portrait phones and short landscape screens. Open/close FLIP is
+  now a UNIFORM scale anchored on the image (`newsFlipFrom`): the photo grows out of the card's photo
+  at 3:4, never stretched, although the popup is a different shape. Verified with Playwright at 11
+  viewports (1920x1080 to 375x667, 844x390 landscape phone, 768x1024 tablet, 960x871 near-square):
+  zero vertical, horizontal and text-column overflow, image 0.750 (+-0.002 rounding), panel inside
+  the viewport; FLIP sampled mid-open stays 0.750; live in Chrome. Commits 427a12a, cd930a1, and the
+  FLIP commit after them. The two
   `[Geri-Action page](/geriaction)` body links were unlinked (plain text) on Jack's request.
 - **Socials picked per site.** `social_links` is now one POST per line: the link, then every account it
   appears on (`https://www.instagram.com/p/CODE/ @geri_action_film @jackjrrc`); a link that names its
