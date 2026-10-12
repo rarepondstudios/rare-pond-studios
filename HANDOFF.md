@@ -77,7 +77,16 @@
   viewports (1920x1080 to 375x667, 844x390 landscape phone, 768x1024 tablet, 960x871 near-square):
   zero vertical, horizontal and text-column overflow, image 0.750 (+-0.002 rounding), panel inside
   the viewport; FLIP sampled mid-open stays 0.750; live in Chrome. Commits 427a12a, cd930a1, and the
-  FLIP commit after them. The two
+  FLIP commit after them.
+- **Peeks never overlap the article.** The wide layout let the panel reach 94vw, so the next article's
+  sliver (56px at the screen edge, drawn after the panel) sat ON the panel at e.g. 960x871. Now the
+  panel and image-height maths reserve both slivers plus 16px air (`100vw - 2*(var(--peek)+16px)`),
+  portrait phones reserve sliver + 8px (`100vw - 2*(var(--peek)+8px)`), peeks sit under the panel
+  (z-index), `newsPeekGuard()` hides the slivers (`.nopeek`) if a viewport still cannot fit them, and
+  `.moving` hides them instantly (no transition) while the article opens, steps or closes (the 60px
+  step slide and the FLIP would otherwise cross them). Verified: static gap >= 8px at 12 viewports,
+  and sampled every 40ms through open / next / prev / close at 960x871 (min 15px) and 390x844 (8px).
+  Commits 0152492, 77e230e. The two
   `[Geri-Action page](/geriaction)` body links were unlinked (plain text) on Jack's request.
 - **Socials picked per site.** `social_links` is now one POST per line: the link, then every account it
   appears on (`https://www.instagram.com/p/CODE/ @geri_action_film @jackjrrc`); a link that names its
