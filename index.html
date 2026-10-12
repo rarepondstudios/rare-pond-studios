@@ -758,6 +758,7 @@ html.xw-active{overflow:hidden}
     /* the flash's colours. Signature unless applyFlashLook() overrides them for this film.
        --fgm is the hand-picked middle stop, kept exactly as it was. */
     --fg1:var(--g1);--fg2:var(--g2);--fg3:var(--g3);--fgm:rgb(123,108,255)}
+  .universe.u-over{z-index:100001}   /* a film opened from the News popup's logo button, above the popup until it is covered */
   .universe.open{clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%))}
   .u-bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center}
   /* ===== EXPANDED-PAGE BACKGROUND VIDEO ============================================
@@ -2456,8 +2457,18 @@ function bubbleOrigin(key){
   }
   return null;
 }
+/* A film can also be opened from something that is NOT a bubble: the project logo button on a News
+   article (openProjectFrom). That element is the honest origin for the wipe, and the honest place to
+   retract to while it is still laid out, so it is remembered on the film (sec._fromEl) and asked
+   first. A normal open (bubble / card / URL) clears it. */
+let __uFromEl=null;
+function elOrigin(el){
+  if(!el||!el.isConnected)return null;
+  const r=el.getBoundingClientRect();
+  return (r.width>4&&r.height>4)?{x:r.left+r.width/2,y:r.top+r.height/2}:null;
+}
 function setOrigin(sec,key){
-  const o=bubbleOrigin(key)||{x:innerWidth/2,y:innerHeight/2};
+  const o=elOrigin(sec._fromEl)||bubbleOrigin(key)||{x:innerWidth/2,y:innerHeight/2};
   sec.style.setProperty('--ox',o.x+'px');
   sec.style.setProperty('--oy',o.y+'px');
 }
@@ -2497,7 +2508,8 @@ function openUniverse(key){
   const sec=built[key]||(built[key]=buildUniverse(key));
   if(first&&window.RP_reapplyLooks)RP_reapplyLooks();   /* a freshly built film page gets its look-driven title style etc. */
   sec.dataset.key=key;
-  sec.querySelector('.back').textContent=(activeView==='projects')?'‹ Back to projects':'‹ Back to the pond';
+  sec._fromEl=__uFromEl;__uFromEl=null;
+  sec.querySelector('.back').textContent=(activeView==='projects')?'‹ Back to projects':(activeView==='news')?'‹ Back to news':'‹ Back to the pond';
 
   /* LOCK FIRST, THEN MEASURE. Locking removes the page's scrollbar, and on a machine with
      classic scrollbars the page immediately re-centres into the 15px it gets back - so the
@@ -2789,7 +2801,7 @@ function newsProject(key){
   const slug=p.slug||String(p.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'');if(!slug)return '';
   const label=(p.title||slug)+' project page';
   const inner=p.titleLogo?`<img src="${_wEsc(p.titleLogo)}" alt="${_wEsc(p.title||'')}" loading="lazy" decoding="async">`:`<span class="na-proj-txt">${_wEsc(p.title||slug)}</span>`;
-  return `<a class="na-proj" href="/${_wEsc(slug)}" aria-label="${_wEsc(label)}" title="${_wEsc(label)}">${inner}</a>`;
+  return `<a class="na-proj" href="/${_wEsc(slug)}" data-proj="${_wEsc(p.key)}" aria-label="${_wEsc(label)}" title="${_wEsc(label)}">${inner}</a>`;
 }
 function newsSocials(list,project){
   const urls=(list||[]).filter(u=>_wUrl(u));const proj=newsProject(project);if(!urls.length&&!proj)return '';
@@ -2889,8 +2901,22 @@ function newsStep(dir,toKey){
   },200);
 }
 function newsGo(k){const url='/news/'+encodeURIComponent(k);if(location.pathname!==url)history.pushState({},'',url);openNews(k);}
-/* the project logo button routes through the SPA (film opens over projects; an open article closes instantly) */
-document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a.na-proj[href^="/"]');if(!a||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();if(newsOpen)closeNews(true);nav(a.getAttribute('href'));});
+/* The project logo button opens the film STRAIGHT from the button: the same expanding-circle wipe as a
+   bubble, grown from the logo, over the News view (no stop on the projects page). From the popup the
+   film is lifted above it (.u-over, the popup is z-index 100000) and the popup is dropped once the
+   circle has covered the screen; Back retracts into the logo it came from. */
+function openProjectFrom(el,key){
+  if(!SECTIONS[key]||!KEY2SLUG[key]){nav(el.getAttribute('href'));return;}
+  const fromPopup=!!newsOpen&&!!el.closest('#newsArt');
+  const sl='/'+KEY2SLUG[key];if(location.pathname!==sl)history.pushState({},'',sl);
+  __uFromEl=el;openUniverse(key);
+  const sec=built[key];if(!fromPopup||!sec)return;
+  sec.classList.add('u-over');
+  let done=false;const finish=()=>{if(done)return;done=true;sec.removeEventListener('transitionend',onEnd);if(currentOpen===sec){closeNews(true);document.body.classList.add('locked');}sec.classList.remove('u-over');};
+  const onEnd=ev=>{if(ev.target===sec&&/clip-path/.test(ev.propertyName))finish();};
+  sec.addEventListener('transitionend',onEnd);setTimeout(finish,900);
+}
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a.na-proj[href^="/"]');if(!a||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();openProjectFrom(a,a.getAttribute('data-proj'));});
 document.getElementById('newsList').addEventListener('click',e=>{if(e.target.closest('a[href]'))return;/* a Learn-more button on the card goes to the post, not the popup */const c=e.target.closest('.ncard');if(c)newsGo(c.getAttribute('data-news'));});
 /* keyboard: the cards are role=button, so Enter/Space must open them (the custom-cursor nav
    clicks a focused non-native control on Enter; this covers plain Tab users and Space) */
