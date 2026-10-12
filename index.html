@@ -657,10 +657,13 @@ html.xw-active{overflow:hidden}
      screen keeps the stacked card layout (newsFit shrinks only the image there). */
   @media (orientation:landscape) and (min-width:760px){
     .na-panel{flex-direction:row;align-items:stretch;gap:22px;width:auto;max-width:94vw;padding:14px 22px 14px 14px}
-    .na-panel .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px);width:auto;max-width:none;align-self:flex-start}
+    /* height = the smaller of the screen height and what the WIDTH allows next to the text column
+       (94vw minus text, gap 22, padding 36), so a near-square window never overflows sideways */
+    .na-panel .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px,calc((94vw - clamp(280px,30vw,420px) - 58px) * 4 / 3));width:auto;max-width:none;align-self:flex-start}
+    .na-panel{overflow-x:hidden}
     .na-text{width:clamp(280px,30vw,420px);justify-content:center;overflow-y:auto}
     .na-peek{flex-direction:row;align-items:center;width:auto;max-width:none;padding:14px}
-    .na-peek .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px);width:auto;max-width:none}
+    .na-peek .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px,calc((94vw - clamp(280px,30vw,420px) - 58px) * 4 / 3));width:auto;max-width:none}
     .na-peek h2{width:clamp(280px,30vw,420px)}
   }
   .news-art.closing .na-panel{transition:transform .34s cubic-bezier(.6,0,.2,1),opacity .22s ease}
