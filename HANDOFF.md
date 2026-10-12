@@ -39,6 +39,18 @@
 
 ## 0. LATEST SESSION (2026-10-11), READ THIS FIRST
 
+### 0.0.-77 HOME "WORLDS WORTH ESCAPING INTO": ORBIT BUBBLES COME OUT FROM BEHIND THE LOGO (2026-10-11)
+
+- Jack: the film-still orbit bubbles drew ABOVE the logo animation; they must come out from behind
+  it, in front of the big bubble behind the logo, keeping the fade. Cause: `.about-logo .about-bubble`
+  had `z-index:2`, a stacking context, and `.orbits` (its sibling, also z 2, later in the DOM) painted
+  over the whole bubble including the logo. Fix (CSS only): `.about-bubble` z-index auto (no stacking
+  context), `.orbits` z 1, `.about-anim-inner` (logo / canvas) z 2; the slot's bubble face (z auto)
+  and rim `::before` (z 0) stay behind, the specular `::after` (z 3) and `.about-copy` (z 3) stay on
+  top. The orbit motion/fade (`--op` from `ABOUT_SET_ORBITS`) is unchanged. Verified with frame
+  captures at 1440x900 and 390x844 (orbits partly hidden by the duck / lilypad while emerging) and
+  computed z-indexes; live.
+
 ### 0.0.-76 NEWS: PROJECT LOGO BUTTON + SITE-DEPENDENT SOCIAL POSTS (2026-10-11)
 
 - **Project logo button.** New NocoDB column `news.project` (Postgres `rp.news.project`, added by
