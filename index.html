@@ -619,7 +619,15 @@ html.xw-active{overflow:hidden}
      rest (light surface), the shared .proj-soc hover rules fill the button with the brand colour */
   .na-soc{margin-top:4px;padding-top:12px;border-top:1px solid rgba(15,62,122,.14);display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
   .na-soc .na-soc-label{font-size:11px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:#0e3e7a}
-  .na-soc .proj-soc-row{display:flex;gap:10px;flex-wrap:wrap}
+  .na-soc .proj-soc-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  /* Project logo button (NocoDB news.project): the project's title logo at its NATURAL aspect. Height is
+     fixed, width follows the logo, and it never shrinks: a wide logo pushes the round social buttons
+     along / onto the next line instead of being squeezed (flex:0 0 auto, no width cap but the row). */
+  .na-soc .na-proj{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;height:48px;padding:4px 10px;max-width:100%;
+    border-radius:14px;background:rgba(255,255,255,.7);border:1px solid rgba(15,62,122,.22);transition:transform .18s,box-shadow .18s,border-color .18s}
+  .na-soc .na-proj img{display:block;height:40px;width:auto;max-width:100%;object-fit:contain}
+  .na-soc .na-proj .na-proj-txt{font-weight:800;font-size:14px;color:#0b2c55;white-space:nowrap}
+  .na-soc .na-proj:hover,.na-soc .na-proj:focus-visible{transform:translateY(-2px);border-color:rgba(15,62,122,.45);box-shadow:0 6px 18px rgba(11,44,85,.18)}
   .na-soc .proj-soc{width:40px;height:40px;color:#0b2c55;background:rgba(255,255,255,.7);border-color:rgba(15,62,122,.22)}
   .na-soc .proj-soc svg{width:18px;height:18px}
   .na-soc .proj-soc[data-net=ig]{color:#d62976}.na-soc .proj-soc[data-net=yt]{color:#e00}.na-soc .proj-soc[data-net=fb]{color:#1877f2}
@@ -2771,17 +2779,28 @@ function newsMd(raw){
   return String(raw||'').replace(/\r/g,'').trim().split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean)
     .map(p=>/^##\s+/.test(p)?`<h2>${inline(p.replace(/^##\s+/,''))}</h2>`:`<p>${inline(p)}</p>`).join('');
 }
-/* "Learn more": only when the row has links; platform auto-detected (shared detectNet + SOCIAL_SVG) */
-function newsSocials(list){
-  const urls=(list||[]).filter(u=>_wUrl(u));if(!urls.length)return '';
+/* "Learn more": the project's logo button first (news.project -> that project's title logo, opens its
+   page in the SPA), then the social buttons. The socials arrive ALREADY PICKED for this site by the
+   exporter (bts-automation/social_pick.py: one per platform, this site's own account first). The row
+   renders only when it has something in it. Built from __projects directly (not KEY2SLUG/slugify,
+   which are declared later in this script than the first renderNewsList call). */
+function newsProject(key){
+  const p=key&&__projects.find(x=>x&&x.key===key&&!x.placeholder);if(!p)return '';
+  const slug=p.slug||String(p.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'');if(!slug)return '';
+  const label=(p.title||slug)+' project page';
+  const inner=p.titleLogo?`<img src="${_wEsc(p.titleLogo)}" alt="${_wEsc(p.title||'')}" loading="lazy" decoding="async">`:`<span class="na-proj-txt">${_wEsc(p.title||slug)}</span>`;
+  return `<a class="na-proj" href="/${_wEsc(slug)}" aria-label="${_wEsc(label)}" title="${_wEsc(label)}">${inner}</a>`;
+}
+function newsSocials(list,project){
+  const urls=(list||[]).filter(u=>_wUrl(u));const proj=newsProject(project);if(!urls.length&&!proj)return '';
   const items=urls.map(u=>{const n=detectNet(u);const svg=SOCIAL_SVG[n.icon]||SOCIAL_SVG.web||'';return `<a class="proj-soc" href="${_wEsc(u)}" target="_blank" rel="noopener" data-net="${n.icon}" aria-label="${_wEsc(n.label)}" title="${_wEsc(n.label)}">${svg}</a>`;}).join('');
-  return `<div class="na-soc"><span class="na-soc-label">Learn more</span><div class="proj-soc-row">${items}</div></div>`;
+  return `<div class="na-soc"><span class="na-soc-label">Learn more</span><div class="proj-soc-row">${proj}${items}</div></div>`;
 }
 /* one article's inner markup: image, title, category + date, body, Learn more (card and popup share it) */
 function newsInner(a,big,eager){
   const meta=`<div class="${big?'na-meta':'ncard-meta'}">${a.category?`<span class="ncat">${_wEsc(a.category)}</span>`:''}${a.date?`<time datetime="${_wEsc(a.date)}">${_wEsc(newsDate(a.date))}</time>`:''}</div>`;
   const title=big?`<h1>${_wEsc(a.title)}</h1>`:`<h2>${_wEsc(a.title)}</h2>`;
-  return `${newsImage(a,big?'(max-width:700px) 94vw, 520px':'(max-width:620px) 94vw, (max-width:980px) 46vw, 360px',eager)}${title}${meta}<div class="nbody">${newsMd(a.body)}</div>${newsSocials(a.socials)}`;
+  return `${newsImage(a,big?'(max-width:700px) 94vw, 520px':'(max-width:620px) 94vw, (max-width:980px) 46vw, 360px',eager)}${title}${meta}<div class="nbody">${newsMd(a.body)}</div>${newsSocials(a.socials,a.project)}`;
 }
 function renderNewsList(){
   const host=document.getElementById('newsList');if(!host)return;
@@ -2870,6 +2889,8 @@ function newsStep(dir,toKey){
   },200);
 }
 function newsGo(k){const url='/news/'+encodeURIComponent(k);if(location.pathname!==url)history.pushState({},'',url);openNews(k);}
+/* the project logo button routes through the SPA (film opens over projects; an open article closes instantly) */
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a.na-proj[href^="/"]');if(!a||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();if(newsOpen)closeNews(true);nav(a.getAttribute('href'));});
 document.getElementById('newsList').addEventListener('click',e=>{if(e.target.closest('a[href]'))return;/* a Learn-more button on the card goes to the post, not the popup */const c=e.target.closest('.ncard');if(c)newsGo(c.getAttribute('data-news'));});
 /* keyboard: the cards are role=button, so Enter/Space must open them (the custom-cursor nav
    clicks a focused non-native control on Enter; this covers plain Tab users and Space) */

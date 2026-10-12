@@ -12,9 +12,10 @@
         "/media/news/geri-action-world-premiere/images/00-isa-premiere-recap.jpg?h=f1e1896e"
       ],
       "socials": [
-        "https://www.instagram.com/rarepond/"
+        "https://www.instagram.com/rarepond/reel/Dcl2u1rgHez/"
       ],
-      "body": "Geri-Action, Rare Pond's breakout proof-of-concept short, had its world premiere on September 19 at the Independent Shorts Awards, screening at Regal LA LIVE in Los Angeles as an Official Selection. A real audience, a real cinema screen and a long night with the other filmmakers in the room: the festival run starts here, and the [Geri-Action page](/geriaction) has the stills and credits.",
+      "project": "geri_action",
+      "body": "Geri-Action, Rare Pond's breakout proof-of-concept short, had its world premiere on September 19 at the Independent Shorts Awards, screening at Regal LA LIVE in Los Angeles as an Official Selection. A real audience, a real cinema screen and a long night with the other filmmakers in the room: the festival run starts here, and the Geri-Action page has the stills and credits.",
       "teaser": "Geri-Action, Rare Pond's breakout proof-of-concept short, had its world premiere on September 19 at the Independent Shorts Awards, screening at Regal LA LIVE in Los Angeles as an Official Selection. A real audience, a real cinema screen and a long night with the other filmmakers in the room: the festival run starts here, and the Geri-Action page has the stills and credits."
     },
     {
@@ -29,7 +30,7 @@
         "/media/news/oiaf-2026/images/00-oiaf-ottawa.jpg?h=e33757ad"
       ],
       "socials": [
-        "https://www.instagram.com/rarepond/"
+        "https://www.instagram.com/jackjrrc/p/DeAOVMPn7jq/"
       ],
       "body": "Rare Pond spent September 23 to 27 in Ottawa for the 50th Ottawa International Animation Festival, where Jack sat down with the Animation Platform for an interview about the studio. The interview is not out yet; we will link it here the moment it is.",
       "teaser": "Rare Pond spent September 23 to 27 in Ottawa for the 50th Ottawa International Animation Festival, where Jack sat down with the Animation Platform for an interview about the studio. The interview is not out yet; we will link it here the moment it is."
@@ -42,10 +43,9 @@
       "category": "Festival",
       "colorLook": "geri",
       "pinned": false,
-      "socials": [
-        "https://www.instagram.com/geri_action_film/"
-      ],
-      "body": "Geri-Action is an **Official Selection of Indie Short Fest 2026**, its second festival nod of the year after the Independent Shorts Awards. Indie Short Fest runs monthly editions in Los Angeles that feed its annual awards night, and the laurel now sits on the [Geri-Action page](/geriaction).",
+      "socials": [],
+      "project": "geri_action",
+      "body": "Geri-Action is an **Official Selection of Indie Short Fest 2026**, its second festival nod of the year after the Independent Shorts Awards. Indie Short Fest runs monthly editions in Los Angeles that feed its annual awards night, and the laurel now sits on the Geri-Action page.",
       "teaser": "Geri-Action is an Official Selection of Indie Short Fest 2026, its second festival nod of the year after the Independent Shorts Awards. Indie Short Fest runs monthly editions in Los Angeles that feed its annual awards night, and the laurel now sits on the Geri-Action page."
     }
   ]
