@@ -687,7 +687,8 @@ html.xw-active{overflow:hidden}
   .news-art .lb-nav[disabled]{opacity:.25;cursor:default}
   /* a single article: no arrows, no peeks */
   .news-art.single .lb-nav,.news-art.single .na-peek,.news-art.nopeek .na-peek{display:none}
-  .na-peek{z-index:0}.na-panel{z-index:1}   /* belt and braces: a neighbour is never drawn over the article */
+  .na-peek{z-index:0}.na-panel{z-index:1}
+  .news-art.moving .na-peek{opacity:0;transition:none}   /* while the article grows / shrinks / slides, the neighbours wait (no overlap mid-move either) */   /* belt and braces: a neighbour is never drawn over the article */
   /* in-place switch (arrows / keys / swipe): the panel slides out one way and back in the other */
   .na-panel.slide-out-l{transform:translate(calc(-50% - 60px),-50%);opacity:0;transition:transform .22s ease,opacity .2s ease}
   .na-panel.slide-out-r{transform:translate(calc(-50% + 60px),-50%);opacity:0;transition:transform .22s ease,opacity .2s ease}
@@ -2945,6 +2946,7 @@ function openNews(key){
   renderNewsPopup(key);
   newsArt.classList.remove('closing');newsArt.style.visibility='visible';newsArt.setAttribute('aria-hidden','false');
   newsPanel.scrollTop=0;
+  newsMoving(520);
   newsPanel.classList.add('flip');newsFlipFrom(key);void newsPanel.offsetWidth;
   newsPanel.classList.remove('flip');
   requestAnimationFrame(()=>{newsArt.classList.add('open');newsPanel.style.transform='';newsPanel.style.opacity='';});
@@ -2956,10 +2958,10 @@ function closeNews(instant){
   document.body.classList.remove('locked');
   document.title=NEWS_LIST_TITLE;
   newsArt.setAttribute('aria-hidden','true');
-  const hide=()=>{newsArt.classList.remove('open','closing');newsArt.style.visibility='';newsPanel.style.transform='';newsPanel.style.opacity='';newsPanel.className='na-panel';};
+  const hide=()=>{newsArt.classList.remove('open','closing','moving');newsArt.style.visibility='';newsPanel.style.transform='';newsPanel.style.opacity='';newsPanel.className='na-panel';};
   if(instant||(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)){newsArt.classList.remove('open');hide();return;}
   /* shrink back INTO the card (unlock first, then re-measure: the scrollbar came back) */
-  newsArt.classList.add('closing');newsArt.classList.remove('open');
+  newsArt.classList.add('closing','moving');newsArt.classList.remove('open');
   newsFlipFrom(key);
   const done=e=>{if(e.target!==newsArt||e.propertyName!=='opacity')return;newsArt.removeEventListener('transitionend',done);clearTimeout(newsCloseTimer);hide();};
   newsArt.addEventListener('transitionend',done);
@@ -2968,10 +2970,12 @@ function closeNews(instant){
 /* step to the previous (-1) / next (+1) article in place: slide the panel out, re-render, slide in.
    The address is REPLACED, not pushed, so Back closes the popup like the lightbox, never walks
    back through every article you flipped past. */
+let newsMoveTimer=0;
+function newsMoving(ms){newsArt.classList.add('moving');clearTimeout(newsMoveTimer);newsMoveTimer=setTimeout(()=>newsArt.classList.remove('moving'),ms);}
 function newsStep(dir,toKey){
   if(newsBusy||!newsOpen)return;
   const i=newsIdx(newsOpen);const t=toKey?NEWS_BY_KEY[toKey]:NEWS[i+dir];if(!t)return;
-  newsBusy=true;
+  newsBusy=true;newsMoving(520);
   const outCls=dir>0?'slide-out-l':'slide-out-r', inCls=dir>0?'slide-in-l':'slide-in-r';
   newsPanel.classList.add(outCls);
   setTimeout(()=>{
