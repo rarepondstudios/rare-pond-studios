@@ -4,14 +4,12 @@
       "key": "geri-action-world-premiere",
       "title": "Geri-Action makes its world premiere at the Independent Shorts Awards",
       "date": "2026-09-19",
-      "updated": "2026-10-01",
+      "updated": "2026-10-11",
       "category": "Festival",
       "colorLook": "geri",
       "pinned": true,
       "images": [
-        "/media/news/geri-action-world-premiere/images/00-geri-splitscreen-still.jpg?h=fb779810",
-        "/media/news/geri-action-world-premiere/images/geri-anim-1.jpg?h=ca1f1372",
-        "/media/news/geri-action-world-premiere/images/geri-madeline.jpg?h=ebc12444"
+        "/media/news/geri-action-world-premiere/images/00-isa-premiere-recap.jpg?h=f1e1896e"
       ],
       "socials": [
         "https://www.instagram.com/geri_action_film/",
@@ -24,10 +22,13 @@
       "key": "oiaf-2026",
       "title": "Rare Pond at the 50th Ottawa International Animation Festival",
       "date": "2026-09-27",
-      "updated": "2026-10-01",
+      "updated": "2026-10-11",
       "category": "Event",
       "colorLook": "signature",
       "pinned": false,
+      "images": [
+        "/media/news/oiaf-2026/images/00-oiaf-ottawa.jpg?h=e33757ad"
+      ],
       "socials": [
         "https://www.instagram.com/rarepond/",
         "https://www.instagram.com/jackjrrc/"
@@ -39,14 +40,10 @@
       "key": "geri-action-indie-short-fest-2026",
       "title": "Geri-Action is an Official Selection of Indie Short Fest 2026",
       "date": "2026-09-14",
-      "updated": "2026-10-01",
+      "updated": "2026-10-11",
       "category": "Festival",
       "colorLook": "geri",
       "pinned": false,
-      "images": [
-        "/media/news/geri-action-indie-short-fest-2026/images/00-geri-nursing-1.jpg?h=1f3b8990",
-        "/media/news/geri-action-indie-short-fest-2026/images/Indie-Shorts-Fest-2026.jpg?h=9affb702"
-      ],
       "socials": [
         "https://www.instagram.com/geri_action_film/"
       ],
