@@ -109,7 +109,12 @@
   **Lesson:** an edit that replaced "everything between newsStep and newsSwipe" silently deleted the
   card/keyboard/popup click handlers and the logo-wipe code that live in that span; caught by the
   frame test (nothing opened), restored from HEAD before commit. Replace whole functions by their own
-  bounds, never by the next landmark. The two
+  bounds, never by the next landmark.
+- **Close flash fix.** At the end of the fx close the scrim (`::before`) had already faded to 0, then
+  `hide()` dropped `.fx`, so the popup's own .93 background came back and faded over the normal 0.28s:
+  a full-dark blackout for a moment (measured effective scrim alpha 0.00 -> 0.93 at ~740ms). The fx
+  close now hides the popup with its transition switched off (`hideNow()`); measured alpha now falls
+  0.93 -> 0 smoothly and stays 0, open curve unchanged (0 -> 0.93). The two
   `[Geri-Action page](/geriaction)` body links were unlinked (plain text) on Jack's request.
 - **Socials picked per site.** `social_links` is now one POST per line: the link, then every account it
   appears on (`https://www.instagram.com/p/CODE/ @geri_action_film @jackjrrc`); a link that names its
