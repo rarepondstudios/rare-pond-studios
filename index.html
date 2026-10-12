@@ -1901,11 +1901,51 @@ const ORB_SPEC=[
     wrap.appendChild(orb);orbs.push({el:orb,s:s});
   });
   host.appendChild(wrap);
-  function place(){const R=((slot&&slot.getBoundingClientRect().width)||360)/2,f=R/230;
-    orbs.forEach(o=>{const a=o.s.ang*Math.PI/180,r=R*o.s.rf;
-      o.el.style.setProperty('--tx',(Math.cos(a)*r).toFixed(1)+'px');
-      o.el.style.setProperty('--ty',(Math.sin(a)*r).toFixed(1)+'px');
-      o.el.style.setProperty('--sz',Math.round(o.s.sz*f)+'px');});}
+  /* PLACEMENT SOLVER (2026-10-11, Jack: bigger but varied bubbles that are easy to see, and in their
+     FINAL positions they never touch the duck logo or the text beside it, at any window size).
+     Every orbit keeps its own angle / radius / size as a PREFERENCE. place() measures the real layout
+     (relative to the orbit origin), then for each bubble, largest first, tries its full size and then
+     90% .. 55%, and for each size walks outward from its preferred angle (+-6deg steps to +-110deg) and
+     radius (0.80 .. 1.55 R). A spot is taken when the circle (+ air) clears:
+       - the SETTLED logo's opaque shape: LOGO_BANDS = per-column bounding boxes of the final animation
+         frame (f94, alpha > 24, 11 bands, fractions of the canvas) measured 2026-10-11,
+       - the text column (.about-copy, + 18px), every bubble already placed (+ 10px), and
+       - the window's left/right edges and the section's top/bottom (no sideways scroll, no spill).
+     No spot at 55% -> that bubble is left out at this size rather than overlap. Re-run on resize and
+     whenever the slot / logo / text change size (ResizeObserver; fonts and the canvas swap). */
+  const ORB_SCALE=1.5;
+  const LOGO_BANDS=[[0.012,0.083,0.476,0.935],[0.083,0.167,0.337,0.967],[0.167,0.25,0.308,0.979],[0.25,0.333,0.311,0.982],[0.333,0.417,0.423,0.982],[0.417,0.5,0.503,0.97],[0.5,0.583,0.349,0.899],[0.583,0.667,0.346,0.92],[0.667,0.75,0.417,0.92],[0.75,0.833,0.42,0.92],[0.833,0.915,0.42,0.92]];
+  const copyEl=document.querySelector('#about .about-copy'), sec=document.getElementById('about');
+  const innerEl=host.querySelector('.about-anim-inner');
+  const dRect=(x,y,b)=>{const dx=Math.max(b.l-x,0,x-b.r),dy=Math.max(b.t-y,0,y-b.b);return Math.hypot(dx,dy);};
+  function place(){
+    const sr=slot&&slot.getBoundingClientRect();const R=((sr&&sr.width)||360)/2,f=R/230;
+    const org=wrap.getBoundingClientRect(),ox=org.left,oy=org.top;
+    const rel=r=>({l:r.left-ox,r:r.right-ox,t:r.top-oy,b:r.bottom-oy});
+    const ir=innerEl?innerEl.getBoundingClientRect():null;
+    const logo=ir&&ir.width?LOGO_BANDS.map(q=>({l:ir.left+q[0]*ir.width-ox,r:ir.left+q[1]*ir.width-ox,t:ir.top+q[2]*ir.height-oy,b:ir.top+q[3]*ir.height-oy})):[];
+    const copy=copyEl?rel(copyEl.getBoundingClientRect()):null;
+    const cw=document.documentElement.clientWidth, se=sec?sec.getBoundingClientRect():{top:-1e5,bottom:1e5};
+    const lim={l:8-ox,r:cw-8-ox,t:se.top+8-oy,b:se.bottom-8-oy};
+    const placed=[];
+    const order=orbs.map((o,i)=>i).sort((a,b)=>orbs[b].s.sz-orbs[a].s.sz);
+    const DA=[0];for(let d=6;d<=110;d+=6)DA.push(d,-d);
+    order.forEach(i=>{const o=orbs[i],s=o.s;let got=null;
+      const RF=[s.rf];for(let d=0.04;d<=0.76;d+=0.04){const a=+(s.rf+d).toFixed(2),b=+(s.rf-d).toFixed(2);if(a<=1.55)RF.push(a);if(b>=0.80)RF.push(b);}
+      for(const k of [1,0.9,0.8,0.7,0.62,0.55]){const sz=Math.round(s.sz*ORB_SCALE*f*k),rad=sz/2;
+        for(const da of DA){const a=(s.ang+da)*Math.PI/180;
+          for(const rf of RF){const x=Math.cos(a)*R*rf,y=Math.sin(a)*R*rf;
+            if(x-rad<lim.l||x+rad>lim.r||y-rad<lim.t||y+rad>lim.b)continue;
+            if(logo.some(b=>dRect(x,y,b)<rad+10))continue;
+            if(copy&&dRect(x,y,copy)<rad+18)continue;
+            if(placed.some(q=>Math.hypot(q.x-x,q.y-y)<q.rad+rad+10))continue;
+            got={x,y,rad,sz};break;}
+          if(got)break;}
+        if(got)break;}
+      o.hidden=!got;o.el.style.display=got?'':'none';
+      if(got){placed.push(got);o.el.style.setProperty('--tx',got.x.toFixed(1)+'px');o.el.style.setProperty('--ty',got.y.toFixed(1)+'px');o.el.style.setProperty('--sz',got.sz+'px');}
+    });
+  }
   place();
   if(matchMedia('(prefers-reduced-motion:reduce)').matches){orbs.forEach(o=>o.el.style.setProperty('--op','1'));return;}
   // Emergence is driven by the LOGO ANIMATION's progress p (0..1), NOT by scroll: the logo-anim loop
@@ -1918,6 +1958,7 @@ const ORB_SPEC=[
   ABOUT_SET_ORBITS=setP;
   setP(0);                                              // start hidden, matching the palette state
   addEventListener('resize',function(){place();var p=curP;curP=-1;setP(p);},{passive:true});  // reposition, then re-apply the current progress
+  if(window.ResizeObserver){let rq=0;const ro=new ResizeObserver(()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{place();var p=curP;curP=-1;setP(p);});});[slot,copyEl,innerEl].forEach(el=>el&&ro.observe(el));}
 })();
 
 /* Home logo bubble: colour its rim + outer glow from the CMS colour look (site.json homeBubble),
