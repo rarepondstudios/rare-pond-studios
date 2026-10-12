@@ -39,6 +39,38 @@
 
 ## 0. LATEST SESSION (2026-10-11), READ THIS FIRST
 
+### 0.0.-76 NEWS: PROJECT LOGO BUTTON + SITE-DEPENDENT SOCIAL POSTS (2026-10-11)
+
+- **Project logo button.** New NocoDB column `news.project` (Postgres `rp.news.project`, added by
+  re-running the idempotent `bts-automation/_create_news_table.py`, which now ALTERs + meta-diffs a
+  missing column; display type set with `_news_col_type.py`). `news_sync.py` exports `project` (key,
+  omitted when blank). `index.html` `newsProject(key)` renders that project's `titleLogo` as the FIRST
+  item of Learn more (`a.na-proj`, card and popup): fixed 48px tall, width follows the logo,
+  `flex:0 0 auto` so it never squeezes and the round social buttons shift / wrap instead; capped only
+  by the row width (object-fit contain, never distorted). A document click handler routes it through
+  the SPA (`nav('/<slug>')`, closing an open article first). Built from `__projects` directly because
+  `KEY2SLUG`/`slugify` are declared after the first `renderNewsList()` (TDZ). The two
+  `[Geri-Action page](/geriaction)` body links were unlinked (plain text) on Jack's request.
+- **Socials picked per site.** `social_links` is now one POST per line: the link, then every account it
+  appears on (`https://www.instagram.com/p/CODE/ @geri_action_film @jackjrrc`); a link that names its
+  account needs no @ list. New shared `bts-automation/social_pick.py` (self-test: `python3
+  social_pick.py`): ONE button per platform; within a platform the copy on the site's own account wins
+  (handles parsed from the site's own `data/socials.json`), then the article's project account
+  (`data/projects.json` socials, e.g. @geri_action_film), then the first line (Jack's choice). Non-social
+  links are never merged. Instagram addresses are rewritten to `instagram.com/<account>/<p|reel>/<code>/`
+  (Instagram resolves any collaborator's prefix to the post; verified live) and `?igsh=` is dropped.
+  `news.json` `socials` therefore holds the already-picked URLs: a future jackcarlsen.com News export
+  reuses `social_pick.pick()` with ITS socials.json and gets @jackjrrc copies with no extra data.
+- **Data (verified on Instagram 2026-10-11).** ISA premiere: recap carousel DdovtaoF0-M
+  (@geri_action_film + @jackjrrc) and announcement reel Dcl2u1rgHez (@geri_action_film + @rarepond +
+  @jackjrrc) -> rarepond.com links the reel on @rarepond, jackcarlsen.com would link the recap on
+  @jackjrrc. OIAF: DeAOVMPn7jq (@jackjrrc only). Indie Shorts Fest: no post exists, no social button.
+  `project` = geri_action on both Geri-Action articles.
+- **Verified.** node --check; Playwright on the dev server (logo 62x40 at the logo's 1.553 ratio, a
+  forced 9:1 logo keeps its ratio and pushes the socials to the next line at 390px, card and popup
+  clicks land on /geriaction with the article closed, no page errors); live in Chrome (logo click opens
+  the Geri-Action universe). Commits: rp 329b255, bts-automation 31951e3.
+
 ### 0.0.-75 CLOSED PAGES NOW HOLD IN THE SPA; NEWS IMAGES FROM THE INSTAGRAM POSTS; NEWS SWITCHED ON (2026-10-11)
 
 - **Bug.** With the News switch off, `/news` loaded fresh showed the cover (edge), but clicking News
