@@ -656,14 +656,15 @@ html.xw-active{overflow:hidden}
      text column right. The whole post fits without scrolling and the photo stays big; a portrait
      screen keeps the stacked card layout (newsFit shrinks only the image there). */
   @media (orientation:landscape) and (min-width:760px){
-    .na-panel{flex-direction:row;align-items:stretch;gap:22px;width:auto;max-width:94vw;padding:14px 22px 14px 14px}
+    .na-panel{flex-direction:row;align-items:stretch;gap:22px;width:auto;max-width:calc(100vw - 2 * (var(--peek,56px) + 16px));padding:14px 22px 14px 14px}
     /* height = the smaller of the screen height and what the WIDTH allows next to the text column
-       (94vw minus text, gap 22, padding 36), so a near-square window never overflows sideways */
-    .na-panel .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px,calc((94vw - clamp(280px,30vw,420px) - 58px) * 4 / 3));width:auto;max-width:none;align-self:flex-start}
+       (the screen minus BOTH peek slivers + 16px air each side, minus text, gap 22, padding 36), so a
+       near-square window never overflows sideways and the neighbours' slivers never touch the panel */
+    .na-panel .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px,calc(((100vw - 2 * (var(--peek,56px) + 16px)) - clamp(280px,30vw,420px) - 58px) * 4 / 3));width:auto;max-width:none;align-self:flex-start}
     .na-panel{overflow-x:hidden}
     .na-text{width:clamp(280px,30vw,420px);justify-content:center;overflow-y:auto}
     .na-peek{flex-direction:row;align-items:center;width:auto;max-width:none;padding:14px}
-    .na-peek .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px,calc((94vw - clamp(280px,30vw,420px) - 58px) * 4 / 3));width:auto;max-width:none}
+    .na-peek .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px,calc(((100vw - 2 * (var(--peek,56px) + 16px)) - clamp(280px,30vw,420px) - 58px) * 4 / 3));width:auto;max-width:none}
     .na-peek h2{width:clamp(280px,30vw,420px)}
   }
   .news-art.closing .na-panel{transition:transform .34s cubic-bezier(.6,0,.2,1),opacity .22s ease}
@@ -676,7 +677,7 @@ html.xw-active{overflow:hidden}
   .na-peek.next{right:0;transform:translate(calc(100% - var(--peek,56px)),-50%) scale(.9);transform-origin:0 50%}
   .na-peek h2{font-size:18px;line-height:1.2;font-weight:800;margin:0}
   .na-peek.off{opacity:0}
-  @media(max-width:700px){.news-art{--peek:26px}.na-panel{width:min(94vw,520px)}.na-peek{width:min(94vw,520px)}}
+  @media(max-width:700px){.news-art{--peek:26px}.na-panel{width:min(calc(100vw - 2 * (var(--peek) + 8px)),520px)}.na-peek{width:min(calc(100vw - 2 * (var(--peek) + 8px)),520px)}}
   /* phones: the card's text size in the popup too, so the photo keeps more of the screen */
   @media(max-width:700px) and (orientation:portrait){.na-panel .nbody{font-size:14.5px;line-height:1.55}.na-panel h1{font-size:20px}.na-panel{gap:10px;padding:12px 12px 16px}}
   @media(orientation:landscape) and (max-height:500px){.na-panel .nbody{font-size:14px;line-height:1.5}.na-panel h1{font-size:19px}.na-text{gap:8px}}
@@ -685,7 +686,8 @@ html.xw-active{overflow:hidden}
   .news-art .lb-nav{z-index:3;cursor:pointer}
   .news-art .lb-nav[disabled]{opacity:.25;cursor:default}
   /* a single article: no arrows, no peeks */
-  .news-art.single .lb-nav,.news-art.single .na-peek{display:none}
+  .news-art.single .lb-nav,.news-art.single .na-peek,.news-art.nopeek .na-peek{display:none}
+  .na-peek{z-index:0}.na-panel{z-index:1}   /* belt and braces: a neighbour is never drawn over the article */
   /* in-place switch (arrows / keys / swipe): the panel slides out one way and back in the other */
   .na-panel.slide-out-l{transform:translate(calc(-50% - 60px),-50%);opacity:0;transition:transform .22s ease,opacity .2s ease}
   .na-panel.slide-out-r{transform:translate(calc(-50% + 60px),-50%);opacity:0;transition:transform .22s ease,opacity .2s ease}
@@ -2859,7 +2861,16 @@ function newsIdx(key){return NEWS.findIndex(a=>a.key===key);}
    image width so the neighbours match. Re-run on resize / font load. A floor keeps the image
    recognisable; only a viewport too short even for that falls back to scrolling inside the panel. */
 const NEWS_WIDE=window.matchMedia?matchMedia('(orientation:landscape) and (min-width:760px)'):null;
-function newsFit(){
+function newsFit(){newsFitCore();newsPeekGuard();}
+/* A neighbour's sliver may never overlap the article. The CSS reserves room for it; if a viewport
+   still cannot fit sliver + 8px air beside the panel, the slivers are hidden (arrows and swipe stay). */
+function newsPeekGuard(){
+  newsArt.classList.remove('nopeek');
+  const pk=parseFloat(getComputedStyle(newsArt).getPropertyValue('--peek'))||56;
+  const side=(innerWidth-newsPanel.offsetWidth)/2;
+  if(side-pk*0.9<8)newsArt.classList.add('nopeek');
+}
+function newsFitCore(){
   const img=newsPanel.querySelector('.nimg');if(!img)return;
   const peeks=[newsPeekPrev,newsPeekNext].map(el=>el&&el.querySelector('.nimg')).filter(Boolean);
   [img,...peeks].forEach(el=>{el.style.width='';el.style.alignSelf='';});
