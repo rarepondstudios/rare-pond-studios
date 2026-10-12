@@ -50,6 +50,18 @@
   top. The orbit motion/fade (`--op` from `ABOUT_SET_ORBITS`) is unchanged. Verified with frame
   captures at 1440x900 and 390x844 (orbits partly hidden by the duck / lilypad while emerging) and
   computed z-indexes; live.
+- **Bigger orbits, never touching the logo or text (follow-up).** `ORB_SCALE` 1.5 on the per-orbit
+  sizes (still varied: 108 to 168px on a 460px bubble). `place()` in `buildOrbits` is now a solver:
+  each orbit, largest first, tries 100% then 90..55% of its size, walking out from its preferred angle
+  (+-6deg to +-110deg) and radius (0.80..1.55 R), and takes the first spot that clears the SETTLED
+  logo's opaque shape (`LOGO_BANDS`: 11 per-column boxes from the final frame f94, alpha > 24, as
+  fractions of the canvas; +10px), the `.about-copy` text column (+18px), the other orbits (+10px)
+  and the window sides / section top-bottom (8px). No spot even at 55% -> that orbit is hidden at that
+  size rather than overlap. Re-runs on resize and via ResizeObserver on the slot, logo and text. If the
+  logo animation is ever re-exported, re-measure LOGO_BANDS. Verified at 17 viewports (1920x1080 down
+  to 360x740, tablets, landscape phones): all 7 orbits shown, min clearance to logo 11px, to text 18px,
+  between orbits 10px, to window edge 8px. (The page's scrollWidth > clientWidth at some widths is
+  pre-existing and not scrollable: body overflow-x hidden; checked on the live site too.)
 
 ### 0.0.-76 NEWS: PROJECT LOGO BUTTON + SITE-DEPENDENT SOCIAL POSTS (2026-10-11)
 
