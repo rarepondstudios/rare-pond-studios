@@ -2951,8 +2951,33 @@ function openCustomPage(slug){
   cpMarkNav(slug);
   return true;
 }
+/* ===== CLOSED PAGES IN THE SPA =====
+   A page switched off in Pages CMS is covered at the EDGE (functions/_maintenance.js), but the
+   edge only sees full page loads. In-page navigation (a nav click, Back/Forward, /#news from
+   rentals) never reaches it, so the SPA used to render the closed view anyway. The fix: when an
+   in-page route lands on a closed page, reload that URL so the edge serves the cover. Mirrors the
+   engine's sources: site.json pageAccess register first, then the page's own switch
+   (news-page.json, team.json, section-templates.json + legacy projectsPublicAccess), then custom
+   pages. Absent === open, same as the edge. The very first render never reloads (the edge already
+   decided that request; if it failed open we must not loop). */
+let __routeBooted=false;
+function routeClosed(path){
+  const p=String(path||'/').split('#')[0].split('?')[0].toLowerCase().replace(/\/+$/,'')||'/';
+  if(p==='/')return false;
+  const reg=Array.isArray(SITE.pageAccess)?SITE.pageAccess:[];
+  let best=null;
+  reg.forEach(r=>{if(!r||!r.path)return;const rp=String(r.path).toLowerCase().replace(/\/+$/,'')||'/';if(rp==='/')return;if((p===rp||p.startsWith(rp+'/'))&&(!best||rp.length>best.rp.length))best={rp:rp,open:r.open};});
+  if(best)return best.open===false;
+  if(p==='/news'||p.startsWith('/news/'))return NEWS_PAGE.publicAccess===false;
+  if(p==='/team')return (__d[2]||{}).publicAccess===false;
+  if(p==='/projects')return TPL.publicAccess===false||SITE.projectsPublicAccess===false;
+  const seg=p.replace(/^\//,'');
+  if(seg&&seg.indexOf('/')===-1&&!RESERVED.has(seg)&&!SLUG2KEY[seg]&&PAGE_BY_SLUG[seg])return PAGE_BY_SLUG[seg].publicAccess===false;
+  return false;
+}
 /* single entry point: reads the CURRENT url and renders it */
 function renderRoute(){
+  if(__routeBooted&&routeClosed(location.pathname)){location.reload();return;}
   /* Old /?p=slug link: upgrade the address bar in place, without a redirect or a
      reload, so shared links keep working but nobody sees ?p= again. */
   const legacy = cpLegacySlug();
@@ -3024,10 +3049,11 @@ document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]')
 /* browser back / forward drives the view (this is how the universe closes on Back) */
 addEventListener('popstate',()=>renderRoute());
 /* hash links from other pages (rentals): /#team /#projects /#contact /#about */
-function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if(currentOpen)closeUniverse(currentOpen);if(h==='team'){try{history.replaceState({},'','/team');}catch(e){}showView('team');}else if(h==='projects'){try{history.replaceState({},'','/projects');}catch(e){}showView('projects');}else if(h==='news'){try{history.replaceState({},'','/news');}catch(e){}showView('news');}else if(h==='contact'){if(window.RP_openContact)RP_openContact();}else if(h==='about')showView('home','#about');}
+function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if((h==='team'||h==='projects'||h==='news')&&routeClosed('/'+h)){location.replace('/'+h);return;}if(currentOpen)closeUniverse(currentOpen);if(h==='team'){try{history.replaceState({},'','/team');}catch(e){}showView('team');}else if(h==='projects'){try{history.replaceState({},'','/projects');}catch(e){}showView('projects');}else if(h==='news'){try{history.replaceState({},'','/news');}catch(e){}showView('news');}else if(h==='contact'){if(window.RP_openContact)RP_openContact();}else if(h==='about')showView('home','#about');}
 addEventListener('hashchange',routeHash);
 /* initial route */
 (function initRoute(){const __l=cpLegacySlug();if(__l&&PAGE_BY_SLUG[__l])history.replaceState({},'',cpUrl(__l));const __s=cpSlugFromUrl();if(__s){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='news'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');const nm0=/^news\/([^\/]+)$/.exec(seg);if(nm0&&NEWS_BY_KEY[newsKey(nm0[1])]){history.replaceState({},'','/news');showView('news');history.pushState({},'',p);openNews(newsKey(nm0[1]));}else if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
+__routeBooted=true;
 
 /* The colour looks (assets/looks.js) may have been applied before the bubbles above existed:
    re-apply now that they do (no-op if the looks have not arrived yet). See RP_reapplyLooks. */
