@@ -58,7 +58,12 @@
   100000) and the popup is closed instantly (lock re-applied) once the clip-path transition ends.
   Back retracts into the logo it came from (card) or where the popup's logo was, and the film's back
   button reads "Back to news". Verified with Playwright (projects view stays display:none throughout,
-  --ox/--oy = the logo centre, card and popup) and live in Chrome. The two
+  --ox/--oy = the logo centre, card and popup) and live in Chrome.
+- **Popup image crop fix (follow-up).** The popup image came out wider than the card's 3:4 (measured
+  1.03 to 1.93 instead of 0.75): `.na-panel` / `.na-peek` are max-height flex columns, so a long
+  article flex-SHRANK the overflow:hidden image box and object-fit re-cropped it. Now
+  `.na-panel>*,.na-peek>*{flex-shrink:0}`: the image is 0.750 in card, panel and peeks at 1440x900,
+  1280x720 and 390x844 (Playwright); on a short screen the panel scrolls inside itself instead. The two
   `[Geri-Action page](/geriaction)` body links were unlinked (plain text) on Jack's request.
 - **Socials picked per site.** `social_links` is now one POST per line: the link, then every account it
   appears on (`https://www.instagram.com/p/CODE/ @geri_action_film @jackjrrc`); a link that names its
