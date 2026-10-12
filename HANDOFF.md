@@ -86,7 +86,30 @@
   `.moving` hides them instantly (no transition) while the article opens, steps or closes (the 60px
   step slide and the FLIP would otherwise cross them). Verified: static gap >= 8px at 12 viewports,
   and sampled every 40ms through open / next / prev / close at 960x871 (min 15px) and 390x844 (8px).
-  Commits 0152492, 77e230e. The two
+  Commits 0152492, 77e230e.
+- **Open / close choreography + swipe between articles (commit 507202f).** Open from a card ("fx"):
+  (1) the card's text slides UP under its photo (`newsCardTuck`: card clip-path to photo + padding,
+  text translateY by at most one photo height, fades; `.ncard .nimg{z-index:1}`) while the panel,
+  already collapsed to ITS photo (`.tucked`, `newsPanelTuckClip()` = clip-path inset to photo +
+  padding, read from offset* so it is right mid-transform) sits exactly on the card's photo
+  (uniform FLIP); (2) at 210ms the card slot hides and the photo alone grows into place while the
+  scrim fades in; (3) at +440ms the text unfolds OUT of the photo: clip-path to full and `.na-text`
+  from `--tuck-tx` (translateX(-28px) landscape = from the photo's right side, translateY(-28px)
+  portrait = from below); (4) tidy. Close is the exact reverse, ending with the card's text sliding
+  back down from under its photo. The text is never scaled or re-wrapped on screen: it is hidden
+  whenever the box changes shape. The scrim is a separate layer in fx mode (`.news-art.fx::before`)
+  so the panel never fades with it; X / arrows fade in with the scrim. Timers live in `newsFx`
+  (`newsFxCancel()` on any re-open / close). Fallback (no card on screen, deep link, other view,
+  reduced motion) is the previous FLIP. STEP (arrows, keys, touch swipe): a clone of the current
+  panel (`.na-ghost`, pointer-events none) slides fully off one side while the real panel, already
+  showing the next article, slides in from the other (`.swipe`, .5s); peeks hide meanwhile. Verified
+  with frame captures at 1280x720 and 390x844 (open / step / close), a regression pass at 4
+  viewports (no overflow, gaps kept, no leftover clip / fx / ghost / card styles, keyboard steps,
+  touch swipe, Back), and live in Chrome.
+  **Lesson:** an edit that replaced "everything between newsStep and newsSwipe" silently deleted the
+  card/keyboard/popup click handlers and the logo-wipe code that live in that span; caught by the
+  frame test (nothing opened), restored from HEAD before commit. Replace whole functions by their own
+  bounds, never by the next landmark. The two
   `[Geri-Action page](/geriaction)` body links were unlinked (plain text) on Jack's request.
 - **Socials picked per site.** `social_links` is now one POST per line: the link, then every account it
   appears on (`https://www.instagram.com/p/CODE/ @geri_action_film @jackjrrc`); a link that names its
