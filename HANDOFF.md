@@ -49,10 +49,10 @@
   otherwise), checked code by code against Shlink before the switch. Scans log to
   `qr_redirect_scans.log`. Shlink's DB is dumped at `~/qr-system/shlink_final_dump_20261021.sql`.
   New links stay in Go Links (`/admin/links`). Detail: AI_System_Context `04-automations-and-tools.md`.
-- **Open question found while doing this:** every `/go/<slug>` tried on 2026-10-21 (`media-jack`,
-  `rentals`, `home`, `jackcarlsen`, `General-Media-Card`, on both hosts and on `rare-pond-studios.pages.dev`)
-  302'd to the home page, which the resolver does for an unknown slug OR a missing `GOLINKS` D1 binding.
-  Not yet diagnosed (the slugs may simply have been renamed). Check `/admin/links` and test one live link.
+- **Go Links checked, healthy:** the slugs first tried (`media-jack`, `rentals`, `home`, ...) no longer
+  exist, so they fell through to home as designed. `/admin/links` lists the current links (e.g. `MEDIA`
+  in group "Rare Pond Media" -> `https://www.rarepond.com/media/`), and `/go/MEDIA` 302s there
+  *(verified 2026-10-21; that check added one scan to MEDIA)*.
 
 
 ### 0.0.-78 CANONICAL HOST IS NOW THE BARE DOMAIN `rarepond.com` (APEX DNS CUTOVER DONE) (2026-10-20)
