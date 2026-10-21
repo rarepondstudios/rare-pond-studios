@@ -1,80 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.rarepond.com/</loc>
+    <loc>https://rarepond.com/</loc>
     <lastmod>2026-08-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.rarepond.com/media</loc>
+    <loc>https://rarepond.com/media</loc>
     <lastmod>2026-08-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.rarepond.com/projects</loc>
+    <loc>https://rarepond.com/projects</loc>
     <lastmod>2026-08-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.rarepond.com/news</loc>
+    <loc>https://rarepond.com/news</loc>
     <lastmod>2026-09-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.rarepond.com/team</loc>
+    <loc>https://rarepond.com/team</loc>
     <lastmod>2026-08-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.rarepond.com/rentals</loc>
+    <loc>https://rarepond.com/rentals</loc>
     <lastmod>2026-08-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.rarepond.com/geriaction</loc>
+    <loc>https://rarepond.com/geriaction</loc>
     <lastmod>2026-08-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.rarepond.com/revelations</loc>
+    <loc>https://rarepond.com/revelations</loc>
     <lastmod>2026-08-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.rarepond.com/invalidopinion</loc>
+    <loc>https://rarepond.com/invalidopinion</loc>
     <lastmod>2026-08-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.rarepond.com/submit-a-screenplay</loc>
+    <loc>https://rarepond.com/submit-a-screenplay</loc>
     <lastmod>2026-08-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <!-- BEGIN GENERATED: news (news_sync.py) -->
   <url>
-    <loc>https://www.rarepond.com/news/geri-action-world-premiere</loc>
+    <loc>https://rarepond.com/news/geri-action-world-premiere</loc>
     <lastmod>2026-10-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.rarepond.com/news/oiaf-2026</loc>
+    <loc>https://rarepond.com/news/oiaf-2026</loc>
     <lastmod>2026-10-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.rarepond.com/news/geri-action-indie-short-fest-2026</loc>
+    <loc>https://rarepond.com/news/geri-action-indie-short-fest-2026</loc>
     <lastmod>2026-10-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

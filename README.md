@@ -206,7 +206,7 @@ hand-delete one. `projects_folder_sync.py` (launchd `com.rarepond.projfoldersync
 - **Colour looks:** a look holds `c1/c2/c3` and, for a `film` look, tokens saying which colour
   drives accent / washes / kicker / tagline / title. A film points at a look by key
   (`color_look`), gated per-site by `rp_use_look` / `jc_use_look`. The
-  **[preview page](https://www.rarepond.com/admin/colorlooks)** (password-protected) renders each
+  **[preview page](https://rarepond.com/admin/colorlooks)** (password-protected) renders each
   look exactly as the site does, so **preview == live**.
 - **Cache-busting:** exporters append `?h=<short sha1 of the file bytes>` to changed media paths,
   so a replaced file always gets a fresh URL and never serves stale; unchanged files stay cached.

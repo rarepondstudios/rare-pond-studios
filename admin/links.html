@@ -92,10 +92,10 @@ dialog::backdrop{background:rgba(3,10,24,.7)}
       <strong id="formTitle">New link</strong>
       <label>Slug (the part after /go/)</label>
       <input id="f_slug" type="text" placeholder="card" autocomplete="off">
-      <div class="small" id="preview">https://www.rarepond.com/go/…</div>
+      <div class="small" id="preview">https://rarepond.com/go/…</div>
       <div class="small" id="qrsize" style="margin-top:4px"></div>
       <label>Destination URL</label>
-      <input id="f_dest" type="url" placeholder="https://www.rarepond.com/media" autocomplete="off">
+      <input id="f_dest" type="url" placeholder="https://rarepond.com/media" autocomplete="off">
       <label>Title (optional)</label>
       <input id="f_title" type="text" autocomplete="off">
       <label>Group</label>
@@ -151,7 +151,7 @@ dialog::backdrop{background:rgba(3,10,24,.7)}
 </div></dialog>
 
 <script>
-const GO_BASE='https://www.rarepond.com/go/';
+const GO_BASE='https://rarepond.com/go/';
 const API='/admin/api/links';
 const GAPI='/admin/api/groups';
 const $=(id)=>document.getElementById(id);

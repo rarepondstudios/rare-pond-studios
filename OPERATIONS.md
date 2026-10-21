@@ -43,9 +43,9 @@ rule". Enforced in `brand_media_sync.py` and `home_logo_anim_frames.py` (masters
 
 | | |
 |---|---|
-| **Studio** | `index.html` at the repo root → www.rarepond.com |
-| **Rentals** | `rentals/index.html` → www.rarepond.com/rentals/ |
-| **Media** | `media/index.html` → www.rarepond.com/media/ |
+| **Studio** | `index.html` at the repo root → rarepond.com |
+| **Rentals** | `rentals/index.html` → rarepond.com/rentals/ |
+| **Media** | `media/index.html` → rarepond.com/media/ |
 
 All three are plain static files with **no build step**. They fetch `data/*.json` at runtime, so
 editing a JSON file changes the site with no code change.

@@ -1,12 +1,8 @@
-# Apex -> www, preserving the full path + query (rarepond.com/rentals -> www.rarepond.com/rentals).
-# www is the canonical host. This host-scoped rule only fires for requests that actually reach
-# this Pages deployment on the apex hostname; it is inert for www and *.pages.dev. It exists so
-# that the moment rarepond.com is pointed at this Pages project (added as a custom domain), apex
-# deep-links 301 to www automatically - no separate Cloudflare redirect rule required.
-# NOTE: today the apex is NOT served by Cloudflare Pages (its DNS points at an old AWS load
-# balancer that 404s every deep path), so this line cannot take effect until that DNS is
-# repointed - see the apex fix notes / dashboard steps in the deploy report.
-https://rarepond.com/*    https://www.rarepond.com/:splat    301
+# Canonical host is the bare domain rarepond.com (since the 2026-10-20 DNS move to Cloudflare).
+# www -> apex is a Cloudflare ZONE Redirect Rule (dashboard: rarepond.com > Rules > Redirect
+# Rules > "Redirect from WWW to root", 301, path + query kept), NOT a line here: Pages does
+# not reliably apply host-scoped sources. Never add an apex -> www line back; together with
+# the zone rule it would loop.
 
 # Rentals is its own static section - serve its files directly.
 /rentals/*    /rentals/index.html    200

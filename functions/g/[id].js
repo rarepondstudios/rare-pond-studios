@@ -1,12 +1,14 @@
 /* Cloudflare Pages Function - rentals gear QR resolver.
  *
- * Every rental sticker QR points here: https://www.rarepond.com/g/<item_no>.
+ * Every rental sticker QR points here: https://rarepond.com/g/<item_no>. Stickers printed
+ * before the 2026-10-20 apex cutover encode www.rarepond.com/g/..., which the zone
+ * Redirect Rule (www -> apex, path kept) sends here unchanged.
  * ONE code, TWO audiences:
  *   - Staff ON the Tailscale tailnet reach the internal scan app and are
  *     forwarded straight to that item's in/out page.
  *   - Anyone OFF the tailnet (a customer, the public) cannot reach the tailnet
  *     address, so after a short probe they are sent to the public "Found this item?"
- *     page (www.rarepond.com/found, a Pages CMS custom page with the rentals contact
+ *     page (rarepond.com/found, a Pages CMS custom page with the rentals contact
  *     details). Nothing on the way says which item was scanned.
  *
  * The branch happens in the visitor's browser: the page probes the scan app's
@@ -16,8 +18,8 @@
  * unreachable and ACL-gated regardless.
  */
 const SCAN_HOST = 'https://pond.tail8c2778.ts.net:8444';
-const HOME = 'https://www.rarepond.com/';
-const FOUND = 'https://www.rarepond.com/found';   // public landing for anyone off the tailnet
+const HOME = 'https://rarepond.com/';
+const FOUND = 'https://rarepond.com/found';   // public landing for anyone off the tailnet
 const TIMEOUT_MS = 2500;
 
 export async function onRequest(context) {

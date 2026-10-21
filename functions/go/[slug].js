@@ -8,7 +8,7 @@
  * after the redirect is queued (waitUntil), so a scan never slows the visitor down, and a
  * logging failure can never break the redirect.
  */
-const HOME = 'https://www.rarepond.com/';
+const HOME = 'https://rarepond.com/';
 
 function deviceOf(ua) {
   ua = ua || '';

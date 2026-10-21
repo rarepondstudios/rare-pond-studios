@@ -13,7 +13,7 @@
  */
 import { readJson, esc } from './_maintenance.js';
 
-const ORIGIN = 'https://www.rarepond.com';
+const ORIGIN = 'https://rarepond.com';
 const FALLBACK_IMG = ORIGIN + '/media/logos/rare-pond-color.png';
 
 function abs(p) {

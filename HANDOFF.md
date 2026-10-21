@@ -37,7 +37,33 @@
 
 ---
 
-## 0. LATEST SESSION (2026-10-11), READ THIS FIRST
+## 0. LATEST SESSION (2026-10-20), READ THIS FIRST
+
+### 0.0.-78 CANONICAL HOST IS NOW THE BARE DOMAIN `rarepond.com` (APEX DNS CUTOVER DONE) (2026-10-20)
+
+- **What changed outside the repo (Jack, in the dashboards):** `rarepond.com` DNS moved from GoDaddy
+  to Cloudflare (account Rp_admin, nameservers `ines`/`zeus.ns.cloudflare.com`). The zone carries the
+  Google Workspace mail records (5 MX, SPF `v=spf1 include:_spf.google.com ~all` replacing GoDaddy's
+  `_spfm` macro, `_dmarc`, `google._domainkey`, google-site-verification, protonmail-verification).
+  Pages project `rare-pond-studios` has BOTH custom domains, `rarepond.com` and `www.rarepond.com`,
+  Active. A zone **Redirect Rule** "Redirect from WWW to root" (301, path + query kept) sends
+  `www.rarepond.com/*` to `rarepond.com/*`. This is the same shape as jackcarlsen.com.
+- **Repo, this commit:** every absolute `https://www.rarepond.com` became `https://rarepond.com`:
+  `index.html` canonical/og/twitter, `sitemap.xml`, `robots.txt`, `functions/go/[slug].js` and
+  `functions/g/[id].js` HOME/FOUND, `functions/_news_seo.js` ORIGIN, `admin/links.html` (GO_BASE, so
+  new go-links print shorter), `admin/pagesindex.html` (BASE, and the stale "always use www" warning
+  replaced), `data/colorlooks.json`, `data/pages.json`, OPERATIONS/README, the two gate tests.
+- **`_redirects`:** the old `https://rarepond.com/* -> https://www.rarepond.com/:splat 301` line is
+  REMOVED and replaced by a comment. Never add an apex -> www line back: with the zone rule it loops.
+- **Generators fixed so they do not write www back:** `bts-automation/news_sync.py` (news sitemap
+  `<loc>`), `bts-automation/sites.json` (`domain` + colorlooks header URLs). jackcarlsen-website's
+  `crossLink.url` now points at the apex too (no redirect hop in the cross-site transition).
+- **Deliberately left on www:** the rentals sticker generators (`rentals_label_render.py`,
+  `rentals_qr_compact.py`, `rentals_sticker_set.py`) and the already-printed QR stickers / go-link
+  destinations stored in D1. They keep working through the zone redirect; switching the sticker
+  base changes the printed QR, so do it only as a deliberate sticker-system change.
+- **Section 0.5 (apex 404) is RESOLVED** by this cutover. Verify on `https://rarepond.com/...` from now on.
+
 
 ### 0.0.-77 HOME "WORLDS WORTH ESCAPING INTO": ORBIT BUBBLES COME OUT FROM BEHIND THE LOGO (2026-10-11)
 
@@ -2716,7 +2742,7 @@ one (the apex redirect) needs a manual DNS action nobody in a code session can p
   renders correctly on media by temporarily flipping it true during this session, then reverted.
 - `.pages.yml` banner group label updated to "(all sites - studio + rentals + media)".
 
-### 0.5 Apex redirect `rarepond.com/media` → 404  (NOT fixed, needs a manual DNS change)
+### 0.5 Apex redirect `rarepond.com/media` → 404  (RESOLVED 2026-10-20, see 0.0.-78; kept for history)
 - **Symptom:** `www.rarepond.com/media` = 200 (correct, current). Bare `rarepond.com/media` = **404**.
   `rarepond.com/` (root only) 301s to www.
 - **Root cause:** DNS for `rarepond.com` is at **GoDaddy** (nameservers `ns61/62.domaincontrol.com`).
@@ -2915,7 +2941,7 @@ Two editing surfaces, one repo:
 
 | Thing | Where | Notes |
 |---|---|---|
-| Studio site | `www.rarepond.com` | Cloudflare Pages, static, from GitHub `main`. Build ~1–2 min. |
+| Studio site | `rarepond.com` (www 301s to it via a zone Redirect Rule) | Cloudflare Pages, static, from GitHub `main`. Build ~1–2 min. DNS on Cloudflare since 2026-10-20. |
 | Repo | `github.com/rarepondstudios/rare-pond-studios` (branch `main`) | **PUBLIC**. Never put secrets/passwords in it or in Pages CMS. |
 | Local repo clone | `/Users/rarepondstudios/rp_site_work` | On the always-on **Mac Mini**. Synced across machines + Google Drive via **Synology NAS DS1522+**. |
 | NAS (on-device, Finder) | direct network mount | **READ-ONLY**, pull assets only. To *write*, go through Google Drive. |

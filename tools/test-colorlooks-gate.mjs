@@ -13,7 +13,7 @@ const next = async () => new Response(SENTINEL, { status: 200, headers: { 'Conte
 const basic = (u, p) => 'Basic ' + Buffer.from(u + ':' + p).toString('base64');
 
 const call = (path, headers = {}, env = { COLORLOOKS_PASSWORD: 's3cret' }) =>
-  onRequest({ request: new Request('https://www.rarepond.com' + path, { headers }), env, next });
+  onRequest({ request: new Request('https://rarepond.com' + path, { headers }), env, next });
 
 let fails = 0;
 async function check(name, res, wantStatus, mustNotLeak = true) {
@@ -87,7 +87,7 @@ await check('/pagesindex (old address) no longer serves the tool', await call('/
 
 // --- SEC-2: missing media files 404 (decided in the middleware; Pages can't do it statically) ---
 const imgNext = async () => new Response('BIN', { status: 200, headers: { 'Content-Type': 'image/webp' } });
-const callImg = (path) => onRequest({ request: new Request('https://www.rarepond.com' + path), env: { COLORLOOKS_PASSWORD: 's3cret' }, next: imgNext });
+const callImg = (path) => onRequest({ request: new Request('https://rarepond.com' + path), env: { COLORLOOKS_PASSWORD: 's3cret' }, next: imgNext });
 await check('/media/missing.jpg (SPA shell) -> 404', await call('/media/missing.jpg'), 404, false);
 await check('/media/logos/real.webp (real image) passes through 200', await callImg('/media/logos/real.webp'), 200, false);
 await check('/media/ (the media PAGE itself) is NOT 404d', await call('/media/'), 200, false);

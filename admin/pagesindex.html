@@ -62,10 +62,9 @@
   <button class="reload" onclick="build()">&#8635; Reload</button>
 
   <div class="warnbox">
-    <b>Always use <code>www.rarepond.com</code></b> - every link below already does.
-    The bare <code>rarepond.com</code> only serves the homepage; any deeper address on it returns a
-    <b>404</b>, because the apex domain points at a GoDaddy forwarding service rather than at the site.
-    If you send someone <code>rarepond.com/admin/colorlooks</code> they will get a 404 - not the password screen. Use <code>www.rarepond.com/admin/colorlooks</code>.
+    <b>The address is <code>rarepond.com</code></b> (no www). Every link below uses it.
+    Old <code>www.rarepond.com</code> links still work: they redirect to the same page on
+    <code>rarepond.com</code>.
   </div>
 
   <div id="out"></div>
@@ -75,7 +74,7 @@
 <script>
 (function(){
   "use strict";
-  var BASE = "https://www.rarepond.com";
+  var BASE = "https://rarepond.com";
   var esc = function(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
 

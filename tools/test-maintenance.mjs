@@ -52,7 +52,7 @@ function makeEnv(flag, { coverMissing = false, dotHtmlRedirects = false,
 }
 
 const call = (path, env) =>
-  onRequest({ request: new Request('https://www.rarepond.com' + path), env, next });
+  onRequest({ request: new Request('https://rarepond.com' + path), env, next });
 
 let fails = 0;
 async function expectPage(name, res, want) {
