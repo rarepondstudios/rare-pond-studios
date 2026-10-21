@@ -37,7 +37,23 @@
 
 ---
 
-## 0. LATEST SESSION (2026-10-20), READ THIS FIRST
+## 0. LATEST SESSION (2026-10-21), READ THIS FIRST
+
+### 0.0.-79 SHLINK RETIRED; THE 7 PRINTED `.ts.net` QR CODES NOW SERVED BY `qr_redirect.py` (2026-10-21)
+
+- **Off-repo change, no site code touched.** The three Shlink containers on the mini are gone. The 7
+  already-printed codes (`pond.tail8c2778.ts.net/<code>`: 1Vyrv, Qr6my, pqlV7, ELDHD, JackMedia,
+  KarinaMedia, RPJack) are answered by `~/bts-automation/qr_redirect.py` (launchd
+  `com.rarepond.qrredirect`, 127.0.0.1:8083 behind the same Tailscale Funnel) with the same
+  destinations and Shlink's exact behaviour (case-sensitive codes, query passed through, 404
+  otherwise), checked code by code against Shlink before the switch. Scans log to
+  `qr_redirect_scans.log`. Shlink's DB is dumped at `~/qr-system/shlink_final_dump_20261021.sql`.
+  New links stay in Go Links (`/admin/links`). Detail: AI_System_Context `04-automations-and-tools.md`.
+- **Open question found while doing this:** every `/go/<slug>` tried on 2026-10-21 (`media-jack`,
+  `rentals`, `home`, `jackcarlsen`, `General-Media-Card`, on both hosts and on `rare-pond-studios.pages.dev`)
+  302'd to the home page, which the resolver does for an unknown slug OR a missing `GOLINKS` D1 binding.
+  Not yet diagnosed (the slugs may simply have been renamed). Check `/admin/links` and test one live link.
+
 
 ### 0.0.-78 CANONICAL HOST IS NOW THE BARE DOMAIN `rarepond.com` (APEX DNS CUTOVER DONE) (2026-10-20)
 
