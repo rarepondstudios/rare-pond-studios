@@ -46,8 +46,11 @@
   Google Workspace mail records (5 MX, SPF `v=spf1 include:_spf.google.com ~all` replacing GoDaddy's
   `_spfm` macro, `_dmarc`, `google._domainkey`, google-site-verification, protonmail-verification).
   Pages project `rare-pond-studios` has BOTH custom domains, `rarepond.com` and `www.rarepond.com`,
-  Active. A zone **Redirect Rule** "Redirect from WWW to root" (301, path + query kept) sends
-  `www.rarepond.com/*` to `rarepond.com/*`. This is the same shape as jackcarlsen.com.
+  Active. **No www -> apex redirect is in place (2026-10-20, Jack's call):** the zone Redirect Rule
+  "Redirect from WWW to root" was created, then disabled because stale GoDaddy DNS caches made it
+  loop (apex still at GoDaddy forwarding -> www -> rule -> apex), then deleted. Both hosts serve the
+  site directly; every page's canonical tag names `https://rarepond.com/`. To restore the redirect
+  later: rarepond.com > Rules > Redirect Rules > template "Redirect from WWW to root", 301, keep query.
 - **Repo, this commit:** every absolute `https://www.rarepond.com` became `https://rarepond.com`:
   `index.html` canonical/og/twitter, `sitemap.xml`, `robots.txt`, `functions/go/[slug].js` and
   `functions/g/[id].js` HOME/FOUND, `functions/_news_seo.js` ORIGIN, `admin/links.html` (GO_BASE, so
@@ -2941,7 +2944,7 @@ Two editing surfaces, one repo:
 
 | Thing | Where | Notes |
 |---|---|---|
-| Studio site | `rarepond.com` (www 301s to it via a zone Redirect Rule) | Cloudflare Pages, static, from GitHub `main`. Build ~1–2 min. DNS on Cloudflare since 2026-10-20. |
+| Studio site | `rarepond.com` canonical (`www` also serves, no redirect; see 0.0.-78) | Cloudflare Pages, static, from GitHub `main`. Build ~1–2 min. DNS on Cloudflare since 2026-10-20. |
 | Repo | `github.com/rarepondstudios/rare-pond-studios` (branch `main`) | **PUBLIC**. Never put secrets/passwords in it or in Pages CMS. |
 | Local repo clone | `/Users/rarepondstudios/rp_site_work` | On the always-on **Mac Mini**. Synced across machines + Google Drive via **Synology NAS DS1522+**. |
 | NAS (on-device, Finder) | direct network mount | **READ-ONLY**, pull assets only. To *write*, go through Google Drive. |

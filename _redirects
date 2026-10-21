@@ -1,8 +1,8 @@
 # Canonical host is the bare domain rarepond.com (since the 2026-10-20 DNS move to Cloudflare).
-# www -> apex is a Cloudflare ZONE Redirect Rule (dashboard: rarepond.com > Rules > Redirect
-# Rules > "Redirect from WWW to root", 301, path + query kept), NOT a line here: Pages does
-# not reliably apply host-scoped sources. Never add an apex -> www line back; together with
-# the zone rule it would loop.
+# www currently serves the site directly (canonical tags point at the apex). If a www -> apex
+# redirect is wanted, make it a Cloudflare ZONE Redirect Rule (rarepond.com > Rules > Redirect
+# Rules > "Redirect from WWW to root"), NOT a line here: Pages does not reliably apply
+# host-scoped sources. Never add an apex -> www line back; with such a rule it would loop.
 
 # Rentals is its own static section - serve its files directly.
 /rentals/*    /rentals/index.html    200
