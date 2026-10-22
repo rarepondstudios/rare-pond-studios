@@ -37,7 +37,43 @@
 
 ---
 
-## 0. LATEST SESSION (2026-10-21), READ THIS FIRST
+## 0. LATEST SESSION (2026-10-22), READ THIS FIRST
+
+### 0.0.-81 NEW RENTALS DEPARTMENT "DIT" (HOT PINK `#FF3EA5`) + CARD THUMBNAIL FIX (2026-10-22)
+
+- **Jack asked for a DIT gear category, pink, starting with the Blackmagic Micro Color Panel and the
+  Speed Editor.** Every layer that knows about categories now has it:
+  - Supabase: `alter type item_category add value 'DIT'` (enum is now Camera, Lighting, Grip,
+    Electric, Sound, DIT). NocoDB's `items.category` SingleSelect got the DIT option the documented
+    way (stop container, row in `nc_col_select_options_v2` + `dtxp`, restart; backup
+    `bts-automation/backups/noco.db.bak_beforeDIT_20261022_110845`).
+  - Color: new `category` look `pink` (`#ff3ea5` x3) in NocoDB `color_looks` (Id 34, sort 6),
+    published by `colorlooks_sync.py --publish` to both repos.
+  - This repo: `data/rentals.json` categories + `{id: DIT, label: DIT, colorLook: pink}` (last tab);
+    `rentals/assets/app.js` ICON gets a monitor (Lucide "monitor" geometry, Jack's pick) and the
+    default CATS list includes DIT; `.pages.yml` colorLook hint lists pink.
+  - Items: 6001 `DaVinci Resolve Micro Color Panel` (id 1414, $20/day, value $449) and 6002
+    `DaVinci Resolve Speed Editor` (id 1415, $15/day, value $349), section `Control Surfaces`, one
+    unit each (1414-A, 1415-A), Blackmagic's official product photos attached in NocoDB (originals in
+    `bts-automation/backups/dit_photos/`). DIT item numbers are the 6xxx block.
+  - Found while adding them: the items/units identity sequences were behind (units by 46), so a
+    plain insert collided; `setval` to max(id). Inserting with explicit ids elsewhere is the likely cause.
+- **Tab bug fixed (`app.js`):** `RP_setCategories` keeps only categories that exist in `RENTALS`, and
+  looks.js usually calls it before the live Supabase catalog replaces the BUILT-IN list, so a category
+  that exists only live (DIT) was dropped from the tabs. `loadCatalog` now re-applies
+  `RP_CATEGORY_MAP` after the live catalog lands.
+- **Card thumbnail fix (`styles.css`):** `.thumb img{height:100%}` never resolved inside the grid
+  `.thumb` (auto row track), so every gear photo rendered as a square and the 156px frame showed only
+  its top band. The img is now absolutely positioned to fill the frame, so `object-fit: contain`
+  shows the whole photo. Affects every card, not just DIT.
+- **Stickers:** both generators read categories live, so DIT items get pink stickers with no further
+  change. Legacy production plan (`rentals_sticker_set.py` build_plan) now includes DIT;
+  `rentals_sticker_refill.py --dry-run` lists 6001 and 6002 as new. The design generator
+  (`~/rentals_labels/design`) is at v50 with DIT samples; STICKER_SPEC.md documents it.
+- Verified live 2026-10-22: rentals.json and colorlooks.json carry DIT / pink on rarepond.com; anon
+  REST returns both items; `catalog_availability` lists both as available; `/g/6001` and `/g/6002`
+  answer like every other code; the DIT tab renders both cards in the browser pane. `app.js` is
+  cached 4 h (`max-age=14400`), so returning visitors may need up to that long to see the tab.
 
 ### 0.0.-80 ELECTRIC DEPARTMENT YELLOW IS NOW `#FFE600` (2026-10-22)
 
