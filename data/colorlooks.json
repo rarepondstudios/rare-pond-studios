@@ -70,6 +70,15 @@
       "taglineItalic": false
     },
     {
+      "key": "pink",
+      "name": "Pink",
+      "kind": "category",
+      "c1": "#ff3ea5",
+      "c2": "#ff3ea5",
+      "c3": "#ff3ea5",
+      "taglineItalic": false
+    },
+    {
       "key": "geri",
       "name": "Geri-Action",
       "kind": "film",
@@ -88,15 +97,6 @@
       "titleStyle": "solid",
       "titleGradientFrom": "white",
       "titleGradientTo": "color1"
-    },
-    {
-      "key": "pink",
-      "name": "Pink",
-      "kind": "category",
-      "c1": "#ff3ea5",
-      "c2": "#ff3ea5",
-      "c3": "#ff3ea5",
-      "taglineItalic": false
     },
     {
       "key": "rev",
