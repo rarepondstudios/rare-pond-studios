@@ -513,7 +513,7 @@ function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={}
 async function loadCatalog(){var u=SB_URL+"/rest/v1/items?select=*&order=sort_order.asc";var r=await fetch(u,{headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY},cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);return sbToRentals(await r.json());}
 /* Paint immediately with the built-in catalog so the page never waits on the network, then refresh from Supabase in the background. */
 RENTALS.forEach(function(p,i){p._id=i;});render();uc();
-(async function(){try{var d=await loadCatalog();if(d&&d.length){RENTALS=d;RENTALS.forEach(function(p,i){p._id=i;});buildDbIdx();render();uc();}}catch(e){console.warn("[RP Rentals] keeping built-in catalog (Supabase load failed): "+(e&&e.message));}})();
+(async function(){try{var d=await loadCatalog();if(d&&d.length){RENTALS=d;RENTALS.forEach(function(p,i){p._id=i;});buildDbIdx();/* re-derive the tabs from the LIVE catalog: RP_setCategories may have run against the built-in list, which drops a category (e.g. DIT, 2026-10-22) that only exists live */if(window.RP_CATEGORY_MAP&&window.RP_setCategories)window.RP_setCategories(window.RP_CATEGORY_MAP);render();uc();}}catch(e){console.warn("[RP Rentals] keeping built-in catalog (Supabase load failed): "+(e&&e.message));}})();
 (function(){var hl=document.getElementById('rpHome');if(hl)hl.addEventListener('click',function(e){e.preventDefault();active='Home';q='';render();window.scrollTo(0,0);});})();
 
 function fillFrac_req(){var flds=RCFG.render,n=0;flds.forEach(function(f){var v=String(reqData[f.key]||'').trim();if(f.type==='email'){if(/.+@.+\..+/.test(v))n++;}else if(v)n++;});if(D.s&&D.e)n++;return flds.length?n/(flds.length+1):0;}
