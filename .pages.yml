@@ -297,7 +297,7 @@ content:
           - { name: label, label: "Display name (what visitors see)", type: string,
               description: "Safe to change any time. This does not touch the database." }
           - { name: colorLook, label: "Linked color look", type: string,
-              description: "The name (ID) of a look in COLOR LOOKS - e.g. red, amber, violet, yellow, green, or signature. That look's Color 1 becomes this category's color. If it does not match a real look, the category keeps its built-in color; the Color Looks preview page flags broken links in red." }
+              description: "The name (ID) of a look in COLOR LOOKS - e.g. red, amber, violet, yellow, green, pink, or signature. That look's Color 1 becomes this category's color. If it does not match a real look, the category keeps its built-in color; the Color Looks preview page flags broken links in red." }
       - name: logos
         label: Rentals logos
         type: object

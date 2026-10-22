@@ -12,7 +12,7 @@ function RPC(){return (window.RP_RENTALS)||{};}
 function copyStr(group,key,fallback){var g=RPC()[group]||{},v=g[key];return (v==null||v==='')?fallback:v;}
 window.RPRerender=function(){try{render();uc();}catch(e){}};
 const CS='#5aa0ff',CE='#8f7bff';const CSd='#3f6fc4',CEd='#6a52cc';function bandCol(t){return lerp(CSd,CEd,Math.max(0,Math.min(1,t)));}
-const ICON={Camera:'M4 8h3l2-3h6l2 3h3v11H4z M12 17a4 4 0 100-8 4 4 0 000 8z',Lighting:'M9 3h6l3 6-6 3-6-3z M11 12h2v9h-2z',Grip:'M15.5 4.8a4 4 0 00-4.6 5.2l-6.3 6.3a1.6 1.6 0 002.3 2.3l6.3-6.3a4 4 0 005.2-4.6l-2.4 2.4-2.3-.6-.6-2.3z',Electric:'M13 2L4 14h6l-1 8 9-12h-6z','Sound':'M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3z M5 11a7 7 0 0014 0 M12 18v3',Home:'M3 11l9-7 9 7 M5 10v10h14V10'};
+const ICON={Camera:'M4 8h3l2-3h6l2 3h3v11H4z M12 17a4 4 0 100-8 4 4 0 000 8z',Lighting:'M9 3h6l3 6-6 3-6-3z M11 12h2v9h-2z',Grip:'M15.5 4.8a4 4 0 00-4.6 5.2l-6.3 6.3a1.6 1.6 0 002.3 2.3l6.3-6.3a4 4 0 005.2-4.6l-2.4 2.4-2.3-.6-.6-2.3z',Electric:'M13 2L4 14h6l-1 8 9-12h-6z','Sound':'M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3z M5 11a7 7 0 0014 0 M12 18v3',DIT:'M4 3h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2z M8 21h8 M12 17v4',Home:'M3 11l9-7 9 7 M5 10v10h14V10'};
 /* Icon artwork comes from /assets/socials.js (loaded in the page head), which is the ONLY
    place it is defined. Add a network there and the studio, rentals and the maintenance
    cover all pick it up. */
@@ -25,7 +25,7 @@ const SOCLINKS=[['https://www.youtube.com/@zytopian','YouTube','yt'],['https://w
      id    = the category string in the rentals DATABASE (groups the gear)
      label = what visitors see (LABELS below)
    Do NOT hardcode a colour here to restyle a category - assign it a colour look. */
-let CATS=["Camera","Lighting","Grip","Electric","Sound"];
+let CATS=["Camera","Lighting","Grip","Electric","Sound","DIT"];
 let LABELS={};
 RENTALS.forEach((p,i)=>p._id=i);
 let active="Home",q="",cart={},cartOrder=[],dpOpen=null,calRef=null,pick='start',badDay=null;

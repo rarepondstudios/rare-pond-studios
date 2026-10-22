@@ -32,6 +32,11 @@
       "id": "Sound",
       "label": "Sound",
       "colorLook": "green"
+    },
+    {
+      "id": "DIT",
+      "label": "DIT",
+      "colorLook": "pink"
     }
   ],
   "logos": {
