@@ -90,6 +90,15 @@
       "titleGradientTo": "color1"
     },
     {
+      "key": "pink",
+      "name": "Pink",
+      "kind": "category",
+      "c1": "#ff3ea5",
+      "c2": "#ff3ea5",
+      "c3": "#ff3ea5",
+      "taglineItalic": false
+    },
+    {
       "key": "rev",
       "name": "Revelations",
       "kind": "film",
