@@ -39,6 +39,15 @@
 
 ## 0. LATEST SESSION (2026-10-21), READ THIS FIRST
 
+### 0.0.-80 ELECTRIC DEPARTMENT YELLOW IS NOW `#FFE600` (2026-10-22)
+
+- **Data only, no site code touched.** Jack: the Electric yellow `#fbbc04` read too close to Lighting's
+  amber `#ff9900`. The `yellow` look (Id 6) in the NocoDB `color_looks` table now has c1 = c2 = c3 =
+  `#ffe600`; `colorlooks_sync.py --publish` exported it to `data/colorlooks.json` in both repos
+  (commit `144a57f` here). Live on rarepond.com and jackcarlsen.com *(verified 2026-10-22 by fetching
+  `/data/colorlooks.json` from both)*. The rental stickers read the same file, so they match.
+  OPERATIONS.md category table updated.
+
 ### 0.0.-79 SHLINK RETIRED; THE 7 PRINTED `.ts.net` QR CODES NOW SERVED BY `qr_redirect.py` (2026-10-21)
 
 - **Off-repo change, no site code touched.** The three Shlink containers on the mini are gone. The 7

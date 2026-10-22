@@ -427,4 +427,4 @@ Kept as history only. These are NOT fallbacks and are NOT in the code any more.
 | Invalid Opinion | `#74b3ff` | `rgba(80,150,255,.30)` | - | = accent | inherited |
 
 Rentals categories were `Camera #EA4335`, `Lighting #FF9900`, `Grip #8b5cf6`,
-`Electric #FBBC04`, `Sound Packages #34A853`.
+`Electric #FFE600` (brighter lemon since 2026-10-22, was #FBBC04), `Sound Packages #34A853`.
