@@ -73,7 +73,9 @@
 - Verified live 2026-10-22: rentals.json and colorlooks.json carry DIT / pink on rarepond.com; anon
   REST returns both items; `catalog_availability` lists both as available; `/g/6001` and `/g/6002`
   answer like every other code; the DIT tab renders both cards in the browser pane. `app.js` is
-  cached 4 h (`max-age=14400`), so returning visitors may need up to that long to see the tab.
+  cached 4 h (`max-age=14400`): Jack's own browser kept the old copy and showed no DIT tab, so
+  `rentals/index.html` now loads `styles.css`, `app.js` and `availability.js` with `?v=20261022b`
+  (the HTML always revalidates). **Bump that stamp whenever those files change.**
 
 ### 0.0.-80 ELECTRIC DEPARTMENT YELLOW IS NOW `#FFE600` (2026-10-22)
 
