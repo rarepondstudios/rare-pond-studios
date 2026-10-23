@@ -39,6 +39,20 @@
 
 ## 0. LATEST SESSION (2026-10-22), READ THIS FIRST
 
+### 0.0.-88 DATABASE REVIEW, SCAN APP POLISH, STICKER PREFLIGHT (2026-10-23)
+
+- `bts-automation/migrations/20261023d_db_review.sql` (applied by `rentals_dbreview_20261023_apply.py`,
+  backups in `backups/rentals_dbreview_20261023/`): junk `_nc_ph_` column and the `photo_url` /
+  `photo_orig` copies dropped (photo follows Image only); sub-items follow their item's department;
+  names trimmed; `sort_order` = ID (new items had 0 and topped the site list); every item has a unit
+  and new items get one; unit names generated, old text kept in `units.details`; 4 test scan events
+  removed. NocoDB: old package lookups and the "Component units" view removed, links renamed,
+  sticker_size / cable_wrap made dropdowns (meta only, via `rentals_noco_selects_20261023.py`).
+- Scan app: new look (photo, department color, sticky Confirm, code lookup box), state token +
+  per-item lock against double taps, TLS handshake moved off the accept loop, bad input handled.
+  `scan_stress_test.py` runs every flow on live data and restores it.
+- `make.py` preflight stops a batch that a design cannot draw. Rules: OPERATIONS.md (rentals sections).
+
 ### 0.0.-87 THE STICKER SYSTEM: rentals_stickers/ (2026-10-23)
 
 - New `~/bts-automation/rentals_stickers/` (make.py, stickers.py, SPEC.md) replaces every old label

@@ -243,6 +243,18 @@ Electric 4, Sound 5, DIT 6; 7 and 8 free for new departments, one row in `public
   row "#" is only the row position and cannot be hidden). The container links on units are titled
   "In container" / "Container contents". "Accessory picker (DONT TOUCH)" was left as it was. New columns or tables appear after
   **Data Sources -> Supabase Rentals -> Sync Metadata**.
+- **Kept by the database (review 2026-10-23, `migrations/20261023d_db_review.sql`):**
+  - A new item gets one unit by itself (qty 1); add more units for more copies.
+  - Sub-items always carry their item's department (change the item's, the sub-items follow).
+  - Names are trimmed (no stray spaces). `sort_order`, which the website lists by, follows the ID.
+  - Unit names are generated: "Item name (2100-A)"; a container's unit is just its name. What sets one
+    copy apart (brand, size, a marking) goes in the unit's `details` column, which keeps the old
+    hand-written text.
+  - `photo` (what the site shows) follows Image; clearing Image clears the site photo. The old
+    `photo_url` / `photo_orig` copies are gone. `sticker_size` and `cable_wrap` are dropdowns.
+  - Removed from NocoDB: the "Component units" view and the old package lookups (`item_parent_id`,
+    `unit_class`). Link columns on units now read Item, Out on order, Out on booking, Last container,
+    Moves, Sticker prints; on items "Accessory for" is the reverse of "Recommended accessories".
 
 ### Gear stickers (since 2026-10-23)
 
@@ -257,6 +269,13 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   `cable_wrap` (short / long). Prefilled by rule 2026-10-23; containers are always L.
 - Every sticker made is a row in `public.sticker_prints`; `printed <batch>` stamps it once the batch is on
   the gear, and `refill` makes only what has no stamped sticker for its current code.
+- Before drawing anything `make.py` checks the batch and stops with a list if a department has no color,
+  a container has no call name, a unit has no code, or a unit letter would be two letters (27+ units).
+- Scan app (2026-10-23 polish): photo and department color on every page, big tick targets, a sticky
+  Confirm button, and a code box at the top (1103, 1103-B, 1101.002 or CAM 01) for looking things up
+  by hand. A second tap, a reload or a second phone saves nothing ("Nothing was saved") instead of
+  sending out another copy. `bts-automation/scan_stress_test.py` runs every flow against the live
+  database and puts everything back. Phones and tablets need Tailscale on to open it.
 
 ---
 
