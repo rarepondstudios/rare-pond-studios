@@ -183,7 +183,7 @@ That is intended behaviour, not a bug.
 **Pricing is inclusive of both days.** A Jul 27 → Jul 30 rental is **4 days, not 3**. It is
 computed server-side in Postgres (see the Supabase section).
 
-### Item numbers, containers, unit letters and kits (since 2026-10-22, containers first since 2026-10-23)
+### Item numbers, containers, unit letters and kits (since 2026-10-22, containers first since 2026-10-23, from x001)
 
 The database numbers gear itself (`bts-automation/migrations/20261022_rentals_numbering.sql`,
 `20261022c_lettered_subitems.sql`, `20261022d_containers_ids.sql`, `20261023_containers_first.sql`).
@@ -192,7 +192,7 @@ Electric 4, Sound 5, DIT 6; 7 and 8 free for new departments, one row in `public
 
 | What | ID | Example | On a sticker |
 |---|---|---|---|
-| Container | `####`, x000-x099 (a 0 in the second digit) | `1000` = CAM 00 | yes, QR + big case number |
+| Container | `####`, x001-x099 (a 0 in the second digit; x000 unused) | `1001` = CAM 01 | business card sticker (QR) + vinyl case number |
 | Item (gear) | `####`, x100-x999 | `2100` | yes, QR |
 | Sub-item | `####.###` (item + 3 digits) | `2100.001` | only the item number (pill) |
 | Unit | item or sub-item code + letter | `2100-A`, `2100.001-B` | letter tab when the item has 2+ units or the sub-item is lettered |
@@ -203,14 +203,14 @@ Electric 4, Sound 5, DIT 6; 7 and 8 free for new departments, one row in `public
   never shown or printed.
 - **Call names:** a container is called by its department code (`dept_blocks.call_prefix`: CAM, LGT,
   G&E, ELC, SND, DIT) + the last two digits, and the database keeps that at the end of its name in
-  brackets ("Nanuk 935 Case (CAM 00)"); rename freely, the bracket is re-added. The same two digits go
-  on the case in big department-color numbers. Scan app: "Put it in" also accepts "CAM 00".
-- **Renumbers:** 2026-10-22 (gaps closed, containers created) and 2026-10-23 (containers to x000,
+  brackets ("Nanuk 935 Case (CAM 01)"); rename freely, the bracket is re-added. The same two digits go
+  on the case in big department-color numbers. Scan app: "Put it in" also accepts "CAM 01".
+- **Renumbers:** 2026-10-22 (gaps closed, containers created) and 2026-10-23 (containers to x001,
   gear to x100). Old to new: `~/Desktop/RarePond_Rental_Labels/Renumber_2026-10-23.csv` (and
   `bts-automation/backups/rentals_containers_first_20261023/`). Every sticker printed before is void.
 - **Containers** (`items.is_container`): a case or crate holding gear of ITS department, with
-  contents that change (Nanuk 935 cases CAM 00 / CAM 01, full milk crate G&E 00, half milk crates
-  ELC 00 / ELC 01, Nanuk 920 sound case SND 00). Fixed inserts and tools that always stay with that
+  contents that change (Nanuk 935 cases CAM 01 / CAM 02, full milk crate G&E 01, half milk crates
+  ELC 01 / ELC 02, Nanuk 920 sound case SND 01). Fixed inserts and tools that always stay with that
   case are its sub-items. Switching a container on hides it from the website; un-hide it to rent it.
   - What is inside right now is `units.container_unit_id`, separate from checked in/out; the
     database refuses other departments' gear, sub-items (they travel with their item) and containers
@@ -230,7 +230,9 @@ Electric 4, Sound 5, DIT 6; 7 and 8 free for new departments, one row in `public
 - **Retired codes:** a deleted item number or unit code goes on `public.retired_codes` and is not
   handed out again until cleared: `python3 ~/bts-automation/rentals_numbers.py clear 2100`. With no
   arguments the tool shows each department's container and gear ranges; `orphans` lists sub-items
-  with no item. Switching an item to or from container, or to another department, renumbers it and
+  with no item (none since 2026-10-23). Sub-items lost their item before when the item was deleted
+  (now blocked) or the parent link was cleared in NocoDB (still possible: run `orphans` now and then).
+  Switching an item to or from container, or to another department, renumbers it and
   retires the old number; a kit's renumber carries its sub-item and unit codes.
 - **Deleting an item:** a shared accessory (`shared_parent_ids`) moves to another item; one that
   belongs only to the deleted item blocks the delete (delete both together, or move it first).

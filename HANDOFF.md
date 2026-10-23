@@ -39,6 +39,17 @@
 
 ## 0. LATEST SESSION (2026-10-22), READ THIS FIRST
 
+### 0.0.-86 CONTAINERS FROM x001; ORPHANS RESOLVED; VINYL CASE NUMBERS (2026-10-23)
+
+- Containers start at x001 (CAM 01), x000 unused: `migrations/20261023b_containers_from_01.sql` +
+  `rentals_cleanup_20261023_apply.py` (all PASS). Containers: 1001/1002 Nanuk 935 (CAM 01/02), 3001
+  (G&E 01), 4001/4002 (ELC 01/02), 5001 (SND 01).
+- Orphans: Info Papers back under 2107 Quick Dome 90; the two rubber screw caps deleted; the Kondor
+  Blue Cine Jaws + four magic arm parts now under 2112 iPad Pro for Sidus (came with it). None left.
+- CAM 02 (1002) inserts added: padded divider set, 4-pocket mesh lid organizer, AirTag, Nanuk AirTag
+  shield. Sticker mockup v55: containers get only the business card sticker + a vinyl case number
+  (Heebo ExtraBold, 3.5 in wide, `Case_Number_*.svg` per container next to the PDF).
+
 ### 0.0.-85 CONTAINERS FIRST (x000-x099), GEAR FROM x100, CALL NAMES (2026-10-23)
 
 - Per Jack: containers take each department's first hundred (second digit 0 = container), gear starts
