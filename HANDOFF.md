@@ -39,6 +39,22 @@
 
 ## 0. LATEST SESSION (2026-10-22), READ THIS FIRST
 
+### 0.0.-82 RENTALS NUMBERING IS AUTOMATIC; KITS RENTED AS A SET; STORM 80c 3-LIGHT KIT (2026-10-22)
+
+- **Database only, no site code touched** (bts-automation `191e5b8` + `083ae76`,
+  `migrations/20261022_rentals_numbering.sql`). Item numbers are assigned by a trigger (lowest free
+  in the department block, gaps first), unique, accessories never numbered, unit letters automatic,
+  deleted codes held on `retired_codes` until cleared, department moves renumber, deleting an item
+  with its own accessories is blocked (shared ones move). Full rules: OPERATIONS.md, "Item numbers,
+  unit letters and kits".
+- **Site-visible change:** `catalog_availability` now treats `rent_as_set` items as one set (and
+  `reserve_order` books all their units). Every other item is unchanged (checked: 3013 still 6/6).
+  Permissions rule re-checked after the migration: only `catalog_availability` is anon-executable.
+- **New gear:** 2001 Aputure STORM 80c 3-Light Kit ($100/day, value $2,060, units A/B/C = the three
+  fixtures, 15 accessories from the official packing list + an Aputure baby pin adapter with ARRI
+  locating pins). Live on the public API with 1 set available *(verified 2026-10-22 via the anon REST
+  `items` row and `rpc/catalog_availability`)*.
+
 ### 0.0.-81 NEW RENTALS DEPARTMENT "DIT" (HOT PINK `#FF3EA5`) + CARD THUMBNAIL FIX (2026-10-22)
 
 - **Jack asked for a DIT gear category, pink, starting with the Blackmagic Micro Color Panel and the
