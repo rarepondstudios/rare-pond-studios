@@ -244,6 +244,20 @@ Electric 4, Sound 5, DIT 6; 7 and 8 free for new departments, one row in `public
   "In container" / "Container contents". "Accessory picker (DONT TOUCH)" was left as it was. New columns or tables appear after
   **Data Sources -> Supabase Rentals -> Sync Metadata**.
 
+### Gear stickers (since 2026-10-23)
+
+One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`make.py` runs it,
+`stickers.py` draws every design, `SPEC.md` is the design spec). The old label scripts
+(`rentals_sticker_*.py`, `rentals_qr_compact.py`, `rentals_subitem_labels.py` and the rest) are gone.
+
+- `make.py status` / `refill` / `full` / `codes <code...>` / `printed <batch>` / `demo`. A batch is a folder
+  `~/Desktop/RarePond_Rental_Labels/Print_<date>_<mode>/` (Cricut Print Then Cut sheets, vinyl case
+  numbers as SVG, manifest.csv, README.txt); the demo sheet lives in `.../Demo/`.
+- Per-item settings in NocoDB (items view): `sticker_size` (S / M / L), `sticker_addon`, `cable_tie`,
+  `cable_wrap` (short / long). Prefilled by rule 2026-10-23; containers are always L.
+- Every sticker made is a row in `public.sticker_prints`; `printed <batch>` stamps it once the batch is on
+  the gear, and `refill` makes only what has no stamped sticker for its current code.
+
 ---
 
 ## How to actually reach n8n / NocoDB (and why no URLs are written here)

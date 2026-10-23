@@ -39,6 +39,14 @@
 
 ## 0. LATEST SESSION (2026-10-22), READ THIS FIRST
 
+### 0.0.-87 THE STICKER SYSTEM: rentals_stickers/ (2026-10-23)
+
+- New `~/bts-automation/rentals_stickers/` (make.py, stickers.py, SPEC.md) replaces every old label
+  script (11 removed from bts-automation, copies in the mini's Trash) and `~/rentals_labels/design`.
+  Migration `20261023c_sticker_system.sql`: items.sticker_size / sticker_addon / cable_tie /
+  cable_wrap (prefilled by rule) and `public.sticker_prints` (RLS on, no anon access).
+- Rules: OPERATIONS.md "Gear stickers"; design: rentals_stickers/SPEC.md.
+
 ### 0.0.-86 CONTAINERS FROM x001; ORPHANS RESOLVED; VINYL CASE NUMBERS (2026-10-23)
 
 - Containers start at x001 (CAM 01), x000 unused: `migrations/20261023b_containers_from_01.sql` +
