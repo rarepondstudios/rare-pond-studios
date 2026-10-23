@@ -237,7 +237,11 @@ Electric 4, Sound 5, DIT 6; 7 and 8 free for new departments, one row in `public
 - **Deleting an item:** a shared accessory (`shared_parent_ids`) moves to another item; one that
   belongs only to the deleted item blocks the delete (delete both together, or move it first).
 - `items.rent_as_set` (several units booked as one set) still exists; no item uses it.
-- NocoDB: the units "Unit ID" column shows `unit_code`. New columns or tables appear after
+- NocoDB (2026-10-23): the items view is sorted by code (`item_id_new`, so each item is followed by its
+  sub-items) and shows it as the formula column "ID"; the units view is sorted by `unit_code` and its
+  "Unit ID" column shows it. Package, raw-id and unused columns are hidden in both views (the grid's
+  row "#" is only the row position and cannot be hidden). The container links on units are titled
+  "In container" / "Container contents". "Accessory picker (DONT TOUCH)" was left as it was. New columns or tables appear after
   **Data Sources -> Supabase Rentals -> Sync Metadata**.
 
 ---
