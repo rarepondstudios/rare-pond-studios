@@ -39,6 +39,17 @@
 
 ## 0. LATEST SESSION (2026-10-22), READ THIS FIRST
 
+### 0.0.-85 CONTAINERS FIRST (x000-x099), GEAR FROM x100, CALL NAMES (2026-10-23)
+
+- Per Jack: containers take each department's first hundred (second digit 0 = container), gear starts
+  at x100. Containers are called by department code + last two digits (CAM 00 = 1000), kept at the
+  end of the item name by the database; the free-text call_name column is gone.
+  `bts-automation/migrations/20261023_containers_first.sql` + `rentals_containers_first_apply.py`
+  (one transaction, all checks PASS). Full renumber again; old to new in
+  `~/Desktop/RarePond_Rental_Labels/Renumber_2026-10-23.csv`.
+- Scan app shows call names and accepts "CAM 00" for Put it in. Sticker mockup v54 adds the
+  containers section (medium sticker + big case number). Rules: OPERATIONS.md.
+
 ### 0.0.-84 CONTAINERS; ONE ID FORMAT; FULL RENUMBER; PACKAGES REMOVED (2026-10-22)
 
 - **Database + scan app only; site code untouched.** `bts-automation/migrations/20261022d_containers_ids.sql`
