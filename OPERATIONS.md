@@ -193,7 +193,14 @@ The database numbers gear itself (migration `bts-automation/migrations/20261022_
   departments). Blocks live in `public.dept_blocks`: a new department is one row there. Leave the
   number empty when adding an item in NocoDB; numbers are unique and must sit in their block.
 - **Accessories** (`kind = sub_item`) never get a number: they carry the parent's ID (`2001.3`,
-  filled in automatically).
+  filled in automatically). That code (`items.item_id_new`) is the sub-item's code everywhere,
+  NocoDB and the scan app alike (the scan app used to number by position; 44 stale codes were
+  repaired 2026-10-22 by `bts-automation/rentals_subcodes_repair.py`).
+- **Lettered sub-items** (`items.lettered`, since 2026-10-22): turn it on for a part that has to be
+  told apart inside its kit (2001.1 the three STORM 80c heads A/B/C; 4001's two V-mount batteries
+  A/B). Its units get letters like any unit, the unit names carry the letter, the scan app ticks
+  each letter on check-out/in (so a missing head is recorded as "B"), and its pills print the
+  letter in a tab. Leave it off for interchangeable parts (bricks, cables): those stay qty only.
 - **Unit letters** (`units.unit_number` -> A, B, C): the lowest free letter, automatically.
 - **Retired codes:** a deleted item number or unit code goes on `public.retired_codes` and is NOT
   handed out again until cleared, because its sticker may still be on something. When the old
@@ -205,10 +212,12 @@ The database numbers gear itself (migration `bts-automation/migrations/20261022_
   them; an accessory that belongs only to the deleted item blocks the delete (move or delete it
   first; deleting the item and its accessories together in one action works). Two identical bricks
   for two lights are two accessory rows, one under each light, and are unaffected.
-- **Kits rented as one set** (`items.rent_as_set`, e.g. 2001 Aputure STORM 80c 3-Light Kit: the
-  three fixtures are units A, B, C in one case): `catalog_availability` reports 1 set, available only
-  when every unit is serviceable and free; `reserve_order` books all of its units; and
-  `rentals_units_sync.py` keeps its qty at 1. Interchangeable parts are accessories (no letters).
+- **A kit in one case is one item with one unit** (one QR sticker, no letter); everything inside
+  is a sub-item, lettered where the pieces must be told apart. Example: 2001 Aputure STORM 80c
+  3-Light Kit = one unit + 2001.1 heads A/B/C (lettered) + 2001.2-2001.16 parts.
+- `items.rent_as_set` (several units booked as one set: `catalog_availability` reports 1 set,
+  available only when every unit is free; `reserve_order` books them all) still exists but no item
+  uses it since the 80c kit was restructured.
 - NocoDB shows the new column and tables after **Data Sources -> Supabase Rentals -> Sync Metadata**.
 
 ---

@@ -39,6 +39,21 @@
 
 ## 0. LATEST SESSION (2026-10-22), READ THIS FIRST
 
+### 0.0.-83 LETTERED SUB-ITEMS; STORM 80c KIT IS ONE ITEM; SUB-ITEM CODES REPAIRED (2026-10-22)
+
+- New `items.lettered` (migration `bts-automation/migrations/20261022c_lettered_subitems.sql`): a
+  sub-item whose units must be told apart inside the kit. Its units get letters, their names carry
+  the letter, the scan app (`scan_service.py`) shows one checkbox per letter, and the sticker mockup
+  (`~/rentals_labels/design/rental_stickers.py` v53, STICKER_SPEC rule 2) draws a lettered pill.
+- Kit 2001 (Aputure STORM 80c 3-Light Kit) is now one item with one unit and an open-case photo; the
+  heads are sub-item 2001.1 (lettered A/B/C, $599 each), the other parts 2001.2-2001.16
+  (`bts-automation/rentals_lettered_apply.py`). 4001's V-mount batteries are lettered A/B.
+- Sub-item codes: `item_id_new` is the code everywhere; the scan app reads it instead of counting by
+  position. 42 blank / wrong-kit sub codes and 2 item codes (3012, 5009) were repaired
+  (`bts-automation/rentals_subcodes_repair.py`, backup in `backups/rentals_lettered_20261022/`).
+- Units created without a name now get "<item> #n" (lettered: "<item> (Unit A)") automatically.
+- NocoDB shows `lettered` after Data Sources -> Supabase Rentals -> Sync Metadata.
+
 ### 0.0.-82 RENTALS NUMBERING IS AUTOMATIC; KITS RENTED AS A SET; STORM 80c 3-LIGHT KIT (2026-10-22)
 
 - **Database only, no site code touched** (bts-automation `191e5b8` + `083ae76`,
