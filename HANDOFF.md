@@ -39,6 +39,24 @@
 
 ## 0. LATEST SESSION (2026-10-22), READ THIS FIRST
 
+### 0.0.-84 CONTAINERS; ONE ID FORMAT; FULL RENUMBER; PACKAGES REMOVED (2026-10-22)
+
+- **Database + scan app only; site code untouched.** `bts-automation/migrations/20261022d_containers_ids.sql`
+  + `rentals_containers_apply.py` (one transaction, all checks PASS). Rules: OPERATIONS.md "Item
+  numbers, containers, unit letters and kits".
+- IDs: item `####` (x001-x899), container `####` (x900-x999), sub-item `####.###`, unit `####-A`
+  (from the item code, no longer the database row id). Every department renumbered with no gaps,
+  order kept; old to new in `~/Desktop/RarePond_Rental_Labels/Renumber_2026-10-22.csv`. All old
+  stickers void.
+- Containers: 1900/1901 Nanuk 935 (Camera), 3900 full milk crate (Grip), 4900/4901 half milk crates
+  (moved to Electric), 5900 Nanuk 920 sound case. Hidden from the site by default (un-hide to rent).
+  The scan app (`scan_service.py`) lists contents, puts in / takes out, and checks a container out or
+  in with its contents; moves are logged in `container_moves`.
+- Packages removed (record: `bts-automation/rentals_packages_archive_2026-10-22.md`); the Gaffer
+  Basic Kit's own mounting parts moved under 2013 iPad Pro for Sidus. The website already skipped
+  packages with no members; nothing to change there.
+- NocoDB metadata synced; units "Unit ID" column now shows `unit_code`.
+
 ### 0.0.-83 LETTERED SUB-ITEMS; STORM 80c KIT IS ONE ITEM; SUB-ITEM CODES REPAIRED (2026-10-22)
 
 - New `items.lettered` (migration `bts-automation/migrations/20261022c_lettered_subitems.sql`): a

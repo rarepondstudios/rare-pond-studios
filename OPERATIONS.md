@@ -183,42 +183,59 @@ That is intended behaviour, not a bug.
 **Pricing is inclusive of both days.** A Jul 27 → Jul 30 rental is **4 days, not 3**. It is
 computed server-side in Postgres (see the Supabase section).
 
-### Item numbers, unit letters and kits (since 2026-10-22)
+### Item numbers, containers, unit letters and kits (since 2026-10-22)
 
-The database numbers gear itself (migration `bts-automation/migrations/20261022_rentals_numbering.sql`):
+The database numbers gear itself (`bts-automation/migrations/20261022_rentals_numbering.sql`,
+`20261022c_lettered_subitems.sql`, `20261022d_containers_ids.sql`). One ID per thing; the first
+digit is always the department (Camera 1, Lighting 2, Grip 3, Electric 4, Sound 5, DIT 6; 7 and 8
+free for new departments, one row in `public.dept_blocks`):
 
-- **Item numbers** (`items.item_no`, what the QR stickers carry): a new item gets the lowest free
-  number in its department's block, filling gaps first: Camera 1001-1999, Lighting 2xxx, Grip 3xxx,
-  Electric 4xxx, Sound 5xxx, DIT 6xxx, packages 9xxx (999 per department; 7 and 8 are free for new
-  departments). Blocks live in `public.dept_blocks`: a new department is one row there. Leave the
-  number empty when adding an item in NocoDB; numbers are unique and must sit in their block.
-- **Accessories** (`kind = sub_item`) never get a number: they carry the parent's ID (`2001.3`,
-  filled in automatically). That code (`items.item_id_new`) is the sub-item's code everywhere,
-  NocoDB and the scan app alike (the scan app used to number by position; 44 stale codes were
-  repaired 2026-10-22 by `bts-automation/rentals_subcodes_repair.py`).
-- **Lettered sub-items** (`items.lettered`, since 2026-10-22): turn it on for a part that has to be
-  told apart inside its kit (2001.1 the three STORM 80c heads A/B/C; 4001's two V-mount batteries
-  A/B). Its units get letters like any unit, the unit names carry the letter, the scan app ticks
-  each letter on check-out/in (so a missing head is recorded as "B"), and its pills print the
-  letter in a tab. Leave it off for interchangeable parts (bricks, cables): those stay qty only.
-- **Unit letters** (`units.unit_number` -> A, B, C): the lowest free letter, automatically.
-- **Retired codes:** a deleted item number or unit code goes on `public.retired_codes` and is NOT
-  handed out again until cleared, because its sticker may still be on something. When the old
-  sticker is gone: `python3 ~/bts-automation/rentals_numbers.py clear 2001`. The same tool with no
-  arguments shows each block (used / next / gaps) and what is waiting to be cleared.
-- **Moving an item to another department** renumbers it into that block and retires the old number;
-  the sticker refill then lists the new code as a new sticker.
-- **Deleting an item:** an accessory shared with other items (`shared_parent_ids`) moves to one of
-  them; an accessory that belongs only to the deleted item blocks the delete (move or delete it
-  first; deleting the item and its accessories together in one action works). Two identical bricks
-  for two lights are two accessory rows, one under each light, and are unaffected.
-- **A kit in one case is one item with one unit** (one QR sticker, no letter); everything inside
-  is a sub-item, lettered where the pieces must be told apart. Example: 2001 Aputure STORM 80c
-  3-Light Kit = one unit + 2001.1 heads A/B/C (lettered) + 2001.2-2001.16 parts.
-- `items.rent_as_set` (several units booked as one set: `catalog_availability` reports 1 set,
-  available only when every unit is free; `reserve_order` books them all) still exists but no item
-  uses it since the 80c kit was restructured.
-- NocoDB shows the new column and tables after **Data Sources -> Supabase Rentals -> Sync Metadata**.
+| What | ID | Example | On a sticker |
+|---|---|---|---|
+| Item (gear) | `####`, x001-x899 | `2001` | yes, QR |
+| Container | `####`, x900-x999 (a 9 in the second digit) | `1900` | yes, QR |
+| Sub-item | `####.###` (item + 3 digits) | `2001.001` | only the item number (pill) |
+| Unit | item or sub-item code + letter | `2001-A`, `2001.001-B` | letter tab when the item has 2+ units or the sub-item is lettered |
+
+- **Numbers are automatic:** leave the number empty when adding in NocoDB. Items and containers take
+  the lowest free number in their range, sub-items the lowest free `.###` in their item, units the
+  lowest free letter. Sub-items never use up item numbers. The database row id (e.g. 1469) is
+  plumbing and is never shown or printed.
+- **Full renumber 2026-10-22:** every department was closed up (no gaps), packages were removed and
+  containers moved to x900. Old to new numbers: `~/Desktop/RarePond_Rental_Labels/Renumber_2026-10-22.csv`
+  (also in `bts-automation/backups/rentals_containers_20261022/`). Every sticker printed before it is
+  void; nothing was retired.
+- **Containers** (`items.is_container`): a case or crate holding gear of ITS department, with
+  contents that change (Nanuk 935 cases 1900/1901, full milk crate 3900, half milk crates 4900/4901,
+  Nanuk 920 sound case 5900). Each physical container has its own number; `items.call_name` is a free
+  short name for on set. Fixed inserts and tools that always stay with that case are its sub-items.
+  Switching a container on hides it from the website; un-hide it to rent it.
+  - What is inside right now is `units.container_unit_id`, separate from checked in/out; the
+    database refuses other departments' gear, sub-items (they travel with their item) and containers
+    inside containers. Every move is logged in `public.container_moves` (who/why in `reason`).
+  - Scan app: scanning a container lists its contents (Take out / Put it in by code). Checking it out
+    takes the ticked contents with it (unticked = not in it: removed from the container); checking it
+    in brings them back. Gear checked out on its own leaves its container and its check-in offers to
+    put it back (`units.last_container_unit_id`).
+- **Packages** were removed 2026-10-22 (record: `bts-automation/rentals_packages_archive_2026-10-22.md`).
+  They come back later as groups of items and containers, with the scan app walking through what goes
+  in which container. `catalog_availability` and `reserve_order` still contain the package logic.
+- **Lettered sub-items** (`items.lettered`): a part that has to be told apart inside its kit (the
+  three STORM 80c heads 2001.001-A/B/C; 4001's V-mount batteries). Unit names carry the letter, the
+  scan app ticks each letter, its pills print the letter. Leave it off for interchangeable parts.
+- **A kit in one case is one item with one unit** (one QR, no letter); everything inside is a
+  sub-item. Example: 2001 Aputure STORM 80c 3-Light Kit = 2001.001 heads A/B/C + 2001.002-.016 parts.
+- **Retired codes:** a deleted item number or unit code goes on `public.retired_codes` and is not
+  handed out again until cleared (its sticker may still be on something):
+  `python3 ~/bts-automation/rentals_numbers.py clear 2001`. With no arguments the tool shows each
+  department's gear and container ranges (used / next / gaps); `orphans` lists sub-items with no item.
+- **Moving an item to another department** (or switching it to/from container) renumbers it into
+  the right range and retires the old number. A kit's renumber carries its sub-item and unit codes.
+- **Deleting an item:** a shared accessory (`shared_parent_ids`) moves to another item; one that
+  belongs only to the deleted item blocks the delete (delete both together, or move it first).
+- `items.rent_as_set` (several units booked as one set) still exists; no item uses it.
+- NocoDB: the units table's "Unit ID" column now shows `unit_code`. New columns or tables appear
+  after **Data Sources -> Supabase Rentals -> Sync Metadata**.
 
 ---
 
