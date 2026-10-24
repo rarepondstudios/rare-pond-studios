@@ -54,8 +54,13 @@
 - `bts-automation/rentals_audit.py` (read-only consistency checks): no orphan or overdue units, no missing
   mismatch, no nested parts, unit counts match qty. Order 64's HubSpot deal no longer exists (order is
   cancelled; its stage label is just stale). 104 parts still have no photo.
-- Jack to do: finish "Send mail as" rentals@ on rp_admin@ in an Incognito window (the popup opened in the
-  wrong signed-in account). Later: replacement values, wing handle and clamp move.
+- 2026-10-24 later: all 403 units set back to in storage (clean slate before the first real test; old state in
+  bts-automation/backups/units_inhouse_before_reset_20261024.json). rentals@ turned out to be an alias of
+  studio@ (a studio@ search for to:rentals@ matches its whole inbox), so rp_admin cannot claim it as Send mail as
+  (Gmail bounced the popup to the inbox). Plan: add rentals@ to studio@'s Send mail as, make a studio@ app
+  password, then `python3 rentals_smtp_switch.py studio@rarepond.com` (reads it from the clipboard, tests the
+  login, writes rentals_smtp.json, never prints it). rentals_mail send_confirmations now only mails orders with
+  a HubSpot deal (a swap-test order had triggered a confirmation to accounts+rentaltest@; trashed).
 
 ### 0.0.-92 READY TO SCAN: QR PATHS, DEFAULT ACTIONS, FASTER PAGES, LIVE-SITE TEST (2026-10-24)
 
