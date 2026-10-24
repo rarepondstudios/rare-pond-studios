@@ -39,6 +39,20 @@
 
 ## 0. LATEST SESSION (2026-10-24), READ THIS FIRST
 
+### 0.0.-96 ID AUDIT, ADD-ITEM FIX, IN-REPAIR GUARD, KUPO ADDED THROUGH NOCODB (2026-10-24)
+
+- bts-automation/rentals_id_audit.py checks every number, code, unit code and orphan. Clean after fixes: CAM 01 and 2112
+  parts renumbered with no gaps; 4 duplicate 2112 parts removed per Jack (one of each; backup
+  backups/items_2112_duplicates_removed_20261024.json).
+- Adding an item from the NocoDB form failed (22P02): NocoDB sent the array defaults of accessory_ids / member_ids as text.
+  Fixed: those columns have no default now, a trigger fills '{}' (migration 20261024h), and their NocoDB meta default was
+  cleared (noco.db backup in ~/.rarepond_repo_backups). Money columns show 2 decimals in NocoDB (was 1, 60.95 read 61.0).
+- KUPO KG400412 Super Grip Finger added through the NocoDB form as a test: became 3123 / unit 3123-A automatically, on
+  the site (1 available), in the scan app. Day rate $5 (like the other $50 to $60 clamps); photo from Glazer's.
+- INFINIBAR PB6: 2102-A and -B ok, 2102-C in repair with a damage_events record. Scan app now never sends out a copy
+  that is in repair, missing or retired, and says so on its pages.
+- noco_meta_sync.user_jwt() signs its own JWT (it used to rotate the browser's refresh token and sign Jack out).
+
 ### 0.0.-95 DYNAMIC CONTAINER VALUES, CAM 01/02 CONTENTS (2026-10-24)
 
 - items.own_value + items.value_with_contents (migration 20261024g). Containers now value_from_parts: CAM 01/02 own
