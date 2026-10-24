@@ -277,6 +277,10 @@ Electric 4, Sound 5, DIT 6; 7 and 8 free for new departments, one row in `public
     the ticked contents with it (unticked = not in it: removed from the container); checking it in
     brings them back. Gear checked out on its own leaves its container and its check-in offers to
     put it back (`units.last_container_unit_id`).
+  - Since 2026-10-24: gear inside that is in repair or missing never rides along (it is taken out of
+    the case and stays in storage); gear inside that the same order booked fulfils that booking; gear
+    inside that another rental has booked is flagged on the form and the confirm page. Gear that went
+    out inside a case on an order is due back with the order, and the overdue alert lists it.
 - **Packages** were removed 2026-10-22 (record: `bts-automation/rentals_packages_archive_2026-10-22.md`).
   They come back later as groups of items and containers. `catalog_availability` and
   `reserve_order` still contain the package logic.

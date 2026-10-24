@@ -39,6 +39,22 @@
 
 ## 0. LATEST SESSION (2026-10-24), READ THIS FIRST
 
+### 0.0.-97 SCAN APP EDGE-CASE SWEEP, 1001.007 REMOVED (2026-10-24)
+
+- 1001.007 (SmallRig 1/4-20 male-male screws x2) deleted at Jack's request; CAM 01 parts renumbered, now 1001.001 to
+  1001.023 (backup backups/item_1001_007_removed_20261024_1351.json, script _remove_1001_007.py).
+- New bts-automation/scan_edge_test.py (101 checks, live DB, throwaway orders with no email, restores everything).
+  Fixes it drove in scan_service.py: an in-house copy in repair or missing can no longer swap to a customer; every
+  out/in update is guarded on presence and condition (a NocoDB edit mid-scan saves nothing instead of overwriting);
+  gear riding out inside a case for an order now fulfils that order's own booking for the item (no false "booked, not
+  out", late note and overdue alert work); the case form and confirm page warn when gear inside is booked for another
+  rental; a check-in through the wrong item's page is refused; part unit URLs (/u/1001.007-A) open their kit instead of
+  404; a mistyped code (1001-Z, XYZ 01) gets its own message instead of an empty search; "Nothing to do" says why when
+  every copy is in repair; the missing-parts email no longer records a notice when mail is in test mode.
+- rentals_overdue_alert.py also lists gear that went out inside a case on an order (due with the order).
+- rentals_id_audit.py: containers are labelled by call name, not flagged. Typos fixed: Ultrabounce, Sandbag, Rechargeable.
+- All scan tests pass: scan_stress_test (86), scan_swap_test (20), scan_edge_test (101), scan_ready_test, scan_camera_test.
+
 ### 0.0.-96 ID AUDIT, ADD-ITEM FIX, IN-REPAIR GUARD, KUPO ADDED THROUGH NOCODB (2026-10-24)
 
 - bts-automation/rentals_id_audit.py checks every number, code, unit code and orphan. Clean after fixes: CAM 01 and 2112
