@@ -152,7 +152,7 @@ function card(p,col){
  const rv=rvOf(p);
  const _kc=rpGroupContents(p.contents);
  const kit=_kc.length?('<div class="kit" data-k="'+p._id+'" role="button" tabindex="0">View kit contents ('+_kc.length+')</div><div class="kitlist" id="kl'+p._id+'">'+_kc.map(c=>'<div class="kr">'+(c.img?'<img src="'+c.img+'" alt="" loading="lazy" decoding="async">':'<span style="width:34px;flex:none"></span>')+'<span>'+esc(c.l)+rpQx(c.n)+'</span></div>').join('')+'</div>'):'';
- const ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add to cart</button>');
+ const ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(capN(p)>1?' / '+capN(p):'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add to cart</button>');
  /* data-cursor="off": the item card keeps its own coloured-glow hover only, the cursor never
     outlines the full card; only the CONTROLS inside it (add / qty / kit / date) hug their own
     hitboxes. */
@@ -181,7 +181,7 @@ function openDP(id){const p=RENTALS[id];if(!p)return;dpOpen=id;rpEnsureStyles();
   meta='<div class="dpmeta"><div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div>'+(D.s&&D.e?'<div class="tot">'+fmt(price*(days()||1))+'<span style="font-size:.5em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div>':'')+'</div>'+(rvp?'<div class="rv">Replacement value '+esc(rvp)+'</div>':'')+'<span class="stat">Bundle of '+nmem+' item'+(nmem!==1?'s':'')+'</span></div>';
   extra='<div class="rp-sec" style="--dpc:'+dpc+'">In this package · '+nmem+' item'+(nmem!==1?'s':'')+'</div><div class="rp-mgrid">'+grp.map(function(g){return rpMiniCard(g.m,null,false,g.n);}).join('')+'</div>';
  }else{
-  ctl=inC?('<div class="qty" style="max-width:220px;margin:0"><button data-dm="'+id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-dp="'+id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="dpadd" data-da="'+id+'">Add to cart</button>');
+  ctl=inC?('<div class="qty" style="max-width:220px;margin:0"><button data-dm="'+id+'">−</button><span class="qn">'+inC+' in cart'+(capN(p)>1?' / '+capN(p):'')+'</span><button data-dp="'+id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="dpadd" data-da="'+id+'">Add to cart</button>');
   var rvi=rvOf(p);
   meta='<div class="dpmeta">'+priceBlk(p,true)+(rvi?'<div class="rv">Replacement value '+esc(rvi)+'</div>':'')+'<span class="stat">Available'+(p.qty>1?' · '+p.qty+' units':'')+'</span></div>';
   var acc=rpAccessories(p);var inc=rpIncludedIn(p);
@@ -275,7 +275,7 @@ function rpEnsureStyles(){if(document.getElementById('rp-pkg-css'))return;var s=
 function rpBoxSvg(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v9"/></svg>';}
 function rpPkgCard(p,col){rpEnsureStyles();var grp=rpMemGroups(p);var nmem=grp.length;var price=rpPkgPrice(p);var rv=rvOf(p);var inC=cart[p._id];var dd=days();
  var thumb=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
- var ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(p.qty>1?' / '+p.qty:'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add package</button>');
+ var ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(capN(p)>1?' / '+capN(p):'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add package</button>');
  return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" data-cursor="off" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'<span class="rp-badge">Package</span></div><div class="body"><h3>'+esc(p.name)+'</h3>'
   +'<div class="rp-incount">'+nmem+' item'+(nmem!==1?'s':'')+' included</div>'
   +'<div class="row2">'+(dd?('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day × '+dd+'d</span></div><div class="tot">'+fmt(price*dd)+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div></div>'):('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div></div>'))+'</div>'
@@ -392,6 +392,7 @@ let reqStep=0,reqData={},reqErr="";
 RCFG.render.forEach(f=>reqData[f.key]="");
 function openReq(){reqStep=0;reqErr="";renderReq();$('reqpop').classList.add('show');syncFills();}
 function closeReq(){$('reqpop').classList.remove('show');}
+function capN(p){var c=(window.RPAvail&&window.RPAvail.capOf)?window.RPAvail.capOf(p):p.qty;return (c==null||c===Infinity||isNaN(c))?p.qty:Math.min(c,p.qty);} // the stepper shows what can be booked, not every unit (2026-10-23)
 function reqTotal(){const dd=days();const ids=cartOrder.filter(id=>id in cart);return ids.reduce((a,id)=>a+RENTALS[id].fn*cart[id],0)*(dd||1)+crateTotal();}
 function reqFieldHTML(f){
  const v=esc(reqData[f.key]||"");

@@ -39,6 +39,21 @@
 
 ## 0. LATEST SESSION (2026-10-22), READ THIS FIRST
 
+### 0.0.-89 SCAN APP SEARCH + CONTAINERS WITHOUT QR, CHEAT SHEET, BRAND STICKERS IN BULK, FUNNEL DRY RUN (2026-10-23)
+
+- Scan app: live search with filters (`scan_search.py`, `/api/search`), in-page camera scanning
+  (`scan_static/jsQR.js`, Apache-2.0), container Put in by scan / search / ID, packing mode, the "i"
+  cheat sheet (`scan_help.py`), one booking choice per order, "booked but none in storage" notice,
+  Los Angeles dates. `scan_stress_test.py` covers search, API put and packing mode too.
+- `make.py brand` for the bulk brand stickers; unit batches carry only unit stickers. The unprinted
+  Print_2026-10-23_full batch was withdrawn (it predates both changes).
+- Placeholder day rates for the six unpriced Sound items (5100 $8, 5101 $5, 5102 $5, 5103 $15,
+  5104 $20, 5105 $3), from LA rental listings, until Jack sets real ones.
+- Funnel dry run: five website requests as accounts+rentaltest@, through HubSpot, Calendar, n8n
+  sync, reservation, scan out/in, overdue email, stage push and completion; everything scrubbed with
+  `rentals_dryrun_cleanup_20261023.py` (backups in `bts-automation/backups/dryrun_20261023/`).
+  Website fix from it: the cart stepper's "/ N" now shows what can be booked, not every unit.
+
 ### 0.0.-88 DATABASE REVIEW, SCAN APP POLISH, STICKER PREFLIGHT (2026-10-23)
 
 - `bts-automation/migrations/20261023d_db_review.sql` (applied by `rentals_dbreview_20261023_apply.py`,

@@ -276,6 +276,21 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   by hand. A second tap, a reload or a second phone saves nothing ("Nothing was saved") instead of
   sending out another copy. `bts-automation/scan_stress_test.py` runs every flow against the live
   database and puts everything back. Phones and tablets need Tailscale on to open it.
+- Scan app without a QR (2026-10-23): the home page is a live search (ID, call name or plain words,
+  matched against names, unit details and descriptions) with filters for department, kind (items,
+  sub-items, units, containers) and on-website / hidden. The **Scan** button reads stickers with the
+  device camera (vendored jsQR, needs the HTTPS address). A container page puts gear in by scanning
+  one sticker after another, by searching (Put in), or by typing an ID; **Packing mode** (a 3-hour
+  cookie) makes every gear page offer "Put in <container>" for people using the phone camera app.
+  The small **i** in the top bar opens the one-page cheat sheet (IDs, checking out/in, containers).
+  Dates in the app and the overdue alert are Los Angeles dates (the database clock is UTC, which
+  made evenings count as tomorrow).
+- Brand stickers (duck bubble, Rare Pond pill) are generic: `make.py brand` prints them in bulk; unit
+  batches no longer include them.
+- The booking funnel was dry-run end to end on 2026-10-23 (five requests: normal, empty cart,
+  overlap, double booking, multi-department; scan out/in for a booking, late return, overdue
+  email, NocoDB stage push to Closed Lost, Work Completed). Scrub script for the next time:
+  `bts-automation/rentals_dryrun_cleanup_20261023.py` (HubSpot first, then one sync window, then db).
 
 ---
 
