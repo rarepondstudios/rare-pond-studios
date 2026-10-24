@@ -24,14 +24,18 @@ const TIMEOUT_MS = 2500;
 
 export async function onRequest(context) {
   const raw = String((context.params && context.params.id) || '');
-  const m = raw.match(/^(\d+)(?:-([A-Za-z]+))?$/);
+  // item 2100, unit 3100-A, and (2026-10-24) sub-item pills like 2100.001-B / 1100.020-A, which used to fall
+  // through to the home page. A pill opens its kit's check in/out page (the scan app's /find resolves it).
+  const m = raw.match(/^(\d+)(\.\d{3})?(?:-([A-Za-z]{1,2}))?$/);
   if (!m) {
     return Response.redirect(HOME, 302);
   }
   const num = m[1];
-  const letter = m[2] ? m[2].toUpperCase() : '';
-  const id = letter ? (num + '-' + letter) : num;          // human label
-  const scan = letter ? (SCAN_HOST + '/u/' + num + '-' + letter) : (SCAN_HOST + '/i/' + num);
+  const sub = m[2] || '';
+  const letter = m[3] ? m[3].toUpperCase() : '';
+  const id = num + sub + (letter ? '-' + letter : '');     // human label
+  const scan = sub ? (SCAN_HOST + '/find?code=' + encodeURIComponent(id))
+             : letter ? (SCAN_HOST + '/u/' + num + '-' + letter) : (SCAN_HOST + '/i/' + num);
   const probe = SCAN_HOST + '/healthz';
   const html =
 '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
