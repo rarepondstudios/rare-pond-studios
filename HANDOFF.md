@@ -39,6 +39,19 @@
 
 ## 0. LATEST SESSION (2026-10-24), READ THIS FIRST
 
+### 0.0.-98 CONDITION IN NOCODB, PART VALUES, NOTE CLEANUP, MATTE BOX CABLE (2026-10-24)
+
+- items.condition_status dropped (unused). New read-only items.copies_condition summary, and units.condition_status
+  edits in NocoDB (units view "Condition", noco_condition_view.py) open/close damage_events by trigger; damage_events
+  still drive units (flag rp.cond_from_event stops echoes). Migration 20261024i. Tests all pass after it.
+- 78 parts priced from research (rentals_part_values_20261024.md, per piece, confidence noted); kits with
+  value_from_parts rose (CAM 01 893.42, matte box 767.99, flag kit 1220.41, ADR bag 179.85). Info Papers blank.
+- CAM 01 loose bits (1001.008-.011) no sticker, kept in the Kondor Blue zip case 1001.005; 1001.011 renamed
+  "Misc screws" (thread unconfirmed). 3109 renamed Matthellini Clamp. Matte box gets 1101.010 Kondor Blue Braided
+  Safety Cable ($14.99, no photo yet). 31 unit notes that only repeated the name or carried #1JC/#2JC cleared
+  (backup backups/rentals_before_fixes_*.json, script _rentals_fixes_20261024b.py).
+- Open with Jack: 1101.005 standard filter tray is not in his matte box list; 1100.019 photo sent to confirm.
+
 ### 0.0.-97 SCAN APP EDGE-CASE SWEEP, 1001.007 REMOVED (2026-10-24)
 
 - 1001.007 (SmallRig 1/4-20 male-male screws x2) deleted at Jack's request; CAM 01 parts renumbered, now 1001.001 to

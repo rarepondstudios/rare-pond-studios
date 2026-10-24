@@ -99,10 +99,12 @@ kept in sync automatically and should be treated as read-only.
 2. **Add one UNIT row per physical copy** in the **units** table, with
    `item_id` set to the new item's id. The site then shows **"N available"**
    where N = the number of units you added (2 copies → "2 available").
-3. **If gear is lost, sold or retired**, delete its unit rows (or set the unit's
-   `condition_status` away from `ok` if you only want to pull it temporarily and
-   the availability logic is extended to honor that). With **zero units the item
-   auto-hides** from the catalog.
+3. **If gear is lost, sold or retired**, delete its unit rows. To pull a copy
+   temporarily, set its `condition_status` to `in_repair` or `missing` (NocoDB
+   units, view **Condition**): availability, reservations and the scan app skip
+   it, a damage_events row opens by itself, and setting it back to `ok` closes
+   that row. `items.copies_condition` shows every item's copies at a glance
+   (read only). With **zero units the item auto-hides** from the catalog.
 4. **Bookings are handled automatically:** the date picker calls the
    `catalog_availability` RPC, so an item with units still shows in the catalog
    but is **greyed out for dates where all its units are already booked**. You do

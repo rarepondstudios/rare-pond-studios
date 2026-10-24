@@ -663,4 +663,15 @@ Rentals categories were `Camera #EA4335`, `Lighting #FF9900`, `Grip #8b5cf6`,
   (value x qty). Kept current by a database trigger, so changing a part changes the kit.
 - Containers also have **value_with_contents**: the case value plus every piece of gear stored inside it right now.
   It updates when gear is put in or taken out, and when anything inside changes value.
-- Parts that only ship inside their kit, or generic bits, stay blank (never guessed).
+- Parts: valued per piece. On Jack's request (2026-10-24) every part was looked up, using the maker's spare or
+  the closest equivalent when none is sold; sources and confidence in `bts-automation/rentals_part_values_20261024.md`.
+  Only Info Papers stay blank.
+
+### Condition of a copy (2026-10-24)
+
+- Condition lives on each copy: `units.condition_status` (ok, in_repair, missing). NocoDB units, view **Condition**,
+  is the place to see and change it. Changing it there opens or closes the matching `damage_events` row by itself,
+  and a damage_events row changes the unit (both ways stay in step).
+- `items.copies_condition` is a read-only summary on every item ("All OK (3)", "2102-C in repair; 2 OK").
+- A copy that is not ok is skipped by availability, reservations and the scan app. The old item-level
+  `items.condition_status` was unused and is gone (migration 20261024i).
