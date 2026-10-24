@@ -352,6 +352,22 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   where each unit is, changes from the request, the confirmation note, missing parts, emails sent,
   every scan, and a link to the HubSpot deal. Search moved to `/search`. The ClickUp **Rentals**
   space has a doc "Rentals Dashboard (start here)" linking to it (tailnet only).
+- Scanning (checked 2026-10-24): every gear QR holds `WWW.RAREPOND.COM/G/<code>` (item number, or `####-A`
+  for multi-unit items). The phone camera opens rarepond.com/g/<code> (`functions/g/[id].js`): on the
+  tailnet it forwards to that gear's check in/out page, off it to /found. The in-app **Scan** button
+  reads the same QR. The page opens with the likely action already picked: **Bring IN** when the
+  scanned copy is out, **Send OUT** to a booking that starts within 2 days (a request still on hold is
+  marked "not confirmed yet"), otherwise in-house use. Sub-item pill codes (`2100.001-B`) typed or
+  scanned open their kit's page (the resolver used to send them to the home page).
+- Tests for the scan side (bts-automation): `scan_stress_test.py` (every action, then puts everything
+  back), `scan_ready_test.py` (every printed QR followed through the resolver and the Scan button to
+  the right check in/out page, read-only), `scan_camera_test.py` (a camera feed of real QR images in
+  headless Chromium), `rentals_live_request_test.mjs` (a real request on the live site through the UI;
+  scrub after with `rentals_dryrun2_20261024.py`). Mail to rentals@ also lands in **studio@**, so test
+  emails have to be cleared there too.
+- The scan app reuses database connections (`scan_db.py`): pages went from about 2.5 s to about 1 s.
+  The database's session pooler allows 15 clients shared by NocoDB, n8n and every script, so it keeps
+  at most 2 idle and closes them after a minute.
 - Unticked parts are never marked silently (since 2026-10-24). Check-in: the app lists what was not
   ticked and asks "are they missing?" first. Check-out: for each unticked part, "Not going with this
   rental" (nothing flagged, logged as not sent) or "Missing from storage" (marked missing, not tied to

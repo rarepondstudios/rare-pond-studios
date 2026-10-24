@@ -39,6 +39,22 @@
 
 ## 0. LATEST SESSION (2026-10-24), READ THIS FIRST
 
+### 0.0.-92 READY TO SCAN: QR PATHS, DEFAULT ACTIONS, FASTER PAGES, LIVE-SITE TEST (2026-10-24)
+
+- `functions/g/[id].js`: sub-item pill codes (2100.001-B) now open their kit's check in/out page (they went
+  to the home page). All 113 printed gear QR codes followed resolver -> scan app and Scan button -> scan app:
+  each opens the check in/out page with the right action preselected (`scan_ready_test.py`, ALL PASS); a
+  camera feed of real QR images works end to end (`scan_camera_test.py`, ALL PASS).
+- Scan app: held (unconfirmed) bookings are flagged on the OUT choice; pooled DB connections (`scan_db.py`,
+  max 2 idle, closed after 60 s because the Supabase session pooler allows 15 clients in total); parts
+  queried in one go. Pages about 1 s instead of 2.5 s.
+- Live website request through the real UI (`rentals_live_request_test.mjs`): order, phone, hold, contact all
+  arrived; scrubbed. Note rentals@ mail also lands in studio@ (clear test mail there too).
+- 1101.005-A is the filter tray (stale "ring set" note cleared); 1100.020-A stale "V-mount battery plate" note
+  cleared. Missing-part email no longer says "the replacement cost above" when a part has no value yet
+  (92 parts and 8 kits still have no replacement value).
+- Jack to do: finish "Send mail as" rentals@ on rp_admin@ (pages left open in Chrome on the mini).
+
 ### 0.0.-91 RENTALS DASHBOARD, MISSING-GEAR RESOLUTION, CONFIRM BEFORE MARKING MISSING, LOST QUOTES, REQUIRED PHONE (2026-10-24)
 
 - Scan app front page is now the **rentals dashboard** (`bts-automation/scan_dash.py`): Missing gear
