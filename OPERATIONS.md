@@ -366,6 +366,10 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   headless Chromium), `scan_swap_test.py` (in-house gear straight to a booking), `rentals_live_request_test.mjs` (a real request on the live site through the UI;
   scrub after with `rentals_dryrun2_20261024.py`). Mail to rentals@ also lands in **studio@**, so test
   emails have to be cleared there too.
+- Customer emails (confirmed, did not go through, missing gear, resolved) go out through **studio@**,
+  which owns the rentals@ alias, so they arrive From "Rare Pond Rentals <rentals@rarepond.com>" with
+  replies to rentals@ (checked 2026-10-24). Internal alerts (overdue, self-healing, heartbeat) still send
+  from rp_admin. Two separate logins on the mini; changing one does not touch the other.
 - The scan app reuses database connections (`scan_db.py`): pages went from about 2.5 s to about 1 s.
   The database's session pooler allows 15 clients shared by NocoDB, n8n and every script, so it keeps
   at most 2 idle and closes them after a minute.

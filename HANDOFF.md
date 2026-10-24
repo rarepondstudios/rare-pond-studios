@@ -61,6 +61,10 @@
   password, then `python3 rentals_smtp_switch.py studio@rarepond.com` (reads it from the clipboard, tests the
   login, writes rentals_smtp.json, never prints it). rentals_mail send_confirmations now only mails orders with
   a HubSpot deal (a swap-test order had triggered a confirmation to accounts+rentaltest@; trashed).
+- DONE (Jack's choice: customer mail on studio@, alerts stay on rp_admin): rentals@ added to studio@'s Send mail as
+  (only worked from an Incognito window; the normal window's popup bounced or showed a 404), studio@ app password
+  saved by rentals_smtp_switch.py to rentals_customer_smtp.json. Test email arrived From "Rare Pond Rentals
+  <rentals@rarepond.com>", SPF/DKIM/DMARC pass; test mail trashed in studio@ and jack@.
 
 ### 0.0.-92 READY TO SCAN: QR PATHS, DEFAULT ACTIONS, FASTER PAGES, LIVE-SITE TEST (2026-10-24)
 
