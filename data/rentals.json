@@ -55,6 +55,10 @@
     "blurb": "Hiring us to crew your shoot? We can fold a basic gear package into our day rate. The exact kit depends on which department you bring us in for.",
     "button": "Ask about crewing your shoot →"
   },
+  "operations": {
+    "timezone": "America/Los_Angeles",
+    "missingReturnDays": 7
+  },
   "cart": {
     "title": "Your rental cart",
     "dailyTotal": "Daily total",

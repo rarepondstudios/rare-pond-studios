@@ -37,7 +37,33 @@
 
 ---
 
-## 0. LATEST SESSION (2026-10-22), READ THIS FIRST
+## 0. LATEST SESSION (2026-10-24), READ THIS FIRST
+
+### 0.0.-90 HOLDS ON REQUEST, DOUBLE-BOOKING GUARD + FAILSAFE, CUSTOMER EMAILS, MISSING PARTS, ADMIN TIME ZONE (2026-10-24)
+
+- Every request now holds its gear the moment the sync sees it (`held` bookings), so the first
+  request wins; confirm upgrades to `confirmed`, Closed Lost releases. Migrations
+  `bts-automation/migrations/20261024_holds_and_mail.sql` and `20261024b_first_come.sql`.
+- Website (`rentals/assets/app.js`): Send re-checks availability first; taken gear shows a red panel
+  with Remove it / Change dates and Send stays off; the confirm step re-renders when dates or the
+  cart change; the cart empties after a successful send.
+- Failsafe: a request that still cannot get all its gear is not booked at all, its deal goes Closed
+  Lost (quoted amount kept), and the customer is emailed. Same-batch races are settled by HubSpot
+  create time (`rentals_mail.py` first_come, `rp_order_swap`).
+- Customer emails (`bts-automation/rentals_mail.py`, launchd every 2 min): did-not-go-through,
+  confirmed (with Changes from your request + `orders.confirm_note`). Missing-parts email from the
+  scan app. Jotform autoresponder/notification em dashes removed.
+- Client name/email/phone copied onto orders from the HubSpot contact; scan app shows them under
+  the deal name.
+- Scan app: unticked parts are marked missing on their own unit; confirm screen emails the
+  customer (note, preview, send); Missing parts card with Found it on item and unit pages;
+  Parts: list and move. 1100.018 (NATO to Rosette clamp) now lives inside 1100.009 (wing handle).
+- Admin time zone + missing-part return days in Pages CMS (Rentals Sub Site, "Admin: rental
+  operations"); everything uses `public.rp_today()`.
+- Dry run round 2 passed and was scrubbed (`bts-automation/rentals_dryrun2_20261024.py`).
+- Jack to do: add rentals@rarepond.com as "Send mail as" on the rp_admin@ Google account so customer
+  emails show rentals@ as the sender (they show rp_admin@ until then; replies already go to rentals@).
+- Details: OPERATIONS.md, "The rental pipeline".
 
 ### 0.0.-89 SCAN APP SEARCH + CONTAINERS WITHOUT QR, CHEAT SHEET, BRAND STICKERS IN BULK, FUNNEL DRY RUN (2026-10-23)
 

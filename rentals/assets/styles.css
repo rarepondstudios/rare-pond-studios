@@ -220,3 +220,9 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .rpcm-glow::after{content:'';position:absolute;left:-8px;right:-8px;top:-4px;height:12px;background:radial-gradient(65% 120% at 50% 0,rgba(255,255,255,.95),rgba(170,210,255,.35) 60%,transparent);filter:blur(2px)}
 .rpcm-count{font:800 12px/1 Heebo,sans-serif;color:#fff;text-shadow:0 1px 8px rgba(0,4,20,.7)}
 @media(max-width:1180px){#rpCrateMeter{display:none}}
+
+/* availability conflict on the confirm step (2026-10-24) */
+.rpconf{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:rgba(255,90,90,.12);border:1px solid rgba(255,90,90,.45);color:#ffd2d2;font-size:14px;line-height:1.4}
+.rpconf ul{margin:6px 0 6px 18px;padding:0}.rpconf b{color:#fff}
+
+#qsend:disabled{opacity:.42;filter:grayscale(.7);cursor:not-allowed}

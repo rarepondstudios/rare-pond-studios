@@ -56,7 +56,11 @@ function pISO(s){const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[
 function isoOf(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function dn(s){return pISO(s).getTime();}
 // Earliest bookable shoot date = today + 3 business days (skipping Sat/Sun).
-function minStartD(){var d=new Date();d.setHours(0,0,0,0);var added=0;while(added<3){d.setDate(d.getDate()+1);var wd=d.getDay();if(wd!==0&&wd!==6)added++;}return d;}
+/* Business time zone: Pages CMS -> Rentals Sub Site -> Admin: rental operations (data/rentals.json operations.timezone). */
+function rpTZ(){try{var o=(window.RP_RENTALS||{}).operations;return (o&&o.timezone)||'America/Los_Angeles';}catch(e){return 'America/Los_Angeles';}}
+function rpTodayISO(){try{return new Intl.DateTimeFormat('en-CA',{timeZone:rpTZ(),year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}catch(e){return isoOf(new Date());}}
+function rpTZAbbr(iso){try{var d=iso?new Date(iso+'T12:00:00Z'):new Date();var pt=new Intl.DateTimeFormat('en-US',{timeZone:rpTZ(),timeZoneName:'short'}).formatToParts(d).find(function(x){return x.type==='timeZoneName';});return pt?pt.value:'';}catch(e){return '';}}
+function minStartD(){var d=pISO(rpTodayISO());var added=0;while(added<3){d.setDate(d.getDate()+1);var wd=d.getDay();if(wd!==0&&wd!==6)added++;}return d;}
 function minStartISO(){return isoOf(minStartD());}
 function tooEarly(is){return dn(is)<minStartD().getTime();}
 function days(){if(!D.s||!D.e)return 0;const d=Math.round((dn(D.e)-dn(D.s))/86400000)+1;return d>0?d:0;}
@@ -329,7 +333,7 @@ function calRender(){
  el.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{pick=b.dataset.pick;calRender();});
  el.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{calRef=new Date(calRef.getFullYear(),calRef.getMonth()+ +b.dataset.nav,1);calRender();});
  el.querySelectorAll('.cd[data-d]').forEach(c=>c.onclick=()=>pickDay(c.dataset.d));}
-function calNote(){if(!(D.s&&D.e))return '';return '<div class="calnote"><b>Pickup</b> '+fmtOne(D.s)+' after 11:00 AM PST&nbsp; ·&nbsp; <b>Return</b> '+fmtOne(D.e)+' by 12:00 PM PST</div>';}
+function calNote(){if(!(D.s&&D.e))return '';return '<div class="calnote"><b>Pickup</b> '+fmtOne(D.s)+' after 11:00 AM '+rpTZAbbr(D.s)+'&nbsp; ·&nbsp; <b>Return</b> '+fmtOne(D.e)+' by 12:00 PM '+rpTZAbbr(D.e)+'</div>';}
 function calSum(){if(D.s&&D.e)return '<b style="color:'+CS+'">'+fmtOne(D.s)+'</b> → <b style="color:'+CE+'">'+fmtOne(D.e)+'</b> · '+days()+' day'+(days()>1?'s':'');if(D.s)return '<b style="color:'+CS+'">'+fmtOne(D.s)+'</b>, now pick an end date';return 'Pick your start date';}
 function pickDay(is){badDay=null;
  if(tooEarly(is)){badDay=is;calRender();var we=$('calwarn');if(we){we.textContent="Rentals need at least 3 business days' notice, so the earliest date is "+fmtOne(minStartISO())+".";we.classList.add('show');}setTimeout(function(){badDay=null;calRender();},2200);return;}
@@ -388,7 +392,7 @@ var INPUT_TYPES={};
 function fieldInputType(f){var t=INPUT_TYPES[f.key];if(t)return t;if(f.type==='email')return 'email';if(f.type==='url')return 'url';return 'text';}
 /* Live mask: "number" keeps digits + a single decimal point; others pass through. */
 function maskInput(type,v){v=String(v==null?'':v);if(type==='number'){v=v.replace(/[^0-9.]/g,'');var i=v.indexOf('.');if(i!==-1)v=v.slice(0,i+1)+v.slice(i+1).replace(/\./g,'');}else if(type==='tel'){v=v.replace(/[^0-9+()\-.\s]/g,'');}return v;}
-let reqStep=0,reqData={},reqErr="";
+let reqStep=0,reqData={},reqErr="",reqConflicts=null;
 RCFG.render.forEach(f=>reqData[f.key]="");
 function openReq(){reqStep=0;reqErr="";renderReq();$('reqpop').classList.add('show');syncFills();}
 function closeReq(){$('reqpop').classList.remove('show');}
@@ -420,6 +424,7 @@ function renderReq(){
    +'<div class="qsum">'+rows+'<div class="qrow"><span>Dates</span><b>'+(dd?esc(fmtRange())+' · '+dd+' days':'-')+'</b></div><div class="qrow"><span>Estimated total</span><b>'+fmt(reqTotal())+(dd?' ('+dd+'d)':'')+'</b></div></div>'
    +'<button class="reqback" id="qdates" style="margin:10px 0 0;padding:9px 16px">Change shoot dates</button>'
    +'<div class="crewlab">Gear</div><div class="qgear">'+gear+'</div>'
+   +(reqConflicts&&reqConflicts.length?'<div class="rpconf"><b>Some of your gear was just booked for these dates.</b><ul>'+reqConflicts.map(function(c){return '<li>'+esc(c.name)+': '+(c.free>0?'you asked for '+c.want+', only '+c.free+' left':'no longer available')+'</li>';}).join('')+'</ul>Remove '+(reqConflicts.length>1?'them':'it')+' or pick other dates, then send.<div class="reqrow" style="margin-top:10px"><button class="reqback" id="qdrop">Remove '+(reqConflicts.length>1?'them':'it')+'</button><button class="reqback" id="qdates2">Change dates</button></div></div>':'')
    +'<div class="reqwarn" id="qwarn2">'+esc(reqErr)+'</div>'
    +'<div class="reqrow"><button class="reqback" id="qback">← Back</button><button class="crewsend pbtn ready" id="qsend" style="margin:0"><span>Send rental request →</span></button></div></div>';
  } else {
@@ -443,6 +448,7 @@ function renderReq(){
   $('qback').onclick=()=>{reqStep=0;renderReq();};
   var qd=$('qdates');if(qd)qd.onclick=openDates;
   $('qsend').onclick=reqSend;setFill($('qsend'),1);
+  if(reqConflicts&&reqConflicts.length){$('qsend').disabled=true;$('qdrop').onclick=rpDropConflicts;$('qdates2').onclick=function(){reqConflicts=null;openDates();};}
  } else { $('qclose2').onclick=closeReq; }
 }
 function reqSubmitData(){
@@ -474,9 +480,27 @@ function reqSubmitData(){
  return out;
 }
 function jotConfigured(id){return id&&!/PASTE|XXXX/i.test(id);}
+/* Re-check every line against live availability (holds included) right before sending (2026-10-24). */
+async function rpCheckAvail(data){try{var od=data[RCFG.fields.orderData]||'';var m=od.match(/s:([0-9-]+)\|e:([0-9-]+)\|i:(.*)$/);if(!m||!m[3])return [];
+ var want={};m[3].split(',').forEach(function(x){var q=x.split(':');if(q.length===2)want[q[0]]=(want[q[0]]||0)+(+q[1]);});
+ var r=await fetch(SB_URL+'/rest/v1/rpc/catalog_availability',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+SB_KEY},body:JSON.stringify({p_start:m[1],p_end:m[2]}),cache:'no-store'});
+ if(!r.ok)return null;var rows=await r.json(),by={};rows.forEach(function(x){by[String(x.item_id)]=x;});var out=[];
+ Object.keys(want).forEach(function(k){var x=by[k];if(!x)return;var free=Math.max(0,x.available_units|0);if(want[k]>free)out.push({dbid:+k,name:x.name,want:want[k],free:free});});return out;}catch(e){return null;}}
+function rpDropConflicts(){(reqConflicts||[]).forEach(function(c){cartOrder.slice().forEach(function(id){var p=RENTALS[id];if(!p||p.dbid!==c.dbid)return;if(c.free>0&&cart[id]>c.free)cart[id]=c.free;else delete cart[id];});
+ Object.keys(crate).forEach(function(k){var p=crateItemByKey(k);if(p&&p.dbid===c.dbid){if(c.free>0&&crate[k]>c.free)crate[k]=c.free;else delete crate[k];}});});
+ cartOrder=cartOrder.filter(function(id){return cart[id];});reqConflicts=null;try{crateRefresh();}catch(e){}uc();refresh();
+ if(!cartOrder.length&&!crateHasItems()){closeReq();return;}renderReq();}
+function rpClearCart(){Object.keys(cart).forEach(function(k){delete cart[k];});cartOrder.length=0;Object.keys(crate).forEach(function(k){delete crate[k];});try{crateRefresh();}catch(e){}uc();refresh();}
+var rpSending=false;
 async function reqSend(){
- const btn=$('qsend');if(btn){btn.disabled=true;btn.textContent='Sending…';}
+ rpSending=true;try{await rpReqSend();}finally{rpSending=false;}
+}
+async function rpReqSend(){
+ const btn=$('qsend');if(btn){btn.disabled=true;btn.textContent='Checking availability…';}
  const id=RCFG.formId,data=reqSubmitData();let sent=false;
+ const cf=await rpCheckAvail(data);
+ if(cf&&cf.length){reqConflicts=cf;renderReq();return;}
+ if(btn)btn.textContent='Sending…';
  if(jotConfigured(id)){
   try{const fd=new FormData();Object.keys(data).forEach(k=>fd.append(k,data[k]));
    await fetch('https://submit.jotform.com/submit/'+id,{method:'POST',body:fd,mode:'no-cors'});sent=true;
@@ -489,6 +513,7 @@ async function reqSend(){
   try{window.location.href='mailto:rentals@rarepond.com?subject='+subj+'&body='+body;}catch(e){}
  }
  if(btn){btn.disabled=false;btn.textContent='Send rental request →';}
+ if(sent)rpClearCart();
  reqStep=2;renderReq();
 }
 document.getElementById('reqpop').onclick=e=>{if(e.target===document.getElementById('reqpop'))closeReq();};
@@ -496,6 +521,8 @@ document.getElementById('reqpop').onclick=e=>{if(e.target===document.getElementB
 var SB_URL="https://gnifidmyahtzydwvaegj.supabase.co";
 var SB_KEY="sb_publishable_VFAFJq23B8hJAGViL2nDiA_uTAVxe05";
 function sbMoney(v){return (v===null||v===undefined||v==="")?"":"$"+Number(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+/* A part can sit inside another part (a clamp that lives on a handle, 2026-10-24): show it under the top item. */
+var _rpRowIdx=null;function rpRootOf(pid,rows){if(!_rpRowIdx||_rpRowIdx.n!==rows.length){_rpRowIdx={n:rows.length,m:{}};rows.forEach(function(x){_rpRowIdx.m[x.id]=x;});}var g=0,r=_rpRowIdx.m[pid];while(r&&r.parent_id!=null&&g++<10){pid=r.parent_id;r=_rpRowIdx.m[pid];}return pid;}
 function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={},i,r;for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null){if(r.hidden)continue;var fn=Number(r.price_per_day)||0;var it={cat:r.category,sec:r.section,name:r.name,fn:fn,fee:fn>0?"$"+fn.toFixed(2):"Included",val:sbMoney(r.replacement_value),img:r.photo||"",contents:[],qty:(r.kind==='package'?(parseInt(r.qty,10)||1):(parseInt(r.qty,10)||0)),dbid:r.id,kind:r.kind||"item",accIds:Array.isArray(r.accessory_ids)?r.accessory_ids:[],memIds:Array.isArray(r.member_ids)?r.member_ids:[],desc:r.description||""};if(it.kind==='package'){if(!it.memIds||!it.memIds.length){continue;}}else if(it.qty<1){continue;}byId[r.id]=it;out.push(it);}}for(i=0;i<rows.length;i++){r=rows[i];if(r.parent_id==null)continue;if(r.hidden)continue;
    /* A sub-item normally belongs to its single parent_id. It MAY also be shared
       across additional parents via shared_parent_ids ("1020,1376" or an array):
@@ -509,7 +536,7 @@ function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={}
    if(_sp!=null&&_sp!==""){var _xs=(Array.isArray(_sp)?_sp:String(_sp).split(/[^0-9]+/)).map(function(x){return parseInt(x,10);}).filter(function(x){return x&&x!==r.parent_id;});_xs.forEach(function(x){if(_parents.indexOf(x)<0)_parents.push(x);});}
    if(_parents.length>1&&_pq<_parents.length){try{console.warn('[RP Rentals] sub-item "'+r.name+'" (id '+r.id+') is shared across '+_parents.length+' parents but only '+_pq+' unit(s) exist, showing on its primary parent only.');}catch(e){}_parents=[r.parent_id];}
    var _per=_parents.length>1?1:_pq;
-   for(var _pi=0;_pi<_parents.length;_pi++){var par=byId[_parents[_pi]];if(par)par.contents.push({l:r.name,v:sbMoney(r.replacement_value),g:(r.sub_group||r.section),img:r.photo||"",q:_per});}
+   for(var _pi=0;_pi<_parents.length;_pi++){var par=byId[rpRootOf(_parents[_pi],rows)];if(par)par.contents.push({l:r.name,v:sbMoney(r.replacement_value),g:(r.sub_group||r.section),img:r.photo||"",q:_per});}
   }return out.length?out:null;}
 async function loadCatalog(){var u=SB_URL+"/rest/v1/items?select=*&order=sort_order.asc";var r=await fetch(u,{headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY},cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);return sbToRentals(await r.json());}
 /* Paint immediately with the built-in catalog so the page never waits on the network, then refresh from Supabase in the background. */
@@ -717,3 +744,12 @@ function crateOrderPairs(){return crateEntries().filter(function(e){return e.p.d
    chosen dates (defined here, called from availability.js syncAvail). */
 window.RPonAvail=function(){try{crateTrim();uc();if(crateBuilderOpen)crateRefresh();else if(active===CRATE_CAT&&typeof renderResults==='function')renderResults();}catch(e){}};
 
+/* Keep the confirm step honest while it is open (2026-10-24): a date change clears the conflict list (Send re-checks),
+   a cart trim from availability.js drops conflict lines that no longer apply, and the gear list and total re-render. */
+function rpReqSync(clear){try{if(rpSending||!$('reqpop').classList.contains('show')||reqStep!==1)return;
+ if(clear)reqConflicts=null;else if(reqConflicts){var have={};cartOrder.forEach(function(id){if(cart[id]&&RENTALS[id])have[RENTALS[id].dbid]=(have[RENTALS[id].dbid]||0)+cart[id];});
+  try{crateEntries().forEach(function(e){if(e.p.dbid!=null)have[e.p.dbid]=(have[e.p.dbid]||0)+e.qty;});}catch(e){}
+  reqConflicts=reqConflicts.filter(function(c){return (have[c.dbid]||0)>c.free;});if(!reqConflicts.length)reqConflicts=null;}
+ if(!cartOrder.some(function(id){return cart[id];})&&!crateHasItems()){closeReq();return;}renderReq();}catch(e){}}
+(function(){var _uc=uc;uc=function(){var r=_uc.apply(this,arguments);rpReqSync(false);return r;};
+ try{new MutationObserver(function(){if(!$('dpop').classList.contains('show'))rpReqSync(true);}).observe($('dpop'),{attributes:true,attributeFilter:['class']});}catch(e){}})();

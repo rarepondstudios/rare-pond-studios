@@ -176,9 +176,57 @@ you see duplicates reappear, something re-enabled a second path.
 **`rp_order_data`** is a hidden Jotform field mapped to a HubSpot deal property. It encodes the
 cart (`s:START|e:END|i:ID:QTY,ID:QTY`) and is what lets Supabase rebuild the order.
 
-**Draft deals are skipped on purpose.** `hubspot_sync_order` returns early for deals still at
-the draft stage - an order only lands in Supabase once the deal advances (e.g. to contract-sent).
-That is intended behaviour, not a bug.
+**Every request holds its gear straight away (since 2026-10-24).** When the sync first sees a
+request (dates, a cart, return date not past) it creates the order at draft and reserves the units
+as `held`. Held and confirmed bookings both block the website calendar and everyone else, so the
+first request wins. Moving the deal on (Start Invoice Sent / In Progress) upgrades the holds to
+`confirmed`; Closed Lost releases them; moving back to an early stage turns them back into holds.
+A deal first seen already Closed Lost never creates an order.
+
+**Double bookings are stopped on the site first.** Right before sending, the request popup
+re-checks every line against live availability (`catalog_availability`, holds included). Anything
+taken is listed in a red panel with **Remove it** and **Change dates**, and Send stays off until
+it is fixed. After a successful send the cart is emptied so a request cannot go twice.
+
+**The failsafe, when two requests slip through together.** If a request still cannot get all its
+gear, the whole request is not booked: `reserve_order` calls `rp_order_conflict`, which frees
+anything it took, records `conflict_at` / `conflict_items`, and sets the deal to Closed Lost (the
+quoted amount stays on the deal). Two requests in the same 5-minute sync batch are settled by
+HubSpot create time, not by the order the sync happened to read them: `rentals_mail.py` (step
+`first_come`) hands the hold to the earlier one with `rp_order_swap` before any email goes out.
+The later customer gets "Your Rare Pond rental request did not go through", which lists the taken
+items and links back to the rentals page to send again without them or on other dates.
+
+**Customer emails** (`bts-automation/rentals_mail.py`, launchd `com.rarepond.rentalsmail`, every
+2 minutes; only orders created from 2026-10-24 on):
+
+- *Request is in*: Jotform's own autoresponder, unchanged (em dashes removed 2026-10-24).
+- *Did not go through*: the failsafe above.
+- *Confirmed*: sent once when the order reaches confirmed. It lists pickup (after 11:00 AM) and
+  return (by 12:00 PM) with the time zone, the gear and estimated total, **Changes from your
+  request** (what was asked for vs what is booked, so adjustments made on our side show), and
+  **A note from us** = `orders.confirm_note` if you typed one in NocoDB before confirming.
+- To raise a concern between the request and the confirmation, just reply to the customer
+  (decided 2026-10-24; no extra feature).
+- Missing parts: sent from the scan app (see the gear section below), never automatically.
+
+They are sent through the rp_admin@ Google account (`~/.config/rarepond/rentals_smtp.json`) as
+"Rare Pond Rentals <rentals@rarepond.com>", Reply-To and Bcc rentals@. Until rentals@ is added
+to that account as a "Send mail as" address, Gmail shows the sender as rp_admin@ (replies still
+go to rentals@). The log is `bts-automation/rentals_customer_mail.log`; `DRY=1 python3
+rentals_mail.py` logs instead of sending and marks nothing.
+
+**Who has the gear.** The deal name is what the scan app and NocoDB lead with; the client's name,
+email and phone (`orders.client_name`, `client_email`, `client_phone`) are copied from the deal's
+HubSpot contact and shown under it. The website form does not ask for a phone, so the phone is
+only there if the HubSpot contact has one.
+
+**Time zone (admin setting).** Every "today" in the system (holds, overdue, the scan app, the
+emails) uses `public.rp_today()`, the date in the time zone stored in `rp_settings`. It is set in
+Pages CMS: Rentals Sub Site, "Admin: rental operations (change with care)", which also holds how
+many days a customer gets to return a missing part (default 7). The website reads it from
+`data/rentals.json` (`operations`); `rentals_mail.py` copies it into the database within a few
+minutes of a save.
 
 **Pricing is inclusive of both days.** A Jul 27 → Jul 30 rental is **4 days, not 3**. It is
 computed server-side in Postgres (see the Supabase section).
@@ -283,14 +331,30 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   one sticker after another, by searching (Put in), or by typing an ID; **Packing mode** (a 3-hour
   cookie) makes every gear page offer "Put in <container>" for people using the phone camera app.
   The small **i** in the top bar opens the one-page cheat sheet (IDs, checking out/in, containers).
-  Dates in the app and the overdue alert are Los Angeles dates (the database clock is UTC, which
-  made evenings count as tomorrow).
+  Dates in the app and the overdue alert use `rp_today()`, the date in the admin time zone (the
+  database clock is UTC, which made evenings count as tomorrow).
+- Missing parts (since 2026-10-24): an unticked part on check-in is marked missing on its own unit
+  (`damage_events` status `missing`, unit condition `missing`); for a counted part the
+  highest-numbered pieces are marked. The confirm screen lists them and offers **Tell the
+  customer**: type an optional note, Preview, Send. The email lists each part with its
+  replacement value, says nothing is charged, and gives a return-by date (admin setting, 7 days).
+  Sent notices are kept in `missing_notices`. A gear page shows **Missing parts** with **Found it**;
+  ticking the part on a later check-in also marks it found.
+- Moving a part (since 2026-10-24): a part can live inside another part (the NATO-to-Rosette clamp
+  1100.018 sits inside the Kondor Blue wing handle 1100.009, so moving the handle carries the
+  clamp). To move one: scan app, gear page, **Parts: list and move**, Move, search the new home,
+  **Move here**; or in NocoDB set the part's "Belongs to kit". Its code changes to the new item's
+  number, so it needs a new pill (`make.py refill`).
 - Brand stickers (duck bubble, Rare Pond pill) are generic: `make.py brand` prints them in bulk; unit
   batches no longer include them.
 - The booking funnel was dry-run end to end on 2026-10-23 (five requests: normal, empty cart,
   overlap, double booking, multi-department; scan out/in for a booking, late return, overdue
   email, NocoDB stage push to Closed Lost, Work Completed). Scrub script for the next time:
   `bts-automation/rentals_dryrun_cleanup_20261023.py` (HubSpot first, then one sync window, then db).
+- Round 2 on 2026-10-24 (holds, stale-cart panel, a same-batch race settled first come, the
+  confirmation with an adjustment and a note, missing parts and the missing email), scrubbed with
+  `bts-automation/rentals_dryrun2_20261024.py` (`baseline` before, then `hubspot`, one sync window,
+  `db`, `jotform`, `check`).
 
 ---
 
