@@ -51,10 +51,10 @@
 - rentals_fill_20261024.py: 11 part values, 16 part photos and 32 item descriptions from maker or major retailer
   pages, only for positively identified products (Jack's rule); generic parts left blank. Backup:
   backups/items_before_fill_20261024.json. 3119 ladder shown on the site again.
-- Waiting on Jack: confirm 5 held photos (1002.004, 2112.011, .013, .018, .019) and model numbers (SHAPE tripod,
-  Neewer V-mount batteries and charger, Neewer C-stands, Toptes meter, Jackery car cables, RODE VideoMic) on the
-  review page (temporary local server on the mini, 127.0.0.1:8099, reviews/ folder). Sound day rates and hidden
-  status: Jack reviewing.
+- Done after Jack's answers: held photos applied (2112.018 still unconfirmed), STF11 / NEEWER C-stand / VideoMic Pro+ /
+  TS-501B / BP-190WS / NW-BP-2CH details, placeholder ND filter photos. 5100, 5101, 5102 shown on the site (placeholder
+  rates live); 5104 hidden. Still open: Jackery cables (unit away), Sound day rates, and packages (removed 2026-10-22,
+  see bts-automation/rentals_packages_archive_2026-10-22.md) to settle before the sticker print.
 
 ### 0.0.-93 IN-HOUSE GEAR STRAIGHT TO A BOOKING, SPOTLIGHT MINI PHOTOS + IRIS PART, DATA AUDIT (2026-10-24)
 
