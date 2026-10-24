@@ -39,6 +39,17 @@
 
 ## 0. LATEST SESSION (2026-10-24), READ THIS FIRST
 
+### 0.0.-99 CAM 01 / CAM 02 SHUFFLE, KONDOR BLUE MATTE BOX (2026-10-24)
+
+- Jack moved the Bongo Ties to CAM 02 (now 1002.006); CAM 01 renumbered with no gap. ZEISS kit tools are loose in
+  CAM 01's top pocket (1001.016); its cloth is CAM 01's cloth (1001.013). New 1001.023 Nanuk N-Cubik Shoulder Strap.
+  Pliers and star key: loose in their own section, keep stickers.
+- 1101 renamed "Kondor Blue Matte Box", description starts "Indie Kit + Step Up Rings + Safety Chain"; part
+  1101.010 renamed Kondor Blue Braided Safety Chain. Standard filter tray 1101.005 confirmed in the kit.
+- Info Papers $0; turtle bases valued at the whole stand ($199). 1100.019 confirmed: goes on the top handle.
+- Waiting on Jack: safety chain colour (red, Kondor blue or Raven black) before its photo; which N-Cubik strap.
+  Script _rentals_fixes_20261024c.py, backup backups/rentals_before_fixes_c_*.json.
+
 ### 0.0.-98 CONDITION IN NOCODB, PART VALUES, NOTE CLEANUP, MATTE BOX CABLE (2026-10-24)
 
 - items.condition_status dropped (unused). New read-only items.copies_condition summary, and units.condition_status
