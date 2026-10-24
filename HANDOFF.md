@@ -39,6 +39,17 @@
 
 ## 0. LATEST SESSION (2026-10-24), READ THIS FIRST
 
+### 0.0.-95 DYNAMIC CONTAINER VALUES, CAM 01/02 CONTENTS (2026-10-24)
+
+- items.own_value + items.value_with_contents (migration 20261024g). Containers now value_from_parts: CAM 01/02 own
+  value $254.95 (Nanuk 935, cheapest new config), SND 01 $159.95 (Nanuk 920), crates keep their price. Value with
+  contents adds every unit inside (units trigger). Tested by putting 1104-A in CAM 01 and changing values (rolled back).
+- CAM 01/02 parts documented (organizers swapped, AirTag holders, Tilta tool kit, Pittsburgh Pro star key, Husky
+  pliers, Bongo Ties x7, ZEISS kit, Kondor Blue magic arm + 4 ends, ARRI Cube, microfiber cloths). Loose Allen keys
+  1001.005 removed per Jack (backup backups/items_before_containers_20261024.json). No sticker: cloths, Bongo Ties.
+- 4100.001 photo is now the real Neewer BP-190WS (B&H archive, saved via Chrome with Jack's OK); value stays the
+  Core SWX NANO-V150X ($395). scan_stress_test.py ALL PASS after.
+
 ### 0.0.-94 STICKER SWITCHES, THICK LONG CABLE TIES, KIT VALUES FROM PARTS, RESEARCHED GEAR INFO (2026-10-24)
 
 - items.no_sticker (new tick): nothing printed for that row; on for the 9 Info Papers parts. make.py skips it.

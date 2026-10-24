@@ -651,3 +651,12 @@ Kept as history only. These are NOT fallbacks and are NOT in the code any more.
 Rentals categories were `Camera #EA4335`, `Lighting #FF9900`, `Grip #8b5cf6`,
 `Electric #FFE600` (brighter lemon since 2026-10-22, was #FBBC04), `Sound Packages #34A853`,
 `DIT #FF3EA5` (hot pink look `pink`, added 2026-10-22; items 6001+).
+
+### Replacement values (2026-10-24)
+
+- A normal item carries its own replacement value (today's new price at a major US retailer or the maker).
+- Kits and cases with **value_from_parts** ticked add up: their **own_value** (e.g. the empty case) plus every part
+  (value x qty). Kept current by a database trigger, so changing a part changes the kit.
+- Containers also have **value_with_contents**: the case value plus every piece of gear stored inside it right now.
+  It updates when gear is put in or taken out, and when anything inside changes value.
+- Parts that only ship inside their kit, or generic bits, stay blank (never guessed).
