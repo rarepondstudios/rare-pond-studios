@@ -190,12 +190,21 @@ it is fixed. After a successful send the cart is emptied so a request cannot go 
 
 **The failsafe, when two requests slip through together.** If a request still cannot get all its
 gear, the whole request is not booked: `reserve_order` calls `rp_order_conflict`, which frees
-anything it took, records `conflict_at` / `conflict_items`, and sets the deal to Closed Lost (the
-quoted amount stays on the deal). Two requests in the same 5-minute sync batch are settled by
+anything it took, records `conflict_at` / `conflict_items`, and sets the deal to Closed Lost. Two requests in the same 5-minute sync batch are settled by
 HubSpot create time, not by the order the sync happened to read them: `rentals_mail.py` (step
 `first_come`) hands the hold to the earlier one with `rp_order_swap` before any email goes out.
 The later customer gets "Your Rare Pond rental request did not go through", which lists the taken
 items and links back to the rentals page to send again without them or on other dates.
+
+**Lost or cancelled requests are never counted as money (since 2026-10-24).** When a rental deal is Closed
+Lost (by the failsafe, or by hand in HubSpot), `rentals_mail.py` (step `lost_amounts`) sets its HubSpot
+**Amount to 0** and saves what it was quoted at in the deal property **Lost quote amount**
+(`rp_lost_quote_amount`) and in `orders.lost_quote_amount`. Moving the deal back out of Closed Lost clears
+the lost quote and the stage push sends the real amount again.
+
+**Phone is required.** The website request form asks for a phone (Jotform field `q22_phone`, required on the
+site, at least 10 digits). It also travels in `rp_order_data` as `p:<phone>` (`s:..|e:..|p:..|i:..`), which
+`rentals_mail.py` copies into `orders.client_phone`; if the HubSpot contact has no phone it gets this one.
 
 **Customer emails** (`bts-automation/rentals_mail.py`, launchd `com.rarepond.rentalsmail`, every
 2 minutes; only orders created from 2026-10-24 on):
@@ -208,7 +217,8 @@ items and links back to the rentals page to send again without them or on other 
   **A note from us** = `orders.confirm_note` if you typed one in NocoDB before confirming.
 - To raise a concern between the request and the confirmation, just reply to the customer
   (decided 2026-10-24; no extra feature).
-- Missing parts: sent from the scan app (see the gear section below), never automatically.
+- Missing parts, and later "found it" / "replaced" notes: sent from the scan app (see the gear section
+  below), never automatically, always with a preview first.
 
 They are sent through the rp_admin@ Google account (`~/.config/rarepond/rentals_smtp.json`) as
 "Rare Pond Rentals <rentals@rarepond.com>", Reply-To and Bcc rentals@. Until rentals@ is added
@@ -333,18 +343,36 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   The small **i** in the top bar opens the one-page cheat sheet (IDs, checking out/in, containers).
   Dates in the app and the overdue alert use `rp_today()`, the date in the admin time zone (the
   database clock is UTC, which made evenings count as tomorrow).
-- Missing parts (since 2026-10-24): an unticked part on check-in is marked missing on its own unit
-  (`damage_events` status `missing`, unit condition `missing`); for a counted part the
-  highest-numbered pieces are marked. The confirm screen lists them and offers **Tell the
-  customer**: type an optional note, Preview, Send. The email lists each part with its
-  replacement value, says nothing is charged, and gives a return-by date (admin setting, 7 days).
-  Sent notices are kept in `missing_notices`. A gear page shows **Missing parts** with **Found it**;
-  ticking the part on a later check-in also marks it found.
-- Moving a part (since 2026-10-24): a part can live inside another part (the NATO-to-Rosette clamp
-  1100.018 sits inside the Kondor Blue wing handle 1100.009, so moving the handle carries the
-  clamp). To move one: scan app, gear page, **Parts: list and move**, Move, search the new home,
-  **Move here**; or in NocoDB set the part's "Belongs to kit". Its code changes to the new item's
-  number, so it needs a new pill (`make.py refill`).
+- **Dashboard** (since 2026-10-24): the scan app's front page (`/`, also "Rare Pond" top left and the
+  ☰ menu on every page). Top: a red **Missing gear** button whenever something is missing.
+  Then **Out now** (rentals with gear out or dates covering today: who has it, units out, overdue /
+  returns today / not picked up yet), **Coming up** (soonest first, with stage), and **Previous
+  orders** (`/orders/past`, newest first; "All back" once everything returned). Every order opens
+  `/o/<id>`: contact (tap to call / email), dates, stage, money (lost quote for lost ones), gear and
+  where each unit is, changes from the request, the confirmation note, missing parts, emails sent,
+  every scan, and a link to the HubSpot deal. Search moved to `/search`. The ClickUp **Rentals**
+  space has a doc "Rentals Dashboard (start here)" linking to it (tailnet only).
+- Unticked parts are never marked silently (since 2026-10-24). Check-in: the app lists what was not
+  ticked and asks "are they missing?" first. Check-out: for each unticked part, "Not going with this
+  rental" (nothing flagged, logged as not sent) or "Missing from storage" (marked missing, not tied to
+  the customer). Parts already marked missing do not ask again.
+- Missing parts: confirmed ones are marked missing on their own unit (`damage_events` status
+  `missing`, unit condition `missing`; for a counted part the highest-numbered pieces). The confirm
+  screen offers **Tell the customer** (note, Preview, Send): parts with replacement value, nothing
+  charged, return-by date (admin setting, 7 days). Notices are kept in `missing_notices` (`kind`).
+- Resolving: **Missing gear** (`/missing`) lists each missing part, its kit, the rental and customer,
+  and whether they were emailed. **Resolve** marks it **Found** or **Replaced** (amount billed, blank
+  if we covered it, plus a note); who did it is recorded from their Tailscale name. Then an optional
+  email (all clear, or what was replaced and billed), preview first. The row keeps its history
+  (`status` found/replaced, `resolved_on`, `resolved_note`, `resolved_by`, `billed_amount`). In
+  NocoDB: `damage_events`, views **Missing gear** and **Missing gear (resolved)**: change `status` to
+  `found` or `replaced` (fill `billed_amount`); `part` and `rental` are filled in automatically. Ticking
+  the part at a later scan also marks it found.
+- Parts belong to kits, never to other parts (since 2026-10-24; the database refuses it). The
+  NATO-to-Rosette clamp 1100.018 is a part of the A7c kit again. To move a part to another kit:
+  scan app, gear page, **Parts: list and move**, Move, search the kit, **Move here**; or in NocoDB set
+  the part's "Belongs to kit". Its code changes to the new kit's number, so it needs a new pill
+  (`make.py refill`). Moving the wing handle to another camera means moving the handle and the clamp.
 - Brand stickers (duck bubble, Rare Pond pill) are generic: `make.py brand` prints them in bulk; unit
   batches no longer include them.
 - The booking funnel was dry-run end to end on 2026-10-23 (five requests: normal, empty cart,

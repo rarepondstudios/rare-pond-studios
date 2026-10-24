@@ -3,7 +3,8 @@
     "firstName": "text",
     "lastName": "text",
     "email": "email",
-    "film": "text"
+    "film": "text",
+    "phone": "tel"
   },
   "crew": {
     "first": "text",

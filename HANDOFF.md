@@ -39,6 +39,28 @@
 
 ## 0. LATEST SESSION (2026-10-24), READ THIS FIRST
 
+### 0.0.-91 RENTALS DASHBOARD, MISSING-GEAR RESOLUTION, CONFIRM BEFORE MARKING MISSING, LOST QUOTES, REQUIRED PHONE (2026-10-24)
+
+- Scan app front page is now the **rentals dashboard** (`bts-automation/scan_dash.py`): Missing gear
+  button, Out now, Coming up (soonest first), Previous orders, order detail pages `/o/<id>`; a ☰ menu on
+  every page; search moved to `/search`. ClickUp Rentals space: doc "Rentals Dashboard (start here)".
+- Unticked parts: the app asks first (check-in: missing?; check-out per part: not going vs missing from
+  storage, the latter never tied to the customer).
+- Missing gear is resolved as **Found** or **Replaced** (amount billed, note, who) in the scan app or in
+  NocoDB (`damage_events` views "Missing gear" / "Missing gear (resolved)"); optional customer email with
+  preview. Migrations `20261024c_missing_dashboard.sql`, `20261024d_damage_labels.sql`.
+- Lost/cancelled rental deals: HubSpot Amount 0, quote kept in deal property "Lost quote amount" and
+  `orders.lost_quote_amount` (`rentals_mail.py` lost_amounts); reopening restores the amount.
+- Website request form requires a phone (`q22_phone`; also `p:` in rp_order_data -> `orders.client_phone`,
+  and the HubSpot contact if it has none).
+- Parts belong to kits only (DB trigger `rp_no_nested_parts`); 1100.018 back under the A7c kit;
+  1100.020 described as mounting on the front of the SmallRig Top Handle.
+- Tests: `scan_stress_test.py` 87/87; dry run round 3 (phone, hold, race-lost amount, manual lost +
+  reopen, confirm, scan out with a part not sent, check-in missing, email, replaced, resolve email)
+  passed and was scrubbed (`DRYRUN_DIR=dryrun_20261024c python3 rentals_dryrun2_20261024.py ...`).
+- Reminder for Jack: if the Kondor Blue wing handle (1100.009) moves to another camera kit, move the
+  NATO-to-Rosette clamp (1100.018) with it (both get new numbers and pills).
+
 ### 0.0.-90 HOLDS ON REQUEST, DOUBLE-BOOKING GUARD + FAILSAFE, CUSTOMER EMAILS, MISSING PARTS, ADMIN TIME ZONE (2026-10-24)
 
 - Every request now holds its gear the moment the sync sees it (`held` bookings), so the first

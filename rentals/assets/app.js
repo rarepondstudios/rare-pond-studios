@@ -389,7 +389,7 @@ const RCFG=(window.FORMS&&window.FORMS.rentalRequest)||{formId:"",fields:{},rend
 var INPUT_TYPES={};
 (function(){try{fetch('/data/form-fields.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&j.rental)INPUT_TYPES=j.rental;}).catch(function(){});}catch(e){}})();
 /* Resolve a field's effective input type: CMS override → render config type → text. */
-function fieldInputType(f){var t=INPUT_TYPES[f.key];if(t)return t;if(f.type==='email')return 'email';if(f.type==='url')return 'url';return 'text';}
+function fieldInputType(f){var t=INPUT_TYPES[f.key];if(t)return t;if(f.type==='email')return 'email';if(f.type==='url')return 'url';if(f.type==='tel')return 'tel';return 'text';}
 /* Live mask: "number" keeps digits + a single decimal point; others pass through. */
 function maskInput(type,v){v=String(v==null?'':v);if(type==='number'){v=v.replace(/[^0-9.]/g,'');var i=v.indexOf('.');if(i!==-1)v=v.slice(0,i+1)+v.slice(i+1).replace(/\./g,'');}else if(type==='tel'){v=v.replace(/[^0-9+()\-.\s]/g,'');}return v;}
 let reqStep=0,reqData={},reqErr="",reqConflicts=null;
@@ -441,6 +441,7 @@ function renderReq(){
    if(!D.s||!D.e)miss.push('your rental dates');
    const ef=RCFG.render.find(f=>f.type==='email');
    if(ef&&reqData[ef.key]&&!/.+@.+\..+/.test(reqData[ef.key]))miss.push('a valid email');
+   var pf=RCFG.render.find(f=>f.type==='tel'&&f.required);if(pf&&reqData[pf.key]&&String(reqData[pf.key]).replace(/\D/g,'').length<10)miss.push('a phone number with area code');
    if(miss.length){reqErr='Please add: '+miss.join(', ')+'.';$('qwarn').textContent=reqErr;flashEmptyReq();return;}
    reqErr='';reqStep=1;renderReq();
   };
@@ -466,7 +467,8 @@ function reqSubmitData(){
    var _pairs=ids.map(function(id){return RENTALS[id].dbid+':'+cart[id];});
    crateOrderPairs().forEach(function(s){_pairs.push(s);});
    var _items=_pairs.filter(function(s){return s.indexOf('null')<0&&s.indexOf('undefined')<0;}).join(',');
-   out[F.orderData]='s:'+(D.s||'')+'|e:'+(D.e||'')+'|i:'+_items;
+   var _ph=String(reqData.phone||'').replace(/[|:,]/g,' ').trim();
+   out[F.orderData]='s:'+(D.s||'')+'|e:'+(D.e||'')+(_ph?'|p:'+_ph:'')+'|i:'+_items;
  }
  if(F.dates)out[F.dates]=(D.s&&D.e)?fmtRange():'';
  if(F.days)out[F.days]=dd||'';
@@ -481,7 +483,7 @@ function reqSubmitData(){
 }
 function jotConfigured(id){return id&&!/PASTE|XXXX/i.test(id);}
 /* Re-check every line against live availability (holds included) right before sending (2026-10-24). */
-async function rpCheckAvail(data){try{var od=data[RCFG.fields.orderData]||'';var m=od.match(/s:([0-9-]+)\|e:([0-9-]+)\|i:(.*)$/);if(!m||!m[3])return [];
+async function rpCheckAvail(data){try{var od=data[RCFG.fields.orderData]||'';var m=od.match(/s:([0-9-]+)\|e:([0-9-]+)\|(?:p:[^|]*\|)?i:(.*)$/);if(!m||!m[3])return [];
  var want={};m[3].split(',').forEach(function(x){var q=x.split(':');if(q.length===2)want[q[0]]=(want[q[0]]||0)+(+q[1]);});
  var r=await fetch(SB_URL+'/rest/v1/rpc/catalog_availability',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+SB_KEY},body:JSON.stringify({p_start:m[1],p_end:m[2]}),cache:'no-store'});
  if(!r.ok)return null;var rows=await r.json(),by={};rows.forEach(function(x){by[String(x.item_id)]=x;});var out=[];

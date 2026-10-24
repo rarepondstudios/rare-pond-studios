@@ -27,12 +27,14 @@ window.FORMS = {
       firstName: "q7_firstName",
       lastName:  "q8_lastName",
       email:     "q9_contactEmail",
+      phone:     "q22_phone",   // required on the site (2026-10-24); also sent as p: in orderData
       film:      "q10_nameOf",
       insurance: "q11_doYou",
       // hidden fields the SITE fills automatically from cart + calendar:
       gear:      "q12_gear",
       // #7 Option A - single machine-readable order payload for auto-creating bookings.
-      // The site fills this with "s:<startISO>|e:<endISO>|i:<supabaseItemId>:<qty>,..." on submit.
+      // The site fills this with "s:<startISO>|e:<endISO>|p:<phone>|i:<supabaseItemId>:<qty>,..." on submit
+    // (p: added 2026-10-24; rentals_mail.py reads it into orders.client_phone).
       // SETUP (one-time): add a hidden Short-Text field in Jotform, map it to a HubSpot deal property
       // named "rp_order_data", then replace the value below with that field's REAL input name
       // (Jotform -> Publish -> Source Code -> name="qNN_..."). Supabase RPC hubspot_sync_order parses it.
@@ -54,7 +56,8 @@ window.FORMS = {
     render: [
       { key: "firstName", label: "First name",                       type: "text",  required: true,  half: true },
       { key: "lastName",  label: "Last name",                        type: "text",  required: true,  half: true },
-      { key: "email",     label: "Contact email",                    type: "email", required: true },
+      { key: "email",     label: "Contact email",                    type: "email", required: true,  half: true },
+      { key: "phone",     label: "Phone",                            type: "tel",   required: true,  half: true },
       { key: "film",      label: "Name of your film / project",      type: "text",  required: true },
       { key: "insurance", label: "Do you have production insurance?", type: "yesno", required: true }
       // EXAMPLE - to ask for a screenplay link: add the field in Jotform, add
