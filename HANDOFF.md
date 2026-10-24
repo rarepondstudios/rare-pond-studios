@@ -47,8 +47,11 @@
 - 1101 renamed "Kondor Blue Matte Box", description starts "Indie Kit + Step Up Rings + Safety Chain"; part
   1101.010 renamed Kondor Blue Braided Safety Chain. Standard filter tray 1101.005 confirmed in the kit.
 - Info Papers $0; turtle bases valued at the whole stand ($199). 1100.019 confirmed: goes on the top handle.
-- Waiting on Jack: safety chain colour (red, Kondor blue or Raven black) before its photo; which N-Cubik strap.
-  Script _rentals_fixes_20261024c.py, backup backups/rentals_before_fixes_c_*.json.
+- Script _rentals_fixes_20261024c.py, backup backups/rentals_before_fixes_c_*.json.
+- Follow-up (_rentals_fixes_20261024d.py): ZEISS kit split into its pieces, 1001.016 Air Blower and 1001.017 Lens Brush
+  (stickers), 1001.018 fluid and 1001.019 wipes (no sticker); magic arm set now 1001.020-.025, strap 1001.026 (basic strap
+  from an N-Cubik medium). Safety chain photo is Kondor Blue's blue variant. Strap photo: Nanuk has none of it alone,
+  asked Jack for one. scan_edge_test now checks CAM 01's part count dynamically.
 
 ### 0.0.-98 CONDITION IN NOCODB, PART VALUES, NOTE CLEANUP, MATTE BOX CABLE (2026-10-24)
 
