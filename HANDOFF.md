@@ -39,6 +39,23 @@
 
 ## 0. LATEST SESSION (2026-10-24), READ THIS FIRST
 
+### 0.0.-94 STICKER SWITCHES, THICK LONG CABLE TIES, KIT VALUES FROM PARTS, RESEARCHED GEAR INFO (2026-10-24)
+
+- items.no_sticker (new tick): nothing printed for that row; on for the 9 Info Papers parts. make.py skips it.
+- Stickers v61: the long cable-tie wrap has a 1.5x thicker band (items 0.375 in, pills 0.24 in = full pill height).
+  Sandbags 3118 now print the long item cable tie. Comparison: Desktop/RarePond_Rental_Labels/Cable_tie_short_vs_long_v61.png.
+  make.py status: 563 stickers, none printed yet (test print first, per Jack, at the end).
+- NocoDB items view "Sticker check" (noco_sticker_view.py): no_sticker, size, add-on, cable tie, wrap, lettered.
+- items.value_from_parts + trigger rp_kit_value_trg: 1100, 1101, 1102, 1103, 1104, 3115, 5104, 5107 take their value
+  from the sum of their parts (value x qty), kept current (tested, rolled back). Function not executable by anon.
+- rentals_fill_20261024.py: 11 part values, 16 part photos and 32 item descriptions from maker or major retailer
+  pages, only for positively identified products (Jack's rule); generic parts left blank. Backup:
+  backups/items_before_fill_20261024.json. 3119 ladder shown on the site again.
+- Waiting on Jack: confirm 5 held photos (1002.004, 2112.011, .013, .018, .019) and model numbers (SHAPE tripod,
+  Neewer V-mount batteries and charger, Neewer C-stands, Toptes meter, Jackery car cables, RODE VideoMic) on the
+  review page (temporary local server on the mini, 127.0.0.1:8099, reviews/ folder). Sound day rates and hidden
+  status: Jack reviewing.
+
 ### 0.0.-93 IN-HOUSE GEAR STRAIGHT TO A BOOKING, SPOTLIGHT MINI PHOTOS + IRIS PART, DATA AUDIT (2026-10-24)
 
 - Scan app: all gear is currently out for in-house use (Jack's bulk check-out on 2026-10-10), so a booked kit
