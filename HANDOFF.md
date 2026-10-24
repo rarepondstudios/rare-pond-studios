@@ -39,6 +39,24 @@
 
 ## 0. LATEST SESSION (2026-10-24), READ THIS FIRST
 
+### 0.0.-93 IN-HOUSE GEAR STRAIGHT TO A BOOKING, SPOTLIGHT MINI PHOTOS + IRIS PART, DATA AUDIT (2026-10-24)
+
+- Scan app: all gear is currently out for in-house use (Jack's bulk check-out on 2026-10-10), so a booked kit
+  used to need a check-in before it could go out. Now an in-house copy shows "Send OUT -> <order>, straight
+  from in-house use" preselected (item and unit pages): one save logs it IN then OUT for the booking, moves
+  the booking to the scanned copy, and still asks about unticked parts. `scan_swap_test.py` (temp order, no
+  HubSpot deal, restores everything): ALL PASS; `scan_stress_test.py` ALL PASS; `scan_ready_test.py` ALL PASS.
+- Photos via the NocoDB storage API (`bts-automation/noco_upload_photo.py <item_id> <file>`): 2113 Spotlight
+  Mini, 1102.005 2" Kondor Blue NATO rail (the photo showed the larger rail), new part 2113.008 Spotlight
+  Iris (M Size) with one unit (needs a pill sticker; it is in the next sticker print automatically).
+- 1102.005-A stale "Cine Magic Arm Center Clamp" note cleared; description "Attached to the bottom of the
+  OSEE G7 monitor (1102.001)."
+- `bts-automation/rentals_audit.py` (read-only consistency checks): no orphan or overdue units, no missing
+  mismatch, no nested parts, unit counts match qty. Order 64's HubSpot deal no longer exists (order is
+  cancelled; its stage label is just stale). 104 parts still have no photo.
+- Jack to do: finish "Send mail as" rentals@ on rp_admin@ in an Incognito window (the popup opened in the
+  wrong signed-in account). Later: replacement values, wing handle and clamp move.
+
 ### 0.0.-92 READY TO SCAN: QR PATHS, DEFAULT ACTIONS, FASTER PAGES, LIVE-SITE TEST (2026-10-24)
 
 - `functions/g/[id].js`: sub-item pill codes (2100.001-B) now open their kit's check in/out page (they went

@@ -357,12 +357,13 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   tailnet it forwards to that gear's check in/out page, off it to /found. The in-app **Scan** button
   reads the same QR. The page opens with the likely action already picked: **Bring IN** when the
   scanned copy is out, **Send OUT** to a booking that starts within 2 days (a request still on hold is
-  marked "not confirmed yet"), otherwise in-house use. Sub-item pill codes (`2100.001-B`) typed or
+  marked "not confirmed yet"), otherwise in-house use. A copy out for in-house use with a booking
+  due offers **Send OUT straight from in-house use** (no check-in first). Sub-item pill codes (`2100.001-B`) typed or
   scanned open their kit's page (the resolver used to send them to the home page).
 - Tests for the scan side (bts-automation): `scan_stress_test.py` (every action, then puts everything
   back), `scan_ready_test.py` (every printed QR followed through the resolver and the Scan button to
   the right check in/out page, read-only), `scan_camera_test.py` (a camera feed of real QR images in
-  headless Chromium), `rentals_live_request_test.mjs` (a real request on the live site through the UI;
+  headless Chromium), `scan_swap_test.py` (in-house gear straight to a booking), `rentals_live_request_test.mjs` (a real request on the live site through the UI;
   scrub after with `rentals_dryrun2_20261024.py`). Mail to rentals@ also lands in **studio@**, so test
   emails have to be cleared there too.
 - The scan app reuses database connections (`scan_db.py`): pages went from about 2.5 s to about 1 s.
