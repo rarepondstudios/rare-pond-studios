@@ -39,6 +39,16 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-114 ACCESS FROM ANYWHERE IS LIVE + FIRST ATTEMPT REMOVED (2026-10-25)
+
+- LIVE 14:29: scan/nocodb/n8n.rarepond.com -> tunnel `pond` (healthy), three Access apps, Google login method
+  (Google Cloud project winged-oath-512721-k7 under rp_admin, OAuth client "Cloudflare Access", consent Internal).
+  Each name 302s to rarepond.cloudflareaccess.com; unsigned requests to :8093 get 403. Health board: com.rarepond.cloudflared added.
+- Removed the 0.0.-112 approach (dead once the tunnel exists): scan_domain_cert.py, the scan.rarepond.com Let's
+  Encrypt cert + lego account (moved to ~/.Trash/rp_cleanup_20261025), the SNI branch in scan_service.py, its step in
+  renew_scan_cert.sh, `brew uninstall lego`. The A record was already replaced by the tunnel CNAME.
+- Open: Jack deletes the old "Edit zone DNS" Cloudflare API token (unused; the new key replaced it in the same file).
+
 ### 0.0.-113 ACCESS FROM ANYWHERE + ACTIVITY PAGE (2026-10-25)
 
 - Private Relay blocks the tailnet for Safari entirely (connections relayed by Apple), not only DNS: Jack's test

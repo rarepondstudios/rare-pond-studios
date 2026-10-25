@@ -385,14 +385,15 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   via the session setting rp.actor and `migrations/20261025k_actor.sql` (actor on unit_scan_events, container_moves,
   damage_events, missing_notices; view rp_activity, not readable with the website key). Page: scan app **Activity**
   (menu), filters by person, period, kind, search. NocoDB edits are not in it (NocoDB's own per-record audit).
-- Staff phones with iCloud Private Relay (2026-10-25): the Tailscale name `pond.tail8c2778.ts.net` also has a PUBLIC
-  DNS record because Funnel is on (old printed QR codes), so a phone resolving it outside Tailscale got the Funnel
-  address and landed on /found. Fix: `scan.rarepond.com` is a public DNS record (Cloudflare, DNS only) pointing at
-  the mini's tailnet IP, with its own Let's Encrypt certificate served by the scan app (SNI). The resolver probes it
-  and the Tailscale name in parallel and takes the first to answer (4 s, then /found). Setup and weekly renewal:
-  `bts-automation/scan_domain_cert.py` (run by com.rarepond.scancert); the Cloudflare key (Zone Read + DNS Edit,
-  rarepond.com only) is saved by Jack on the owner-only scan app page `/admin/scan-domain`, stored in
-  `~/.config/rarepond/cloudflare_dns_token`. Test: `rp_site_work/tools/test-g-resolver.mjs [--block-ts]`.
+- Staff phones with iCloud Private Relay (2026-10-25): Private Relay sends Safari through Apple's relays, which can
+  never reach the tailnet. So the scan app, NocoDB and n8n also live at `scan.rarepond.com`, `nocodb.rarepond.com`
+  and `n8n.rarepond.com`: Cloudflare Tunnel `pond` (launchd com.rarepond.cloudflared, connects out, no open port)
+  behind Cloudflare Access (Google sign-in, rarepond.com + jackcarlsen.com only, 30-day session). The scan app's
+  third listener 127.0.0.1:8093 verifies Cloudflare's signed token on every request (scan_access.py). The resolver
+  (`functions/g/[id].js`) tries the tailnet, then a credentialed check of scan.rarepond.com/healthz (4 s, then
+  /found). Setup and repair: `bts-automation/cf_access_setup.py` (safe to re-run); its Cloudflare key is saved by
+  Jack on the owner-only page `/admin/scan-domain`, stored in `~/.config/rarepond/cloudflare_dns_token`. Test:
+  `rp_site_work/tools/test-g-resolver.mjs [--block-ts]`.
 - Scanning (checked 2026-10-24): every gear QR holds `WWW.RAREPOND.COM/G/<code>` (item number, or `####-A`
   for multi-unit items). The phone camera opens rarepond.com/g/<code> (`functions/g/[id].js`): on the
   tailnet it forwards to that gear's check in/out page, off it to /found. The in-app **Scan** button
