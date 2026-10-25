@@ -112,7 +112,7 @@ function renderHome(){
  var crewBlurb=copyStr('crew','blurb','Hiring us to crew your shoot? We can fold a basic gear package into our day rate. The exact kit depends on which department you bring us in for.');
  var crewBtn=copyStr('crew','button','Ask about crewing your shoot →');
  const lbl=(D.s&&D.e)?(fmtRange()+' · '+days()+' days'):(D.s?(fmtOne(D.s)+', now pick an end date'):datePrompt);
- $('stage').innerHTML='<div class="home"><div class="logowrap">'+heroMark+'</div><h2>'+esc(heroTitle)+'</h2><p>'+esc(heroSub)+'</p>'
+ $('stage').innerHTML='<div class="home"><div class="logowrap">'+heroMark+'</div><h2>'+esc(heroTitle)+'</h2><p class="homesub">'+esc(heroSub)+'</p>'
  +'<button class="datebig" id="hdate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg> '+esc(lbl)+'</button>'
  +'<button class="browse" id="hbrowse">'+esc(browseBtn)+'</button>'+'<div class="crew"><p class="crewq">'+esc(crewBlurb)+'</p><button class="crewbtn" id="crewbtn">'+esc(crewBtn)+'</button></div></div>';
  $('hdate').onclick=openDates;$('hbrowse').onclick=()=>{active='Camera';render();};$('crewbtn').onclick=function(){if(window.RPCrew)window.RPCrew.open();};}
