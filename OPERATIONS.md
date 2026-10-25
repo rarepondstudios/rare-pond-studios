@@ -372,6 +372,14 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   where each unit is, changes from the request, the confirmation note, missing parts, emails sent,
   every scan, and a link to the HubSpot deal. Search moved to `/search`. The ClickUp Wiki >
   Rentals doc "Rentals Handbook (Info)" (2026-10-25, replaces "Rentals Dashboard (start here)") links to it (tailnet only).
+- Staff phones with iCloud Private Relay (2026-10-25): the Tailscale name `pond.tail8c2778.ts.net` also has a PUBLIC
+  DNS record because Funnel is on (old printed QR codes), so a phone resolving it outside Tailscale got the Funnel
+  address and landed on /found. Fix: `scan.rarepond.com` is a public DNS record (Cloudflare, DNS only) pointing at
+  the mini's tailnet IP, with its own Let's Encrypt certificate served by the scan app (SNI). The resolver probes it
+  and the Tailscale name in parallel and takes the first to answer (4 s, then /found). Setup and weekly renewal:
+  `bts-automation/scan_domain_cert.py` (run by com.rarepond.scancert); the Cloudflare key (Zone Read + DNS Edit,
+  rarepond.com only) is saved by Jack on the owner-only scan app page `/admin/scan-domain`, stored in
+  `~/.config/rarepond/cloudflare_dns_token`. Test: `rp_site_work/tools/test-g-resolver.mjs [--block-ts]`.
 - Scanning (checked 2026-10-24): every gear QR holds `WWW.RAREPOND.COM/G/<code>` (item number, or `####-A`
   for multi-unit items). The phone camera opens rarepond.com/g/<code> (`functions/g/[id].js`): on the
   tailnet it forwards to that gear's check in/out page, off it to /found. The in-app **Scan** button

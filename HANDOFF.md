@@ -39,6 +39,15 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-112 scan.rarepond.com SO PRIVATE RELAY PHONES CAN SCAN (2026-10-25)
+
+- Jack's QR scans off home landed on "Found this item?" while on the tailnet: with iCloud Private Relay the phone
+  resolved pond.tail8c2778.ts.net through public DNS, which (Funnel on) gives the Funnel IPs where :8444 does not exist.
+- New: scan.rarepond.com A -> 100.75.94.127 (DNS only) + Let's Encrypt cert (lego DNS-01 via Cloudflare), served by
+  the scan app via SNI; functions/g/[id].js probes both hosts in parallel (4 s). scan_domain_cert.py does DNS + cert
+  and runs weekly inside renew_scan_cert.sh. Jack saves the Cloudflare key himself at /admin/scan-domain (owner-only
+  by Tailscale login). Until then the resolver falls back to the Tailscale name (as before).
+
 ### 0.0.-111 STICKER DEMO v62 = TEST KIT (2026-10-24)
 
 - bts-automation/rentals_stickers v62: the demo sheet now covers every site department (Effects, Carts added) and picks
