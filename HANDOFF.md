@@ -39,6 +39,16 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-103 RENTALS FIRST PAINT AND STALE SCRIPTS FIXED (2026-10-25)
+
+- Jack saw old icons and Effects/Carts tabs a second late. Causes: (1) `?v=20261022b` never changed while Cloudflare
+  sends `max-age=14400` for the scripts, so browsers kept the old app.js; (2) tabs were built from the built-in catalog
+  (63 items from July, no DIT/Effects/Carts) until the live one arrived.
+- Fixes: global pre-commit hook stamps `?v=<content hash>` (tools/stamp-rentals-assets.py, bts-automation/hooks/
+  pre-commit, install_git_hooks.sh HOOKS list); tabs from the CMS list until live (`RP_LIVE`); built-in catalog rebuilt
+  (70 items) by tools/refresh-rentals-snapshot.mjs, hourly launchd com.rarepond.rentalssnapshot
+  (rentals_snapshot_sync.py --publish). Test: tools/test-rentals-sections.mjs holds Supabase 4 s and checks first paint.
+
 ### 0.0.-102 SECTIONS TABLE, NEW TAB ICONS, WOLFBOX PHOTO (2026-10-25)
 
 - The groupings on each department page are now rows in `public.sections` (department, name, sort_order, label),

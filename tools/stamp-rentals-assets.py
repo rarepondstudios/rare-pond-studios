@@ -6,7 +6,7 @@ to keep those for 4 hours (zone Browser Cache TTL), so after a deploy a returnin
 ?v= changed by hand (new tab icons "missing", 2026-10-25). This sets v= to the first 10 characters of the file's
 SHA-1, so every change gets a fresh URL and an unchanged file stays cached.
 
-Run by .git/hooks/pre-commit (installed by tools/install-hooks.sh) on every commit, by people and by the scheduled
+Run by the pre-commit hook (bts-automation/hooks/pre-commit, global core.hooksPath) on every commit, by people and by the scheduled
 jobs alike, using the STAGED copy of each file; also safe to run by hand: python3 tools/stamp-rentals-assets.py
 Exit 0 always; prints what it changed."""
 import hashlib, os, re, subprocess, sys

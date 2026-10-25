@@ -722,3 +722,16 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
   site and older scripts read it) and is kept equal to the Section link by a trigger; writing a name there finds or
   makes that section.
 
+### Rentals page loads fresh after every change (2026-10-25)
+
+- **Script versions:** rentals/index.html loads `assets/app.js?v=`, `availability.js?v=`, `styles.css?v=`. Cloudflare
+  tells browsers to keep those files 4 hours, so the `v=` must change whenever a file changes. The pre-commit hook
+  (`bts-automation/hooks/pre-commit`, global `core.hooksPath`) sets each `v=` to the file's content hash in the commit
+  (`tools/stamp-rentals-assets.py`). Nobody edits `v=` by hand any more.
+- **Built-in catalog:** the page paints the `let RENTALS=[...]` list at the top of app.js at once and swaps in the live
+  catalog a moment later. `tools/refresh-rentals-snapshot.mjs` rebuilds that list from the live database with the
+  page's own code; launchd `com.rarepond.rentalssnapshot` runs it hourly (`bts-automation/rentals_snapshot_sync.py`,
+  log `rentals_snapshot_sync.log`) and commits + pushes only when it changed.
+- **Tabs:** every category in Pages CMS gets its tab on first paint; once the live catalog is in, a category with no
+  gear is dropped.
+
