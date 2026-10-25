@@ -39,6 +39,23 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-109 PRINT READINESS, QTY = COPIES, DOCSYNC HARDENED, CAME-WITH-KIT FILLED (2026-10-24)
+
+- qty and copies are now one thing (migration 20261025i, proved by rentals_qty_units_20261024_apply.py): raising qty
+  adds copies, lowering removes the highest unbooked ones, adding/deleting a unit updates qty; a copy that is out or
+  has bookings is never deleted. Before this, qty 3 in NocoDB made no third copy (no sticker, not bookable).
+- rentals_print_ready_test.py 33/33: codes unique and in their blocks, letters and part codes consistent, every shown
+  item priced and valued, every kit value recomputes, and no everyday edit moves a printed code (OPERATIONS "What can
+  and cannot change a printed sticker").
+- Came with the kit researched for every kit (rentals_came_with_kit_20261024.md, _rentals_fill_20261024.py, backup
+  backups/items_before_cwk_20261024.json): 20 kit values changed, unsure parts left for Jack. Straps: 3104 Husky
+  4-Pack (2 units), new 3123 Heavy-Duty 2-Pack. WolfBox parts estimated, day rate $12.
+- docsync hardened (lock, atomic/lost/corrupt state safe, per-page failures, retries, slow writes, renames, broken
+  markers, foreign uncommitted edits, unpushed retry, sane-fact guard): docsync_stress_test.py 31/31, live hand-edit
+  check on Rentals Handbook page 6 passed and the page was restored.
+- Round 4 live dry run as jack@jackcarlsen.com, all 8 departments, confirmed emails, scan out/in 16/16; scrubbed.
+- scan_service: closed_msg() explains why a booking cannot go out yet.
+
 ### 0.0.-108 DOCSYNC: REPEATED FACTS HAVE ONE SOURCE (2026-10-24)
 
 - New hourly launchd job `com.rarepond.docsync` (bts-automation/docsync.py, via run_with_access.js, on the health

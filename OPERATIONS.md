@@ -319,7 +319,10 @@ Camera CAM, Lighting LGT, Grip G&E, Electric ELC, Sound SND, DIT DIT, Effects EF
   "In container" / "Container contents". "Accessory picker (DONT TOUCH)" was left as it was. New columns or tables appear after
   **Data Sources -> Supabase Rentals -> Sync Metadata**.
 - **Kept by the database (review 2026-10-23, `migrations/20261023d_db_review.sql`):**
-  - A new item gets one unit by itself (qty 1); add more units for more copies.
+  - A new item gets one unit by itself (qty 1). Since 2026-10-24 qty and copies are one thing: type a new qty and the
+    copies are added (next free letters) or the highest unbooked ones removed, or add / delete a unit and qty follows.
+    A copy that is out or has bookings, scans or reports is never removed (refused with the reason; set its condition
+    instead). An unprinted letter that is removed is free again; a printed one is retired (`migrations/20261025i`).
   - Sub-items always carry their item's department (change the item's, the sub-items follow).
   - Names are trimmed (no stray spaces). `sort_order`, which the website lists by, follows the ID.
   - Unit names are generated: "Item name (2100-A)"; a container's unit is just its name. What sets one
@@ -775,5 +778,22 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
   master; a hand edit in ClickUp is flagged, not overwritten. Blocks marked `BEGIN GENERATED: docsync:` here are
   refilled the same way: do not edit inside them.
 - When something is retired, add it to docsync/retired_terms.json so any doc still claiming it is flagged.
-  Report: bts-automation/docsync_latest.md. Test: docsync_test.py.
+  Report: bts-automation/docsync_latest.md. Tests: docsync_test.py (live facts) and docsync_stress_test.py (31 edge
+  cases against a fake ClickUp and a scratch repo: hand edits, renames, lost or corrupt state, slow writes, outages,
+  two runs at once, broken markers, someone else's uncommitted edit, a failed push).
+
+### What can and cannot change a printed sticker (checked 2026-10-24)
+
+- Printed: the item number and unit letter (QR `WWW.RAREPOND.COM/G/<code>`), the department name and colour, and on
+  the add-on the item name. Values and prices are never printed, so they can change any time.
+- Safe after printing (tested, `bts-automation/rentals_print_ready_test.py`, 33 checks, every edit rolled back):
+  renaming, descriptions, prices, values, sort order, hiding, sections (move or rename), adding copies, adding or
+  removing parts, came-with-kit, deleting another item, adding gear in any department. None of them moves a code.
+- Changes a code (by design, needs a new sticker): moving gear to another department or switching it to or from a
+  container (new number, the old one retired), moving a part to another kit (its pill), renaming (the add-on name).
+  Decide quantities before printing too: a single item's sticker has no letter, a second copy makes it `-A` / `-B`.
+- Round 4 live dry run (2026-10-24, rentals_dryrun4_20261024.py): one website request per department as Jack's real
+  contact, holds, confirmation emails (8 sent), scan out and in for each department through the scan app; scrubbed.
+- The scan app now says why a booking cannot go out yet ("starts Dec 23: its gear can go out from Dec 21") instead of
+  "no longer open".
 
