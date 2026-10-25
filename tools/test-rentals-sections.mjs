@@ -59,9 +59,9 @@ try {
   });
   ok(fit.wide === 'cover' && fit.square === 'contain' && fit.exact === 'contain', 'wider than 16:9 is cropped, square and 16:9 are shown whole: ' + JSON.stringify(fit));
   await page.$eval('.card[data-open]', el => el.click()); await page.waitForTimeout(700);
-  const hero = await page.$eval('.dphero', h => { const r = h.getBoundingClientRect(); const i = h.querySelector('img'); const q = i ? i.getBoundingClientRect() : r;
-    return { a: r.width / r.height, same: Math.abs(q.width - r.width) < 1 && Math.abs(q.height - r.height) < 1 }; });
-  ok(Math.abs(hero.a - 16 / 9) < 0.03 && hero.same, 'the item popup photo frame is 16:9 and the photo sits inside it: ' + JSON.stringify(hero));
+  const hero = await page.$eval('.dphero', h => { const r = h.getBoundingClientRect(); const i = h.querySelector('img'); const q = i.getBoundingClientRect();
+    return { a: q.width / q.height, inside: q.top >= r.top - 1 && q.bottom <= r.bottom + 1 && q.left >= r.left - 1 && q.right <= r.right + 1, centred: Math.abs((q.left + q.right) / 2 - (r.left + r.right) / 2) < 2 }; });
+  ok(Math.abs(hero.a - 16 / 9) < 0.03 && hero.inside && hero.centred, 'the item popup photo frame is 16:9, inside the popup and centred: ' + JSON.stringify(hero));
   const cardImg = await page.$$eval('.thumb img', is => is.every(i => { const a = i.getBoundingClientRect(), b = i.parentElement.getBoundingClientRect(); return Math.abs(a.height - b.height) < 1; }));
   ok(cardImg, 'every card photo sits inside its frame');
   const minis = await page.$$eval('.rp-mcard img, .kc img', is => is.map(i => (i.getBoundingClientRect().width / i.getBoundingClientRect().height).toFixed(2)));
@@ -70,6 +70,27 @@ try {
   ok(!errs.length, 'no page errors: ' + errs.slice(0, 3).join(' | '));
   await page.$eval('.tab[data-c="Electric"]', el => el.click()); await page.waitForTimeout(300);
   await page.screenshot({ path: '/tmp/rp_site_tabs.png', clip: { x: 0, y: 0, width: 1360, height: 420 } });
+  // every popup fits the window (item, Build your own, dates, request), on a laptop, a short screen and a phone
+  for (const [w, h] of [[1280, 720], [1366, 600], [390, 844]]) {
+    const q = await browser.newPage({ viewport: { width: w, height: h } });
+    await q.goto(BASE + '/rentals/', { waitUntil: 'networkidle' });
+    await q.waitForFunction(() => typeof RP_LIVE !== 'undefined' && RP_LIVE, null, { timeout: 20000 });
+    const fits = async (sel) => q.evaluate(s => { const e = document.querySelector(s); if (!e) return 'missing'; const r = e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight + 1 ? 'ok' : Math.round(r.height) + '>' + innerHeight; }, sel);
+    const shut = async () => { await q.evaluate(() => { document.querySelectorAll('.show').forEach(e => e.classList.remove('show')); document.body.style.overflow = ''; }); await q.waitForTimeout(150); };
+    const r = {};
+    await q.$eval('.tab[data-c="Lighting"]', el => el.click()); await q.waitForTimeout(300);
+    await q.$eval('.card[data-open]', el => el.click()); await q.waitForTimeout(500); r.item = await fits('.dpc');
+    r.photo = await q.$eval('.dphero img', i => { const a = i.getBoundingClientRect(); return Math.abs(a.width / a.height - 16 / 9) < 0.03 ? 'ok' : (a.width / a.height).toFixed(2); }).catch(() => 'no photo');
+    await shut();
+    await q.$eval('.tab[data-c="Grip"]', el => el.click()); await q.waitForTimeout(300);
+    await q.$eval('[data-builder]', el => el.click()); await q.waitForTimeout(500); r.builder = await fits('.dpc');
+    r.done = await q.$eval('#crateDone', b => { const a = b.getBoundingClientRect(); return a.bottom <= innerHeight ? 'ok' : 'off screen'; });
+    await shut();
+    await q.evaluate(() => openDates()); await q.waitForTimeout(400); r.dates = await fits('.dpop .box'); await shut();
+    await q.evaluate(() => openReq()); await q.waitForTimeout(400); r.request = await fits('.reqbox'); await shut();
+    ok(Object.values(r).every(v => v === 'ok'), 'every popup fits a ' + w + 'x' + h + ' window: ' + JSON.stringify(r));
+    await q.close();
+  }
 } finally {
   await browser.close(); server.kill();
   py(`cur.execute("update public.sections set sort_order=%s where department='Electric' and name='Power Banks'", (${pb0},)); c.commit()`);

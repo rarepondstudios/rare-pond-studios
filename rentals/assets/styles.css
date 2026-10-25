@@ -264,3 +264,22 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .rpcrate-rmedia{width:64px;height:36px;border-radius:7px;background:#eef3fa}
 .rpcrate-rmedia img{width:100%;height:100%;object-fit:contain}
 .thumb img.rp-wide,.dphero img.rp-wide,.kr img.rp-wide,.kc img.rp-wide,.rpcrate-rmedia img.rp-wide,.rp-mcard img.rp-wide{object-fit:cover}
+
+/* ============================================================================
+   POPUPS FIT THE SCREEN (Jack 2026-10-25). Every popup stays inside the window: its box is at most the screen
+   height (minus a margin) and only its inside scrolls, so the close button, the photo, the title and the buttons
+   are always in view. The item photo shrinks with the window (a 16:9 frame at most 36% of the screen height, centred
+   on the light blue band) instead of pushing the rest off screen. */
+.dp{padding:16px}
+.dp.show{display:flex;align-items:center;justify-content:center}
+.dpc{width:100%;max-height:calc(100dvh - 32px);display:flex;flex-direction:column}
+.dphero{flex:none;aspect-ratio:auto;height:min(calc(min(880px,100vw - 32px) * 9 / 16),36dvh)}
+.dphero img{left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:100%;height:100%;aspect-ratio:16/9}
+.dpbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.rpcrate-dpc{overflow-y:auto}
+.rpcrate-dpc>*{flex:none}
+.rpcrate-dpc .rpcrate-list{flex:1 1 auto;min-height:96px;overflow-y:auto;overscroll-behavior:contain;margin-right:-10px;padding-right:10px}
+.rpb-art.big{width:auto;max-width:78%;height:min(285px,24dvh)}
+.crewpop,.reqpop{padding:16px}
+.crewbox,.reqbox,.dpop .box{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain}
+@media (max-height:720px){.rpb-art.big{height:17dvh}.rpb-stage{margin:0 0 6px;padding:4px 0 2px}.rpcrate-dpc{padding-top:18px;padding-bottom:16px}.rpcrate-dpc .rpcrate-list{min-height:64px}.rpcrate-sum,.rpcrate-acts{margin-top:10px}}
