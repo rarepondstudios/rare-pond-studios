@@ -47,7 +47,7 @@
 - Removed the 0.0.-112 approach (dead once the tunnel exists): scan_domain_cert.py, the scan.rarepond.com Let's
   Encrypt cert + lego account (moved to ~/.Trash/rp_cleanup_20261025), the SNI branch in scan_service.py, its step in
   renew_scan_cert.sh, `brew uninstall lego`. The A record was already replaced by the tunnel CNAME.
-- Open: Jack deletes the old "Edit zone DNS" Cloudflare API token (unused; the new key replaced it in the same file).
+- Old "Edit zone DNS" Cloudflare API token deleted by Jack. Trashed the false-alarm cloudflared autoheal emails.
 
 ### 0.0.-113 ACCESS FROM ANYWHERE + ACTIVITY PAGE (2026-10-25)
 
