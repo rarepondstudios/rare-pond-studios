@@ -46,7 +46,9 @@
 - New: scan.rarepond.com A -> 100.75.94.127 (DNS only) + Let's Encrypt cert (lego DNS-01 via Cloudflare), served by
   the scan app via SNI; functions/g/[id].js probes both hosts in parallel (4 s). scan_domain_cert.py does DNS + cert
   and runs weekly inside renew_scan_cert.sh. Jack saves the Cloudflare key himself at /admin/scan-domain (owner-only
-  by Tailscale login). Until then the resolver falls back to the Tailscale name (as before).
+  by Tailscale login). LIVE 2026-10-25 13:15: cert until 2027-01-23 (renews weekly job). Gotcha: the mini's plain
+  DNS (port 53, even to Cloudflare's nameservers) is intercepted on its network and answers from a stale cache, so
+  dig/lego checks from the mini lie; use DoH (curl cloudflare-dns.com/dns-query) to see real public DNS.
 
 ### 0.0.-111 STICKER DEMO v62 = TEST KIT (2026-10-24)
 

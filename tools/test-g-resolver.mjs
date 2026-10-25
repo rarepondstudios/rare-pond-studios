@@ -7,7 +7,9 @@ import fs from 'node:fs';
 const src = fs.readFileSync(new URL('../functions/g/[id].js', import.meta.url), 'utf8').replace('export async function', 'async function');
 const onRequest = new Function(src + '; return onRequest;')();
 const block = { ts: process.argv.includes('--block-ts'), scan: process.argv.includes('--block-scan') };
-const b = await chromium.launch(); const ctx = await b.newContext(); let ok = true;
+// the mini's own plain DNS is intercepted on its network; phones resolve scan.rarepond.com publicly
+const b = await chromium.launch({ args: ['--host-resolver-rules=MAP scan.rarepond.com 100.75.94.127'] });
+const ctx = await b.newContext(); let ok = true;
 await ctx.route('https://rarepond.com/g/**', async r => {
   const id = r.request().url().split('/g/')[1];
   const res = await onRequest({ params: { id } });
