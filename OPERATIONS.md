@@ -766,3 +766,14 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
 - Photo export stays 1920 x 1080 (the popup photo is at most 880 px wide, ~1760 px on Retina); shoot full resolution
   and keep the original as the master. ClickUp "Rentals Handbook (Info)" page 4 has the details.
 
+### Keeping docs in step: docsync (2026-10-24)
+
+- A fact that appears in more than one doc is never typed into each doc. It is read hourly from where it is true
+  (launchd, docker, tailscale, the rentals database, or once in bts-automation/docsync/facts_manual.json) and filled
+  into every place that shows it by `com.rarepond.docsync` (bts-automation/docsync.py).
+- ClickUp pages with such facts are generated from bts-automation/docsync/pages/*.md. To change wording, edit the
+  master; a hand edit in ClickUp is flagged, not overwritten. Blocks marked `BEGIN GENERATED: docsync:` here are
+  refilled the same way: do not edit inside them.
+- When something is retired, add it to docsync/retired_terms.json so any doc still claiming it is flagged.
+  Report: bts-automation/docsync_latest.md. Test: docsync_test.py.
+

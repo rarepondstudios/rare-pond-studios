@@ -39,6 +39,22 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-108 DOCSYNC: REPEATED FACTS HAVE ONE SOURCE (2026-10-24)
+
+- New hourly launchd job `com.rarepond.docsync` (bts-automation/docsync.py, via run_with_access.js, on the health
+  board). Facts that several docs repeat (launchd job count, Docker containers, Funnel route, tailnet members and
+  guest access, rentals departments and call codes) are read live from launchd / docker / tailscale / the rentals
+  database; the few no machine knows (device plain names, port names) live once in docsync/facts_manual.json.
+- ClickUp pages that carry those facts are now generated from masters in bts-automation/docsync/pages/*.md
+  (`{{placeholder}}` per fact). A page someone edited by hand in ClickUp is flagged in docsync_latest.md, never
+  overwritten; `docsync.py --accept <slug>` adopts it. In this repo, OPERATIONS.md's department list is a
+  `BEGIN GENERATED: docsync:` block (docsync commits only that file).
+- Retired-claim audit: docsync/retired_terms.json lists dead facts (Shlink, :8443, qdrant, cloudflared, PC not on
+  Tailscale, old doc ids, ...) and docsync flags any doc that still states one. Scan app cheat sheet departments
+  now come from dept_blocks too.
+- Test: `python3 ~/bts-automation/docsync_test.py` (15 checks, ALL PASS 2026-10-24). Launchd PATH gotcha: use
+  /usr/local/bin/tailscale, the app binary returns a 103-byte stub under launchd.
+
 ### 0.0.-107 CART-ONLY SETTINGS, DOCUMENTATION ACCURACY SWEEP (2026-10-25)
 
 - Carts stay items; their settings live only on the cart: NocoDB items view **Carts** shows `also_in_departments`
