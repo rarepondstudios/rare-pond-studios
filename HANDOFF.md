@@ -39,6 +39,15 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-106 CLICKUP RENTALS DOCS MERGED INTO ONE HANDBOOK; HOME SUBTITLE ONE LINE (2026-10-25)
+
+- ClickUp Wiki > Rentals now has ONE info doc: **Rentals Handbook (Info)** (doc 2kyde6jc-1994): 1 Start here (tools,
+  where-to-change table, standards), 2 Day to day (requests, confirming, scanning, missing gear), 3 Managing gear in
+  NocoDB, 4 Photo standard, 5 Rentals page settings (Pages CMS), 6 Access for helpers. "Rentals Dashboard (start
+  here)", "Remote Access for Rentals" and "Rentals photo standard" were emptied to a "Moved" pointer for Jack to
+  delete (the ClickUp tools here cannot delete docs). Keep new rentals info in the Handbook, not new docs.
+- Home subtitle under "Reserve your gear." is one line at desktop widths (`p.homesub`, max-width 960px).
+
 ### 0.0.-105 RENTALS POPUPS FIT THE SCREEN (2026-10-25)
 
 - Item, Build your own, dates and request popups now fit the window (max-height 100dvh - 32px, inside scrolls). Item

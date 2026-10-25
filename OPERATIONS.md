@@ -358,8 +358,8 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   orders** (`/orders/past`, newest first; "All back" once everything returned). Every order opens
   `/o/<id>`: contact (tap to call / email), dates, stage, money (lost quote for lost ones), gear and
   where each unit is, changes from the request, the confirmation note, missing parts, emails sent,
-  every scan, and a link to the HubSpot deal. Search moved to `/search`. The ClickUp **Rentals**
-  space has a doc "Rentals Dashboard (start here)" linking to it (tailnet only).
+  every scan, and a link to the HubSpot deal. Search moved to `/search`. The ClickUp Wiki >
+  Rentals doc "Rentals Handbook (Info)" (2026-10-25, replaces "Rentals Dashboard (start here)") links to it (tailnet only).
 - Scanning (checked 2026-10-24): every gear QR holds `WWW.RAREPOND.COM/G/<code>` (item number, or `####-A`
   for multi-unit items). The phone camera opens rarepond.com/g/<code> (`functions/g/[id].js`): on the
   tailnet it forwards to that gear's check in/out page, off it to /found. The in-app **Scan** button
@@ -742,8 +742,8 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
   fills it with the extra width cropped equally from both sides; anything narrower (square, 4:3, portrait) is shown
   whole and centred with the light blue around it. Code: styles.css block "PHOTO STANDARD", app.js `rpFitImg`.
 - Shooting and export rules for custom photos (1920 x 1080 JPG/WebP, sRGB, under ~500 KB, the exact item we own):
-  ClickUp, Rentals space, doc "Rentals photo standard"
-  (https://app.clickup.com/90141301324/docs/2kyde6jc-1974/2kyde6jc-1694).
+  ClickUp, Wiki > Rentals, doc "Rentals Handbook (Info)", page 4
+  (https://app.clickup.com/90141301324/docs/2kyde6jc-1994/2kyde6jc-1814).
 
 ### Popups fit the screen (2026-10-25)
 
@@ -752,5 +752,5 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
   screen height (centred on the light blue band); the Build your own crate art shrinks on short screens.
   styles.css block "POPUPS FIT THE SCREEN"; tools/test-rentals-sections.mjs checks 1280x720, 1366x600 and 390x844.
 - Photo export stays 1920 x 1080 (the popup photo is at most 880 px wide, ~1760 px on Retina); shoot full resolution
-  and keep the original as the master. ClickUp "Rentals photo standard" has the details.
+  and keep the original as the master. ClickUp "Rentals Handbook (Info)" page 4 has the details.
 
