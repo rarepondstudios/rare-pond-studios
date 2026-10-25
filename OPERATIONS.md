@@ -745,3 +745,12 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
   ClickUp, Rentals space, doc "Rentals photo standard"
   (https://app.clickup.com/90141301324/docs/2kyde6jc-1974/2kyde6jc-1694).
 
+### Popups fit the screen (2026-10-25)
+
+- Every rentals popup (item, Build your own, dates, request) is at most the window height minus 32 px; only its
+  inside scrolls, so the close button and title stay in view. The item photo frame is 16:9 but at most 36% of the
+  screen height (centred on the light blue band); the Build your own crate art shrinks on short screens.
+  styles.css block "POPUPS FIT THE SCREEN"; tools/test-rentals-sections.mjs checks 1280x720, 1366x600 and 390x844.
+- Photo export stays 1920 x 1080 (the popup photo is at most 880 px wide, ~1760 px on Retina); shoot full resolution
+  and keep the original as the master. ClickUp "Rentals photo standard" has the details.
+

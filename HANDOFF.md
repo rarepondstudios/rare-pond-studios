@@ -39,6 +39,12 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-105 RENTALS POPUPS FIT THE SCREEN (2026-10-25)
+
+- Item, Build your own, dates and request popups now fit the window (max-height 100dvh - 32px, inside scrolls). Item
+  photo: 16:9 frame capped at 36dvh, centred on the light blue band. Crate art 24dvh (17dvh under 720 px high).
+  Verified live; test tools/test-rentals-sections.mjs. ClickUp photo doc gained "Capture big, upload 1920 x 1080".
+
 ### 0.0.-104 RENTALS 16:9 PHOTO STANDARD, READABLE DESCRIPTIONS (2026-10-25)
 
 - Item descriptions (.dpdesc) are #bcd0ea, the replacement-value colour, readable on the blue popup.
