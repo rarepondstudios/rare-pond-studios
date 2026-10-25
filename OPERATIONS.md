@@ -791,8 +791,13 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
   removing parts, came-with-kit, deleting another item, adding gear in any department, putting gear into a container
   or taking it out, changing a container's own parts. None of them moves a code.
 - Changes a code (by design, needs a new sticker): moving gear to another department, or ticking / unticking an item's
-  own "is a container" box (containers are numbered x001-x099, gear x100-x999; new number, the old one retired), moving a part to another kit (its pill), renaming (the add-on name).
+  own "is a container" box (containers are numbered x001-x099, gear x100-x999; new number, the old one retired once printed), moving a part to another kit (its pill), renaming (the add-on name).
   Decide quantities before printing too: a single item's sticker has no letter, a second copy makes it `-A` / `-B`.
+- Safety catch (since 2026-10-24, migration 20261025j): those two changes are refused unless the item's current
+  number was first typed into **Confirm number change** (NocoDB items grid, beside the department and is_container
+  columns) within the last 10 minutes. The refusal says what would happen. The confirmation is used up by the change.
+  Scripts that renumber on purpose set `rp.renumber_ok`. A number is retired only if a sticker for it was printed.
+  Tests: noco_number_guard_test.py (through NocoDB), rentals_number_guard_20261024_apply.py.
 - Round 4 live dry run (2026-10-24, rentals_dryrun4_20261024.py): one website request per department as Jack's real
   contact, holds, confirmation emails (8 sent), scan out and in for each department through the scan app; scrubbed.
 - The scan app now says why a booking cannot go out yet ("starts Dec 23: its gear can go out from Dec 21") instead of

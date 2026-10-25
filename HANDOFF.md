@@ -39,6 +39,16 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-110 NUMBER-CHANGE SAFETY CATCH, JACK'S VALUE ANSWERS (2026-10-24)
+
+- A stray tick on is_container or a department change used to renumber an item (and hide it, for containers) without a
+  word. Now refused unless the current number is typed into items.confirm_number_change ("Confirm number change" in
+  NocoDB) within 10 minutes; used up by the change. Putting gear into or out of a container never changes codes
+  (print test checks it). Numbers are retired only when printed. noco_number_guard_test.py ALL PASS.
+- Values per Jack (_rentals_values_20261024b.py): gels $80, matte box at the Indie Kit price, Wireless GO II dual set +
+  ZGCINE case, white scrim $77, SHAPE bag half the tripod, Quick Dome pouches $22.95, INFINIBAR magnets part of the
+  bars. BQ-CC65 came with its batteries (unchanged). Jackery 4104.003 waits for Jack to look at the bag.
+
 ### 0.0.-109 PRINT READINESS, QTY = COPIES, DOCSYNC HARDENED, CAME-WITH-KIT FILLED (2026-10-24)
 
 - qty and copies are now one thing (migration 20261025i, proved by rentals_qty_units_20261024_apply.py): raising qty
