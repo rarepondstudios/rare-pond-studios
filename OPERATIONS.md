@@ -249,9 +249,18 @@ computed server-side in Postgres (see the Supabase section).
 
 The database numbers gear itself (`bts-automation/migrations/20261022_rentals_numbering.sql`,
 `20261022c_lettered_subitems.sql`, `20261022d_containers_ids.sql`, `20261023_containers_first.sql`).
-One ID per thing; the first digit is always the department (Camera 1, Lighting 2, Grip 3,
-Electric 4, Sound 5, DIT 6, Effects 7, Carts 9 (both added 2026-10-25); 8 is free for a new department,
-one row in `public.dept_blocks`):
+One ID per thing; the first digit is always the department, one row per department in `public.dept_blocks`.
+The current list and call codes (filled in hourly from the database by `bts-automation/docsync.py`; do not edit
+between the markers):
+
+<!-- BEGIN GENERATED: docsync:dept_line -->
+Camera 1, Lighting 2, Grip 3, Electric 4, Sound 5, DIT 6, Effects 7, Carts 9
+<!-- END GENERATED: docsync:dept_line -->
+
+<!-- BEGIN GENERATED: docsync:dept_codes -->
+Camera CAM, Lighting LGT, Grip G&E, Electric ELC, Sound SND, DIT DIT, Effects EFX, Carts CRT
+<!-- END GENERATED: docsync:dept_codes -->
+
 
 | What | ID | Example | On a sticker |
 |---|---|---|---|
@@ -264,8 +273,8 @@ one row in `public.dept_blocks`):
   the lowest free number in their range, sub-items the lowest free `.###` in their item, units the
   lowest free letter. Sub-items never use up item numbers. The database row id is plumbing and is
   never shown or printed.
-- **Call names:** a container is called by its department code (`dept_blocks.call_prefix`: CAM, LGT,
-  G&E, ELC, SND, DIT, EFX, CRT) + the last two digits, and the database keeps that at the end of its name in
+- **Call names:** a container is called by its department code (`dept_blocks.call_prefix`, listed above)
+  + the last two digits, and the database keeps that at the end of its name in
   brackets ("Nanuk 935 Case (CAM 01)"); rename freely, the bracket is re-added. The same two digits go
   on the case in big department-color numbers. Scan app: "Put it in" also accepts "CAM 01".
 - **Renumbers:** 2026-10-22 (gaps closed, containers created) and 2026-10-23 (containers to x001,
