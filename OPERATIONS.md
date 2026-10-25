@@ -174,13 +174,17 @@ integrations**, not by n8n. There used to be an n8n workflow doing the same job 
 you see duplicates reappear, something re-enabled a second path.
 
 **`rp_order_data`** is a hidden Jotform field mapped to a HubSpot deal property. It encodes the
-cart (`s:START|e:END|i:ID:QTY,ID:QTY`) and is what lets Supabase rebuild the order.
+cart (`s:START|e:END|i:ID:QTY,ID:QTY`) and is what lets Supabase rebuild the order. Since 2026-10-25 a cart
+line can also be `k<package id>:QTY` (a package) or `b<package id>.<item id>:QTY` (one pick inside a
+"Build your own" package); the n8n sync node turns them into `{package_id, qty}` and `{package_id, item_id, qty}`.
 
 **Every request holds its gear straight away (since 2026-10-24).** When the sync first sees a
 request (dates, a cart, return date not past) it creates the order at draft and reserves the units
-as `held`. Held and confirmed bookings both block the website calendar and everyone else, so the
-first request wins. Moving the deal on (Start Invoice Sent / In Progress) upgrades the holds to
-`confirmed`; Closed Lost releases them; moving back to an early stage turns them back into holds.
+as `pending` (called `held` before 2026-10-25). Pending and confirmed bookings both block everyone else, so the
+first request wins. On the site, an item whose free copies for the chosen dates are all pending shows greyed
+with "Reserved"; its popup says so and links to the contact form (wording in Pages CMS, Rentals > availability).
+Confirmed copies simply disappear for those dates. Moving the deal on (Start Invoice Sent / In Progress) upgrades
+the bookings to `confirmed`; Closed Lost releases them; moving back to an early stage turns them back to pending.
 A deal first seen already Closed Lost never creates an order.
 
 **Double bookings are stopped on the site first.** Right before sending, the request popup
@@ -675,3 +679,24 @@ Rentals categories were `Camera #EA4335`, `Lighting #FF9900`, `Grip #8b5cf6`,
 - `items.copies_condition` is a read-only summary on every item ("All OK (3)", "2102-C in repair; 2 OK").
 - A copy that is not ok is skipped by availability, reservations and the scan app. The old item-level
   `items.condition_status` was unused and is gone (migration 20261024i).
+
+### Packages, Build your own, carts (2026-10-25)
+
+- **Packages** live in their own table (`packages`, NocoDB "Packages"), not in items. Code `PKG-NNN`, its own
+  numbering. Contents are `package_lines` (NocoDB "Contents (by package)"). Easiest way to fill one: the scan
+  app's **Packages** page (menu), whose search only offers gear from the package's departments plus carts.
+  The database refuses parts and gear from other departments either way.
+- **Price**: leave the day rate blank and it is the gear minus the discount (15% unless changed). Type a number
+  and it is kept; anything added later puts its own day rate on top. Clear it to work it out again.
+- **Only in a package**: tick `only_in_packages` on an item and it no longer shows on its own on the site.
+- **Build your own** (kind `builder`): shown at the top of its department as a featured card that opens the
+  builder popup. Customers pick from its lines (optional max per line); priced per item plus the handling fee.
+  The popup picture is two layers per department in Pages CMS (Rentals > builders): back and front, transparent
+  PNG 1200x900, with a glow drawn between them.
+- **New packages start hidden.** Untick hidden (or tick "Show on the website" in the scan app) when ready.
+- **Checking a package out**: open the order in the scan app, then the package. Plain gear is a tick list;
+  containers and gear with parts have an Open button that runs their own checklist and returns to the package.
+- **Carts** (block 9, department code CRT, silver): usable with any department. `also_in_departments` lists the
+  departments whose page shows the cart at the bottom; `cart_pairings` (NocoDB "Carts") sets which gear
+  recommends which cart.
+

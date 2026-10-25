@@ -8,8 +8,13 @@
    which returns, per item AND per package (by name):
      serviceable_units  physical copies whose unit.condition_status='ok'
                         (so an in-repair / missing copy is excluded)  -> repair
-     available_units    serviceable copies with NO overlapping held/confirmed
+     available_units    serviceable copies with NO overlapping pending/confirmed
                         booking for the chosen dates                  -> booking
+     unconfirmed_units  serviceable copies with no CONFIRMED booking (2026-10-25). When
+                        available is 0 but this is not, every free copy is only PENDING
+                        (someone asked, not confirmed): the card is greyed out with a
+                        'reserved, contact us' note. When it is 0 too the gear is
+                        confirmed for those dates and the card is not shown at all.
      is_serviceable     serviceable_units > 0
      is_available       available_units > 0
 
@@ -95,7 +100,8 @@
     var isServ = (b ? b.is_serviceable : (a ? a.is_serviceable : true));
     var cap = a ? a.available_units : serviceable;
     if (cap == null) cap = Infinity;
-    return { serviceable: serviceable, is_serviceable: isServ, cap: cap, booking: !!a };
+    var unc = (a && a.unconfirmed_units != null) ? a.unconfirmed_units : null;
+    return { serviceable: serviceable, is_serviceable: isServ, cap: cap, booking: !!a, unc: unc };
   }
 
   function infoFor(p) { return p ? infoByName((p.name || "").trim().toLowerCase()) : null; }
@@ -107,9 +113,30 @@
     return (info.cap === Infinity) ? Infinity : Math.max(0, info.cap | 0);
   }
 
+  /* 'ok' | 'repair' (every copy in repair) | 'pending' (only pending copies left for the dates)
+     | 'gone' (confirmed for the dates) | 'out' (no copy, no dates context) */
+  function stateOf(p) {
+    var info = infoFor(p);
+    if (!info) return "ok";
+    if (!info.is_serviceable) return "repair";
+    if (info.cap > 0) return "ok";
+    if (info.booking) return (info.unc > 0) ? "pending" : "gone";
+    return "out";
+  }
+
+  function copy(key, fallback) {
+    try { var g = (window.RP_RENTALS || {}).availability || {}; var v = g[key]; return (v == null || v === "") ? fallback : v; }
+    catch (e) { return fallback; }
+  }
+  function pendBanner() { return copy("pendingBanner", "Reserved, pending confirmation"); }
+  function pendMessage() {
+    return copy("pendingMessage", "This item is reserved for your dates, but that booking is not confirmed yet. If you would like to know how likely it is to free up, reach out to us on the contact page and we will let you know.");
+  }
+
   function bookMsg(p) {
     var info = infoFor(p);
     if (info && !info.is_serviceable) return "This item is currently in repair.";
+    if (stateOf(p) === "pending") return "Reserved for these dates, pending confirmation. Ask us on the contact page.";
     return "Booked out for these dates.";
   }
 
@@ -119,6 +146,7 @@
     cards.forEach(function (card) {
       // reset any prior overlay marks so re-applies are idempotent
       card.style.display = "";
+      card.classList.remove("rp-pend");
       var banner = card.querySelector(".rp-availbanner");
       var addBtn = card.querySelector("button.add");
       if (addBtn && addBtn.dataset.rpLabel) {
@@ -138,6 +166,21 @@
       if (out) {
         if (!info.is_serviceable) {            // whole line in repair -> hide it
           card.style.display = "none";
+          return;
+        }
+        if (info.booking && !(info.unc > 0)) {  // confirmed for these dates -> not listed (2026-10-25)
+          card.style.display = "none";
+          return;
+        }
+        if (info.booking && info.unc > 0) {    // only pending copies -> greyed, can still be opened
+          card.classList.add("rp-pend");
+          if (banner) { banner.className = "rp-availbanner rp-pend"; banner.textContent = pendBanner(); }
+          if (addBtn) {
+            addBtn.dataset.rpLabel = addBtn.textContent;
+            addBtn.textContent = "Reserved";
+            addBtn.disabled = true;
+            addBtn.classList.add("rp-bookedbtn");
+          }
           return;
         }
         if (banner) {
@@ -171,12 +214,24 @@
     var isPkg = (p.kind === "package");
     var out = (info.cap <= 0) || !info.is_serviceable;
 
+    var old = dp.querySelector(".rp-pendmsg"); if (old) old.remove();
     if (out) {
-      if (addb) { addb.textContent = isPkg ? "Unavailable" : "Booked out"; addb.disabled = true; addb.classList.add("rp-bookedbtn"); }
+      var pend = info.is_serviceable && info.booking && info.unc > 0;
+      if (addb) { addb.textContent = pend ? "Reserved" : (isPkg ? "Unavailable" : "Booked out"); addb.disabled = true; addb.classList.add("rp-bookedbtn"); }
       if (plus) { plus.disabled = true; }
-      if (stat && !isPkg) {
-        stat.textContent = !info.is_serviceable ? "Currently in repair" : "Booked out for these dates";
+      if (stat) {
+        stat.textContent = !info.is_serviceable ? "Currently in repair" : (pend ? pendBanner() : "Booked for these dates");
         stat.classList.add("rp-dp-out");
+      }
+      if (pend) {                               // the 'reserved, contact us' note with a link to the contact form
+        var row = dp.querySelector(".dprow");
+        var msg = document.createElement("div");
+        msg.className = "rp-pendmsg";
+        msg.innerHTML = "";
+        msg.appendChild(document.createTextNode(pendMessage() + " "));
+        var a = document.createElement("a"); a.href = "#contact"; a.setAttribute("data-contact", ""); a.textContent = "Contact us";
+        msg.appendChild(a);
+        if (row && row.parentNode) row.parentNode.insertBefore(msg, row.nextSibling);
       }
     } else {
       if (stat && !isPkg && info.cap !== Infinity) {
@@ -304,6 +359,11 @@
       ".rp-availbanner.rp-in{background:rgba(120,230,180,.15);color:#8ff0c4;border:1px solid rgba(120,230,180,.4)}" +
       ".rp-availbanner.rp-out{background:rgba(255,90,90,.16);color:#ff9a9a;border:1px solid rgba(255,90,90,.5)}" +
       "button.add.rp-bookedbtn,.dpadd.rp-bookedbtn{opacity:.55;cursor:not-allowed;filter:grayscale(1)}" +
+      ".rp-availbanner.rp-pend{background:rgba(205,210,222,.14);color:#d6dbe6;border:1px solid rgba(205,210,222,.45)}" +
+      ".card.rp-pend{filter:grayscale(.92);opacity:.6}" +
+      ".card.rp-pend:hover{opacity:.78}" +
+      ".rp-pendmsg{margin:12px 0 2px;padding:11px 14px;border-radius:12px;background:#f1f3f8;border:1px solid #dfe4ee;color:#3b4660;font:500 13.5px/1.5 Heebo,system-ui,sans-serif}" +
+      ".rp-pendmsg a{color:#2f57a6;font-weight:800;text-decoration:underline;cursor:pointer}" +
       ".stat.rp-dp-out{color:#ff9a9a!important}" +
       ".rp-avtoast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);z-index:9999;background:rgba(20,26,40,.96);color:#fff;font:600 13.5px/1.3 Heebo,system-ui,sans-serif;padding:11px 18px;border-radius:12px;box-shadow:0 10px 34px rgba(0,0,0,.4);border:1px solid rgba(150,190,255,.22);opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;max-width:min(88vw,420px);text-align:center}" +
       ".rp-avtoast.show{opacity:1;transform:translateX(-50%) translateY(0)}";
@@ -327,7 +387,7 @@
   /* Exposed so the Grip Crate builder (app.js) can honour the SAME booking-aware
      availability as the rest of the catalog. capOf -> free count for the chosen
      dates (serviceable count when no dates yet), Infinity for untracked items. */
-  window.RPAvail = { capOf: capOf, hasDates: hasDates, bookMsg: bookMsg };
+  window.RPAvail = { capOf: capOf, hasDates: hasDates, bookMsg: bookMsg, stateOf: stateOf };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();

@@ -298,6 +298,29 @@ content:
               description: "Safe to change any time. This does not touch the database." }
           - { name: colorLook, label: "Linked color look", type: string,
               description: "The name (ID) of a look in COLOR LOOKS - e.g. red, amber, violet, yellow, green, pink, or signature. That look's Color 1 becomes this category's color. If it does not match a real look, the category keeps its built-in color; the Color Looks preview page flags broken links in red." }
+      - name: builders
+        label: "📦 Build-your-own package art (one per department)"
+        type: object
+        list: true
+        description: >-
+          The picture at the top of a Build Your Own popup (e.g. Build Your Own Grip Crate). The BACK layer
+          sits behind, the FRONT layer on top, and a glow between them grows as the customer adds gear.
+          The package itself (name, contents, handling fee) is made in NocoDB, table packages.
+        fields:
+          - { name: department, label: "Department (category ID, e.g. Grip)", type: string,
+              description: "Must match the category ID exactly. The art is used by the build-your-own package of that department." }
+          - { name: backImage, label: "Back layer (inside / rear walls)", type: image,
+              description: "SPECS: transparent PNG, 1200 x 900 px (4:3), the object centred with about 60 px of empty space around it, under 400 KB, sRGB 8-bit. Both layers must be the same size and line up exactly." }
+          - { name: frontImage, label: "Front layer (front walls)", type: image,
+              description: "SPECS: same as the back layer (transparent PNG, 1200 x 900 px, lined up with it). Only the front of the object; everything else transparent so the glow shows through." }
+      - name: availability
+        label: "🗓️ Availability wording"
+        type: object
+        fields:
+          - { name: pendingBanner, label: "Card banner when every copy is pending", type: string,
+              description: "Shown on a gear card (greyed out) when it is requested by someone else for the chosen dates but not confirmed yet." }
+          - { name: pendingMessage, label: "Message in the popup for a pending item", type: text,
+              description: "Shown when someone opens a pending item. A link to the contact form is added after it automatically." }
       - name: logos
         label: Rentals logos
         type: object

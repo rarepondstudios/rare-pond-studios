@@ -37,6 +37,11 @@
       "id": "DIT",
       "label": "DIT",
       "colorLook": "pink"
+    },
+    {
+      "id": "Carts",
+      "label": "Carts",
+      "colorLook": "silver"
     }
   ],
   "logos": {
@@ -64,5 +69,16 @@
     "dailyTotal": "Daily total",
     "quoteButton": "Request rental quote",
     "emptyMessage": "Your cart is empty.<br>Add gear from any category, it stays here as you browse."
+  },
+  "builders": [
+    {
+      "department": "Grip",
+      "backImage": "/media/rentals/builders/grip-crate-back.png",
+      "frontImage": "/media/rentals/builders/grip-crate-front.png"
+    }
+  ],
+  "availability": {
+    "pendingBanner": "Reserved, pending confirmation",
+    "pendingMessage": "This item is reserved for your dates, but that booking is not confirmed yet. If you would like to know how likely it is to free up, reach out to us on the contact page and we will let you know."
   }
 }

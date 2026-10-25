@@ -79,6 +79,15 @@
       "taglineItalic": false
     },
     {
+      "key": "silver",
+      "name": "Silver",
+      "kind": "category",
+      "c1": "#b8c0cc",
+      "c2": "#b8c0cc",
+      "c3": "#b8c0cc",
+      "taglineItalic": false
+    },
+    {
       "key": "geri",
       "name": "Geri-Action",
       "kind": "film",

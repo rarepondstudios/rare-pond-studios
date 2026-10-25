@@ -115,9 +115,7 @@ the studio owns gets a unit row, including the components **inside** a package
 or kit (the sub-items, where `parent_id` points at the parent item). So when you
 build a kit, add **one unit row per physical copy of each component** (e.g. a kit
 that contains two identical straps → give that strap sub-item two units). A
-normal one-of component gets a single unit. This does **not** change what the
-website shows for a package yet, the package-availability RPC is separate and
-still keys off the package, not its component units, but it keeps the units
+normal one-of component gets a single unit. This keeps the units
 table a complete physical inventory and keeps every sub-item's `qty` accurate.
 For a **shared** component (one physical piece listed under several kits via
 `shared_parent_ids`), create units **once** for that row, do not multiply by the
@@ -139,5 +137,9 @@ no physical unit). It runs on login and every few minutes via the launchd agent
 minutes) delay between adding/removing units and the count updating; you can
 force it immediately by running the script once.
 
-**Packages** (`kind` = `package`) are bundles and are **not** unit-driven, they
-keep showing regardless of unit count, so leave their `qty` alone.
+**Packages (since 2026-10-25)** are no longer rows in `items`. They live in `public.packages` (code `PKG-NNN`)
+with their gear in `public.package_lines`, and come in two kinds: a fixed package with one day rate, and a
+"Build your own" (customer picks, e.g. PKG-001 Build Your Own Grip Crate). A package is available when every
+piece in it is free for the dates; booking one books each piece's unit, tagged with the package. Make and
+fill them in the scan app (menu > Packages) or in NocoDB (Packages, Contents (by package)). Full notes:
+OPERATIONS.md, "Packages, Build your own, carts".

@@ -37,7 +37,35 @@
 
 ---
 
-## 0. LATEST SESSION (2026-10-24), READ THIS FIRST
+## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
+
+### 0.0.-100 PACKAGES, BUILD YOUR OWN, CARTS, PENDING BOOKINGS (2026-10-25)
+
+- Booking status `held` renamed `pending` everywhere (enum, triggers, scan app, mail). A new request books as pending;
+  confirmed in HubSpot = confirmed. Site: a date range where every free copy is only pending shows the item greyed with
+  "Reserved" and a popup line linking to the contact form (texts in Pages CMS, Rentals > availability). Some copies
+  pending = normal card with fewer left. Confirmed = gone for those dates.
+- Packages moved out of items into `public.packages` (code PKG-NNN, own numbering, never changes) + `package_lines`.
+  Kinds: `curated` (fixed contents, one day rate) and `builder` ("Build your own", customer picks). Price: blank =
+  gear minus `discount_pct` (15); a typed price is kept and later additions add their day rate on top; clear it to
+  work it out again. Lines must be top-level gear from the package's departments (Carts fit anywhere); the database
+  refuses anything else. `items.only_in_packages` hides gear that is rentable only inside a package. New packages
+  start hidden.
+- PKG-001 = "Build Your Own Grip Crate" (replaces the old crate feature): the clamps 3105-3112, safety cable 3120,
+  track wedge 3121, KUPO 3122, all only_in_packages; handling $5/day. Popup art = back + front PNG layers with a glow
+  between that grows with the count; per department in Pages CMS (Rentals > builders, transparent PNG 1200x900).
+- Carts: category `Carts`, block 9 (code CRT, silver look). Folding Hand Truck renumbered 3105 -> 9100,
+  also_in_departments Grip, Lighting (listed under "Carts for X" at the bottom), paired with Apple Boxes 3100-3103,
+  2100, 2101 (`cart_pairings`, shown as Recommended cart / Works well with). Grip shifted down to close the gap.
+- Orders: `order_packages` per package on an order, `bookings.order_package_id`. Site payload tokens `k<pkg>:<qty>`
+  (package) and `b<pkg>.<item>:<qty>` (build-your-own line); the n8n "HubSpot -> Rental DB Sync" node parses them.
+- Scan app: /packages (menu > Packages) makes packages and fills them from a search limited to their departments
+  (NocoDB's free plan cannot filter the link picker by the row). Order page lists its packages; /o/<order>/p/<id>
+  is the package checklist: plain gear is ticked out/in together; containers and gear with parts open their own page
+  (Open button) and come back to the checklist after Confirm. NocoDB: Packages, Contents (by package), Carts views.
+- Migrations 20261025a/b/c; scripts _rentals_packages_carts_20261025.py, noco_packages_setup.py,
+  _n8n_packages_tokens.js, _wire_scan_packages.py. Tests: rentals_packages_test.py (DB), scan_packages_test.py (scan
+  app), tools/test-rentals-packages.mjs (site).
 
 ### 0.0.-99 CAM 01 / CAM 02 SHUFFLE, KONDOR BLUE MATTE BOX (2026-10-24)
 
