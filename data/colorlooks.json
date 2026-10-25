@@ -88,6 +88,15 @@
       "taglineItalic": false
     },
     {
+      "key": "lightblue",
+      "name": "Light Blue",
+      "kind": "category",
+      "c1": "#4fc3f7",
+      "c2": "#4fc3f7",
+      "c3": "#4fc3f7",
+      "taglineItalic": false
+    },
+    {
       "key": "geri",
       "name": "Geri-Action",
       "kind": "film",

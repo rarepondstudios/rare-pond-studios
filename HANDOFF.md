@@ -39,6 +39,23 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-101 EFFECTS DEPARTMENT, KIT VALUE RULE, NOCODB-ONLY ADMIN (2026-10-25)
+
+- New department **Effects** (special effects, practical and digital), after DIT: enum value, dept_blocks block 7
+  (call prefix EFX), look `lightblue` #4FC3F7 (NocoDB color_looks row, synced), rentals.json category, scan app DEPTS,
+  NocoDB select options. The site shows no tab icon for it yet (`ICON.Effects` is empty): Jack to supply one.
+- First item **7100 WOLFBOX MegaFlow 200 Air Blower**, $10/day, value $110.99 (official Lite Pack / No Case price, one
+  battery). Parts, all "Came with the kit": 7100.001 battery ($35.99, the store's Battery Only price), .002 nozzles x4,
+  .003 brushes x2, .004 USB-C cable, .005 storage pouch, .006 Info Papers (no sticker). No photo yet.
+  Script _rentals_wolfbox_20261025.py.
+- **Kit value rule:** items.came_with_kit ("Came with the kit"). Kit value = own_value + parts not ticked. Adding a part
+  adds its value; a typed total sticks; first part on a typed-value kit adopts that value. The 34 typed-value kits kept
+  their values exactly (parts ticked). 2100 now $2,089 (AirTag added). Migrations 20261025d/e/f.
+- **Scan app package editor removed** (/packages gone, menu link gone); the scan app keeps the package checkout.
+  NocoDB: new many-to-many links on items **Carts for this gear** / **Gear this cart goes with** (cart_pairings),
+  noco_cart_links.py; noco_effects_setup.py. Test noco_admin_test.py covers packages, carts, items and the kit rule
+  through NocoDB's API.
+
 ### 0.0.-100 PACKAGES, BUILD YOUR OWN, CARTS, PENDING BOOKINGS (2026-10-25)
 
 - Follow-up: packages are made in NocoDB too. New many-to-many link **Gear** on packages (through package_lines,
@@ -65,7 +82,7 @@
   2100, 2101 (`cart_pairings`, shown as Recommended cart / Works well with). Grip shifted down to close the gap.
 - Orders: `order_packages` per package on an order, `bookings.order_package_id`. Site payload tokens `k<pkg>:<qty>`
   (package) and `b<pkg>.<item>:<qty>` (build-your-own line); the n8n "HubSpot -> Rental DB Sync" node parses them.
-- Scan app: /packages (menu > Packages) makes packages and fills them from a search limited to their departments
+- Scan app (editor REMOVED in 0.0.-101): /packages (menu > Packages) made packages and fills them from a search limited to their departments
   (NocoDB's free plan cannot filter the link picker by the row). Order page lists its packages; /o/<order>/p/<id>
   is the package checklist: plain gear is ticked out/in together; containers and gear with parts open their own page
   (Open button) and come back to the checklist after Confirm. NocoDB: Packages, Contents (by package), Carts views.

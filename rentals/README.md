@@ -141,5 +141,5 @@ force it immediately by running the script once.
 with their gear in `public.package_lines`, and come in two kinds: a fixed package with one day rate, and a
 "Build your own" (customer picks, e.g. PKG-001 Build Your Own Grip Crate). A package is available when every
 piece in it is free for the dates; booking one books each piece's unit, tagged with the package. Make and
-fill them in the scan app (menu > Packages) or in NocoDB (Packages, Contents (by package)). Full notes:
+fill them in NocoDB (Packages: the Gear link; Contents (by package) for qty and max). Full notes:
 OPERATIONS.md, "Packages, Build your own, carts".

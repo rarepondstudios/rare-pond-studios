@@ -659,12 +659,18 @@ Kept as history only. These are NOT fallbacks and are NOT in the code any more.
 Rentals categories were `Camera #EA4335`, `Lighting #FF9900`, `Grip #8b5cf6`,
 `Electric #FFE600` (brighter lemon since 2026-10-22, was #FBBC04), `Sound Packages #34A853`,
 `DIT #FF3EA5` (hot pink look `pink`, added 2026-10-22; items 6001+).
+`Effects #4FC3F7` (look `lightblue`, added 2026-10-25: special effects gear, practical and digital; block 7,
+gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
 
 ### Replacement values (2026-10-24)
 
 - A normal item carries its own replacement value (today's new price at a major US retailer or the maker).
-- Kits and cases with **value_from_parts** ticked add up: their **own_value** (e.g. the empty case) plus every part
-  (value x qty). Kept current by a database trigger, so changing a part changes the kit.
+- **Kit value rule (2026-10-25):** a kit's value = its **own_value** (what the kit or empty case cost) + every part
+  (value x qty) that is NOT ticked **Came with the kit**. So adding a part (an AirTag, a spare battery) adds its value,
+  removing it takes it off, and changing it moves the kit. Tick "Came with the kit" on parts that were in the box,
+  since the kit's own price already covers them (do this when entering a new kit). Typing a new total on a kit keeps
+  that total (own_value is adjusted); a total lower than its added parts is refused. Kept by database triggers.
+  Kits that had a typed value before this rule kept it exactly, with their existing parts ticked.
 - Containers also have **value_with_contents**: the case value plus every piece of gear stored inside it right now.
   It updates when gear is put in or taken out, and when anything inside changes value.
 - Parts: valued per piece. On Jack's request (2026-10-24) every part was looked up, using the maker's spare or
@@ -685,9 +691,9 @@ Rentals categories were `Camera #EA4335`, `Lighting #FF9900`, `Grip #8b5cf6`,
 - **Packages** live in their own table (`packages`, NocoDB "Packages"), not in items. Code `PKG-NNN`, its own
   numbering. Make one in NocoDB: add a row in "Packages" (name, kind, departments), then click **Gear** on that
   row and pick gear (the picker shows each item's code and department). Each pick is a line with qty 1 in
-  `package_lines`; set qty, or max for a Build your own, in "Contents (by package)". The database refuses parts
+  `package_lines`; set qty, or max for a Build your own, in "Contents (by package)". Packages are only made and
+  edited in NocoDB (the scan app editor was removed 2026-10-25); the scan app only checks them out and in. The database refuses parts
   and gear from departments the package does not hold, and NocoDB shows the reason (add the department first).
-  The scan app's Packages page does the same with a search already limited to the package's departments.
 - **Price**: leave the day rate blank and it is the gear minus the discount (15% unless changed). Type a number
   and it is kept; anything added later puts its own day rate on top. Clear it to work it out again.
 - **Only in a package**: tick `only_in_packages` on an item and it no longer shows on its own on the site.
@@ -695,10 +701,10 @@ Rentals categories were `Camera #EA4335`, `Lighting #FF9900`, `Grip #8b5cf6`,
   builder popup. Customers pick from its lines (optional max per line); priced per item plus the handling fee.
   The popup picture is two layers per department in Pages CMS (Rentals > builders): back and front, transparent
   PNG 1200x900, with a glow drawn between them.
-- **New packages start hidden.** Untick hidden (or tick "Show on the website" in the scan app) when ready.
+- **New packages start hidden.** Untick hidden when ready.
 - **Checking a package out**: open the order in the scan app, then the package. Plain gear is a tick list;
   containers and gear with parts have an Open button that runs their own checklist and returns to the package.
 - **Carts** (block 9, department code CRT, silver): usable with any department. `also_in_departments` lists the
-  departments whose page shows the cart at the bottom; `cart_pairings` (NocoDB "Carts") sets which gear
-  recommends which cart.
+  departments whose page shows the cart at the bottom. Pair them in NocoDB from either side: **Carts for this
+  gear** on the gear, or **Gear this cart goes with** on the cart (both write `cart_pairings`).
 

@@ -39,6 +39,11 @@
       "colorLook": "pink"
     },
     {
+      "id": "Effects",
+      "label": "Effects",
+      "colorLook": "lightblue"
+    },
+    {
       "id": "Carts",
       "label": "Carts",
       "colorLook": "silver"
