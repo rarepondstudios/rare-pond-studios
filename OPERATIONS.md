@@ -735,3 +735,13 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
 - **Tabs:** every category in Pages CMS gets its tab on first paint; once the live catalog is in, a category with no
   gear is dropped.
 
+### Photo standard: 16:9 everywhere (2026-10-25)
+
+- Every gear photo frame on the rentals page is 16:9 on a very light blue (#EEF3FA): catalog cards, the item popup,
+  recommended / package mini cards, Build your own rows, kit contents. Exactly 16:9 fills the frame; wider than 16:9
+  fills it with the extra width cropped equally from both sides; anything narrower (square, 4:3, portrait) is shown
+  whole and centred with the light blue around it. Code: styles.css block "PHOTO STANDARD", app.js `rpFitImg`.
+- Shooting and export rules for custom photos (1920 x 1080 JPG/WebP, sRGB, under ~500 KB, the exact item we own):
+  ClickUp, Rentals space, doc "Rentals photo standard"
+  (https://app.clickup.com/90141301324/docs/2kyde6jc-1974/2kyde6jc-1694).
+

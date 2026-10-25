@@ -39,6 +39,14 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-104 RENTALS 16:9 PHOTO STANDARD, READABLE DESCRIPTIONS (2026-10-25)
+
+- Item descriptions (.dpdesc) are #bcd0ea, the replacement-value colour, readable on the blue popup.
+- All gear photo frames are 16:9 on #EEF3FA (cards .thumb, popup .dphero, .rp-mcard, .rpcrate-rmedia, .kc, .kr).
+  Wider than 16:9 = cover (app.js rpFitImg adds .rp-wide on load), otherwise contain. Test:
+  tools/test-rentals-sections.mjs (frames, photo inside frame, wide/square/16:9 fit). Shooting rules in ClickUp doc
+  "Rentals photo standard" (Rentals space, https://app.clickup.com/90141301324/docs/2kyde6jc-1974/2kyde6jc-1694).
+
 ### 0.0.-103 RENTALS FIRST PAINT AND STALE SCRIPTS FIXED (2026-10-25)
 
 - Jack saw old icons and Effects/Carts tabs a second late. Causes: (1) `?v=20261022b` never changed while Cloudflare
