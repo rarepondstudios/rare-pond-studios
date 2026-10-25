@@ -137,6 +137,9 @@ no physical unit). It runs on login and every few minutes via the launchd agent
 minutes) delay between adding/removing units and the count updating; you can
 force it immediately by running the script once.
 
+**Sections (since 2026-10-25):** the headings inside a department are rows in NocoDB "Sections"; pick an item's
+**Section** to move it. See OPERATIONS.md, "Sections".
+
 **Packages (since 2026-10-25)** are no longer rows in `items`. They live in `public.packages` (code `PKG-NNN`)
 with their gear in `public.package_lines`, and come in two kinds: a fixed package with one day rate, and a
 "Build your own" (customer picks, e.g. PKG-001 Build Your Own Grip Crate). A package is available when every

@@ -12,7 +12,7 @@ function RPC(){return (window.RP_RENTALS)||{};}
 function copyStr(group,key,fallback){var g=RPC()[group]||{},v=g[key];return (v==null||v==='')?fallback:v;}
 window.RPRerender=function(){try{render();uc();}catch(e){}};
 const CS='#5aa0ff',CE='#8f7bff';const CSd='#3f6fc4',CEd='#6a52cc';function bandCol(t){return lerp(CSd,CEd,Math.max(0,Math.min(1,t)));}
-const ICON={Camera:'M4 8h3l2-3h6l2 3h3v11H4z M12 17a4 4 0 100-8 4 4 0 000 8z',Lighting:'M9 3h6l3 6-6 3-6-3z M11 12h2v9h-2z',Grip:'M15.5 4.8a4 4 0 00-4.6 5.2l-6.3 6.3a1.6 1.6 0 002.3 2.3l6.3-6.3a4 4 0 005.2-4.6l-2.4 2.4-2.3-.6-.6-2.3z',Electric:'M13 2L4 14h6l-1 8 9-12h-6z','Sound':'M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3z M5 11a7 7 0 0014 0 M12 18v3',DIT:'M4 3h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2z M8 21h8 M12 17v4',Home:'M3 11l9-7 9 7 M5 10v10h14V10',Carts:'M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v9',Effects:''};  // Effects: no icon until Jack supplies one
+const ICON={Camera:'M4 8h3l2-3h6l2 3h3v11H4z M12 17a4 4 0 100-8 4 4 0 000 8z',Lighting:'M4.5 6.5h8a1 1 0 011 1v5a1 1 0 01-1 1h-8a1 1 0 01-1-1v-5a1 1 0 011-1z M13.5 5h2v10h-2z M15.5 5l4-2.5 M15.5 15l4 2.5 M6.5 6.5V5h4v1.5 M8.5 13.5v8 M5 21.5h7',Grip:'M15.5 4.8a4 4 0 00-4.6 5.2l-6.3 6.3a1.6 1.6 0 002.3 2.3l6.3-6.3a4 4 0 005.2-4.6l-2.4 2.4-2.3-.6-.6-2.3z',Electric:'M13 2L4 14h6l-1 8 9-12h-6z','Sound':'M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3z M5 11a7 7 0 0014 0 M12 18v3',DIT:'M4 3h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2z M8 21h8 M12 17v4',Home:'M3 11l9-7 9 7 M5 10v10h14V10',Carts:'M4 6.5V17 M20 3V17 M20 3h2 M3 6.5h18 M4 12h16 M4 17h16 M8.3 19.8a1.8 1.8 0 11-3.6 0 1.8 1.8 0 013.6 0z M19.3 19.8a1.8 1.8 0 11-3.6 0 1.8 1.8 0 013.6 0z',Effects:'M13.4 2.3L14.1 7.1L17.2 5.4L15.7 9.2L21.3 8.3L17.3 11.4L19.9 13.1L16.2 13.8L19.6 17.9L15.2 16.2L15.3 20.2L12.6 16.6L10.6 21.9L9.9 16.9L7.0 18.5L8.3 14.8L3.3 15.5L6.7 12.6L3.5 10.8L7.8 10.2L4.2 5.9L8.8 7.8L8.9 4.3L11.4 7.4z'};
 /* Icon artwork comes from /assets/socials.js (loaded in the page head), which is the ONLY
    place it is defined. Add a network there and the studio, rentals and the maintenance
    cover all pick it up. */
@@ -126,7 +126,7 @@ function renderResults(){
  const c=active,col=COL[c];
  rpEnsureStyles();
  function _match(p){return p.name.toLowerCase().includes(q)||(p.sec||'').toLowerCase().includes(q)||(p.contents||[]).some(x=>x.l.toLowerCase().includes(q));}
- function _sections(rows,cc){var ss=[...new Set(rows.map(x=>x.sec))];return ss.map(s=>'<div class="sub">'+esc(s)+'</div><div class="grid">'+rows.filter(x=>x.sec===s).map(p=>card(p,cc||col)).join('')+'</div>').join('');}
+ function _sections(rows,cc){var ss=[...new Set(rows.map(x=>x.sec))];ss=rpSecSort(ss,rows);return ss.map(s=>'<div class="sub">'+esc(s)+'</div><div class="grid">'+rows.filter(x=>x.sec===s).map(p=>card(p,cc||col)).join('')+'</div>').join('');}
  /* gear marked only_in_packages is never listed on its own (it is picked inside a package) */
  var items=RENTALS.filter(p=>p.cat===c&&p.kind!=='package'&&!p.pkgOnly&&_match(p));
  var pkgs=RENTALS.filter(p=>p.kind==='package'&&rpInDept(p,c)&&_match(p));
@@ -550,6 +550,10 @@ function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={}
    var _per=_parents.length>1?1:_pq;
    for(var _pi=0;_pi<_parents.length;_pi++){var par=byId[rpRootOf(_parents[_pi],rows)];if(par)par.contents.push({l:r.name,v:sbMoney(r.replacement_value),g:(r.sub_group||r.section),img:r.photo||"",q:_per});}
   }return out.length?out:null;}
+/* Sections (2026-10-25): their order comes from public.sections.sort_order per department (lower first); sections the
+   table does not know keep the order of their first piece of gear, after the known ones. */
+var SEC_ORDER={};
+function rpSecSort(ss,rows){var dep=(rows[0]&&rows[0].cat)||'';var k=function(s){var v=SEC_ORDER[dep+'|'+s];return v==null?1e9:v;};return ss.map(function(s,i){return [s,i];}).sort(function(a,b){return (k(a[0])-k(b[0]))||(a[1]-b[1]);}).map(function(x){return x[0];});}
 function rpDeps(s){return String(s||'').split(',').map(function(x){return x.trim();}).filter(Boolean);}
 async function sbGet(path){var r=await fetch(SB_URL+"/rest/v1/"+path,{headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY},cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status+" "+path);return r.json();}
 /* Packages (2026-10-25) are their own tables. A curated package becomes a catalog entry (kind 'package', listed under
@@ -568,7 +572,9 @@ function rpBuildPackages(raw){BUILDERS=[];PAIR_BY_ITEM={};PAIR_BY_CART={};if(!ra
 async function loadCatalog(){var res=await Promise.all([sbGet("items?select=*&order=sort_order.asc"),
   sbGet("packages?select=*&order=sort_order.asc,code.asc").catch(function(){return [];}),
   sbGet("package_lines?select=*&order=sort_order.asc,id.asc").catch(function(){return [];}),
-  sbGet("cart_pairings?select=*").catch(function(){return [];})]);
+  sbGet("cart_pairings?select=*").catch(function(){return [];}),
+  sbGet("sections?select=department,name,sort_order").catch(function(){return [];})]);
+ SEC_ORDER={};(res[4]||[]).forEach(function(x){SEC_ORDER[x.department+'|'+x.name]=x.sort_order;});
  var out=sbToRentals(res[0]);if(!out)return null;RP_PKGRAW={pk:res[1],ln:res[2],pr:res[3]};return out;}
 /* Paint immediately with the built-in catalog so the page never waits on the network, then refresh from Supabase in the background. */
 RENTALS.forEach(function(p,i){p._id=i;});render();uc();

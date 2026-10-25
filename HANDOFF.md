@@ -39,6 +39,20 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-102 SECTIONS TABLE, NEW TAB ICONS, WOLFBOX PHOTO (2026-10-25)
+
+- The groupings on each department page are now rows in `public.sections` (department, name, sort_order, label),
+  items.section_id links to them; a trigger keeps items.section (text) equal to the name, so the site and scripts are
+  unchanged. Rename follows to the gear, a section with gear cannot be deleted, wrong-department sections are refused,
+  department moves keep the section name, new gear without one goes to "Other". Site orders sections by sort_order
+  (`SEC_ORDER`, fetched with the catalog). Migration 20261025g_sections.sql; NocoDB: noco_sections_setup.py (link
+  "Section" on items, "Gear" on sections, view "Sections"; items.section is plain text now and out of the main grid).
+  Tests: rentals_sections_test.py (DB), noco_admin_test.py (sections part), tools/test-rentals-sections.mjs (site).
+- Tab icons (app.js `ICON`): Lighting is now a film light with barn doors, Effects a POW burst, Carts a two-tier cart.
+  Drawn at Jack's request (2026-10-25).
+- 7100 WolfBox: photo is WolfBox's own kit photo (upload via noco_upload_photo.py); part .005 is the Felt Drawstring
+  Bag; the 4 nozzles include the one that rides on the unit.
+
 ### 0.0.-101 EFFECTS DEPARTMENT, KIT VALUE RULE, NOCODB-ONLY ADMIN (2026-10-25)
 
 - New department **Effects** (special effects, practical and digital), after DIT: enum value, dept_blocks block 7

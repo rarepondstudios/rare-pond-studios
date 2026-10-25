@@ -708,3 +708,17 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
   departments whose page shows the cart at the bottom. Pair them in NocoDB from either side: **Carts for this
   gear** on the gear, or **Gear this cart goes with** on the cart (both write `cart_pairings`).
 
+### Sections: the groupings inside a department (2026-10-25)
+
+- The headings on a department's page (Batteries, Power Banks, Clamps ...) are rows in **Sections** in NocoDB
+  (`public.sections`): department, name, and **Order on site (lower first)**. The view "Sections" lists them by
+  department in that order, with the gear in each.
+- **Make one:** add a row in Sections (department + name). **Rename:** edit the name; every piece of gear in it follows.
+  **Reorder:** change the order numbers. **Delete:** only an empty section can go; NocoDB says which gear is still in it.
+- **Move gear:** on the item, pick another **Section** (the picker shows "Department / Section"). A section from a
+  different department is refused with the reason. Gear moved to another department lands in the section of the same
+  name there (made if needed). New gear with no section goes to "Other" until one is picked.
+- Parts have no section of their own: they show inside their kit. `items.section` still holds the plain name (the
+  site and older scripts read it) and is kept equal to the Section link by a trigger; writing a name there finds or
+  makes that section.
+
