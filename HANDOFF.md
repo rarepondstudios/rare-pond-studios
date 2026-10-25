@@ -41,6 +41,12 @@
 
 ### 0.0.-100 PACKAGES, BUILD YOUR OWN, CARTS, PENDING BOOKINGS (2026-10-25)
 
+- Follow-up: packages are made in NocoDB too. New many-to-many link **Gear** on packages (through package_lines,
+  picker = items view "Package picker"), added by noco_packages_gear_link.py (edits noco.db with the container
+  stopped; backup in ~/.rarepond_repo_backups). Test: noco_packages_test.py. AirTags added as parts 2100.018
+  (STORM 80c kit) and 4100.006 (Neewer V-Mount Batteries Kit), $29 each like the others
+  (_rentals_airtags_20261025.py); 1001, 1002, 2101, 5001 already had theirs.
+
 - Booking status `held` renamed `pending` everywhere (enum, triggers, scan app, mail). A new request books as pending;
   confirmed in HubSpot = confirmed. Site: a date range where every free copy is only pending shows the item greyed with
   "Reserved" and a popup line linking to the contact form (texts in Pages CMS, Rentals > availability). Some copies

@@ -683,9 +683,11 @@ Rentals categories were `Camera #EA4335`, `Lighting #FF9900`, `Grip #8b5cf6`,
 ### Packages, Build your own, carts (2026-10-25)
 
 - **Packages** live in their own table (`packages`, NocoDB "Packages"), not in items. Code `PKG-NNN`, its own
-  numbering. Contents are `package_lines` (NocoDB "Contents (by package)"). Easiest way to fill one: the scan
-  app's **Packages** page (menu), whose search only offers gear from the package's departments plus carts.
-  The database refuses parts and gear from other departments either way.
+  numbering. Make one in NocoDB: add a row in "Packages" (name, kind, departments), then click **Gear** on that
+  row and pick gear (the picker shows each item's code and department). Each pick is a line with qty 1 in
+  `package_lines`; set qty, or max for a Build your own, in "Contents (by package)". The database refuses parts
+  and gear from departments the package does not hold, and NocoDB shows the reason (add the department first).
+  The scan app's Packages page does the same with a search already limited to the package's departments.
 - **Price**: leave the day rate blank and it is the gear minus the discount (15% unless changed). Type a number
   and it is kept; anything added later puts its own day rate on top. Clear it to work it out again.
 - **Only in a package**: tick `only_in_packages` on an item and it no longer shows on its own on the site.
