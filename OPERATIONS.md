@@ -188,7 +188,7 @@ the bookings to `confirmed`; Closed Lost releases them; moving back to an early 
 A deal first seen already Closed Lost never creates an order.
 
 **Double bookings are stopped on the site first.** Right before sending, the request popup
-re-checks every line against live availability (`catalog_availability`, holds included). Anything
+re-checks every line against live availability (`catalog_availability`, pending bookings included). Anything
 taken is listed in a red panel with **Remove it** and **Change dates**, and Send stays off until
 it is fixed. After a successful send the cart is emptied so a request cannot go twice.
 
@@ -232,10 +232,10 @@ rentals_mail.py` logs instead of sending and marks nothing.
 
 **Who has the gear.** The deal name is what the scan app and NocoDB lead with; the client's name,
 email and phone (`orders.client_name`, `client_email`, `client_phone`) are copied from the deal's
-HubSpot contact and shown under it. The website form does not ask for a phone, so the phone is
-only there if the HubSpot contact has one.
+HubSpot contact and shown under it. The request form requires a phone (see "Phone is required" above), so
+every order from the site has one.
 
-**Time zone (admin setting).** Every "today" in the system (holds, overdue, the scan app, the
+**Time zone (admin setting).** Every "today" in the system (pending bookings, overdue, the scan app, the
 emails) uses `public.rp_today()`, the date in the time zone stored in `rp_settings`. It is set in
 Pages CMS: Rentals Sub Site, "Admin: rental operations (change with care)", which also holds how
 many days a customer gets to return a missing part (default 7). The website reads it from
@@ -250,7 +250,8 @@ computed server-side in Postgres (see the Supabase section).
 The database numbers gear itself (`bts-automation/migrations/20261022_rentals_numbering.sql`,
 `20261022c_lettered_subitems.sql`, `20261022d_containers_ids.sql`, `20261023_containers_first.sql`).
 One ID per thing; the first digit is always the department (Camera 1, Lighting 2, Grip 3,
-Electric 4, Sound 5, DIT 6; 7 and 8 free for new departments, one row in `public.dept_blocks`):
+Electric 4, Sound 5, DIT 6, Effects 7, Carts 9 (both added 2026-10-25); 8 is free for a new department,
+one row in `public.dept_blocks`):
 
 | What | ID | Example | On a sticker |
 |---|---|---|---|
@@ -264,7 +265,7 @@ Electric 4, Sound 5, DIT 6; 7 and 8 free for new departments, one row in `public
   lowest free letter. Sub-items never use up item numbers. The database row id is plumbing and is
   never shown or printed.
 - **Call names:** a container is called by its department code (`dept_blocks.call_prefix`: CAM, LGT,
-  G&E, ELC, SND, DIT) + the last two digits, and the database keeps that at the end of its name in
+  G&E, ELC, SND, DIT, EFX, CRT) + the last two digits, and the database keeps that at the end of its name in
   brackets ("Nanuk 935 Case (CAM 01)"); rename freely, the bracket is re-added. The same two digits go
   on the case in big department-color numbers. Scan app: "Put it in" also accepts "CAM 01".
 - **Renumbers:** 2026-10-22 (gaps closed, containers created) and 2026-10-23 (containers to x001,
@@ -285,9 +286,8 @@ Electric 4, Sound 5, DIT 6; 7 and 8 free for new departments, one row in `public
     the case and stays in storage); gear inside that the same order booked fulfils that booking; gear
     inside that another rental has booked is flagged on the form and the confirm page. Gear that went
     out inside a case on an order is due back with the order, and the overdue alert lists it.
-- **Packages** were removed 2026-10-22 (record: `bts-automation/rentals_packages_archive_2026-10-22.md`).
-  They come back later as groups of items and containers. `catalog_availability` and
-  `reserve_order` still contain the package logic.
+- **Packages** were removed from items 2026-10-22 (record: `bts-automation/rentals_packages_archive_2026-10-22.md`)
+  and came back 2026-10-25 as their own tables: see "Packages, Build your own, carts" below.
 - **Lettered sub-items** (`items.lettered`): a part that has to be told apart inside its kit (the
   three STORM 80c heads 2100.001-A/B/C; 4100's V-mount batteries). Unit names carry the letter, the
   scan app ticks each letter, its pills print the letter. Leave it off for interchangeable parts.
@@ -364,8 +364,8 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   for multi-unit items). The phone camera opens rarepond.com/g/<code> (`functions/g/[id].js`): on the
   tailnet it forwards to that gear's check in/out page, off it to /found. The in-app **Scan** button
   reads the same QR. The page opens with the likely action already picked: **Bring IN** when the
-  scanned copy is out, **Send OUT** to a booking that starts within 2 days (a request still on hold is
-  marked "not confirmed yet"), otherwise in-house use. A copy out for in-house use with a booking
+  scanned copy is out, **Send OUT** to a booking that starts within 2 days (a pending request is
+  marked "Pending, not confirmed yet"), otherwise in-house use. A copy out for in-house use with a booking
   due offers **Send OUT straight from in-house use** (no check-in first). Sub-item pill codes (`2100.001-B`) typed or
   scanned open their kit's page (the resolver used to send them to the home page).
 - Tests for the scan side (bts-automation): `scan_stress_test.py` (every action, then puts everything
@@ -633,7 +633,8 @@ python3 -m http.server 8080
 
 ## Colour: unassigned renders WHITE (no hidden fallbacks)
 
-Every colour on the site comes from Pages CMS -> Color Looks. There are deliberately
+Every colour on the site comes from a colour look: the NocoDB `color_looks` table, exported to
+`data/colorlooks.json` by `colorlooks_sync.py` (Pages CMS only picks which look each thing uses). There are deliberately
 NO hardcoded fallback colours in the code. If a colour is missing - a blank field, or
 a "Linked color look" that does not match a real look - the thing renders **white**.
 
@@ -643,7 +644,7 @@ film, which has no "original" to fall back to. White = unassigned. Go fix the li
 
 Where colour now comes from:
 - Films: Projects -> Linked color look -> a `film` look (accent / main / tint).
-- Rentals categories: Rentals -> Categories -> Linked color look -> a `basics` look.
+- Rentals categories: Rentals -> Categories -> Linked color look -> a `category` look.
 - Event banner: Site Settings -> Event Banner -> Linked color look.
 The Color Looks page shows what uses each look and flags broken links in red.
 
@@ -705,8 +706,10 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
 - **Checking a package out**: open the order in the scan app, then the package. Plain gear is a tick list;
   containers and gear with parts have an Open button that runs their own checklist and returns to the package.
 - **Carts** (block 9, department code CRT, silver): usable with any department. `also_in_departments` lists the
-  departments whose page shows the cart at the bottom. Pair them in NocoDB from either side: **Carts for this
-  gear** on the gear, or **Gear this cart goes with** on the cart (both write `cart_pairings`).
+  departments whose page shows the cart at the bottom. Everything about a cart is set on the cart, in the items
+  view **Carts**: **Gear this cart goes with** (writes `cart_pairings`) and `also_in_departments`. Other gear has no
+  cart settings: the main items view hides those columns, and the database refuses `also_in_departments` on
+  anything that is not a cart and clears it when a cart leaves Carts (migration 20261025h).
 
 ### Sections: the groupings inside a department (2026-10-25)
 

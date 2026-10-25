@@ -180,7 +180,7 @@ content:
           - { name: buttonText, label: Button text, type: string }
           - { name: buttonLink, label: "Button link (URL or /path)", type: string }
           - { name: colorLook, label: "Linked color look", type: string,
-              description: "The name (ID) of a look in COLOR LOOKS. That look's colors are applied here. Type it exactly as the look's ID (e.g. signature, rainbow, red, geri). If it does not match a real look, nothing is applied and the built-in colors are used - open the Color Looks preview page, it flags any broken link in red." }
+              description: "The name (ID) of a look in COLOR LOOKS. That look's colors are applied here. Type it exactly as the look's ID (e.g. signature, rainbow, red, geri). If it does not match a real look, the banner shows WHITE (on purpose, so a broken link is obvious) - open the Color Looks preview page, it flags any broken link in red. The looks themselves are edited in NocoDB, table color_looks." }
           - { name: gradientStyle, label: "Gradient style - Stream (wide horizontal sweep, best for this banner) or Pinwheel (rotating conic, best for round bubbles)", type: select, options: { values: [stream, pinwheel] } }
 
   - name: mediasite
@@ -297,7 +297,7 @@ content:
           - { name: label, label: "Display name (what visitors see)", type: string,
               description: "Safe to change any time. This does not touch the database." }
           - { name: colorLook, label: "Linked color look", type: string,
-              description: "The name (ID) of a look in COLOR LOOKS - e.g. red, amber, violet, yellow, green, pink, or signature. That look's Color 1 becomes this category's color. If it does not match a real look, the category keeps its built-in color; the Color Looks preview page flags broken links in red." }
+              description: "The name (ID) of a look in COLOR LOOKS - e.g. red, amber, violet, yellow, green, pink, lightblue, silver, or signature. That look's Color 1 becomes this category's color. If it does not match a real look, the category shows WHITE (on purpose, so a broken link is obvious); the Color Looks preview page flags broken links in red. The looks themselves are edited in NocoDB, table color_looks." }
       - name: builders
         label: "📦 Build-your-own package art (one per department)"
         type: object

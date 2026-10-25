@@ -39,6 +39,22 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-107 CART-ONLY SETTINGS, DOCUMENTATION ACCURACY SWEEP (2026-10-25)
+
+- Carts stay items; their settings live only on the cart: NocoDB items view **Carts** shows `also_in_departments`
+  and "Gear this cart goes with"; the main items grid and Sticker check hide every cart column; the database refuses
+  `also_in_departments` on non-carts and clears it when a cart leaves Carts (migration 20261025h,
+  noco_cart_views.py). Pairing is done from the cart side.
+- Sweep (checked against the mini 2026-10-24): ClickUp **How To Remote Access** (Shlink :8443 rows gone, Karina =
+  8080 + 8444, funnel = qr_redirect on 8083, Windows PC on the tailnet), **Short Links / QR Codes** (Shlink retired,
+  qr_redirect), **Website Controls** (colour looks live in NocoDB color_looks; unmatched look = white; Go Links admin
+  page), **Full System Overview** (39 launchd jobs, Docker = n8n + nocodb only, no cloudflared, rentals jobs),
+  handbook page 6 (Karina ports). Repo: OPERATIONS.md (departments 7/9 + EFX/CRT, packages back, pending wording,
+  colour source = NocoDB, phone required, carts), rentals/README.md (rewritten: served from this repo, new-item
+  steps, no obsolete separate-site and switch-on sections), .pages.yml (unmatched look = white), scan app cheat
+  sheet (Effects 7 EFX, Carts 9 CRT, packages). Context 02-network: Windows PC IS on the tailnet. automation health
+  now registers com.rarepond.rentalssnapshot (it exits 1 on failure).
+
 ### 0.0.-106 CLICKUP RENTALS DOCS MERGED INTO ONE HANDBOOK; HOME SUBTITLE ONE LINE (2026-10-25)
 
 - ClickUp Wiki > Rentals now has ONE info doc: **Rentals Handbook (Info)** (doc 2kyde6jc-1994): 1 Start here (tools,

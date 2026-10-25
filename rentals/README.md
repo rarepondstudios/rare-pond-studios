@@ -1,18 +1,18 @@
 # Rare Pond Rentals - website
 
-A standalone gear‑rentals site for Rare Pond Studios. Built to deploy as its **own Cloudflare Pages project**, separate from the studio site (rarepond.com), and cross‑linked to it.
+The gear rentals site for Rare Pond Studios, live at **www.rarepond.com/rentals/**. It is part of this repo and deploys with the studio site (Cloudflare Pages, on every push to `main`). For running rentals day to day, the plain-language guide is the ClickUp Wiki doc **Rentals Handbook (Info)**; the technical notes are in OPERATIONS.md.
 
 ## What's in here
 
 ```
-rare-pond-rentals/
-├─ index.html            the site (light – ~10 KB; all logic/data is in assets/)
+rentals/
+├─ index.html            the page (light; all logic is in assets/)
 ├─ form-check.html       one‑click "are my forms wired correctly?" tool (see below)
 ├─ assets/
 │  ├─ styles.css         all styling
 │  ├─ availability.js    live availability (reads Supabase, greys out booked gear)
-│  └─ app.js             app logic + the gear catalog data
-└─ media/                all images as cached files (products, kits, logo)
+│  └─ app.js             app logic + a built-in copy of the catalog (refreshed hourly)
+└─ media/                local images (logos, older gear photos)
 ```
 
 > **Form config moved to the shared `/assets/form-config.js`** (site‑level, not
@@ -22,7 +22,7 @@ rare-pond-rentals/
 > otherwise hand the studio HTML instead of the script. `/assets/` is never covered.
 > **It is still THE ONLY FILE YOU EDIT to change the forms**, just at the new path.
 
-The gear photos are real image files (not embedded), so browsers cache them and the page loads fast on phones. Off‑screen images lazy‑load.
+Gear photos are uploaded through NocoDB (stored on Cloudflare R2) and shown in 16:9 frames (see the photo standard in the handbook). Off‑screen images lazy‑load.
 
 ---
 
@@ -52,17 +52,11 @@ Everything that can break lives in **one file: `/assets/form-config.js`.** Nothi
 - **Internal notification → rentals@rarepond.com** (Jotform‑branded is fine): Jotform → *Settings → Emails → Notification*.
 - **Client autoresponder → the requester, styled like the site, from rentals@rarepond.com**: Jotform → *Settings → Emails → Autoresponder*. Design it as HTML with the logo/colors, echo their submitted fields (and the gear list/dates via the hidden fields), and end with "we'll get back to you soon." To make it truly send **from** rentals@rarepond.com, add and **verify** that sender under Jotform → *Account → Sender Emails* (a one‑time SPF/DKIM step). Until verified, it sends from Jotform with rentals@ as reply‑to.
 
-### What I still need from you to switch it on
-- Create the two Jotform forms ("Rental Request", "Crew Inquiry").
-- Paste their **form IDs** into `/assets/form-config.js`, and confirm the field **input names** match the `fields` map.
-- Set up the Notification + styled Autoresponder and verify rentals@ as a sender.
-Until those IDs are filled in, the site runs on the email fallback (fully functional) and the health check will tell you exactly what's left.
-
 ---
 
 ## Cross‑browser (Safari + Chrome)
 
-The site avoids the WebKit‑fragile patterns (no SVG turbulence/displacement filters, no `backdrop-filter`, no `aspect-ratio`/`:has()` dependencies); masks are `-webkit-` prefixed. It uses standard fl/grid, transforms, gradients and `filter: blur`, all of which render the same in Safari and Chrome. Test URL after deploy on both.
+The site avoids the WebKit‑fragile patterns (no SVG turbulence/displacement filters, no `backdrop-filter`, no `:has()` dependencies); masks are `-webkit-` prefixed. `aspect-ratio` is used for the 16:9 photo frames (Safari 15 and later). It uses standard fl/grid, transforms, gradients and `filter: blur`, all of which render the same in Safari and Chrome. Test URL after deploy on both.
 
 ## Performance
 
@@ -70,16 +64,11 @@ Small HTML + external, cached, lazy‑loaded images; fonts preconnected. Same vi
 
 ---
 
-## Deploying as a SEPARATE Cloudflare site (linked to the studio site)
+## Deploying
 
-This folder is a complete static site - no build step.
-
-1. **New Git repo** (e.g. `rarepondstudios/rare-pond-rentals`) - keep it separate from the studio repo.
-2. **New Cloudflare Pages project** pointing at that repo. Build command: *none*. Output directory: `/` (root).
-3. **Domain:** give it its own hostname - recommended `rentals.rarepond.com` (a subdomain, added in Pages → Custom domains) so it's clearly a separate site from rarepond.com but on-brand.
-4. **The cross‑link is already built in:** the rentals header has a "Studio Site ←" button; on the studio site, the matching "Rental Site →" button should point to this new hostname. (Header logo/duck is bundled locally in `media/` so there's no dependency on the studio site's assets.)
-
-The forms need no server - the Jotform POST + health‑check API call run client‑side. (If you later choose the fully API‑driven form option, that one would add a small Cloudflare Pages Function; the current setup does not.)
+Push to `main` of this repo and Cloudflare Pages deploys the whole site in about a minute. The pre-commit hook
+stamps fresh `?v=` versions on the rentals scripts so returning visitors get the new files (OPERATIONS.md,
+"Rentals page loads fresh after every change").
 
 ---
 
@@ -89,16 +78,13 @@ Item availability on the website is driven by the **units** table (one row per
 physical copy), **not** by a manually typed quantity. The `items.qty` field is
 kept in sync automatically and should be treated as read-only.
 
-**To add a new rentable item:**
+**To add a new rentable item** (NocoDB, base Rare Pond Rentals):
 
-1. **Add the ITEM row** in NocoDB → base **Rare Pond Rentals** → **items**
-   (set name, category, section, price, photo, etc.). Leave `parent_id` empty
-   and `kind` = `item` for a standalone rentable item.
-   → It will **NOT appear on the website yet**, a new item with zero units is
-   hidden on purpose.
-2. **Add one UNIT row per physical copy** in the **units** table, with
-   `item_id` set to the new item's id. The site then shows **"N available"**
-   where N = the number of units you added (2 copies → "2 available").
+1. **Add the item row** in **items**: name, department (`category`), price, replacement value, photo (Image),
+   and pick its **Section**. Leave the number empty (it is given automatically) and keep `kind` = `item`.
+   The database gives it **one unit** (one physical copy) by itself, so it shows as "1 available".
+2. **More copies:** add a row in **units** per extra copy, linked to the item; they get letters A, B, C.
+   The site shows "N available" for N copies.
 3. **If gear is lost, sold or retired**, delete its unit rows. To pull a copy
    temporarily, set its `condition_status` to `in_repair` or `missing` (NocoDB
    units, view **Condition**): availability, reservations and the scan app skip
@@ -106,32 +92,19 @@ kept in sync automatically and should be treated as read-only.
    that row. `items.copies_condition` shows every item's copies at a glance
    (read only). With **zero units the item auto-hides** from the catalog.
 4. **Bookings are handled automatically:** the date picker calls the
-   `catalog_availability` RPC, so an item with units still shows in the catalog
+   `catalog_availability` RPC, so an item still shows in the catalog
    but is **greyed out for dates where all its units are already booked**. You do
    not manage that by hand.
 
-**Sub-items / package components are unit-tracked too.** Every physical thing
-the studio owns gets a unit row, including the components **inside** a package
-or kit (the sub-items, where `parent_id` points at the parent item). So when you
-build a kit, add **one unit row per physical copy of each component** (e.g. a kit
-that contains two identical straps → give that strap sub-item two units). A
-normal one-of component gets a single unit. This keeps the units
-table a complete physical inventory and keeps every sub-item's `qty` accurate.
-For a **shared** component (one physical piece listed under several kits via
-`shared_parent_ids`), create units **once** for that row, do not multiply by the
-number of kits it appears in.
-
-> Tip for data entry: the **units** table has a grid view named **"Component
-> units"** grouped by `unit_class` (a computed field), so standalone-item units
-> and package-component units show as two separate groups. The `item_parent_id`
-> and `unit_class` columns are computed helpers, they are read-only and do not
-> change any data.
+**Parts of a kit are unit-tracked too.** Every physical thing the studio owns gets a unit row, including the parts
+inside a kit (sub-items, whose **Belongs to kit** is the kit). A part that comes in several identical pieces (two
+straps) gets one unit per piece. For a **shared** part (one physical piece listed under several kits via
+`shared_parent_ids`), create units **once** for that row, do not multiply by the number of kits it appears in.
 
 **How the sync works:** a headless job,
-`~/bts-automation/rentals_units_sync.py`, recomputes each **non-package** item's
-`qty` = its unit count (both standalone items **and** sub-items) and PATCHes
-NocoDB only when it changed (**packages are never touched**, since a bundle has
-no physical unit). It runs on login and every few minutes via the launchd agent
+`~/bts-automation/rentals_units_sync.py`, recomputes each item's
+`qty` = its unit count (items **and** sub-items) and PATCHes
+NocoDB only when it changed. It runs on login and every few minutes via the launchd agent
 `com.rarepond.rentalsunitssync`, and logs to
 `~/bts-automation/rentals_units_sync.log`. So there is a short (a couple of
 minutes) delay between adding/removing units and the count updating; you can
