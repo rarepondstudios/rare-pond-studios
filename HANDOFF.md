@@ -39,6 +39,13 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-111 STICKER DEMO v62 = TEST KIT (2026-10-24)
+
+- bts-automation/rentals_stickers v62: the demo sheet now covers every site department (Effects, Carts added) and picks
+  per department three items (multi-copy, the kit with most lettered parts, next best) plus a lettered kit for pills;
+  letters only where real. All 36 QRs decode, all 27 codes open the right page (/find). Demo folder also gets
+  How_to_test.txt (what each sticker tests), written from the same picks. 579 stickers called for, none printed yet.
+
 ### 0.0.-110 NUMBER-CHANGE SAFETY CATCH, JACK'S VALUE ANSWERS (2026-10-24)
 
 - A stray tick on is_container or a department change used to renumber an item (and hide it, for containers) without a
