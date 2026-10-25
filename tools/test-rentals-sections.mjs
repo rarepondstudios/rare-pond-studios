@@ -22,6 +22,16 @@ try {
     await page.waitForFunction(() => typeof SEC_ORDER !== 'undefined' && Object.keys(SEC_ORDER).length > 0, null, { timeout: 15000 });
     await page.$eval('.tab[data-c="Electric"]', el => el.click()); await page.waitForTimeout(400);
   };
+  // first paint, before the live catalog arrives: hold every Supabase call for 4 s
+  const slow = await browser.newPage({ viewport: { width: 1360, height: 900 } });
+  await slow.route(/supabase\.co/, async r => { await new Promise(x => setTimeout(x, 4000)); try { await r.continue(); } catch {} });
+  await slow.goto(BASE + '/rentals/', { waitUntil: 'domcontentloaded' }); await slow.waitForTimeout(900);
+  const early = await slow.evaluate(() => ({ tabs: [...document.querySelectorAll('.tab')].map(t => t.dataset.c), live: RP_LIVE }));
+  ok(!early.live && ['Effects', 'Carts', 'DIT'].every(c => early.tabs.includes(c)), 'every tab is there on first paint, before the live catalog: ' + early.tabs.join(','));
+  await slow.$eval('.tab[data-c="Effects"]', el => el.click()); await slow.waitForTimeout(200);
+  const earlyFx = await slow.evaluate(() => [...document.querySelectorAll('.card h3')].map(h => h.textContent));
+  ok(earlyFx.some(n => /WOLFBOX/.test(n)), 'Effects already has its gear from the built-in list: ' + earlyFx.join(', '));
+  await slow.close();
   await open();
   const h1 = await heads(page);
   ok(JSON.stringify(h1) === JSON.stringify(want), 'Electric sections in the database order: ' + h1.join(', '));
