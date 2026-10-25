@@ -59,8 +59,11 @@ try {
   });
   ok(fit.wide === 'cover' && fit.square === 'contain' && fit.exact === 'contain', 'wider than 16:9 is cropped, square and 16:9 are shown whole: ' + JSON.stringify(fit));
   await page.$eval('.card[data-open]', el => el.click()); await page.waitForTimeout(700);
-  const hero = await page.$eval('.dphero', h => { const r = h.getBoundingClientRect(); return r.width / r.height; });
-  ok(Math.abs(hero - 16 / 9) < 0.03, 'the item popup photo frame is 16:9: ' + hero.toFixed(3));
+  const hero = await page.$eval('.dphero', h => { const r = h.getBoundingClientRect(); const i = h.querySelector('img'); const q = i ? i.getBoundingClientRect() : r;
+    return { a: r.width / r.height, same: Math.abs(q.width - r.width) < 1 && Math.abs(q.height - r.height) < 1 }; });
+  ok(Math.abs(hero.a - 16 / 9) < 0.03 && hero.same, 'the item popup photo frame is 16:9 and the photo sits inside it: ' + JSON.stringify(hero));
+  const cardImg = await page.$$eval('.thumb img', is => is.every(i => { const a = i.getBoundingClientRect(), b = i.parentElement.getBoundingClientRect(); return Math.abs(a.height - b.height) < 1; }));
+  ok(cardImg, 'every card photo sits inside its frame');
   const minis = await page.$$eval('.rp-mcard img, .kc img', is => is.map(i => (i.getBoundingClientRect().width / i.getBoundingClientRect().height).toFixed(2)));
   ok(minis.every(a => Math.abs(a - 16 / 9) < 0.05), 'small photos in the popup are 16:9 too: ' + (minis.join(',') || 'none'));
   await page.keyboard.press('Escape'); await page.waitForTimeout(300);

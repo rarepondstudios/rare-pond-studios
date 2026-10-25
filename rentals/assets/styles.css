@@ -257,8 +257,8 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
    in ClickUp, "Rentals photo standard". */
 .thumb{height:auto;aspect-ratio:16/9;background:#eef3fa}
 .thumb img{padding:0;object-fit:contain;object-position:center}
-.dphero{height:auto;aspect-ratio:16/9;background:#eef3fa}
-.dphero img{padding:0;object-fit:contain;object-position:center}
+.dphero{height:auto;aspect-ratio:16/9;background:#eef3fa;position:relative}
+.dphero img{position:absolute;inset:0;width:100%;height:100%;padding:0;object-fit:contain;object-position:center}
 .kr img{width:48px;height:27px;padding:0;border-radius:5px;object-fit:contain;background:#eef3fa}
 .kc img{width:64px;height:36px;padding:0;border-radius:7px;object-fit:contain;background:#eef3fa}
 .rpcrate-rmedia{width:64px;height:36px;border-radius:7px;background:#eef3fa}
