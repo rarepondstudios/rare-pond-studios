@@ -39,6 +39,20 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-113 ACCESS FROM ANYWHERE + ACTIVITY PAGE (2026-10-25)
+
+- Private Relay blocks the tailnet for Safari entirely (connections relayed by Apple), not only DNS: Jack's test
+  with scan.rarepond.com -> tailnet IP still failed and the mini saw no request. Same cause for NocoDB/n8n off home.
+- Built: Cloudflare Tunnel + Access (Google, rarepond.com + jackcarlsen.com only, 720h session) for scan/nocodb/n8n
+  .rarepond.com (cf_access_setup.py, idempotent; plist com.rarepond.cloudflared, loaded by the setup), scan app third
+  listener 127.0.0.1:8093 verifying the Access JWT (scan_access.py), owner-only setup page /admin/scan-domain.
+  Resolver: tailnet probe + credentialed CORS check of scan.rarepond.com/healthz. scan_domain_cert.py steps aside
+  once access.json exists. WAITING on Jack: Zero Trust on, Google OAuth client + login method, new Cloudflare key
+  (permissions on the page). After live: add com.rarepond.cloudflared to the health board, update ClickUp How To
+  Remote Access (docsync master how-to-remote-access) and REMOTE_ACCESS.md with the new links.
+- Activity: actor on every scan app write (migration 20261025k, scan_db stamps rp.actor), page /activity.
+  Tests: scan_access_test.py 10/10, test-g-resolver 9/9, scan_stress_test 86/86.
+
 ### 0.0.-112 scan.rarepond.com SO PRIVATE RELAY PHONES CAN SCAN (2026-10-25)
 
 - Jack's QR scans off home landed on "Found this item?" while on the tailnet: with iCloud Private Relay the phone

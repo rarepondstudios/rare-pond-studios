@@ -372,6 +372,19 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   where each unit is, changes from the request, the confirmation note, missing parts, emails sent,
   every scan, and a link to the HubSpot deal. Search moved to `/search`. The ClickUp Wiki >
   Rentals doc "Rentals Handbook (Info)" (2026-10-25, replaces "Rentals Dashboard (start here)") links to it (tailnet only).
+- Access from anywhere (2026-10-25, being switched on): iCloud Private Relay sends a phone's browser traffic through
+  public relays that can never reach the tailnet, so the scan app, NocoDB and n8n failed away from home. Each now also
+  gets a public name behind **Cloudflare Access** (Google sign-in, rarepond.com and jackcarlsen.com accounts only,
+  30-day session) through a **Cloudflare Tunnel** (launchd com.rarepond.cloudflared; outbound only, no open port):
+  `scan.rarepond.com` (scan app; it also verifies Cloudflare's signed token itself, `scan_access.py`),
+  `nocodb.rarepond.com`, `n8n.rarepond.com` (their own logins still apply). Set up by `bts-automation/cf_access_setup.py`
+  once Jack saves a Cloudflare key at the scan app page `/admin/scan-domain` (progress: cf_access_status.json). The
+  tailnet keeps working as before. Sticker QRs: tailnet probe and an Access-session check run together; neither =
+  /found. Tests: scan_access_test.py, tools/test-g-resolver.mjs.
+- Who did what (2026-10-25): every scan app action records the person (Cloudflare sign-in email or Tailscale login)
+  via the session setting rp.actor and `migrations/20261025k_actor.sql` (actor on unit_scan_events, container_moves,
+  damage_events, missing_notices; view rp_activity, not readable with the website key). Page: scan app **Activity**
+  (menu), filters by person, period, kind, search. NocoDB edits are not in it (NocoDB's own per-record audit).
 - Staff phones with iCloud Private Relay (2026-10-25): the Tailscale name `pond.tail8c2778.ts.net` also has a PUBLIC
   DNS record because Funnel is on (old printed QR codes), so a phone resolving it outside Tailscale got the Funnel
   address and landed on /found. Fix: `scan.rarepond.com` is a public DNS record (Cloudflare, DNS only) pointing at
@@ -450,6 +463,9 @@ The short version, without the specifics: n8n and NocoDB run in Docker on the st
 and are bound to **loopback + the Tailscale address only**. They are deliberately NOT
 reachable over the home Wi-Fi, and never over the public internet. You get to them by
 joining the private network (Tailscale), not by opening a port.
+
+Since 2026-10-25 they are ALSO reachable at `nocodb.rarepond.com` / `n8n.rarepond.com`, but only through Cloudflare
+Access (Google sign-in, Rare Pond Workspace accounts) and the Cloudflare Tunnel; that is the one sanctioned public path.
 
 Two rules that matter:
 - **Never run `tailscale funnel`** on them. `serve` keeps a service private to the
