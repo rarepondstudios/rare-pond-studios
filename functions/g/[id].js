@@ -14,15 +14,16 @@
  * The branch happens in the visitor's browser: the page probes the scan app's
  * /healthz with a no-cors fetch (which only resolves when the host is actually
  * reachable) and redirects accordingly.
- * 2026-10-25: two addresses are probed at once and the first to answer wins:
- *   scan.rarepond.com:8444 - a normal public DNS name that points at the mini's tailnet IP (100.x), so it resolves
- *     the same through any resolver (iCloud Private Relay, private DNS) and only connects from the tailnet;
- *   pond.tail8c2778.ts.net:8444 - the Tailscale name. It also has a PUBLIC record (Funnel is on for the old
- *     printed QR codes), so a phone that resolves it outside Tailscale gets the Funnel address and fails. The scan app itself stays tailnet-only;
- * nothing here exposes it publicly. The tailnet hostname is not a secret - it is
- * unreachable and ACL-gated regardless.
+ * 2026-10-25: two checks run at once and the first to succeed wins:
+ *   the tailnet: pond.tail8c2778.ts.net:8444 (no-cors probe, as before). Fails on phones with iCloud Private
+ *     Relay, which send browser traffic through public relays that cannot reach the tailnet;
+ *   Cloudflare Access: scan.rarepond.com/healthz with the phone's Access cookie (CORS, credentials). Only answers
+ *     "ok" for a phone already signed in with a Rare Pond Google Workspace account; anyone else gets Cloudflare's
+ *     sign-in redirect, which the check treats as a no.
+ * Nobody signed in and not on the tailnet = the public /found page, exactly as before.
  */
-const SCAN_HOSTS = ['https://scan.rarepond.com:8444', 'https://pond.tail8c2778.ts.net:8444'];
+const TAILNET = 'https://pond.tail8c2778.ts.net:8444';
+const ACCESS = 'https://scan.rarepond.com';         // Cloudflare Access (Google sign-in) -> tunnel -> scan app
 const HOME = 'https://rarepond.com/';
 const FOUND = 'https://rarepond.com/found';   // public landing for anyone off the tailnet
 const TIMEOUT_MS = 4000;                        // cellular + a relayed tailnet connection can need 3 s
@@ -40,7 +41,7 @@ export async function onRequest(context) {
   const letter = m[3] ? m[3].toUpperCase() : '';
   const id = num + sub + (letter ? '-' + letter : '');     // human label
   const path = sub ? ('/find?code=' + encodeURIComponent(id)) : letter ? ('/u/' + num + '-' + letter) : ('/i/' + num);
-  const scan = SCAN_HOSTS[0] + path;                    // the staff link shown while probing
+  const scan = ACCESS + path;                           // the staff link shown while probing (signs in if needed)
   const html =
 '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
 '<meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -55,11 +56,13 @@ export async function onRequest(context) {
 '<div>One moment…</div>' +
 '<div class="mut"><a href="' + scan + '">Staff: open scan tool</a> &middot; <a href="' + FOUND + '">Found this item?</a></div>' +
 '</div><script>' +
-'(function(){var hosts=' + JSON.stringify(SCAN_HOSTS) + ',path=' + JSON.stringify(path) + ',home=' + JSON.stringify(FOUND) + ';' +
-'var done=false,left=hosts.length;function go(u){if(done)return;done=true;location.replace(u);}' +
+'(function(){var tn=' + JSON.stringify(TAILNET) + ',ac=' + JSON.stringify(ACCESS) + ',path=' + JSON.stringify(path) + ',home=' + JSON.stringify(FOUND) + ';' +
+'var done=false,left=2;function go(u){if(done)return;done=true;location.replace(u);}' +
+'function no(){if(--left===0){clearTimeout(t);go(home);}}' +
 'var t=setTimeout(function(){go(home);},' + TIMEOUT_MS + ');' +
-'hosts.forEach(function(h){try{fetch(h+"/healthz",{mode:"no-cors",cache:"no-store"}).then(function(){clearTimeout(t);go(h+path);})' +
-'.catch(function(){if(--left===0){clearTimeout(t);go(home);}});}catch(e){if(--left===0){clearTimeout(t);go(home);}}});' +
+'try{fetch(tn+"/healthz",{mode:"no-cors",cache:"no-store"}).then(function(){clearTimeout(t);go(tn+path);},no);}catch(e){no();}' +
+'try{fetch(ac+"/healthz",{mode:"cors",credentials:"include",cache:"no-store"}).then(function(r){return r.ok?r.text():"";})' +
+'.then(function(x){if(x==="ok"){clearTimeout(t);go(ac+path);}else no();},no);}catch(e){no();}' +
 '})();</script></body></html>';
   return new Response(html, {
     status: 200,
