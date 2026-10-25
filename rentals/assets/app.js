@@ -12,6 +12,12 @@ function RPC(){return (window.RP_RENTALS)||{};}
 function copyStr(group,key,fallback){var g=RPC()[group]||{},v=g[key];return (v==null||v==='')?fallback:v;}
 window.RPRerender=function(){try{render();uc();}catch(e){}};
 const CS='#5aa0ff',CE='#8f7bff';const CSd='#3f6fc4',CEd='#6a52cc';function bandCol(t){return lerp(CSd,CEd,Math.max(0,Math.min(1,t)));}
+/* PHOTO STANDARD (Jack 2026-10-25): every gear photo sits in a 16:9 frame on a very light blue (#eef3fa). A photo
+   wider than 16:9 fills the frame and its extra width is cropped equally from both sides (class rp-wide = cover); anything
+   else (square, 4:3, tall) is shown whole and centred with the light blue around it (contain). See styles.css
+   "PHOTO STANDARD" and the ClickUp doc "Rentals photo standard". */
+function rpFitImg(i){if(!i||!i.naturalWidth||!i.naturalHeight)return;i.classList.toggle('rp-wide',i.naturalWidth/i.naturalHeight>16/9+0.01);}
+document.addEventListener('load',function(e){var t=e.target;if(t&&t.tagName==='IMG')rpFitImg(t);},true);
 const ICON={Camera:'M4 8h3l2-3h6l2 3h3v11H4z M12 17a4 4 0 100-8 4 4 0 000 8z',Lighting:'M4.5 6.5h8a1 1 0 011 1v5a1 1 0 01-1 1h-8a1 1 0 01-1-1v-5a1 1 0 011-1z M13.5 5h2v10h-2z M15.5 5l4-2.5 M15.5 15l4 2.5 M6.5 6.5V5h4v1.5 M8.5 13.5v8 M5 21.5h7',Grip:'M15.5 4.8a4 4 0 00-4.6 5.2l-6.3 6.3a1.6 1.6 0 002.3 2.3l6.3-6.3a4 4 0 005.2-4.6l-2.4 2.4-2.3-.6-.6-2.3z',Electric:'M13 2L4 14h6l-1 8 9-12h-6z','Sound':'M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3z M5 11a7 7 0 0014 0 M12 18v3',DIT:'M4 3h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2z M8 21h8 M12 17v4',Home:'M3 11l9-7 9 7 M5 10v10h14V10',Carts:'M4 6.5V17 M20 3V17 M20 3h2 M3 6.5h18 M4 12h16 M4 17h16 M8.3 19.8a1.8 1.8 0 11-3.6 0 1.8 1.8 0 013.6 0z M19.3 19.8a1.8 1.8 0 11-3.6 0 1.8 1.8 0 013.6 0z',Effects:'M13.4 2.3L14.1 7.1L17.2 5.4L15.7 9.2L21.3 8.3L17.3 11.4L19.9 13.1L16.2 13.8L19.6 17.9L15.2 16.2L15.3 20.2L12.6 16.6L10.6 21.9L9.9 16.9L7.0 18.5L8.3 14.8L3.3 15.5L6.7 12.6L3.5 10.8L7.8 10.2L4.2 5.9L8.8 7.8L8.9 4.3L11.4 7.4z'};
 /* Icon artwork comes from /assets/socials.js (loaded in the page head), which is the ONLY
    place it is defined. Add a network there and the studio, rentals and the maintenance
@@ -262,8 +268,8 @@ var RP_PKG_CSS=
 ".rp-qstep button{width:27px;height:28px;border:0;background:#fff;border-radius:8px;color:#1c2b46;font:800 16px/1 Heebo,sans-serif;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.12)}"+
 ".rp-qstep button:disabled{opacity:.4;cursor:default;box-shadow:none}"+
 ".rp-qstep span{min-width:22px;text-align:center;font:800 13px/1 Heebo,sans-serif;color:#1c2b46}"+
-".rp-mcard img{width:46px;height:46px;object-fit:cover;border-radius:8px;flex:none}"+
-".rp-mcard .rp-mi{width:46px;height:46px;flex:none;border-radius:8px;background:#eef2fb;display:flex;align-items:center;justify-content:center}"+
+".rp-mcard img{width:64px;height:36px;object-fit:contain;border-radius:7px;flex:none;background:#eef3fa}"+
+".rp-mcard .rp-mi{width:64px;height:36px;flex:none;border-radius:7px;background:#eef3fa;display:flex;align-items:center;justify-content:center}"+
 ".rp-mcard .rp-mi svg{width:24px;height:24px;color:#8aa0c8}"+
 ".rp-mn{font:700 13px/1.25 Heebo,sans-serif;color:#1c2b46}"+
 ".rp-mp{font:600 11px/1.2 Heebo,sans-serif;color:#6b7a99;margin-top:3px}"+

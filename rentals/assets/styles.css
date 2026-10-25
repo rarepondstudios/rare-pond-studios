@@ -248,3 +248,19 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .rpcrate-row.ispend{opacity:.62;filter:grayscale(.85)}
 .rp-cartsub{margin-top:26px}
 @media (prefers-reduced-motion:reduce){.rpb-glow{transition:none}}
+
+/* ============================================================================
+   PHOTO STANDARD (Jack 2026-10-25). Every gear photo frame is 16:9 with a very light blue (#eef3fa) behind it:
+   catalog cards, the item popup, recommended / package mini cards, Build your own rows, kit contents.
+   A photo wider than 16:9 fills the frame and the extra width is cropped equally from both sides (app.js adds
+   .rp-wide); every other photo is shown whole, centred, with the light blue around it. Documented for photo shoots
+   in ClickUp, "Rentals photo standard". */
+.thumb{height:auto;aspect-ratio:16/9;background:#eef3fa}
+.thumb img{padding:0;object-fit:contain;object-position:center}
+.dphero{height:auto;aspect-ratio:16/9;background:#eef3fa}
+.dphero img{padding:0;object-fit:contain;object-position:center}
+.kr img{width:48px;height:27px;padding:0;border-radius:5px;object-fit:contain;background:#eef3fa}
+.kc img{width:64px;height:36px;padding:0;border-radius:7px;object-fit:contain;background:#eef3fa}
+.rpcrate-rmedia{width:64px;height:36px;border-radius:7px;background:#eef3fa}
+.rpcrate-rmedia img{width:100%;height:100%;object-fit:contain}
+.thumb img.rp-wide,.dphero img.rp-wide,.kr img.rp-wide,.kc img.rp-wide,.rpcrate-rmedia img.rp-wide,.rp-mcard img.rp-wide{object-fit:cover}

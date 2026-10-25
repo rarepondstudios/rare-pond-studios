@@ -44,6 +44,26 @@ try {
   await page.$eval('.tab[data-c="Effects"]', el => el.click()); await page.waitForTimeout(400);
   const fx = await page.evaluate(() => { const c = [...document.querySelectorAll('.card')].find(x => /WOLFBOX/.test(x.textContent)); const img = c && c.querySelector('img'); return { card: !!c, img: img ? img.getAttribute('src') : null }; });
   ok(fx.card && /wolfbox_mf200_kit/.test(fx.img || ''), 'Effects shows the WolfBox with its photo: ' + fx.img);
+  // photo standard: 16:9 frames, light blue behind, wide photos cropped, the rest shown whole
+  await page.$eval('.tab[data-c="Lighting"]', el => el.click()); await page.waitForTimeout(600);
+  const fr = await page.$$eval('.thumb', ts => ts.map(t => { const r = t.getBoundingClientRect(); return [r.width / r.height, getComputedStyle(t).backgroundColor]; }));
+  ok(fr.length > 3 && fr.every(([a, bg]) => Math.abs(a - 16 / 9) < 0.03 && bg === 'rgb(238, 243, 250)'), 'every catalog photo frame is 16:9 on light blue: ' + fr.map(x => x[0].toFixed(2)).join(','));
+  const fit = await page.evaluate(async () => {
+    const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').fillRect(0, 0, w, h); return c.toDataURL(); };
+    const t = document.querySelector('.thumb'); const res = {};
+    for (const [k, w, h] of [['wide', 2100, 900], ['square', 900, 900], ['exact', 1600, 900]]) {
+      const i = new Image(); const done = new Promise(r => i.addEventListener('load', () => setTimeout(r, 50))); i.src = mk(w, h); t.appendChild(i); await done;
+      res[k] = getComputedStyle(i).objectFit; i.remove();
+    }
+    return res;
+  });
+  ok(fit.wide === 'cover' && fit.square === 'contain' && fit.exact === 'contain', 'wider than 16:9 is cropped, square and 16:9 are shown whole: ' + JSON.stringify(fit));
+  await page.$eval('.card[data-open]', el => el.click()); await page.waitForTimeout(700);
+  const hero = await page.$eval('.dphero', h => { const r = h.getBoundingClientRect(); return r.width / r.height; });
+  ok(Math.abs(hero - 16 / 9) < 0.03, 'the item popup photo frame is 16:9: ' + hero.toFixed(3));
+  const minis = await page.$$eval('.rp-mcard img, .kc img', is => is.map(i => (i.getBoundingClientRect().width / i.getBoundingClientRect().height).toFixed(2)));
+  ok(minis.every(a => Math.abs(a - 16 / 9) < 0.05), 'small photos in the popup are 16:9 too: ' + (minis.join(',') || 'none'));
+  await page.keyboard.press('Escape'); await page.waitForTimeout(300);
   ok(!errs.length, 'no page errors: ' + errs.slice(0, 3).join(' | '));
   await page.$eval('.tab[data-c="Electric"]', el => el.click()); await page.waitForTimeout(300);
   await page.screenshot({ path: '/tmp/rp_site_tabs.png', clip: { x: 0, y: 0, width: 1360, height: 420 } });
