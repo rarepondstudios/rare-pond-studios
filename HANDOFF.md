@@ -39,6 +39,31 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-118 RENTALS DEPARTMENTS REGROUPED: GRIP & ELECTRIC, LOGISTICS, NEW ORDER AND COLOURS (2026-10-26)
+
+- Jack: Camera 1000s red, Lighting 2000s orange, **Grip & Electric** 3000s yellow (Grip and Electric merged, call code
+  G&E), Sound 4000s green, Effects 5000s light blue, DIT 6000s purple, **Logistics** 7000s white (renamed from Carts;
+  only the Folding Hand Truck, still the cart that shows under "Carts for ..." on Grip & Electric and Lighting).
+- Database (bts-automation `rentals_departments_20261026_apply.py`, record `migrations/20261026b_departments_regroup.sql`,
+  backup `backups/rentals_departments_20261026/`): Electric gear 4100-4107 -> 3124-3131, ELC 01/02 -> G&E 02/03
+  (3002/3003), Sound 5xxx -> 4xxx, Effects 7100 -> 5100, hand truck 9100 -> 7100; parts and unit codes followed (220 codes).
+  Old to new: `~/Desktop/RarePond_Rental_Labels/Renumber_2026-10-26.csv`. No sticker had been printed (sticker_prints 0),
+  so nothing was retired, but every sticker file made before today is void (Print_2026-10-23_full, Print_2026-10-24_brand
+  item stickers, the demo kit). The item_category enum was rebuilt in the new order with no Electric value (Postgres cannot
+  drop one); the cart rules (rp_items_cart_only, rp_cart_pairing_check, rp_package_lines_trg) now read Logistics; LOG is
+  Logistics' call code. Electric sections moved into Grip & Electric (Accessories merged), ordered A-Z with Other last.
+  PKG-001 departments and the hand truck's also_in_departments say Grip & Electric.
+- NocoDB (`noco_departments_20261026.py`): select options on items.category, dept_blocks.category, sections.department,
+  also_in_departments, packages.departments in the new order and colours; items view "Carts" is now "Logistics".
+  noco_cart_links.py, noco_cart_views.py, noco_packages_setup.py updated so a re-run keeps it.
+- Colour: new `white` category look (NocoDB color_looks Id 37, #ffffff) for Logistics; DIT uses `violet` #8b5cf6, Grip &
+  Electric `yellow` #ffe600. `pink` and `silver` stay in the table unused. White is a real look here, not "unassigned":
+  broken links are still flagged red on the Color Looks page.
+- Site: rentals.json categories (new order, ids = database values), builders department "Grip & Electric"; app.js CATS,
+  ICON (G&E keeps the wrench, the Electric bolt is gone, Logistics keeps the cart), cart logic keyed to Logistics, tab
+  data-c escaped; built-in list refreshed. Tests: test-rentals-sections (headings exclude the "Carts for" line) and
+  test-rentals-packages ALL PASS; bts rentals_sections/packages/print_ready, noco_number_guard updated and ALL PASS.
+
 ### 0.0.-117 HOME DUCK ANIM UPDATED TO THE 2026-09-03 SIMPLE EXPORT (WITH BLINK) (2026-10-26)
 
 - The home #about logo animation (media/brand/home-logo-anim, 94 frames) was still built from the 2026-08-22

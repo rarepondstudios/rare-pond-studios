@@ -280,9 +280,11 @@ Camera CAM, Lighting LGT, Grip G&E, Electric ELC, Sound SND, DIT DIT, Effects EF
 - **Renumbers:** 2026-10-22 (gaps closed, containers created) and 2026-10-23 (containers to x001,
   gear to x100). Old to new: `~/Desktop/RarePond_Rental_Labels/Renumber_2026-10-23.csv` (and
   `bts-automation/backups/rentals_containers_first_20261023/`). Every sticker printed before is void.
+  2026-10-26: departments regrouped (Electric into Grip & Electric, Sound to 4, Effects to 5, Carts renamed Logistics
+  at 7): `Renumber_2026-10-26.csv`, `bts-automation/rentals_departments_20261026_apply.py`. Nothing had been printed.
 - **Containers** (`items.is_container`): a case or crate holding gear of ITS department, with
   contents that change (Nanuk 935 cases CAM 01 / CAM 02, full milk crate G&E 01, half milk crates
-  ELC 01 / ELC 02, Nanuk 920 sound case SND 01). Fixed inserts and tools that always stay with that
+  G&E 02 / G&E 03 (ELC 01 / 02 until 2026-10-26), Nanuk 920 sound case SND 01). Fixed inserts and tools that always stay with that
   case are its sub-items. Switching a container on hides it from the website; un-hide it to rent it.
   - What is inside right now is `units.container_unit_id`, separate from checked in/out; the
     database refuses other departments' gear, sub-items (they travel with their item) and containers
@@ -704,11 +706,11 @@ Kept as history only. These are NOT fallbacks and are NOT in the code any more.
 | Revelations | `#ff5230` | `rgba(255,82,48,.34)` | `rgba(255,210,122,.18)` | `#ffd27a` | `#ffd9c0`, italic |
 | Invalid Opinion | `#74b3ff` | `rgba(80,150,255,.30)` | - | = accent | inherited |
 
-Rentals categories were `Camera #EA4335`, `Lighting #FF9900`, `Grip #8b5cf6`,
-`Electric #FFE600` (brighter lemon since 2026-10-22, was #FBBC04), `Sound Packages #34A853`,
-`DIT #FF3EA5` (hot pink look `pink`, added 2026-10-22; items 6001+).
-`Effects #4FC3F7` (look `lightblue`, added 2026-10-25: special effects gear, practical and digital; block 7,
-gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
+Rentals departments since 2026-10-26 (Jack regrouped them; number block, look, colour):
+Camera 1 `red` #EA4335, Lighting 2 `amber` #FF9900 (orange), Grip & Electric 3 `yellow` #FFE600 (Grip and Electric
+merged), Sound 4 `green` #34A853, Effects 5 `lightblue` #4FC3F7 (special effects, practical and digital), DIT 6 `violet`
+#8B5CF6 (purple), Logistics 7 `white` #FFFFFF (renamed from Carts). White is a real look for Logistics, not
+"unassigned". Before: Grip violet, Electric yellow block 4, Sound 5, DIT hot pink `pink`, Effects 7, Carts `silver` block 9.
 
 ### Replacement values (2026-10-24)
 
@@ -752,11 +754,11 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
 - **New packages start hidden.** Untick hidden when ready.
 - **Checking a package out**: open the order in the scan app, then the package. Plain gear is a tick list;
   containers and gear with parts have an Open button that runs their own checklist and returns to the package.
-- **Carts** (block 9, department code CRT, silver): usable with any department. `also_in_departments` lists the
+- **Carts** = the **Logistics** department (block 7, call code LOG, white; named Carts, block 9, until 2026-10-26): usable with any department. `also_in_departments` lists the
   departments whose page shows the cart at the bottom. Everything about a cart is set on the cart, in the items
-  view **Carts**: **Gear this cart goes with** (writes `cart_pairings`) and `also_in_departments`. Other gear has no
+  view **Logistics**: **Gear this cart goes with** (writes `cart_pairings`) and `also_in_departments`. Other gear has no
   cart settings: the main items view hides those columns, and the database refuses `also_in_departments` on
-  anything that is not a cart and clears it when a cart leaves Carts (migration 20261025h).
+  anything that is not a cart and clears it when a cart leaves Logistics (migration 20261025h).
 
 ### Sections: the groupings inside a department (2026-10-25)
 
