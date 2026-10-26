@@ -91,7 +91,7 @@ function renderTabs(){
   /* data-cursor="special notilt": the custom cursor never outlines a category tab, the free
      ring TINTS to the tab's --tc colour instead and merges with the category glow (no tilt:
      tabs sit flush on the tab bar). */
-  return '<div class="tab'+(on?' on':'')+'" data-c="'+c+'" role="button" tabindex="0" data-cursor="special notilt" style="'+st+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="'+(ICON[c]||'')+'"/></svg>'+esc(c==='Home'?datesLabel():(LABELS[c]||c))+'</div>';}).join('');
+  return '<div class="tab'+(on?' on':'')+'" data-c="'+c+'" role="button" tabindex="0" data-cursor="special notilt" style="'+st+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="'+(ICON[c]||'')+'"/></svg>'+esc(c==='Home'?'Home':(LABELS[c]||c))+'</div>';}).join('');
  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{active=t.dataset.c;q='';render();});
  const col=tabColor();
  $('tabline').style.background='linear-gradient(90deg,'+hx(col,0)+' 0%,'+hx(col,.9)+' 14%,'+hx(col,.9)+' 86%,'+hx(col,0)+' 100%)';$('tabline').style.setProperty('--gc',active==='Home'?'transparent':hx(col,.5));
@@ -100,7 +100,8 @@ function renderTabs(){
     rentals (the engine no longer reads --cc at all); category colour lives in the tabline/cards. */
 function render(){renderTabs();active==='Home'?renderHome():renderCat();}
 /* Same-page wordmark/footer click (see the SAME-PAGE NAV snippet in index.html): the rentals
-   "home" is the Select a Date view, so a home click also resets to that tab, not just scroll-top. */
+   "home" is the Home tab (labelled "Home" since 2026-10-25, Jack; it used to show "Select a Date" or the dates), so a
+   home click also resets to that tab, not just scroll-top. */
 window.__samePageHome=function(){if(active!=='Home'){active='Home';render();}};
 /* 2026-10-25 (Jack): ONE search bar look everywhere: the white search box with a Filters button inside it on the right,
    then the Select dates button. Results update as you type, so there is no See Gear button (it added nothing: the
@@ -121,6 +122,12 @@ function flPass(p,home){
  if(home&&FL.depts.length&&!FL.depts.some(function(d){return rpInDept(p,d);}))return false;
  if(FL.types.length&&FL.types.indexOf(flType(p))<0)return false;
  return flAvailOK(p);}
+/* Filters button colour when it is open (2026-10-25, Jack): on Home the Rare Pond Signature look (c1 -> c2), in a
+   department tab that department's own colour look (Pages CMS -> Categories -> colour look), text in the readable colour. */
+function rpLookOf(c){try{var cat=(RPC().categories||[]).filter(function(x){return x&&x.id===c;})[0];var L=cat&&window.RP_LOOKS&&window.RP_LOOKS[cat.colorLook];
+ if(L&&L.c1)return {c1:L.c1,c2:L.c2||L.c1};}catch(e){}return {c1:COL[c],c2:COL[c]};}
+function rpSigLook(){var L=window.RP_LOOKS&&window.RP_LOOKS.signature;return (L&&L.c1)?{c1:L.c1,c2:L.c2||L.c1}:{c1:'#3f6bff',c2:'#9b5cff'};}
+function flBtnStyle(home){var L=home?rpSigLook():rpLookOf(active);return '--fb1:'+L.c1+';--fb2:'+L.c2+';--fbt:'+txtOn(L.c1)+';--fbg:'+hx(L.c1,0.6);}
 function flBtnHTML(pfx,home){var n=flCount(home);return FIL_SVG+'<span>Filters</span>'+(n?'<b>'+n+'</b>':'');}
 function flPanel(pfx,home){
  var row=function(lab,chips){return '<div class="rpfrow"><span class="rpflab">'+lab+'</span><div class="rpfchips">'+chips+'</div></div>';};
@@ -140,7 +147,7 @@ function flBind(pfx,home,rerender){
  f.querySelectorAll('[data-fa]').forEach(function(b){b.onclick=function(){if(!flHasD()){FL.avail=true;openDates();return;}FL.avail=!FL.avail;redo();};});
  f.querySelectorAll('[data-fx]').forEach(function(b){b.onclick=function(){if(home)FL.depts=[];FL.types=[];FL.avail=false;redo();};});}
 function rpBar(pfx,val,ph,home){return '<div class="rpbar" id="'+pfx+'bar"><div class="rpq"><input class="search" id="'+pfx+'q" type="search" aria-label="Search gear" placeholder="'+esc(ph)+'" value="'+esc(val)+'" autocomplete="off" enterkeyhint="search">'
- +'<button class="rpfbtn'+(flOpen?' on':'')+'" id="'+pfx+'fbtn" type="button" aria-expanded="'+(flOpen?'true':'false')+'" aria-controls="'+pfx+'fil">'+flBtnHTML(pfx,home)+'</button></div>'
+ +'<button class="rpfbtn'+(flOpen?' on':'')+'" id="'+pfx+'fbtn" type="button" style="'+flBtnStyle(home)+'" aria-expanded="'+(flOpen?'true':'false')+'" aria-controls="'+pfx+'fil">'+flBtnHTML(pfx,home)+'</button></div>'
  +'<button class="datechip rpdate" id="'+pfx+'dchip" type="button">'+DATE_SVG+esc(datesLabel())+(days()?' · '+days()+'d':'')+'</button></div>'+flPanel(pfx,home);}
 /* bring the results up under the search bar so they are the focus, not a sliver at the bottom of the screen */
 function rpFocusResults(barId){var bar=$(barId);if(!bar)return;var h=document.querySelector('header');var top=(h?h.getBoundingClientRect().bottom:0)+10;

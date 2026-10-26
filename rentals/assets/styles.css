@@ -298,9 +298,9 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
  font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;white-space:nowrap}
 .rpfbtn svg{width:17px;height:17px}
 .rpfbtn:hover{background:#e6eef9}
-.rpfbtn.on{background:linear-gradient(90deg,#5aa0ff,#8f7bff);border-color:transparent;color:#fff}
+.rpfbtn.on{background:linear-gradient(90deg,var(--fb1,#3f6bff),var(--fb2,#9b5cff));border-color:transparent;color:var(--fbt,#fff);box-shadow:0 6px 16px -6px var(--fbg,rgba(63,107,255,.6))}
 .rpfbtn b{min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#2f57a6;color:#fff;font-size:11.5px;display:inline-flex;align-items:center;justify-content:center}
-.rpfbtn.on b{background:#fff;color:#2f57a6}
+.rpfbtn.on b{background:var(--fbt,#fff);color:var(--fb1,#2f57a6)}
 .rpdate{flex:0 0 auto;padding:13px 16px;border-radius:13px;font-size:14px;white-space:nowrap}
 .ptool .rpbar{flex:1 1 520px;margin:0}
 .rpfil{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease;width:100%;max-width:760px;margin:0 auto}
