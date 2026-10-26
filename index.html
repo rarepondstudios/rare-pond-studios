@@ -1156,6 +1156,28 @@ html.xw-active{overflow:hidden}
      the glassy read. */
   .orbi::before{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:2;background:conic-gradient(from 130deg,var(--oc1),var(--oc2),var(--oc3),var(--oc2),var(--oc1));-webkit-mask:radial-gradient(closest-side,transparent 78%,#000 100%);mask:radial-gradient(closest-side,transparent 78%,#000 100%);opacity:.92}
   @keyframes orbbob{from{transform:translateY(-4px)}to{transform:translateY(5px)}}
+  /* ===== V3 BUBBLE RIM (assets/rp-bubble.js, rebuilt from the AE "Bubble 2" comps, 2026-10-26) =====
+     Wherever RPBubble attached its canvas (.rp-bubble-on), the old CSS conic rim is switched off:
+     the canvas draws the solid rim, the two inner bands and the look colours, and reads the same
+     colour vars the CSS rim used (--gg* / --g* / --oc* / --bub-c*), so hover looks still fade in.
+     !important because the hover and special-glow rules above repaint these layers at higher
+     specificity. No WebGL = no canvas = the old CSS rims stay exactly as they were. */
+  .edge.rp-bubble-on,.cedge.rp-bubble-on,.m-edge.rp-bubble-on{background:none!important;-webkit-mask:none!important;mask:none!important;opacity:1!important;animation:none!important;filter:none!important}
+  /* the wide featured card would otherwise get bands sized to its HEIGHT (far thicker than on the
+     round side bubbles); --rpb-depth thins them and eases with the card's .6s shape morph */
+  @property --rpb-depth{syntax:"<number>";inherits:true;initial-value:1}
+  .cedge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-depth .6s}
+  .citem.feat .cedge.rp-bubble-on{--rpb-depth:.5}
+  .orbi-rim,.about-rim{position:absolute;inset:0;border-radius:50%;pointer-events:none}
+  .orbi-rim{z-index:2}
+  .about-rim{z-index:0}
+  .orbi.rp-rim-on::before,.about-anim-slot.rp-rim-on::before{display:none}
+  .about-anim-slot.no-bubble .about-rim{display:none}
+  /* ambient background bubbles: one still frame of the V3 bubble (signature), rendered once at
+     load into --bgb-ring and slowly turned, instead of a live canvas per bubble (there are dozens) */
+  html.rp-bgb-ring .bgb::after{background:var(--bgb-ring) center/100% 100% no-repeat;-webkit-mask:none;mask:none;opacity:calc(var(--ringop,.14) * 2.4);animation:bgbspin var(--rs,48s) linear infinite;animation-delay:var(--rd,0s)}
+  @keyframes bgbspin{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){html.rp-bgb-ring .bgb::after{animation:none}}
   @media(prefers-reduced-motion:reduce){.orbi{animation:none}}
   /* No mobile scale override: orbit positions + sizes are computed from the bubble's live
      radius in buildOrbits (place()), so they track the bubble on every viewport. A fixed
@@ -1397,6 +1419,7 @@ html.xw-active{overflow:hidden}
     <button class="lb-nav lb-next" type="button" data-kb-dir="1" aria-label="Next article">›</button>
   </div>
 
+<script src="/assets/rp-bubble.js"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -1800,6 +1823,8 @@ function makeGridBubble(p,i){
   const gridVid=(!p.placeholder&&!p.poster&&p.focusVideo)
     ?`<video class="bubble-vid" data-src="${psrc(p.focusVideo)}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
   bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}${gridVid}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${fillVars(GRID_CAPTION_TPL,VARS[p.key])}</div></div>`;
+  /* V3 bubble rim (rp-bubble.js). The "more to come" placeholder keeps its CSS edge: its rainbow hover lives there. */
+  if(!p.placeholder&&window.RPBubble)RPBubble.attach(bubble.querySelector('.edge'),{seed:1+i*1.7});
   bubble.addEventListener('pointermove',e=>{if(!INTERACTIVE)return;const r=bubble.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){bubble.style.setProperty('--mx',(px*100).toFixed(1)+'%');bubble.style.setProperty('--my',(py*100).toFixed(1)+'%');}const tm=7;bubble.style.setProperty('--tilty',((px-.5)*tm*2).toFixed(2)+'deg');bubble.style.setProperty('--tiltx',((.5-py)*tm*2).toFixed(2)+'deg');});
   bubble.addEventListener('pointerleave',()=>{if(INTERACTIVE){bubble.style.setProperty('--mx','73%');bubble.style.setProperty('--my','26%');bubble.style.setProperty('--tiltx','0deg');bubble.style.setProperty('--tilty','0deg');}});
   if(!p.placeholder){
@@ -1819,6 +1844,8 @@ function makeGridBubble(p,i){
   return bubble;
 }
 PROJECTS.forEach((p,i)=>grid.appendChild(makeGridBubble(p,i)));
+/* ambient bubbles wear one still frame of the V3 bubble in the signature look (see html.rp-bgb-ring CSS) */
+(function(){if(!window.RPBubble||!RPBubble.supported())return;const sg=LOOKS_BY_KEY.signature||{c1:'#3f6bff',c2:'#9b5cff',c3:'#56c8ff'};const url=RPBubble.sprite(sg,256,2.4);if(!url)return;document.documentElement.style.setProperty('--bgb-ring','url('+url+')');document.documentElement.classList.add('rp-bgb-ring');})();
 function makeBgBubbles(host,count,fade){
   if(!host)return;
   const c=document.createElement('div');c.className='bg-bubbles'+(fade?' '+fade:'');
@@ -1834,11 +1861,12 @@ function makeBgBubbles(host,count,fade){
     b.style.setProperty('--dx',(Math.random()*116-58).toFixed(0)+'px');
     b.style.setProperty('--d',(15+Math.random()*22).toFixed(1)+'s');
     b.style.animationDelay=(-Math.random()*42).toFixed(1)+'s';
+    b.style.setProperty('--rd',(-Math.random()*48).toFixed(1)+'s');
     c.appendChild(b);
   }
   host.appendChild(c);
 }
-function bgbInto(field,count){for(let i=0;i<count;i++){const b=document.createElement('div');b.className='bgb';const depth=Math.random();const size=Math.round(34+depth*depth*360);b.style.width=b.style.height=size+'px';b.style.left=(Math.random()*98).toFixed(1)+'%';b.style.top=(Math.random()*100).toFixed(1)+'%';b.style.setProperty('--peak',(0.12+depth*0.5).toFixed(2));b.style.setProperty('--ringop',(0.12+depth*0.20).toFixed(2));b.style.setProperty('--dx',(Math.random()*116-58).toFixed(0)+'px');b.style.setProperty('--d',(15+Math.random()*22).toFixed(1)+'s');b.style.animationDelay=(-Math.random()*42).toFixed(1)+'s';field.appendChild(b);}}
+function bgbInto(field,count){for(let i=0;i<count;i++){const b=document.createElement('div');b.className='bgb';const depth=Math.random();const size=Math.round(34+depth*depth*360);b.style.width=b.style.height=size+'px';b.style.left=(Math.random()*98).toFixed(1)+'%';b.style.top=(Math.random()*100).toFixed(1)+'%';b.style.setProperty('--peak',(0.12+depth*0.5).toFixed(2));b.style.setProperty('--ringop',(0.12+depth*0.20).toFixed(2));b.style.setProperty('--dx',(Math.random()*116-58).toFixed(0)+'px');b.style.setProperty('--d',(15+Math.random()*22).toFixed(1)+'s');b.style.animationDelay=(-Math.random()*42).toFixed(1)+'s';b.style.setProperty('--rd',(-Math.random()*48).toFixed(1)+'s');field.appendChild(b);}}
 /* Ambient background bubble count is CMS-driven (Site Settings -> home.bgBubbleCount) so Jack
    can fine-tune density without touching code. Safe fallback = 28. Hard-capped at 60 in code
    to protect rendering perf on weaker devices even if the CMS value is set too high. The
@@ -1897,7 +1925,8 @@ const ORB_SPEC=[
     if(look.c1)orb.style.setProperty('--oc1',look.c1);
     if(look.c2)orb.style.setProperty('--oc2',look.c2);
     if(look.c3)orb.style.setProperty('--oc3',look.c3);
-    orb.innerHTML='<span class="orbi"><img src="'+k+'" alt="" loading="lazy"></span>';
+    orb.innerHTML='<span class="orbi"><img src="'+k+'" alt="" loading="lazy"><span class="orbi-rim"></span></span>';
+    if(window.RPBubble&&RPBubble.attach(orb.querySelector('.orbi-rim'),{vars:['--oc1','--oc2','--oc3'],seed:5+i*1.3,max:400}))orb.querySelector('.orbi').classList.add('rp-rim-on');
     wrap.appendChild(orb);orbs.push({el:orb,s:s});
   });
   host.appendChild(wrap);
@@ -1969,6 +1998,9 @@ const ORB_SPEC=[
   if(cfg.enabled===false){slot.classList.add('no-bubble');return;}
   var look=LOOKS_BY_KEY[String(cfg.colorLook||'signature').trim()]||LOOKS_BY_KEY.signature||{};
   ['c1','c2','c3'].forEach(function(k){if(look[k])slot.style.setProperty('--bub-'+k,look[k]);});
+  /* V3 bubble rim (rp-bubble.js) replaces the CSS conic ring; the light interior + outer glow stay */
+  if(window.RPBubble){var rim=document.createElement('div');rim.className='about-rim';slot.insertBefore(rim,slot.firstChild);
+    if(RPBubble.attach(rim,{vars:['--bub-c1','--bub-c2','--bub-c3'],seed:0.7}))slot.classList.add('rp-rim-on');else rim.remove();}
 })();
 
 /* ===== About-logo trigger-played animation ======================================================
@@ -2159,6 +2191,7 @@ const citems=CAROUSEL.map((p,i)=>{
      near-full-size children, and these ovals must never drive the outline shape - only the
      visible .cbub surface should (see assets/cursor.js scanShape). */
   el.innerHTML=`<div class="cdrop" data-cursor="noscan"></div><div class="cglow" data-cursor="noscan"></div><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
+  if(window.RPBubble)RPBubble.attach(el.querySelector('.cedge'),{seed:2+i*2.3});   /* V3 bubble rim; follows the featured card's rounded-rect morph */
   el.addEventListener('mouseenter',()=>{
     if(el.classList.contains('feat'))return;   /* featured card uses its own .focus-vid reel */
     startPreview(el.querySelector('.side-vid'));   /* shared hardened path */
@@ -2365,6 +2398,7 @@ if(teamList){TEAM.forEach((m,i)=>{
     .join('');
   const _linksHTML=_links?`<div class="m-links rp-soc">${_links}</div>`:'';
   row.innerHTML=`<div class="m-photo"><div class="m-bubble">${ph}<div class="m-rim"></div><div class="m-spec"></div><div class="m-edge"></div></div></div><div class="m-copy"><h3>${m.name}</h3><div class="m-role">${m.role}</div><p class="m-desc">${m.desc}</p>${_linksHTML}</div>`;
+  if(window.RPBubble)RPBubble.attach(row.querySelector('.m-edge'),{vars:['--g1','--g2','--g3']});
   teamList.appendChild(row);
 });}
 const universes=document.getElementById('universes');

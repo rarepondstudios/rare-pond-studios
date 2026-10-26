@@ -39,6 +39,27 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-119 V3 BUBBLE (FROM AFTER EFFECTS) ON EVERY BUBBLE, PREVIEW BRANCH `bubble-v3` (2026-10-26)
+
+- Jack designed a new bubble in After Effects (RP Anim 1 project, folder "Bubble 2": `RP_V3_Bubble`,
+  `RP_V3_Bubble_Color_PRE-COMP`, `RP_V3_Bubble_Alpha_Effects_PRE-COMP` x2, `RP_V3_Bubble_Alpha_Shape_PRE-COMP`)
+  and asked for it on every bubble, still driven by colour looks. Rebuilt as a WebGL shader:
+  **`assets/rp-bubble.js`** (header comment maps every AE layer to shader code).
+- Look: solid rim, a 50% wobbly band, a 25% soft band, clear centre; the colour is three soft blobs
+  (blob 1 = c3, blob 2 = c1, blob 3 = c2) mixed in **Overlay** (Jack switched the AE blobs from Darken to
+  Overlay on 2026-10-26 because Darken muddied non-signature looks), spun one turn per 10 s.
+- How it attaches: one shared WebGL context, a 2D canvas per bubble, 30 fps, off-screen skipped, reduced
+  motion = still frame. Colours are READ from CSS vars on the host each frame, so the existing look logic
+  (signature at rest, film look on hover, kb selection, .4s fade) drives it unchanged:
+  grid `.edge` + carousel `.cedge` (`--gg*`), team `.m-edge` (`--g*`), orbits `.orbi-rim` (`--oc*`),
+  home logo `.about-rim` (`--bub-c*`). Ambient `.bgb` get ONE still frame (signature) as `--bgb-ring`,
+  slowly rotated in CSS (dozens of them, no live canvases). The "more to come" placeholder keeps its CSS
+  edge (rainbow hover). No WebGL = old CSS rims untouched.
+- Featured carousel card: the shader follows the element's computed border-radius (rounded-rect SDF), and
+  `--rpb-depth:.5` on `.citem.feat .cedge` thins the bands so they match the round side bubbles.
+- Status: on branch `bubble-v3` only (preview bubble-v3.rare-pond-studios.pages.dev), WAITING for Jack's OK
+  to merge to main.
+
 ### 0.0.-118 RENTALS DEPARTMENTS REGROUPED: GRIP & ELECTRIC, LOGISTICS, NEW ORDER AND COLOURS (2026-10-26)
 
 - Jack: Camera 1000s red, Lighting 2000s orange, **Grip & Electric** 3000s yellow (Grip and Electric merged, call code
