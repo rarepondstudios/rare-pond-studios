@@ -102,30 +102,41 @@ function render(){renderTabs();active==='Home'?renderHome():renderCat();}
 /* Same-page wordmark/footer click (see the SAME-PAGE NAV snippet in index.html): the rentals
    "home" is the Select a Date view, so a home click also resets to that tab, not just scroll-top. */
 window.__samePageHome=function(){if(active!=='Home'){active='Home';render();}};
+/* 2026-10-25 (Jack): ONE search bar look everywhere: the search box, its "See Gear" button INSIDE the box on the right
+   (the on-screen enter), then the Select dates button. On narrow screens both drop below the box: See Gear sits in a
+   tab that hangs off the box's lower left (still inside its outline), Select dates beside it. */
+var DATE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>';
+function rpBar(pfx,val,ph,go){return '<div class="rpbar" id="'+pfx+'bar"><div class="rpq"><input class="search" id="'+pfx+'q" type="search" aria-label="Search gear" placeholder="'+esc(ph)+'" value="'+esc(val)+'" autocomplete="off" enterkeyhint="search"><span class="rptab"><button class="rpgo" id="'+pfx+'go" type="button">'+esc(go)+'</button></span></div>'
+ +'<button class="datechip rpdate" id="'+pfx+'dchip" type="button">'+DATE_SVG+esc(datesLabel())+(days()?' · '+days()+'d':'')+'</button></div>';}
+/* bring the results up under the search bar so they are the focus, not a sliver at the bottom of the screen */
+function rpFocusResults(barId){var bar=$(barId);if(!bar)return;var h=document.querySelector('header');var top=(h?h.getBoundingClientRect().bottom:0)+10;
+ var y=window.scrollY+bar.getBoundingClientRect().top-top;if(Math.abs(y-window.scrollY)>8)window.scrollTo({top:Math.max(0,y),behavior:'smooth'});}
+var hAll=false;
 function renderHome(){
  var homeLogo=copyStr('logos','homeLogo',LOGOC);
- var heroMark=((!homeLogo)||/rare-pond-color|g_ff961e8ddce4f40b/i.test(homeLogo))?'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:0"><img src="/media/logos/duck-mark.webp" alt="Rare Pond Rentals" style="width:128px;height:auto;display:block;margin-bottom:2px"><span class="bn-rare" style="font-size:66px;line-height:.9;color:#274a86">Rare Pond</span><span class="bn-sub" style="font-size:24px;letter-spacing:11px;padding-left:11px;margin-top:2px;color:#5f82b4">Rentals</span></div>':('<img src="'+esc(homeLogo)+'" alt="Rare Pond Rentals">');
+ /* the brand kit's full Rentals logo: duck and name side by side (takes half the height of the old stacked mark) */
+ var heroMark=((!homeLogo)||/rare-pond-color|g_ff961e8ddce4f40b/i.test(homeLogo))?'<img class="hlogo" src="/media/logos/rare-pond-rentals-color.webp" alt="Rare Pond Rentals" width="900" height="473">':('<img src="'+esc(homeLogo)+'" alt="Rare Pond Rentals">');
  var heroTitle=copyStr('home','heroTitle','Reserve your gear.');
  var heroSub=copyStr('home','heroSubtitle','Pick your rental dates, then browse our kit by category. Prices update automatically to how long you need each item.');
- var datePrompt=copyStr('home','datePrompt','Select your rental dates');
- var browseBtn=copyStr('home','browseButton','Browse gear →');
+ var goBtn=copyStr('home','seeGearButton','See Gear');
  var crewBlurb=copyStr('crew','blurb','Hiring us to crew your shoot? We can fold a basic gear package into our day rate. The exact kit depends on which department you bring us in for.');
  var crewBtn=copyStr('crew','button','Ask about crewing your shoot →');
- const lbl=(D.s&&D.e)?(fmtRange()+' · '+days()+' days'):(D.s?(fmtOne(D.s)+', now pick an end date'):datePrompt);
  $('stage').innerHTML='<div class="home"><div class="logowrap">'+heroMark+'</div><h2>'+esc(heroTitle)+'</h2><p class="homesub">'+esc(heroSub)+'</p>'
- +'<button class="datebig" id="hdate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg> '+esc(lbl)+'</button>'
- +'<button class="browse" id="hbrowse">'+esc(browseBtn)+'</button>'
- +'<div class="hsearch"><input class="search" id="hq" type="search" aria-label="Search all gear" placeholder="'+esc(copyStr('home','searchPlaceholder','Or search all gear: a name, a brand, a kind of light…'))+'" value="'+esc(hq)+'" autocomplete="off" enterkeyhint="search"><div id="hres"></div></div>'
+ +'<div class="hsearch">'+rpBar('h',hq,copyStr('home','searchPlaceholder','Search all gear: a name, a brand, a kind of light…'),goBtn)+'<div id="hres"></div></div>'
  +'<div class="crew"><p class="crewq">'+esc(crewBlurb)+'</p><button class="crewbtn" id="crewbtn">'+esc(crewBtn)+'</button></div></div>';
- $('hdate').onclick=openDates;$('hbrowse').onclick=()=>{active='Camera';render();};
- var hqi=$('hq');if(hqi){hqi.oninput=function(e){hq=e.target.value;renderHomeResults();};renderHomeResults();}$('crewbtn').onclick=function(){if(window.RPCrew)window.RPCrew.open();};}
+ $('hdchip').onclick=openDates;
+ var hqi=$('hq');var go=function(){hAll=!String(hq||'').trim();renderHomeResults();rpFocusResults('hbar');};
+ hqi.oninput=function(e){var had=!!String(hq||'').trim();hq=e.target.value;if(String(hq).trim())hAll=false;renderHomeResults();if(!had&&String(hq).trim())rpFocusResults('hbar');};
+ hqi.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();hqi.blur();go();}};
+ $('hgo').onclick=go;renderHomeResults();
+ $('crewbtn').onclick=function(){if(window.RPCrew)window.RPCrew.open();};}
 function renderCat(){
  const c=active,col=COL[c];
- const tool='<div class="ptool"><input class="search" id="q" aria-label="Search gear" placeholder="Search '+esc(c)+'…" value="'+esc(q)+'">'
-  +'<button class="datechip" id="dchip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>'+esc(datesLabel())+(days()?' · '+days()+'d':'')+'</button>'
-  +'<span class="count" id="cnt"></span></div>';
+ const tool='<div class="ptool">'+rpBar('c',q,'Search '+(LABELS[c]||c)+'…','See Gear')+'<span class="count" id="cnt"></span></div>';
  $('stage').innerHTML='<div class="panel" style="border-color:'+hx(col,0.42)+';background:linear-gradient(180deg,'+hx(col,0.22)+','+hx(col,0.13)+');box-shadow:0 6px 40px 2px '+hx(col,0.4)+', inset 0 0 42px '+hx(col,0.12)+'">'+tool+'<div id="results"></div></div>';
- const qi=$('q');qi.oninput=e=>{q=e.target.value.toLowerCase();renderResults();};$('dchip').onclick=openDates;renderResults();}
+ const qi=$('cq');qi.oninput=e=>{q=e.target.value.toLowerCase();renderResults();};
+ qi.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();qi.blur();rpFocusResults('cbar');}};
+ $('cgo').onclick=function(){rpFocusResults('cbar');};$('cdchip').onclick=openDates;renderResults();}
 /* Within a category: packages live in their OWN collapsible box at the top
    (open by default), then the individual items follow in their white-divider
    sections. Search filters both. Package box open/closed state persists per
@@ -140,10 +151,10 @@ function rpMatch(p,qq){var w=String(qq||'').toLowerCase().split(/\s+/).filter(Bo
 /* Home: search all departments at once. Results are the same cards as the department tabs (add to cart works). */
 function renderHomeResults(){
  var r=$('hres');if(!r)return;rpEnsureStyles();
- if(!String(hq||'').trim()){r.innerHTML='';return;}
+ if(!String(hq||'').trim()&&!hAll){r.innerHTML='';return;}
  var hits=RENTALS.filter(function(p){return (p.kind==='package'||!p.pkgOnly)&&rpMatch(p,hq);});
  if(!hits.length){r.innerHTML='<div class="empty">Nothing matches "'+esc(hq)+'". Try fewer words, or browse the departments above.</div>';return;}
- var html='<div class="hcount">'+hits.length+' match'+(hits.length!==1?'es':'')+'</div>';
+ var html='<div class="hcount">'+(String(hq||'').trim()?hits.length+' match'+(hits.length!==1?'es':''):'All gear · '+hits.length+' items')+'</div>';
  CATS.forEach(function(c){var rows=hits.filter(function(p){return p.kind==='package'?rpInDept(p,c):p.cat===c;});if(!rows.length)return;
   html+='<div class="hdept" style="--hc:'+COL[c]+'"><span></span>'+esc(LABELS[c]||c)+'<b>'+rows.length+'</b></div><div class="grid">'+rows.map(function(p){return card(p,COL[c]);}).join('')+'</div>';});
  r.innerHTML=html;bind();}
