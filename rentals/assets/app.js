@@ -113,7 +113,10 @@ var FL_TYPES=[['single','Single gear'],['kit','Kits'],['package','Packages']];
 function flType(p){return p.kind==='package'?'package':(rpGroupContents(p.contents||[]).length?'kit':'single');}
 function flHasD(){return !!(D.s&&D.e);}
 function flCount(home){return (home?FL.depts.length:0)+FL.types.length+(FL.avail&&flHasD()?1:0);}
-function flAvailOK(p){if(!FL.avail||!flHasD())return true;var A=window.RPAvail;if(!A||!A.capOf)return true;var c=A.capOf(p);return c===Infinity||c>0;}
+function flAvailOK(p){if(!FL.avail||!flHasD())return true;var A=window.RPAvail;if(!A||!A.capOf)return true;
+ if(p.kind==='package'){var need={};(p.memIds||[]).forEach(function(id){need[id]=(need[id]||0)+1;});   /* a package is free when every piece in it is */
+  return Object.keys(need).every(function(id){var it=rpItemByDb(+id);if(!it)return true;var c=A.capOf(it);return c===Infinity||c>=need[id];});}
+ var c=A.capOf(p);return c===Infinity||c>0;}
 function flPass(p,home){
  if(home&&FL.depts.length&&!FL.depts.some(function(d){return rpInDept(p,d);}))return false;
  if(FL.types.length&&FL.types.indexOf(flType(p))<0)return false;
