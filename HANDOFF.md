@@ -39,6 +39,27 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-115 SCAN APP: PROFILE, SIGN-IN SCREEN, HOW IT WORKS, INVENTORY SEARCH, ACTIVITY CHARTS (2026-10-25)
+
+- One source for departments: bts-automation/rp_depts.py (names = rentals.json labels, colors = colorLook c1 in
+  colorlooks.json, numbers + call names = dept_blocks). Scan app, How it works, search chips use it; NocoDB dropdown colors
+  follow via dept_style_sync.py (launchd com.rarepond.deptstyle, hourly; colors only, DB unchanged, verified by hashes).
+- Profile: round initial button top right (scan_profile.py). Google users: Sign out -> warning -> /cdn-cgi/access/logout.
+  Tailscale users: shows the login, no sign out.
+- Sign-in screen: Cloudflare Access login page branded (Zero Trust > Reusable components > Custom pages: name, logo
+  rare-pond-color.png, header/message text, #0a1f3c). scan.rarepond.com app auto_redirect_to_identity false (so that screen
+  shows; cf_access_setup.py keeps it); NocoDB/n8n still go straight to Google. Found page (data/pages.json) has a staff
+  button to scan.rarepond.com.
+- How it works (scan_help.py): 1100.001-A example, "X = Part" bullets, PKG card, live department table (Department /
+  First ID # / Call Name), dropdowns with step arrows (check OUT, check IN, Containers, Packages, Good to know).
+- Inventory: tiles In storage / In-house use / Rented out / In repair / Missing, each opens the shared search
+  (scan_search.py status filter, empty text lists all, Show more paging); item pages have Edit in NocoDB.
+- Activity: fresh start via rp_settings activity_since (nothing deleted; Include earlier history; owners: Start fresh),
+  CSS charts by day/hour, by person, gear handled most. Missing gear: big count, confetti + "No fires to put out here!" at 0.
+- Website: Home-tab search of all gear + one matcher (rpMatch) for Home and department tabs, on branch rentals-search
+  (worktree ~/rp_site_search, preview rentals-search.rare-pond-studios.pages.dev) WAITING for Jack's OK to merge.
+- Tests: scan_ui_test.py 28/28 (new).
+
 ### 0.0.-114 ACCESS FROM ANYWHERE IS LIVE + FIRST ATTEMPT REMOVED (2026-10-25)
 
 - LIVE 14:29: scan/nocodb/n8n.rarepond.com -> tunnel `pond` (healthy), three Access apps, Google login method
