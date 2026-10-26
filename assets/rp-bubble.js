@@ -15,7 +15,7 @@
                                           25 % opacity, stroke 105 / 200 / 400, scale 100 / 95 /
                                           90 %, blur 15 / 30 / 75, Edge 2+3 turbulent-displaced),
                                           clipped by an "Exterior Cutter" circle, plus a 4px
-                                          "Minor Edge Distortion".
+                                          "Minor Edge Distortion". Edge 1 thinned to stroke 80 on 2026-10-26 (rim inner edge 0.90 -> 0.92 R).
 
    So the bubble is a crisp solid rim, a 50% wobbly band inside it, a 25% very soft band inside
    that, and a clear centre. The colour that shows through is a slow-spinning painterly field
@@ -106,7 +106,7 @@
     "  vec2 w=wv(p,1.9,z+3.);",
     "  float r2=rr(p+uWob*.045*w);",                                 // Edge 2 turbulent displace
     "  float r3=rr(p+uWob*.065*vec2(w.y,-w.x));",                     // Edge 3 turbulent displace
-    "  float e1=smoothstep(.902-.012*uSoft,.906+.008*uSoft,r);",      // Edge 1 (solid rim)
+    "  float e1=smoothstep(.917-.012*uSoft,.921+.008*uSoft,r);",      // Edge 1 (solid rim; stroke 80 since 2026-10-26, was 105)
     "  float e2=smoothstep(.805-.022*uSoft,.81+.016*uSoft,r2)*.5;",   // Edge 2 (50%)
     "  float e3=smoothstep(.69-.07*uSoft,.70+.05*uSoft,r3)*.25*uInner;", // Edge 3 (25%)
     "  float cut=1.-smoothstep(1.-uPx,1.+uPx,r);",                    // Exterior Cutter
@@ -129,8 +129,8 @@
 
   /* color: speed of the COLOUR field (spin, plate evolution, wave) relative to the AE loop. Jack
      (2026-10-26): the gradients moved way too fast at the AE rate, slow and subtle wanted -> 0.3,
-     about one turn per 33 s. The rim's band wobble keeps the AE speed. */
-  var P = { wobble: 1, soft: 1, spin: 1, inner: 1, speed: 1, color: 0.3 };
+     then "still too fast" -> 0.15, about one turn per 67 s. The rim's band wobble keeps the AE speed. */
+  var P = { wobble: 1, soft: 1, spin: 1, inner: 1, speed: 1, color: 0.15 };
   /* PERFORMANCE BUDGET (2026-10-26, after the first live version cost real frame rate):
      - 24 fps, the AE comp's own rate. The motion is one slow turn per 10 s, so more is invisible.
      - resolution: at most 1.25 device px per CSS px and 480 px on the long side. The look is soft

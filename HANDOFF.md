@@ -71,6 +71,9 @@
 - **Colour field slowed (Jack: gradients moving way too fast, make it subtle).** New `P.color` (default 0.3)
   scales the colour clock only: spin, plate evolution and wave warp now run at 30% of the AE loop (about one
   turn per 33 s). The rim's band wobble keeps the AE speed. Tune that one number to change it.
+- **Thinner rim + slower again.** Jack thinned Edge 1 in AE (stroke 105 -> 80): shader rim inner edge 0.90 -> 0.92 R.
+  Colour still too fast: `P.color` 0.3 -> 0.15 (about one turn per 67 s). The script tag now carries
+  `?v=` (bump it on EVERY rp-bubble.js edit) so browsers never run a stale copy.
 - Status: LIVE on rarepond.com since 2026-10-26 (Jack: "try these on the live site"; bubble-v3 fast-forwarded
   to main from worktree ~/rp_site_bubble). Rollback = revert the merge commits on main.
 
