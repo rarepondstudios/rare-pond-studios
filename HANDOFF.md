@@ -39,6 +39,28 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-116 SCAN APP: PROBLEM GEAR, PROFILE PAGE, NEW HEADER; WEBSITE FILTERS (2026-10-25)
+
+- Header (scan_service.header()): "Rare Pond Rentals Scanner" text, then duck (media/logos/duck-mark.webp served as
+  /static/duck.webp) wearing the website's hat from data/site.json (/static/hat.webp, same placement as hat.js), Scan,
+  search + Go, i, profile photo, menu on the right. app.js is loaded as app.js?v=<mtime> with no-cache, because phones
+  kept an old copy (that was the "In repair filter does nothing" bug: the server side was fine).
+- Menu: How it works, line, Dashboard, Inventory, Problem Gear (count badge), Activity, Profile. Removed Search gear
+  (/search and /?q= now redirect to /inventory?q=...#find) and Previous Orders (still on the dashboard).
+- Problem Gear (/problems, scan_dash.problems_body; /missing redirects): missing + in repair in one list, big count.
+  Found it / Repaired open a confirm box first (POST needs sure=yes), then a confetti popup. scan_parts.repaired() sets
+  damage_events status 'repaired' (trigger puts the copy back to OK). Inventory: line under the first 3 tiles, then
+  In repair, Missing, "See details on problem gear".
+- Profile page (/profile, scan_profile.page_body): photo + name from the Google login (Access IdP now sends OIDC claims
+  picture + name; scan_access.access_claims) or Tailscale profile, email, devices list (new table public.rp_devices,
+  migration 20261026a, rp_dev cookie, updated at most every 5 min), Google sign-out with the scan.rarepond.com warning.
+- Activity person filter lists everyone ever seen (rp_activity actors + rp_devices).
+- Website (branch rentals-search, preview only, still WAITING for Jack's OK): See Gear removed (results update as you
+  type); Filters button inside the search box opens a collapsible panel: Department (Home), Type (Single gear / Kits =
+  anything with kit contents / Packages), Available on my dates (opens the date picker if no dates; a package counts
+  only when every piece in it is free).
+- Tests: scan_ui_test.py rewritten for all of the above (45 checks); scan_edge_test updated for the /search redirect.
+
 ### 0.0.-115 SCAN APP: PROFILE, SIGN-IN SCREEN, HOW IT WORKS, INVENTORY SEARCH, ACTIVITY CHARTS (2026-10-25)
 
 - One source for departments: bts-automation/rp_depts.py (names = rentals.json labels, colors = colorLook c1 in
