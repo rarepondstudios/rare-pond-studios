@@ -156,3 +156,15 @@ a.xchip:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
 @media(prefers-reduced-motion:reduce){
   .rp-soc a,.rp-footer .fsoc a{transition:none}
 }
+
+/* PAGE SCROLL LOCK while a popup is open (2026-10-25, Jack): scrolling over an open popup must never move the page
+   behind it, even when the popup has nothing of its own to scroll. html{overflow-x:hidden} (rentals) makes <html> the
+   page scroller, so the old document.body.style.overflow='hidden' lock did nothing there. This one rule covers every
+   page that loads chrome.css: any script that locks <body> the old way, plus each popup's own open state (stacked
+   popups stay locked until the last one closes). On the studio page the project universe and news article are their
+   own scrollers, so they are held still under a contact form or date picker as well. */
+html:has(> body[style*="overflow: hidden"]),
+html:has(#dp.show),html:has(#dpop.show),html:has(#reqpop.show),html:has(#ovl.show),
+html:has(.rpd-show),html:has(.rpc-show),html.rpc-open{overflow:hidden!important;overscroll-behavior:none}
+html:has(.rpd-show) .universe,html:has(.rpc-show) .universe,html.rpc-open .universe,
+html:has(.rpd-show) .news-art,html:has(.rpc-show) .news-art,html.rpc-open .news-art{overflow:hidden!important;overscroll-behavior:none}
