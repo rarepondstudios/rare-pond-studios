@@ -279,7 +279,7 @@
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       gl.useProgram(prog);
       /* the depth-zoom program is compiled when the browser is idle, so the first click never waits for it */
-      (window.requestIdleCallback || function (f) { return setTimeout(f, 1500); })(function () { try { ensureZ(); } catch (e) {} });
+      (window.requestIdleCallback || function (f) { return setTimeout(f, 1500); })(function () { try { ensureZ(); warmZ(); } catch (e) {} });
       glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
       return true;
     } catch (e) { gl = false; if (window.console) console.warn("RPBubble", e); return false; }
@@ -302,6 +302,15 @@
     progZ = link(FSZ);
     UZ = locs(progZ, ["uS", "uCen", "uView", "uSpx", "uPxz"]);
     return true;
+  }
+  /* one throwaway 1 px draw: GPU drivers (ANGLE on Metal in particular) finish building a program on
+     its FIRST draw, which cost the first click a 100-170 ms stall before this */
+  function warmZ() {
+    if (!progZ || !gl) return;
+    gl.useProgram(progZ); params(UZ);
+    gl.uniform3f(UZ.uS, 1, 1, 1); gl.uniform2f(UZ.uView, 1, 1); gl.uniform2f(UZ.uCen, 0.5, 0.5); gl.uniform1f(UZ.uSpx, 1); gl.uniform1f(UZ.uDepth, 1); gl.uniform2f(UZ.uBox, 1, 1);
+    gl.viewport(0, 0, 1, 1); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.useProgram(prog);
   }
   function params(u) { gl.uniform1f(u.uWob, P.wobble); gl.uniform1f(u.uSoft, P.soft); gl.uniform1f(u.uSpin, P.spin); gl.uniform1f(u.uInner, P.inner); gl.uniform1f(u.uCol, P.color); }
 
@@ -548,7 +557,7 @@
     cancelAnimationFrame(z.raf);
     z.cv.remove();
     z.it.cv.style.visibility = "";
-    z.hide.forEach(function (h) { h.style.visibility = ""; });
+    z.hide.forEach(function (h) { h.style.removeProperty("opacity"); });
     z.it.drawn = false; kick();
     if (run && z.o.onDone) z.o.onDone();
   }
@@ -567,7 +576,8 @@
     /* how far the camera must travel: until the BACKDROP band's inner edge has left the screen */
     var far = Math.max(Math.hypot(cx, cy), Math.hypot(vw - cx, cy), Math.hypot(cx, vh - cy), Math.hypot(vw - cx, vh - cy));
     var inner3 = Math.max(0.2, Math.min(box[0], box[1]) - (1 - (0.70 - 0.13 * deep) + 0.14) * depth);
-    var s3req = Math.max(3, far / (S * inner3));
+    /* 1.45: overshoot, so the backdrop band is fully off screen well before the flight ends (no pop) */
+    var s3req = Math.max(3, 1.45 * far / (S * inner3));
     var cEnd = ZD[2] * (1 - 1 / s3req);
     var lip = 0.083 * depth;   // rim thickness in bubble units: its inner contour is the opening
     var cv = document.createElement("canvas");
@@ -578,10 +588,13 @@
     cv.width = W; cv.height = H;
     document.body.appendChild(cv);
     var ctx = cv.getContext("2d", { alpha: true });
+    /* the look is SNAPSHOTTED: once the film covers the bubble its hover look starts fading back to
+       the resting colours, and the flight must keep the colours the viewer clicked on */
+    var cols = it.cols.slice(), rb = it.rb, pal = it.pal, rad0 = it.rad, seed = it.opts.seed;
     var hide = (o.hide || []).filter(Boolean);
     it.cv.style.visibility = "hidden";
-    hide.forEach(function (h) { h.style.visibility = "hidden"; });
-    var ms = o.ms || 1400, t0 = performance.now(), tBase = simT + it.opts.seed * 3.7;
+    hide.forEach(function (h) { h.style.setProperty("opacity", "0", "important"); });   /* the halo fades on its own opacity transition */
+    var ms = o.ms || 1400, t0 = performance.now(), tBase = simT + seed * 3.7;
     Z = { o: o, it: it, cv: cv, hide: hide, raf: 0 };
     var z = Z;
     function step(now) {
@@ -594,11 +607,11 @@
       gl.useProgram(progZ); params(UZ);
       gl.viewport(0, glc.height - H, W, H);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.uniform3fv(UZ.uC1, it.cols[0]); gl.uniform3fv(UZ.uC2, it.cols[1]); gl.uniform3fv(UZ.uC3, it.cols[2]);
-      gl.uniform2f(UZ.uBox, box[0], box[1]); gl.uniform1f(UZ.uRad, it.rad); gl.uniform1f(UZ.uDepth, depth); gl.uniform1f(UZ.uDeep, deep);
-      if (it.rb && it.pal && it.pal.n > 1) { gl.uniform1f(UZ.uRb, it.rb); gl.uniform1f(UZ.uPalN, it.pal.n); gl.uniform3fv(UZ.uPal, it.pal.flat); }
+      gl.uniform3fv(UZ.uC1, cols[0]); gl.uniform3fv(UZ.uC2, cols[1]); gl.uniform3fv(UZ.uC3, cols[2]);
+      gl.uniform2f(UZ.uBox, box[0], box[1]); gl.uniform1f(UZ.uRad, rad0); gl.uniform1f(UZ.uDepth, depth); gl.uniform1f(UZ.uDeep, deep);
+      if (rb && pal && pal.n > 1) { gl.uniform1f(UZ.uRb, rb); gl.uniform1f(UZ.uPalN, pal.n); gl.uniform3fv(UZ.uPal, pal.flat); }
       else gl.uniform1f(UZ.uRb, 0);
-      gl.uniform1f(UZ.uT, tBase + (now - t0) / 1000 * P.speed); gl.uniform1f(UZ.uSeed, it.opts.seed); gl.uniform1f(UZ.uSh, 1);
+      gl.uniform1f(UZ.uT, tBase + (now - t0) / 1000 * P.speed); gl.uniform1f(UZ.uSeed, seed); gl.uniform1f(UZ.uSh, 1);
       gl.uniform3f(UZ.uS, s[0], s[1], s[2]);
       gl.uniform2f(UZ.uCen, cx * k, cy * k); gl.uniform2f(UZ.uView, W, H);
       gl.uniform1f(UZ.uSpx, S * k); gl.uniform1f(UZ.uPxz, 1.2 / (S * k));
@@ -608,7 +621,7 @@
       var clip = null;
       if (s[0] < 1e3) {
         var hx = Math.max(0, box[0] - lip) * S * s[0], hy = Math.max(0, box[1] - lip) * S * s[0];
-        var rad = Math.max(0, Math.min(box[0], box[1]) * it.rad - lip) * S * s[0];
+        var rad = Math.max(0, Math.min(box[0], box[1]) * rad0 - lip) * S * s[0];
         /* still needed while any viewport corner lies outside the opening (rounded-box distance) */
         var qx = Math.max(cx, vw - cx) - (hx - rad), qy = Math.max(cy, vh - cy) - (hy - rad);
         if (Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - rad > -1)
