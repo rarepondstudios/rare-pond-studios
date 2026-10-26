@@ -441,10 +441,15 @@ html.xw-active{overflow:hidden}
   .citem.feat .focus-logline{opacity:1;transition:opacity .5s .58s}
   .cshade{position:absolute;inset:0;z-index:4;border-radius:inherit;pointer-events:none;background:radial-gradient(120% 90% at 50% 120%,rgba(0,8,28,.24),transparent 55%),linear-gradient(180deg,rgba(255,255,255,.1),transparent 28%)}
   .crim{position:absolute;inset:0;z-index:5;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 18px rgba(255,255,255,.3),inset 0 0 6px rgba(255,255,255,.55),inset 6px 8px 22px rgba(0,10,40,.5)}
-  .cspec{position:absolute;inset:0;z-index:6;border-radius:inherit;pointer-events:none;background:radial-gradient(30% 24% at var(--mx,80%) var(--my,16%),rgba(255,255,255,.55),transparent 60%);opacity:.5;transition:background .2s}
+  .cspec{position:absolute;inset:0;z-index:6;border-radius:inherit;pointer-events:none;background:radial-gradient(30% 24% at 74% 22%,rgba(255,255,255,.55),transparent 60%);opacity:.5}
+  /* GLARE: the site's light comes from the TOP RIGHT, so every bubble's reflection sits top right and
+     stays there (it used to chase the cursor, and some bubbles had it top left). Placeholder until Jack's
+     stylised After Effects glare replaces it. */
+  .citem.feat .cspec{background:radial-gradient(30% 24% at 82% 16%,rgba(255,255,255,.55),transparent 60%)}
   .cedge{position:absolute;inset:0;z-index:7;border-radius:inherit;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);opacity:.4;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
   .citem:hover .cedge{opacity:.9}
-  .divehint{position:absolute;left:0;right:0;bottom:0;z-index:8;padding:30px 0 12px;text-align:center;pointer-events:none;font-weight:800;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#fff;opacity:0;transition:opacity .3s;background:linear-gradient(180deg,transparent,rgba(2,10,28,.55));text-shadow:0 2px 8px rgba(0,10,40,.8)}
+  /* "dive in": a small dark pill hugging the words (was a dark band across the whole bottom of the card) */
+  .divehint{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:8;padding:8px 18px 7px 21px;border-radius:999px;white-space:nowrap;text-align:center;pointer-events:none;font-weight:800;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#fff;opacity:0;transition:opacity .3s;background:rgba(2,10,28,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-shadow:0 1px 4px rgba(0,10,40,.6)}
   .citem.feat:hover .divehint{opacity:1}
   .citem .clogo{-webkit-backface-visibility:hidden;backface-visibility:hidden;position:absolute;left:50%;top:-20%;transform:translateX(-50%) scale(.46);transform-origin:center top;width:clamp(150px,21vw,290px);z-index:11;pointer-events:none;display:grid;place-items:center;transition:left .55s cubic-bezier(.4,0,.2,1),top .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1),opacity .45s;will-change:transform,left,top}
   .citem .clogo img{width:100%;height:auto;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))}
@@ -493,8 +498,8 @@ html.xw-active{overflow:hidden}
   .glass{position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:3}
   .glass .shade{position:absolute;inset:0;border-radius:50%;background:radial-gradient(120% 100% at 50% 120%,rgba(0,8,28,.24),transparent 55%),linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%)}
   .glass .rim{position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 18px rgba(255,255,255,.3),inset 0 0 6px rgba(255,255,255,.55),inset 6px 8px 22px rgba(0,10,40,.5)}
-  .glass .spec{position:absolute;inset:0;border-radius:50%;background:radial-gradient(34% 26% at var(--mx) var(--my),rgba(255,255,255,.82),rgba(255,255,255,.2) 36%,transparent 60%);opacity:.6;transition:background .25s}
-  .glass .spec.small{background:radial-gradient(8% 7% at calc(var(--mx) - 5%) calc(var(--my) - 5%),rgba(255,255,255,1),transparent 60%);opacity:.9}
+  .glass .spec{position:absolute;inset:0;border-radius:50%;background:radial-gradient(34% 26% at 72% 26%,rgba(255,255,255,.82),rgba(255,255,255,.2) 36%,transparent 60%);opacity:.6;transition:background .25s}
+  .glass .spec.small{background:radial-gradient(8% 7% at 67% 21%,rgba(255,255,255,1),transparent 60%);opacity:.9}
   .edge{position:absolute;inset:0;border-radius:50%;z-index:4;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));
     -webkit-mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);opacity:.45;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
   .bubble.placeholder .edge{opacity:.5}
@@ -1051,7 +1056,7 @@ html.xw-active{overflow:hidden}
   /* ===== ambient background bubbles (non-interactive) ===== */
   .bg-bubbles{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
   .bgb{position:absolute;border-radius:50%;pointer-events:none;contain:layout paint;opacity:0;
-    background:radial-gradient(38% 30% at 33% 26%,rgba(255,255,255,.6),transparent 56%),radial-gradient(circle at 50% 55%,rgba(170,200,255,.22),rgba(120,150,235,.10) 52%,rgba(90,120,210,.04) 72%,transparent 78%);
+    background:radial-gradient(38% 30% at 67% 26%,rgba(255,255,255,.6),transparent 56%),radial-gradient(circle at 50% 55%,rgba(170,200,255,.22),rgba(120,150,235,.10) 52%,rgba(90,120,210,.04) 72%,transparent 78%);
     box-shadow:inset 0 -10px 22px rgba(70,110,200,.16),inset 0 6px 14px rgba(255,255,255,.24);
     animation:bgdrift var(--d,26s) ease-in-out infinite}
   .bgb::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
@@ -1088,7 +1093,7 @@ html.xw-active{overflow:hidden}
     .bubble.placeholder.rp-tap .edge:not(.rp-bubble-on){background:var(--rainbow) !important;opacity:1 !important}
     /* V3: a sticky touch-hover must not leave the rim deepened or the placeholder rainbow on; a real tap (.rp-tap) still shows both */
     .bubble:hover:not(.rp-tap) .edge.rp-bubble-on,.citem:hover .cedge.rp-bubble-on{--rpb-deep:0}
-    .bubble.placeholder.rp-glow-on:hover:not(.rp-tap){--gg1:var(--g1);--gg2:var(--g2);--gg3:var(--g3)}
+    .bubble.placeholder.rp-glow-on:hover:not(.rp-tap){--rpb-rainbow:0}
     .bubble.placeholder.rp-tap .ph-logo{opacity:.95 !important}
     .bubble.placeholder:hover .ph-spin{opacity:0 !important}
     .citem:hover .cglow{opacity:.2 !important;animation-play-state:paused !important}
@@ -1153,7 +1158,7 @@ html.xw-active{overflow:hidden}
   .orb{--oc1:#3f6bff;--oc2:#9b5cff;--oc3:#56c8ff}
   .orbi{position:absolute;inset:0;border-radius:50%;overflow:hidden;display:block;box-shadow:0 0 16px 1px color-mix(in srgb,var(--oc2) 60%,transparent),0 0 6px 0 color-mix(in srgb,var(--oc1) 55%,transparent),0 12px 26px -8px rgba(0,12,40,.6),inset 0 0 16px rgba(255,255,255,.3),inset 0 0 5px rgba(255,255,255,.6),inset 5px 7px 18px rgba(0,10,40,.45),inset 0 -12px 22px rgba(0,16,52,.55),inset 0 9px 16px rgba(255,255,255,.45);animation:orbbob 6s ease-in-out infinite alternate;animation-delay:var(--bd,0s)}
   .orb img{width:100%;height:100%;object-fit:cover;display:block}
-  .orbi::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(34% 26% at 32% 24%,rgba(255,255,255,.78),transparent 58%),radial-gradient(120% 100% at 50% 122%,rgba(0,10,34,.34),transparent 52%)}
+  .orbi::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:radial-gradient(34% 26% at 68% 24%,rgba(255,255,255,.78),transparent 58%),radial-gradient(120% 100% at 50% 122%,rgba(0,10,34,.34),transparent 52%)}
   /* coloured gradient rim: a conic sweep of the look's 3 colours, masked to the outer ~22% so it
      fades inward into the photo instead of drawing a crisp line. A faint white inner hairline keeps
      the glassy read. */
@@ -1180,22 +1185,28 @@ html.xw-active{overflow:hidden}
      inward (--rpb-deep 0 -> 1, read by rp-bubble.js), so the rim seems to open up into the world inside
      while the solid rim stays put. Kept moderate so a playing preview reel is never smothered. */
   @property --rpb-deep{syntax:"<number>";inherits:true;initial-value:0}
-  .edge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-deep .7s cubic-bezier(.2,.8,.2,1)}
-  .cedge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-depth .6s,--rpb-deep .7s cubic-bezier(.2,.8,.2,1)}
+  .edge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-deep .7s cubic-bezier(.2,.8,.2,1),--rpb-rainbow .45s ease}
+  .cedge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-depth .6s,--rpb-deep .7s cubic-bezier(.2,.8,.2,1),--rpb-rainbow .45s ease}
   .bubble:hover .edge.rp-bubble-on,.bubble.rpc-kbsel .edge.rp-bubble-on,.bubble.rp-tap .edge.rp-bubble-on,
   .citem:hover .cedge.rp-bubble-on,.citem.rpc-kbsel .cedge.rp-bubble-on{--rpb-deep:1}
   /* "More to come": same V3 bubble, and its rainbow hover now comes THROUGH the bubble (three rainbow
      colours fed to the shader) instead of a flat conic disc and a separate white spinner */
-  .bubble.placeholder.rp-glow-on:hover,.bubble.placeholder.rp-glow-on.rp-tap,.bubble.placeholder.rp-glow-on.rpc-kbsel{--gg1:#ff5dd0;--gg2:#ffe65d;--gg3:#5dffe0}
+  /* RAINBOW, the colour looks' "special" (assets/looks.js SPECIALS): more stops than three hex boxes can
+     hold, so the shader gets the whole ramp. --rpb-pal names the gradient whose stops it uses, and
+     --rpb-rainbow (0..1, transitioned) blends the bubble into it: the placeholder's --rainbow, and
+     --rp-glow on any project whose bubble glow uses a special look. */
+  @property --rpb-rainbow{syntax:"<number>";inherits:true;initial-value:0}
+  .bubble.placeholder{--rpb-pal:var(--rainbow)}
+  .rp-glow-special{--rpb-pal:var(--rp-glow)}
+  .bubble.placeholder.rp-glow-on:hover,.bubble.placeholder.rp-glow-on.rp-tap,.bubble.placeholder.rp-glow-on.rpc-kbsel,
+  .bubble.rp-glow-special.rp-glow-on:hover,.bubble.rp-glow-special.rp-glow-on.rpc-kbsel,
+  .citem.rp-glow-special.rp-glow-on:hover,.citem.rp-glow-special.rp-glow-on.rpc-kbsel{--rpb-rainbow:1}
+  .glow.rp-bubble-on,.cglow.rp-bubble-on{transition:opacity .45s ease,filter .45s ease,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-rainbow .45s ease}
   .bubble.placeholder.rp-glow-on .ph-spin{display:none}
   /* home logo bubble: the old CSS look's haze (outer box-shadow glow + inner shadows) sat on top of the
-     crisp V3 rim and made it read blurrier than every other bubble. It gets the same synced glow layer
-     as the project bubbles instead, masked to OUTSIDE the bubble because its interior is see-through. */
+     crisp V3 rim and made it read blurrier than every other bubble. No extra glow layer either: a masked
+     one was tried and read as a faint second outline (Jack, 2026-10-26). */
   .about-anim-slot.rp-rim-on{box-shadow:none}
-  .about-glow{position:absolute;inset:-16px;border-radius:50%;pointer-events:none;z-index:0;filter:blur(9px);opacity:.32;
-    -webkit-mask:radial-gradient(closest-side,transparent 88%,#000 94%);mask:radial-gradient(closest-side,transparent 88%,#000 94%)}
-  .about-glow>.rp-bubble-cv{border-radius:0}
-  .about-anim-slot.no-bubble .about-glow{display:none}
   .citem.feat .cedge.rp-bubble-on{--rpb-depth:.5}
   .orbi-rim,.about-rim{position:absolute;inset:0;border-radius:50%;pointer-events:none}
   .orbi-rim{z-index:2}
@@ -1268,7 +1279,7 @@ html.xw-active{overflow:hidden}
   #custom-page.cp-bg-custom .cp-p{color:#dbe8fb}
   /* optional floating bubbles (background = home) */
   .cp-bub{position:absolute;border-radius:50%;pointer-events:none;z-index:0;
-    background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.55),rgba(255,255,255,.12) 42%,rgba(120,180,255,.09) 70%,transparent 74%);
+    background:radial-gradient(circle at 68% 28%,rgba(255,255,255,.55),rgba(255,255,255,.12) 42%,rgba(120,180,255,.09) 70%,transparent 74%);
     border:1px solid rgba(255,255,255,.22);animation:bob 9s ease-in-out infinite alternate}
 </style>
 <script>/* SAME-PAGE NAV = smooth scroll to top (no transition / reload). A nav control pointing at the page the user is already on (wordmark, header or footer links) scrolls to the top instead of re-running a transition. Capture-phase and registered first so it wins before the SPA/fade/wipe handlers; links with a #hash, data-contact/net/wipe, other pages, or modified clicks are untouched. Escape is dispatched so an open hamburger menu closes via its existing handler. */(function(){function n(p){p=(p||"/").replace(/\/+$/,"");return p||"/";}document.addEventListener("click",function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;var a=e.target.closest&&e.target.closest("a[href]");if(!a)return;if(a.target&&a.target!=="_self")return;if(a.hasAttribute("data-contact")||a.hasAttribute("data-net")||a.hasAttribute("data-wipe"))return;var h=a.getAttribute("href")||"";if(!h||h.charAt(0)==="#")return;var u;try{u=new URL(h,location.href);}catch(_){return;}if(u.origin!==location.origin||u.hash)return;if(n(u.pathname)!==n(location.pathname))return;e.preventDefault();e.stopImmediatePropagation();var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches;window.scrollTo({top:0,behavior:rm?"auto":"smooth"});if(window.__samePageHome)try{window.__samePageHome()}catch(_){}try{document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape"}))}catch(_){}},true);})();</script>
@@ -1448,7 +1459,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026f"></script>
+<script src="/assets/rp-bubble.js?v=20261026g"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -1857,7 +1868,7 @@ function makeGridBubble(p,i){
     /* the halo outside the bubble draws the SAME colour field (same seed + clock) so it turns with the rim */
     if(RPBubble.attach(bubble.querySelector('.glow'),{glow:true,ref:bubble.querySelector('.bubble-inner'),seed:1+i*1.7}))bubble.classList.add('rp-glow-on');
   }
-  bubble.addEventListener('pointermove',e=>{if(!INTERACTIVE)return;const r=bubble.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){bubble.style.setProperty('--mx',(px*100).toFixed(1)+'%');bubble.style.setProperty('--my',(py*100).toFixed(1)+'%');}const tm=7;bubble.style.setProperty('--tilty',((px-.5)*tm*2).toFixed(2)+'deg');bubble.style.setProperty('--tiltx',((.5-py)*tm*2).toFixed(2)+'deg');});
+  bubble.addEventListener('pointermove',e=>{if(!INTERACTIVE)return;const r=bubble.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;const tm=7;bubble.style.setProperty('--tilty',((px-.5)*tm*2).toFixed(2)+'deg');bubble.style.setProperty('--tiltx',((.5-py)*tm*2).toFixed(2)+'deg');});
   bubble.addEventListener('pointerleave',()=>{if(INTERACTIVE){bubble.style.setProperty('--mx','73%');bubble.style.setProperty('--my','26%');bubble.style.setProperty('--tiltx','0deg');bubble.style.setProperty('--tilty','0deg');}});
   if(!p.placeholder){
     const open=()=>openProject(p.key);   // the wipe's origin is measured in bubbleOrigin(), from data-pk
@@ -2030,11 +2041,9 @@ const ORB_SPEC=[
   var look=LOOKS_BY_KEY[String(cfg.colorLook||'signature').trim()]||LOOKS_BY_KEY.signature||{};
   ['c1','c2','c3'].forEach(function(k){if(look[k])slot.style.setProperty('--bub-'+k,look[k]);});
   /* V3 bubble rim (rp-bubble.js) replaces the CSS conic ring and the old box-shadow glow; the light
-     interior stays (it keeps the colour logo readable). The glow layer shares the rim's seed + clock. */
+     interior stays (it keeps the colour logo readable). */
   if(window.RPBubble){var rim=document.createElement('div');rim.className='about-rim';slot.insertBefore(rim,slot.firstChild);
-    if(RPBubble.attach(rim,{vars:['--bub-c1','--bub-c2','--bub-c3'],seed:0.7})){slot.classList.add('rp-rim-on');
-      var gl=document.createElement('div');gl.className='about-glow';slot.insertBefore(gl,slot.firstChild);
-      if(!RPBubble.attach(gl,{glow:true,ref:slot,vars:['--bub-c1','--bub-c2','--bub-c3'],seed:0.7}))gl.remove();}
+    if(RPBubble.attach(rim,{vars:['--bub-c1','--bub-c2','--bub-c3'],seed:0.7}))slot.classList.add('rp-rim-on');
     else rim.remove();}
 })();
 
@@ -2234,7 +2243,7 @@ const citems=CAROUSEL.map((p,i)=>{
     startPreview(el.querySelector('.side-vid'));   /* shared hardened path */
   });
   el.addEventListener('mouseleave',()=>{stopSideVid(el.querySelector('.side-vid'));});   /* PAUSE, keep currentTime -> resumes */
-  el.addEventListener('pointermove',e=>{if(INTERACTIVE&&el.classList.contains('feat')){const r=el.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){el.style.setProperty('--mx',(px*100).toFixed(1)+'%');el.style.setProperty('--my',(py*100).toFixed(1)+'%');}el.style.setProperty('--tilty',((px-.5)*9).toFixed(2)+'deg');el.style.setProperty('--tiltx',((.5-py)*7).toFixed(2)+'deg');}});
+  el.addEventListener('pointermove',e=>{if(INTERACTIVE&&el.classList.contains('feat')){const r=el.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;el.style.setProperty('--tilty',((px-.5)*9).toFixed(2)+'deg');el.style.setProperty('--tiltx',((.5-py)*7).toFixed(2)+'deg');}});
   el.addEventListener('pointerleave',()=>{if(INTERACTIVE){el.style.setProperty('--mx','80%');el.style.setProperty('--my','16%');el.style.setProperty('--tiltx','0deg');el.style.setProperty('--tilty','0deg');}});
   el.addEventListener('click',()=>{if(dragFlag)return;if(el.classList.contains('feat'))openProject(p.key);else setActive(i);});
   stage.appendChild(el);return el;

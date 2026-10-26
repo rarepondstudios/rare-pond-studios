@@ -62,6 +62,8 @@
     "uniform vec3 uC1,uC2,uC3;",
     "uniform vec2 uBox,uScale;",
     "uniform float uGlow;",
+    "uniform vec3 uPal[8];",
+    "uniform float uPalN,uRb;",
     "uniform float uDeep,uDepth,uRad,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol;",
     /* Ashima / Stefan Gustavson 3D simplex noise (MIT) */
     "vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;}",
@@ -91,6 +93,12 @@
     "  vec3 lite=mix(col,vec3(1.),.06);",
     "  vec3 deep=pow(col,vec3(1.6));",
     "  return vec4(mix(lite,deep,tn),m);}",
+    /* RAINBOW special: a cyclic ramp through up to 8 stops (colour looks' SPECIALS, e.g. rainbow) */
+    "vec3 pal(float x){",
+    "  float f=x*uPalN; float i0=floor(f); float i1=mod(i0+1.,uPalN); float fr=f-i0;",
+    "  vec3 a=uPal[0], b=uPal[0];",
+    "  for(int i=0;i<8;i++){float fi=float(i); if(fi==i0) a=uPal[i]; if(fi==i1) b=uPal[i];}",
+    "  return mix(a,b,smoothstep(0.,1.,fr));}",
     /* AE Overlay: base b, layer s */
     "vec3 ovl(vec3 b,vec3 s){return mix(2.*b*s,1.-2.*(1.-b)*(1.-s),step(.5,b));}",
     "vec4 over(vec4 b,vec4 s){",
@@ -137,6 +145,11 @@
     "  vec4 b3=blob(q,vec2(-.024,1.203),1.382,uC2,8.3,zc+9.);",        // Color Blob 3 (violet, Overlay)
     "  vec4 f=over(over(b1,b2),b3);",
     "  vec3 col=mix(uC1,f.rgb,f.a);",                                  // Composite Over Layer
+    /* special look: the whole ramp wraps round the bubble and turns with the same field (q is rotated + warped) */
+    "  if(uRb>.001){",
+    "    float h=atan(q.y,q.x)/6.2831853+.5+.06*sn(vec3(q*1.4,zc+31.));",
+    "    col=mix(col,pal(fract(h)),uRb);",
+    "  }",
     "  gl_FragColor=vec4(col*al,al);}"                                 // premultiplied
   ].join("\n");
 
@@ -211,7 +224,7 @@
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       var loc = gl.getAttribLocation(prog, "a"); gl.enableVertexAttribArray(loc);
       gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+      ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
       gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner); gl.uniform1f(U.uCol, P.color);
       glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
       return true;
@@ -273,15 +286,34 @@
     it.rad = radiusOf(cs, it.w, it.h);
     it.depth = parseFloat(cs.getPropertyValue("--rpb-depth")) || 1;
     it.deep = parseFloat(cs.getPropertyValue("--rpb-deep")) || 0;
+    it.rb = parseFloat(cs.getPropertyValue("--rpb-rainbow")) || 0;
+    if (it.rb) it.pal = palOf(cs.getPropertyValue("--rpb-pal"));
     it.styled = true;
   }
 
-  function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep) {
+  /* the stops of a CSS gradient string (hex or rgb()), at most 8; the closing repeat of the first stop
+     in a looping conic is dropped. Cached per string. */
+  var palCache = {};
+  function palOf(str) {
+    str = String(str || "");
+    if (palCache[str]) return palCache[str];
+    var out = [], m, re = /#[0-9a-f]{3,8}\b|rgba?\([^)]*\)/gi;
+    while ((m = re.exec(str)) && out.length < 9) { var c = css3(m[0].length > 7 && m[0][0] === "#" ? m[0].slice(0, 7) : m[0]); if (c) out.push(c); }
+    if (out.length > 2 && out[0].join() === out[out.length - 1].join()) out.pop();
+    out = out.slice(0, 8);
+    var flat = new Float32Array(24);
+    out.forEach(function (c, i) { flat[i * 3] = c[0]; flat[i * 3 + 1] = c[1]; flat[i * 3 + 2] = c[2]; });
+    return (palCache[str] = { n: out.length, flat: flat });
+  }
+
+  function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep, rb, pal) {
     if (glc.width < W || glc.height < H) { glc.width = Math.max(glc.width, W, 256); glc.height = Math.max(glc.height, H, 256); }
     gl.viewport(0, glc.height - H, W, H);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3fv(U.uC1, cols[0]); gl.uniform3fv(U.uC2, cols[1]); gl.uniform3fv(U.uC3, cols[2]);
     gl.uniform2f(U.uBox, box[0], box[1]); gl.uniform1f(U.uRad, rad); gl.uniform1f(U.uDepth, depth || 1); gl.uniform1f(U.uDeep, deep || 0);
+    if (rb && pal && pal.n > 1) { gl.uniform1f(U.uRb, rb); gl.uniform1f(U.uPalN, pal.n); gl.uniform3fv(U.uPal, pal.flat); }
+    else gl.uniform1f(U.uRb, 0);
     gl.uniform1f(U.uT, t); gl.uniform1f(U.uSeed, seed);
     gl.uniform2f(U.uScale, scale[0], scale[1]); gl.uniform1f(U.uGlow, glow ? 1 : 0);
     gl.uniform1f(U.uPx, 2.4 / Math.min(W, H));
@@ -299,10 +331,10 @@
     if (it.cv.width !== W || it.cv.height !== H) { it.cv.width = W; it.cv.height = H; }
     if (it.ref) {
       var bw = it.rw || w, bh = it.rh || h, sb = Math.min(bw, bh) / 2;
-      render(it.cols, W, H, [bw / 2 / sb, bh / 2 / sb], it.rrad == null ? 1 : it.rrad, t, it.opts.seed, [w / 2 / sb, h / 2 / sb], 1, true);
+      render(it.cols, W, H, [bw / 2 / sb, bh / 2 / sb], it.rrad == null ? 1 : it.rrad, t, it.opts.seed, [w / 2 / sb, h / 2 / sb], 1, true, 0, it.rb, it.pal);
     } else {
       var s = Math.min(w, h), inset = it.opts.inset || 1;
-      render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, [w / s / inset, h / s / inset], it.depth, false, it.deep);
+      render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, [w / s / inset, h / s / inset], it.depth, false, it.deep, it.rb, it.pal);
     }
     it.ctx.clearRect(0, 0, W, H);
     it.ctx.drawImage(glc, 0, 0, W, H, 0, 0, W, H);   // viewport sits in the TOP-left W x H of the shared canvas

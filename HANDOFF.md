@@ -93,6 +93,16 @@
   `.rp-rim-on`; it now has a synced `.about-glow` canvas masked to outside the bubble. Light interior kept
   for logo readability. Glow canvases now overhang their element by 24 px so the halo fades to zero.
   Remaining old-style conic paint, by design: `.ncard::before` (news cards are rounded rectangles, not bubbles).
+- **Rainbow, logo outline, dive in, glare.** (1) The colour looks' special Rainbow (looks.js SPECIALS, 8 stops)
+  is back as its own look: the shader takes up to 8 palette stops (`uPal[8]`), parsed from the gradient named
+  by `--rpb-pal` (`--rainbow` on the placeholder, `--rp-glow` on `.rp-glow-special` projects), and
+  `--rpb-rainbow` (registered, .45s) blends the bubble + glow into that ramp on hover; it wraps round the
+  bubble and turns with the colour field. Replaces the 3-colour stand-in. (2) The home logo bubble's masked
+  `.about-glow` read as a faint second outline: removed (no glow layer there). (3) "Dive in" is a small dark
+  pill behind the words instead of a dark band across the card bottom. (4) Glare: one light source, TOP RIGHT,
+  fixed (grid .spec 72%/26%, carousel .cspec 74%/22% and 82%/16% on the featured card, orbits, ambient
+  .bgb and custom-page bubbles moved from top left); it no longer follows the cursor (--mx/--my writes
+  removed, tilt kept). Placeholder until Jack's stylised AE glare replaces it.
 - Status: LIVE on rarepond.com since 2026-10-26 (Jack: "try these on the live site"; bubble-v3 fast-forwarded
   to main from worktree ~/rp_site_bubble). Rollback = revert the merge commits on main.
 
