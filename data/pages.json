@@ -104,6 +104,21 @@
           "formHeight": 900,
           "buttonAlign": "center",
           "buttonStyle": "subtle"
+        },
+        {
+          "type": "body",
+          "text": "<b>Rare Pond staff?</b> Open the scan app and sign in with your Rare Pond Google account. It only works for the Rare Pond team.",
+          "buttonTarget": "home",
+          "formHeight": 900
+        },
+        {
+          "type": "button",
+          "buttonLabel": "Staff: open the scan app",
+          "buttonTarget": "url",
+          "buttonUrl": "https://scan.rarepond.com/",
+          "formHeight": 900,
+          "buttonAlign": "center",
+          "buttonStyle": "subtle"
         }
       ]
     }
