@@ -63,6 +63,8 @@
   ICON (G&E keeps the wrench, the Electric bolt is gone, Logistics keeps the cart), cart logic keyed to Logistics, tab
   data-c escaped; built-in list refreshed. Tests: test-rentals-sections (headings exclude the "Carts for" line) and
   test-rentals-packages ALL PASS; bts rentals_sections/packages/print_ready, noco_number_guard updated and ALL PASS.
+- Stickers print **G&E** (Jack): new optional category field `stickerLabel` (Pages CMS "Name on stickers"), read by
+  rentals_stickers/stickers.py departments(); empty = the display name. The site and scan app keep "Grip & Electric".
 
 ### 0.0.-117 HOME DUCK ANIM UPDATED TO THE 2026-09-03 SIMPLE EXPORT (WITH BLINK) (2026-10-26)
 

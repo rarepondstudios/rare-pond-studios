@@ -296,6 +296,8 @@ content:
               description: "This is the exact category string on the gear in the rentals database. It is what groups the gear, so it must match the database EXACTLY. To actually rename a category in the database you have to change it in the database (NocoDB) as well as here. Changing this field alone will just stop the category working." }
           - { name: label, label: "Display name (what visitors see)", type: string,
               description: "Safe to change any time. This does not touch the database." }
+          - { name: stickerLabel, label: "Name on stickers (optional)", type: string,
+              description: "A short name printed on the gear stickers instead of the display name (e.g. G&E for Grip & Electric). Leave empty to print the display name. Changes only stickers made after it." }
           - { name: colorLook, label: "Linked color look", type: string,
               description: "The name (ID) of a look in COLOR LOOKS - e.g. red, amber, violet, yellow, green, pink, lightblue, silver, or signature. That look's Color 1 becomes this category's color. If it does not match a real look, the category shows WHITE (on purpose, so a broken link is obvious); the Color Looks preview page flags broken links in red. The looks themselves are edited in NocoDB, table color_looks." }
       - name: builders
