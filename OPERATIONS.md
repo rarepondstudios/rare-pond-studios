@@ -761,7 +761,7 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
 ### Sections: the groupings inside a department (2026-10-25)
 
 - The headings on a department's page (Batteries, Power Banks, Clamps ...) are rows in **Sections** in NocoDB
-  (`public.sections`): department, name, and **Order on site (lower first)**. The view "Sections" lists them by
+  (`public.sections`): department, name, and **Order on site (lower first)**. Its one view lists them by
   department in that order, with the gear in each.
 - **Make one:** add a row in Sections (department + name). **Rename:** edit the name; every piece of gear in it follows.
   **Reorder:** change the order numbers. **Delete:** only an empty section can go; NocoDB says which gear is still in it.
