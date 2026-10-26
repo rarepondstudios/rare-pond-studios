@@ -57,8 +57,8 @@
   edge (rainbow hover). No WebGL = old CSS rims untouched.
 - Featured carousel card: the shader follows the element's computed border-radius (rounded-rect SDF), and
   `--rpb-depth:.5` on `.citem.feat .cedge` thins the bands so they match the round side bubbles.
-- Status: on branch `bubble-v3` only (preview bubble-v3.rare-pond-studios.pages.dev), WAITING for Jack's OK
-  to merge to main.
+- Status: LIVE on rarepond.com since 2026-10-26 (Jack: "try these on the live site"; bubble-v3 fast-forwarded
+  to main from worktree ~/rp_site_bubble). Rollback = revert the merge commits on main.
 
 ### 0.0.-118 RENTALS DEPARTMENTS REGROUPED: GRIP & ELECTRIC, LOGISTICS, NEW ORDER AND COLOURS (2026-10-26)
 
