@@ -39,6 +39,49 @@
 
 ## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
 
+### 0.0.-116 SCAN APP: PROBLEM GEAR, PROFILE PAGE, NEW HEADER; WEBSITE FILTERS (2026-10-25)
+
+- Header (scan_service.header()): "Rare Pond Rentals Scanner" text, then duck (media/logos/duck-mark.webp served as
+  /static/duck.webp) wearing the website's hat from data/site.json (/static/hat.webp, same placement as hat.js), Scan,
+  search + Go, i, profile photo, menu on the right. app.js is loaded as app.js?v=<mtime> with no-cache, because phones
+  kept an old copy (that was the "In repair filter does nothing" bug: the server side was fine).
+- Menu: How it works, line, Dashboard, Inventory, Problem Gear (count badge), Activity, Profile. Removed Search gear
+  (/search and /?q= now redirect to /inventory?q=...#find) and Previous Orders (still on the dashboard).
+- Problem Gear (/problems, scan_dash.problems_body; /missing redirects): missing + in repair in one list, big count.
+  Found it / Repaired open a confirm box first (POST needs sure=yes), then a confetti popup. scan_parts.repaired() sets
+  damage_events status 'repaired' (trigger puts the copy back to OK). Inventory: line under the first 3 tiles, then
+  In repair, Missing, "See details on problem gear".
+- Profile page (/profile, scan_profile.page_body): photo + name from the Google login (Access IdP now sends OIDC claims
+  picture + name; scan_access.access_claims) or Tailscale profile, email, devices list (new table public.rp_devices,
+  migration 20261026a, rp_dev cookie, updated at most every 5 min), Google sign-out with the scan.rarepond.com warning.
+- Activity person filter lists everyone ever seen (rp_activity actors + rp_devices).
+- Website (branch rentals-search, preview only, still WAITING for Jack's OK): See Gear removed (results update as you
+  type); Filters button inside the search box opens a collapsible panel: Department (Home), Type (Single gear / Kits =
+  anything with kit contents / Packages), Available on my dates (opens the date picker if no dates; a package counts
+  only when every piece in it is free).
+- Tests: scan_ui_test.py rewritten for all of the above (44 checks); scan_edge_test and scan_stress_test updated. Menu badge count cached 20 s (cleared on any save), help table 5 min.
+
+### 0.0.-115 SCAN APP: PROFILE, SIGN-IN SCREEN, HOW IT WORKS, INVENTORY SEARCH, ACTIVITY CHARTS (2026-10-25)
+
+- One source for departments: bts-automation/rp_depts.py (names = rentals.json labels, colors = colorLook c1 in
+  colorlooks.json, numbers + call names = dept_blocks). Scan app, How it works, search chips use it; NocoDB dropdown colors
+  follow via dept_style_sync.py (launchd com.rarepond.deptstyle, hourly; colors only, DB unchanged, verified by hashes).
+- Profile: round initial button top right (scan_profile.py). Google users: Sign out -> warning -> /cdn-cgi/access/logout.
+  Tailscale users: shows the login, no sign out.
+- Sign-in screen: Cloudflare Access login page branded (Zero Trust > Reusable components > Custom pages: name, logo
+  rare-pond-color.png, header/message text, #0a1f3c). scan.rarepond.com app auto_redirect_to_identity false (so that screen
+  shows; cf_access_setup.py keeps it); NocoDB/n8n still go straight to Google. Found page (data/pages.json) has a staff
+  button to scan.rarepond.com.
+- How it works (scan_help.py): 1100.001-A example, "X = Part" bullets, PKG card, live department table (Department /
+  First ID # / Call Name), dropdowns with step arrows (check OUT, check IN, Containers, Packages, Good to know).
+- Inventory: tiles In storage / In-house use / Rented out / In repair / Missing, each opens the shared search
+  (scan_search.py status filter, empty text lists all, Show more paging); item pages have Edit in NocoDB.
+- Activity: fresh start via rp_settings activity_since (nothing deleted; Include earlier history; owners: Start fresh),
+  CSS charts by day/hour, by person, gear handled most. Missing gear: big count, confetti + "No fires to put out here!" at 0.
+- Website: Home-tab search of all gear + one matcher (rpMatch) for Home and department tabs, on branch rentals-search
+  (worktree ~/rp_site_search, preview rentals-search.rare-pond-studios.pages.dev) WAITING for Jack's OK to merge.
+- Tests: scan_ui_test.py 28/28 (new).
+
 ### 0.0.-114 ACCESS FROM ANYWHERE IS LIVE + FIRST ATTEMPT REMOVED (2026-10-25)
 
 - LIVE 14:29: scan/nocodb/n8n.rarepond.com -> tunnel `pond` (healthy), three Access apps, Google login method

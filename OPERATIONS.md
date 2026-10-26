@@ -364,7 +364,8 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   Dates in the app and the overdue alert use `rp_today()`, the date in the admin time zone (the
   database clock is UTC, which made evenings count as tomorrow).
 - **Dashboard** (since 2026-10-24): the scan app's front page (`/`, also "Rare Pond" top left and the
-  ☰ menu on every page). Top: a red **Missing gear** button whenever something is missing.
+  ☰ menu on every page; since 2026-10-25 the top left is the duck with the website's hat). Top: a red
+  **Problem Gear** button whenever something is missing or in repair.
   Then **Out now** (rentals with gear out or dates covering today: who has it, units out, overdue /
   returns today / not picked up yet), **Coming up** (soonest first, with stage), and **Previous
   orders** (`/orders/past`, newest first; "All back" once everything returned). Every order opens
@@ -385,6 +386,13 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   via the session setting rp.actor and `migrations/20261025k_actor.sql` (actor on unit_scan_events, container_moves,
   damage_events, missing_notices; view rp_activity, not readable with the website key). Page: scan app **Activity**
   (menu), filters by person, period, kind, search. NocoDB edits are not in it (NocoDB's own per-record audit).
+- Departments, one source (2026-10-25): `bts-automation/rp_depts.py` reads names (rentals.json labels), colors
+  (colorLook -> colorlooks.json c1) and numbers/call names (public.dept_blocks); the scan app, its How it works table and
+  search use it, and `dept_style_sync.py` (launchd com.rarepond.deptstyle, hourly) copies the colors onto NocoDB's
+  department dropdowns. Change a department's name or color in Pages CMS / a color look in NocoDB, and every screen follows.
+- Scan app pages (2026-10-25): Inventory = status tiles (in storage, in-house, rented, in repair, missing) opening the
+  shared search (scan_search.py `status`), Activity = charts + fresh start (rp_settings `activity_since`, nothing
+  deleted), profile button (sign out for Google sign-ins), Edit in NocoDB on item pages. Test: `scan_ui_test.py`.
 - Staff phones with iCloud Private Relay (2026-10-25): Private Relay sends Safari through Apple's relays, which can
   never reach the tailnet. So the scan app, NocoDB and n8n also live at `scan.rarepond.com`, `nocodb.rarepond.com`
   and `n8n.rarepond.com`: Cloudflare Tunnel `pond` (launchd com.rarepond.cloudflared, connects out, no open port)
@@ -423,8 +431,10 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   `missing`, unit condition `missing`; for a counted part the highest-numbered pieces). The confirm
   screen offers **Tell the customer** (note, Preview, Send): parts with replacement value, nothing
   charged, return-by date (admin setting, 7 days). Notices are kept in `missing_notices` (`kind`).
-- Resolving: **Missing gear** (`/missing`) lists each missing part, its kit, the rental and customer,
-  and whether they were emailed. **Resolve** marks it **Found** or **Replaced** (amount billed, blank
+- Resolving: **Problem Gear** (`/problems`, since 2026-10-25; `/missing` redirects there) lists each missing
+  part, its kit, the rental and customer, and whether they were emailed, plus every copy in repair. **Found it**
+  and **Repaired** need a confirm tap (the form posts `sure=yes`) and then show a celebration; Repaired sets the
+  event to `repaired`, which puts the copy back to OK. **Resolve** marks it **Found** or **Replaced** (amount billed, blank
   if we covered it, plus a note); who did it is recorded from their Tailscale name. Then an optional
   email (all clear, or what was replaced and billed), preview first. The row keeps its history
   (`status` found/replaced, `resolved_on`, `resolved_note`, `resolved_by`, `billed_amount`). In
