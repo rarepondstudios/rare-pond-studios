@@ -254,11 +254,11 @@ The current list and call codes (filled in hourly from the database by `bts-auto
 between the markers):
 
 <!-- BEGIN GENERATED: docsync:dept_line -->
-Camera 1, Lighting 2, Grip 3, Electric 4, Sound 5, DIT 6, Effects 7, Carts 9
+Camera 1, Lighting 2, Grip & Electric 3, Sound 4, Effects 5, DIT 6, Logistics 7
 <!-- END GENERATED: docsync:dept_line -->
 
 <!-- BEGIN GENERATED: docsync:dept_codes -->
-Camera CAM, Lighting LGT, Grip G&E, Electric ELC, Sound SND, DIT DIT, Effects EFX, Carts CRT
+Camera CAM, Lighting LGT, Grip & Electric G&E, Sound SND, Effects EFX, DIT DIT, Logistics LOG
 <!-- END GENERATED: docsync:dept_codes -->
 
 
