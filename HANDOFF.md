@@ -55,10 +55,15 @@
   picture + name; scan_access.access_claims) or Tailscale profile, email, devices list (new table public.rp_devices,
   migration 20261026a, rp_dev cookie, updated at most every 5 min), Google sign-out with the scan.rarepond.com warning.
 - Activity person filter lists everyone ever seen (rp_activity actors + rp_devices).
-- Website (branch rentals-search, preview only, still WAITING for Jack's OK): See Gear removed (results update as you
+- Website: LIVE on rarepond.com since 2026-10-25 (Jack OK'd; rentals-search merged to main, fast-forward). See Gear removed (results update as you
   type); Filters button inside the search box opens a collapsible panel: Department (Home), Type (Single gear / Kits =
   anything with kit contents / Packages), Available on my dates (opens the date picker if no dates; a package counts
-  only when every piece in it is free).
+  only when every piece in it is free). Open Filters button: Signature look (c1 -> c2) on Home, the department's own
+  colour look in a department tab (rpLookOf). The Home tab always reads "Home" (it used to show Select a Date / the dates).
+- Popup scroll lock, site-wide (assets/chrome.css, PAGE SCROLL LOCK): rentals has html{overflow-x:hidden}, which makes
+  <html> the page scroller, so the old body.style.overflow lock did nothing and wheeling over a popup that had nothing to
+  scroll moved the page behind it. Now <html> locks while any popup is open (any body lock, #dp, #dpop, #reqpop, #ovl,
+  .rpd-show, .rpc-show, html.rpc-open). Studio, media and jackcarlsen.com were checked: they already locked correctly.
 - Tests: scan_ui_test.py rewritten for all of the above (44 checks); scan_edge_test and scan_stress_test updated. Menu badge count cached 20 s (cleared on any save), help table 5 min.
 
 ### 0.0.-115 SCAN APP: PROFILE, SIGN-IN SCREEN, HOW IT WORKS, INVENTORY SEARCH, ACTIVITY CHARTS (2026-10-25)
