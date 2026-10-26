@@ -364,7 +364,8 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   Dates in the app and the overdue alert use `rp_today()`, the date in the admin time zone (the
   database clock is UTC, which made evenings count as tomorrow).
 - **Dashboard** (since 2026-10-24): the scan app's front page (`/`, also "Rare Pond" top left and the
-  ☰ menu on every page). Top: a red **Missing gear** button whenever something is missing.
+  ☰ menu on every page; since 2026-10-25 the top left is the duck with the website's hat). Top: a red
+  **Problem Gear** button whenever something is missing or in repair.
   Then **Out now** (rentals with gear out or dates covering today: who has it, units out, overdue /
   returns today / not picked up yet), **Coming up** (soonest first, with stage), and **Previous
   orders** (`/orders/past`, newest first; "All back" once everything returned). Every order opens
@@ -430,8 +431,10 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   `missing`, unit condition `missing`; for a counted part the highest-numbered pieces). The confirm
   screen offers **Tell the customer** (note, Preview, Send): parts with replacement value, nothing
   charged, return-by date (admin setting, 7 days). Notices are kept in `missing_notices` (`kind`).
-- Resolving: **Missing gear** (`/missing`) lists each missing part, its kit, the rental and customer,
-  and whether they were emailed. **Resolve** marks it **Found** or **Replaced** (amount billed, blank
+- Resolving: **Problem Gear** (`/problems`, since 2026-10-25; `/missing` redirects there) lists each missing
+  part, its kit, the rental and customer, and whether they were emailed, plus every copy in repair. **Found it**
+  and **Repaired** need a confirm tap (the form posts `sure=yes`) and then show a celebration; Repaired sets the
+  event to `repaired`, which puts the copy back to OK. **Resolve** marks it **Found** or **Replaced** (amount billed, blank
   if we covered it, plus a note); who did it is recorded from their Tailscale name. Then an optional
   email (all clear, or what was replaced and billed), preview first. The row keeps its history
   (`status` found/replaced, `resolved_on`, `resolved_note`, `resolved_by`, `billed_amount`). In
