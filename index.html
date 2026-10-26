@@ -812,7 +812,25 @@ html.xw-active{overflow:hidden}
     /* the flash's colours. Signature unless applyFlashLook() overrides them for this film.
        --fgm is the hand-picked middle stop, kept exactly as it was. */
     --fg1:var(--g1);--fg2:var(--g2);--fg3:var(--g3);--fgm:rgb(123,108,255)}
-  .universe.u-over{z-index:100001}   /* a film opened from the News popup's logo button, above the popup until it is covered */
+  .universe.u-over{z-index:100001}
+  /* ===== PAGE TRANSITIONS (2026-10-26, Jack: pages snapped) =====
+     Every in-site page change (nav, footer, buttons, custom pages, Back/Forward, links in News articles)
+     goes through __viewSwap(): a View Transition cross-fade of the whole page, the new page rising in
+     slightly, while the header and the custom cursor stay perfectly still. Old and new use the SAME
+     duration so their opacities always add up to 1 (no dip to the background mid-fade). Browsers
+     without View Transitions fall back to the colour veil (__pageFade). Films and News articles keep
+     their own circle / zoom animations. */
+  @media (prefers-reduced-motion:no-preference){
+    ::view-transition-old(root){animation:rp-vt-out .38s cubic-bezier(.4,0,.2,1) both}
+    ::view-transition-new(root){animation:rp-vt-in .38s cubic-bezier(.4,0,.2,1) both}
+  }
+  @keyframes rp-vt-out{to{opacity:0}}
+  @keyframes rp-vt-in{from{opacity:0;transform:translateY(10px)}}
+  .site-header{view-transition-name:rp-header}
+  #rp-cursor{view-transition-name:rp-cursor}
+  ::view-transition-group(rp-header),::view-transition-group(rp-cursor){animation:none}
+  ::view-transition-old(rp-header),::view-transition-old(rp-cursor){display:none}
+  ::view-transition-new(rp-header),::view-transition-new(rp-cursor){animation:none}   /* a film opened from the News popup's logo button, above the popup until it is covered */
   .universe.open{clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%));-webkit-clip-path:circle(165vmax at var(--ox,50%) var(--oy,50%))}
   .u-bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center}
   /* ===== EXPANDED-PAGE BACKGROUND VIDEO ============================================
@@ -1840,7 +1858,9 @@ function makeGridBubble(p,i){
      50% radius. These bubbles are circles today so the engine's auto-circle rule already skips
      the outline and nothing changes; the token is what keeps that true if the shape ever
      changes, which is exactly how the outline came back on the home carousel's featured card. */
-  bubble.setAttribute('data-cursor','kbnative nohug');
+  /* "More to come" has no click action (cursor:default), so the cursor engine would ignore it and keep
+     its coloured ring; 'link' makes it engage, and fade, exactly like every other bubble */
+  bubble.setAttribute('data-cursor',p.placeholder?'kbnative nohug link':'kbnative nohug');
   if(!p.placeholder){bubble.setAttribute('role','button');bubble.setAttribute('tabindex','0');bubble.setAttribute('aria-label','Open '+p.title);}
   else{
     /* mobile: taps don't fire :hover on an element with no click behaviour, so the
@@ -2683,7 +2703,7 @@ function openUniverse(key){
   const sec=built[key]||(built[key]=buildUniverse(key));
   if(first&&window.RP_reapplyLooks)RP_reapplyLooks();   /* a freshly built film page gets its look-driven title style etc. */
   sec.dataset.key=key;
-  sec._fromEl=__uFromEl;__uFromEl=null;
+  sec._fromEl=__uFromEl;__uFromEl=null;sec._fromNews=null;
   sec.querySelector('.back').textContent=(activeView==='projects')?'‹ Back to projects':(activeView==='news')?'‹ Back to news':'‹ Back to the pond';
 
   /* LOCK FIRST, THEN MEASURE. Locking removes the page's scrollbar, and on a machine with
@@ -3156,6 +3176,19 @@ function openNews(key){
   newsFxLater(210+440+380,()=>{newsFx.undo=null;newsPanel.style.clipPath='';newsArt.classList.remove('fx');newsCardReset(card);newsBusy=false;newsFx.timers=[];});
   return true;
 }
+/* open an article with no animation (it appears fully formed, e.g. underneath a film that is retracting into it) */
+function newsOpenInstant(key){
+  if(!NEWS_BY_KEY[key])return false;
+  clearTimeout(newsCloseTimer);newsFxCancel();newsBusy=false;
+  newsOpen=key;document.body.classList.add('locked');
+  renderNewsPopup(key);
+  newsArt.style.transition='none';newsPanel.style.transition='none';
+  newsArt.classList.remove('closing','moving','fx');newsArt.style.visibility='visible';newsArt.setAttribute('aria-hidden','false');
+  newsPanel.className='na-panel';newsPanel.style.transform='';newsPanel.style.opacity='';newsPanel.style.clipPath='';newsPanel.scrollTop=0;
+  newsArt.classList.add('open');void newsArt.offsetWidth;
+  newsArt.style.transition='';newsPanel.style.transition='';
+  return true;
+}
 function closeNews(instant){
   if(!newsOpen)return;
   newsFxCancel();
@@ -3231,8 +3264,9 @@ function openProjectFrom(el,key){
   if(!SECTIONS[key]||!KEY2SLUG[key]){nav(el.getAttribute('href'));return;}
   const fromPopup=!!newsOpen&&!!el.closest('#newsArt');
   const sl='/'+KEY2SLUG[key];if(location.pathname!==sl)history.pushState({},'',sl);
+  const fromKey=fromPopup?newsOpen:null;
   __uFromEl=el;openUniverse(key);
-  const sec=built[key];if(!fromPopup||!sec)return;
+  const sec=built[key];if(sec)sec._fromNews=fromKey;if(!fromPopup||!sec)return;
   sec.classList.add('u-over');
   let done=false;const finish=()=>{if(done)return;done=true;sec.removeEventListener('transitionend',onEnd);if(currentOpen===sec){closeNews(true);document.body.classList.add('locked');}sec.classList.remove('u-over');};
   const onEnd=ev=>{if(ev.target===sec&&/clip-path/.test(ev.propertyName))finish();};
@@ -3248,7 +3282,7 @@ newsArt.addEventListener('click',e=>{
   const nv=e.target.closest('.lb-nav');if(nv){e.stopPropagation();newsStep(nv.classList.contains('lb-next')?1:-1);return;}
   /* a site-relative link in the body ([text](/geriaction), [text](/news/other-key)) routes through
      the SPA instead of reloading the page; the popup closes instantly underneath */
-  const a=e.target.closest('.nbody a[href^="/"]');if(a&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey&&e.button===0){e.preventDefault();const to=a.getAttribute('href');const nm=/^\/news\/([^\/?#]+)/.exec(to);if(nm){const k=newsKey(nm[1]);if(NEWS_BY_KEY[k])newsGo(k);return;}closeNews(true);nav(to);return;}
+  const a=e.target.closest('.nbody a[href^="/"]');if(a&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!e.altKey&&e.button===0){e.preventDefault();const to=a.getAttribute('href');const nm=/^\/news\/([^\/?#]+)/.exec(to);if(nm){const k=newsKey(nm[1]);if(NEWS_BY_KEY[k])newsGo(k);return;}const fk=SLUG2KEY[to.split(/[?#]/)[0].replace(/\/+$/,'').replace(/^\//,'')];if(fk&&SECTIONS[fk]){openProjectFrom(a,fk);return;}__viewSwap(()=>{closeNews(true);nav(to);});return;}
   if(e.target===newsArt||e.target.classList.contains('na-peek')||e.target.closest('.na-peek'))history.back();   /* the scrim (or a peek) closes, like the lightbox */
 });
 /* swipe between articles on touch (horizontal, deliberate, mostly sideways) */
@@ -3277,7 +3311,7 @@ const SLUG2KEY={},KEY2SLUG={};
 __projects.filter(p=>!p.placeholder).forEach(p=>{const sl=p.slug||slugify(p.title);SLUG2KEY[sl]=p.key;KEY2SLUG[p.key]=sl;});
 function pathForDest(d){return d==='team'?'/team':d==='projects'?'/projects':d==='news'?'/news':'/';}
 /* render app state for a path (no history writes) */
-function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]){/* A film opens OVER the projects view. Custom pages can show bubbles, so a film can now be opened from one - make sure we swap the backdrop to projects first, exactly as a fresh load of /geriaction does, instead of leaving the custom page sitting underneath. The same for News: showView('projects') also drops an expanded article instantly, otherwise the film and the article overlay (both z-index 100) stack and the body lock is left behind. */if(activeView==='page'||activeView==='news'){cpMarkNav('');showView('projects');}openUniverse(SLUG2KEY[seg]);return;}if(currentOpen)closeUniverse(currentOpen);/* /news and /news/<key>: the list view, plus the article expanded over it */const nm=/^news(?:\/([^\/]+))?$/.exec(seg);if(nm){if(activeView!=='news')showView('news');document.title=NEWS_LIST_TITLE;const nk=nm[1]?newsKey(nm[1]):'';if(nk&&NEWS_BY_KEY[nk]){if(newsOpen!==nk)openNews(nk);}else if(newsOpen)closeNews();return;}if(seg==='team')showView('team');else if(seg==='projects')showView('projects');else showView('home');}
+function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]&&newsOpen&&!currentOpen){const lk=newsArt.querySelector('a.na-proj[data-proj="'+SLUG2KEY[seg]+'"]');if(lk){openProjectFrom(lk,SLUG2KEY[seg]);return;}}{const nm0=/^news\/([^\/]+)$/.exec(seg),sec0=currentOpen;if(nm0&&sec0&&sec0._fromNews&&newsKey(nm0[1])===sec0._fromNews&&NEWS_BY_KEY[sec0._fromNews]){if(activeView!=='news')showView('news');document.title=NEWS_LIST_TITLE;sec0.classList.add('u-over');newsOpenInstant(sec0._fromNews);sec0._fromEl=newsArt.querySelector('a.na-proj[data-proj="'+sec0.dataset.key+'"]')||null;closeUniverse(sec0);document.body.classList.add('locked');setTimeout(()=>sec0.classList.remove('u-over'),850);return;}}if(SLUG2KEY[seg]){/* A film opens OVER the projects view. Custom pages can show bubbles, so a film can now be opened from one - make sure we swap the backdrop to projects first, exactly as a fresh load of /geriaction does, instead of leaving the custom page sitting underneath. The same for News: showView('projects') also drops an expanded article instantly, otherwise the film and the article overlay (both z-index 100) stack and the body lock is left behind. */if(activeView==='page'||activeView==='news'){cpMarkNav('');showView('projects');}openUniverse(SLUG2KEY[seg]);return;}if(currentOpen)closeUniverse(currentOpen);/* /news and /news/<key>: the list view, plus the article expanded over it */const nm=/^news(?:\/([^\/]+))?$/.exec(seg);if(nm){if(activeView!=='news')showView('news');document.title=NEWS_LIST_TITLE;const nk=nm[1]?newsKey(nm[1]):'';if(nk&&NEWS_BY_KEY[nk]){if(newsOpen!==nk)openNews(nk);}else if(newsOpen)closeNews();return;}if(seg==='team')showView('team');else if(seg==='projects')showView('projects');else showView('home');}
 /* push a URL then render (in-page nav clicks) */
 /* --- custom-page routing -------------------------------------------------
    Custom pages live at  /<slug>   (e.g. /submit-a-screenplay).
@@ -3368,7 +3402,8 @@ document.body.addEventListener('click', e => {
   const a = e.target.closest('[data-page]');
   if (!a) return;
   e.preventDefault();
-  navPage(a.getAttribute('data-page'));
+  const slug = a.getAttribute('data-page');
+  if (currentOpen) navPage(slug); else __viewSwap(() => navPage(slug));
 });
 function nav(path){if(location.pathname+location.search!==path)history.pushState({},'',path);renderRoute();}
 /* open a project from a bubble/card click - keeps the zoom-from-bubble animation */
@@ -3414,9 +3449,44 @@ function __pageFade(swap){
   var t=setTimeout(go,240);
   v.addEventListener('transitionend',function h(e){if(e.propertyName&&e.propertyName!=='opacity')return;v.removeEventListener('transitionend',h);clearTimeout(t);go();});
 }
-document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();const d=a.getAttribute('data-go');if(d==='contact'||d==='about'){nav('/');showView('home','#'+d);}else{const _doNav=function(){nav(pathForDest(d));};/* If a film is open, its circle-retract (closeUniverse) IS the transition - run it alone, never with the page-fade veil layered on top. */if(currentOpen)_doNav();else __pageFade(_doNav);}});
-/* browser back / forward drives the view (this is how the universe closes on Back) */
-addEventListener('popstate',()=>renderRoute());
+/* ONE way to change page: a cross-fade (View Transitions), the veil where unsupported, instant for
+   reduced motion. A transition already running is simply superseded by the next one. */
+function __viewSwap(swap){
+  const reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(reduced||!__routeBooted){swap();return;}
+  if(document.startViewTransition&&!document.hidden){
+    try{
+      const vt=document.startViewTransition(()=>{try{swap();}catch(e){console.error(e);}});
+      vt.ready.catch(()=>{});vt.finished.catch(()=>{});
+      return;
+    }catch(e){}
+  }
+  __pageFade(swap);
+}
+document.body.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();const d=a.getAttribute('data-go');
+  if(d==='contact'||d==='about'){
+    /* already home: just glide down to the section; from another page: cross-fade to home first */
+    if(activeView==='home'&&!currentOpen){nav('/');showView('home','#'+d);}
+    else if(currentOpen){nav('/');showView('home','#'+d);}
+    else __viewSwap(()=>{nav('/');showView('home','#'+d);});
+  }else{const _doNav=function(){nav(pathForDest(d));};/* If a film is open, its circle-retract (closeUniverse) IS the transition - run it alone, never with a page fade layered on top. */if(currentOpen)_doNav();else __viewSwap(_doNav);}});
+/* what a path shows: a film, a News article, or one of the base pages */
+function __routeOf(path){
+  const seg=String(path||'/').split('#')[0].split('?')[0].replace(/\/+$/,'').replace(/^\//,'');
+  if(SLUG2KEY[seg])return {film:SLUG2KEY[seg]};
+  if(cpIsPage(seg))return {view:'page',slug:seg};
+  const nm=/^news(?:\/([^\/]+))?$/.exec(seg);
+  if(nm)return {view:'news',article:nm[1]?newsKey(nm[1]):''};
+  return {view:seg==='team'?'team':seg==='projects'?'projects':'home'};
+}
+/* browser back / forward drives the view (this is how the universe closes on Back). A change of
+   base page cross-fades like a click; films and articles run their own open/close animations. */
+addEventListener('popstate',()=>{
+  const r=__routeOf(location.pathname+(location.search||''));
+  const legacy=cpLegacySlug();
+  const pageChange=!currentOpen&&!r.film&&(legacy||r.view!==activeView||(r.view==='page'))&&!(r.view==='news'&&activeView==='news');
+  if(pageChange)__viewSwap(renderRoute);else renderRoute();
+});
 /* hash links from other pages (rentals): /#team /#projects /#contact /#about */
 function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if((h==='team'||h==='projects'||h==='news')&&routeClosed('/'+h)){location.replace('/'+h);return;}if(currentOpen)closeUniverse(currentOpen);if(h==='team'){try{history.replaceState({},'','/team');}catch(e){}showView('team');}else if(h==='projects'){try{history.replaceState({},'','/projects');}catch(e){}showView('projects');}else if(h==='news'){try{history.replaceState({},'','/news');}catch(e){}showView('news');}else if(h==='contact'){if(window.RP_openContact)RP_openContact();}else if(h==='about')showView('home','#about');}
 addEventListener('hashchange',routeHash);
