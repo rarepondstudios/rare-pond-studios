@@ -34,7 +34,7 @@ const SOCLINKS=[['https://www.youtube.com/@zytopian','YouTube','yt'],['https://w
 let CATS=["Camera","Lighting","Grip","Electric","Sound","DIT","Effects","Carts"];var RP_LIVE=false;
 let LABELS={};
 RENTALS.forEach((p,i)=>p._id=i);
-let active="Home",q="",cart={},cartOrder=[],dpOpen=null,calRef=null,pick='start',badDay=null;
+let active="Home",q="",hq="",cart={},cartOrder=[],dpOpen=null,calRef=null,pick='start',badDay=null;
 /* Packages + build-your-own state (2026-10-25). BUILDERS / packages come from Supabase (public.packages,
    package_lines, cart_pairings) in loadCatalog(); declared here so the first paint (built-in catalog) is safe. */
 var BUILDERS=[],bstate={},builderOpen=null,PAIR_BY_ITEM={},PAIR_BY_CART={},RP_PKGRAW=null;
@@ -114,8 +114,11 @@ function renderHome(){
  const lbl=(D.s&&D.e)?(fmtRange()+' · '+days()+' days'):(D.s?(fmtOne(D.s)+', now pick an end date'):datePrompt);
  $('stage').innerHTML='<div class="home"><div class="logowrap">'+heroMark+'</div><h2>'+esc(heroTitle)+'</h2><p class="homesub">'+esc(heroSub)+'</p>'
  +'<button class="datebig" id="hdate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg> '+esc(lbl)+'</button>'
- +'<button class="browse" id="hbrowse">'+esc(browseBtn)+'</button>'+'<div class="crew"><p class="crewq">'+esc(crewBlurb)+'</p><button class="crewbtn" id="crewbtn">'+esc(crewBtn)+'</button></div></div>';
- $('hdate').onclick=openDates;$('hbrowse').onclick=()=>{active='Camera';render();};$('crewbtn').onclick=function(){if(window.RPCrew)window.RPCrew.open();};}
+ +'<button class="browse" id="hbrowse">'+esc(browseBtn)+'</button>'
+ +'<div class="hsearch"><input class="search" id="hq" type="search" aria-label="Search all gear" placeholder="'+esc(copyStr('home','searchPlaceholder','Or search all gear: a name, a brand, a kind of light…'))+'" value="'+esc(hq)+'" autocomplete="off" enterkeyhint="search"><div id="hres"></div></div>'
+ +'<div class="crew"><p class="crewq">'+esc(crewBlurb)+'</p><button class="crewbtn" id="crewbtn">'+esc(crewBtn)+'</button></div></div>';
+ $('hdate').onclick=openDates;$('hbrowse').onclick=()=>{active='Camera';render();};
+ var hqi=$('hq');if(hqi){hqi.oninput=function(e){hq=e.target.value;renderHomeResults();};renderHomeResults();}$('crewbtn').onclick=function(){if(window.RPCrew)window.RPCrew.open();};}
 function renderCat(){
  const c=active,col=COL[c];
  const tool='<div class="ptool"><input class="search" id="q" aria-label="Search gear" placeholder="Search '+esc(c)+'…" value="'+esc(q)+'">'
@@ -128,10 +131,26 @@ function renderCat(){
    sections. Search filters both. Package box open/closed state persists per
    category in pkgOpen. */
 function rpInDept(p,c){return p.cat===c||(p.depts||[]).indexOf(c)>=0;}
+/* 2026-10-25 (Jack): ONE search rule for the whole rentals page, the same idea as the staff scan app's search:
+   every word you type has to appear somewhere in the gear's name, its section, its department or what is in the
+   kit, in any order ("aputure light" finds Aputure lights). Public catalog only: no copies, no status, no admin data. */
+function rpMatch(p,qq){var w=String(qq||'').toLowerCase().split(/\s+/).filter(Boolean);if(!w.length)return true;
+ var hay=[p.name,p.sec,LABELS[p.cat]||p.cat,(p.contents||[]).map(function(x){return x.l;}).join(' ')].join(' ').toLowerCase();
+ return w.every(function(x){return hay.indexOf(x)>=0;});}
+/* Home: search all departments at once. Results are the same cards as the department tabs (add to cart works). */
+function renderHomeResults(){
+ var r=$('hres');if(!r)return;rpEnsureStyles();
+ if(!String(hq||'').trim()){r.innerHTML='';return;}
+ var hits=RENTALS.filter(function(p){return (p.kind==='package'||!p.pkgOnly)&&rpMatch(p,hq);});
+ if(!hits.length){r.innerHTML='<div class="empty">Nothing matches "'+esc(hq)+'". Try fewer words, or browse the departments above.</div>';return;}
+ var html='<div class="hcount">'+hits.length+' match'+(hits.length!==1?'es':'')+'</div>';
+ CATS.forEach(function(c){var rows=hits.filter(function(p){return p.kind==='package'?rpInDept(p,c):p.cat===c;});if(!rows.length)return;
+  html+='<div class="hdept" style="--hc:'+COL[c]+'"><span></span>'+esc(LABELS[c]||c)+'<b>'+rows.length+'</b></div><div class="grid">'+rows.map(function(p){return card(p,COL[c]);}).join('')+'</div>';});
+ r.innerHTML=html;bind();}
 function renderResults(){
  const c=active,col=COL[c];
  rpEnsureStyles();
- function _match(p){return p.name.toLowerCase().includes(q)||(p.sec||'').toLowerCase().includes(q)||(p.contents||[]).some(x=>x.l.toLowerCase().includes(q));}
+ function _match(p){return rpMatch(p,q);}
  function _sections(rows,cc){var ss=[...new Set(rows.map(x=>x.sec))];ss=rpSecSort(ss,rows);return ss.map(s=>'<div class="sub">'+esc(s)+'</div><div class="grid">'+rows.filter(x=>x.sec===s).map(p=>card(p,cc||col)).join('')+'</div>').join('');}
  /* gear marked only_in_packages is never listed on its own (it is picked inside a package) */
  var items=RENTALS.filter(p=>p.cat===c&&p.kind!=='package'&&!p.pkgOnly&&_match(p));
@@ -181,7 +200,7 @@ function bind(){
 function inc(id){if((cart[id]||0)<RENTALS[id].qty){cart[id]++;refresh();}}
 function dec(id){cart[id]--;if(cart[id]<=0){delete cart[id];cartOrder=cartOrder.filter(x=>x!==id);}refresh();}
 function addCart(id){if(!cart[id])cartOrder.push(id);cart[id]=(cart[id]||0)+1;refresh();const f=$('fab');f.animate([{transform:'scale(1.12)'},{transform:'scale(1)'}],{duration:300});}
-function refresh(){if(active!=='Home')renderResults();uc();if(dpOpen!=null)openDP(dpOpen);}
+function refresh(){if(active!=='Home')renderResults();else renderHomeResults();uc();if(dpOpen!=null)openDP(dpOpen);}
 function openDP(id){const p=RENTALS[id];if(!p)return;dpOpen=id;rpEnsureStyles();
  const isPkg=p.kind==='package';const dpc=COL[p.cat]||'#2f57a6';
  const hero=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');const inC=cart[id];
