@@ -39,6 +39,35 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-121 AE SHINE ON EVERY BUBBLE; DEPTH-ZOOM INTO A FILM THROUGH THE THREE TIERS; THREE-TIER CURSOR (2026-10-26)
+
+- Jack: try his AE shine ("RP_V3_Bubble_Shine_PRE-COMP", folder "Bubble Shine PRE-COMP" in RP Anim 1) across the
+  site; replace the circle wipe into a film with a fly-through of the bubble's three tiers (rim = foreground,
+  50% band = mid-ground, 25% band = backdrop, each passing later and slower, like the planes of a stage set);
+  and bring the three-tier opacity design to the dynamic cursor.
+- SHINE: drawn by `assets/rp-bubble.js` on the rim canvas (`shineA()` in the shared shader HEAD): Shine 3/2/1 as
+  soft ellipses at 20/40/40% with the comp's centres, radii, blurs and turbulence, top right, clipped by the
+  exterior cutter; pinned to the top-right corner on the rounded featured card. The old CSS speculars are
+  switched off only where the canvas is on (`:has(.rp-bubble-on)` rules after `.citem.feat .cedge.rp-bubble-on`):
+  `.glass .spec`, `.cspec`, `.m-spec`, `.about-anim-slot::after`, the `.orbi::after` highlight (bottom shade
+  kept) and the `.bgb` highlight (the bgb sprite already carries the shine). No WebGL = old speculars as before.
+- DEPTH ZOOM: `RPBubble.zoom({el, dir, ms, hide, onFrame, onDone})` + `RPBubble.zoomStop()`. Second shader
+  program `FSZ` renders the three planes full-viewport on a fixed overlay canvas (z 100002, under the cursor):
+  camera advance c, plane depths D = [1, 1.3, 1.65], plane scale D/(D-c), easeInOutCubic, 1.5 s in / 1.15 s out.
+  The look is snapshotted at click (the hover look otherwise fades back while the film covers the bubble).
+  `FSZ` is compiled AND warmed with a 1 px draw at idle (ANGLE/Metal finishes a program on its first draw;
+  without the warm-up the first click stalled 100-170 ms). Measured on the mini, real GPU: open and close both
+  a flat 17 ms per frame.
+- index.html: `zoomHost(key)` (grid bubble, featured card, any card, on screen only), `uZoom()`, `uZoomClear()`;
+  openUniverse/closeUniverse use it and fall back to the old circle wipe with no WebGL, reduced motion, or a
+  film opened from a News logo button (`sec._fromEl`). The film is revealed through the rim's inner contour
+  (inline clip-path per frame), fades up over the first 18%, its backdrop pushes in 8% (`--uz`, settles back via
+  `.rp-settle`); copy arrives at 0.8 s (`.universe.rp-zoom.open .u-inner`). The halo fades out during the flight.
+  Close runs the same flight backwards, starting with the backdrop band at the screen edge.
+- CURSOR (`assets/cursor.js`): free ring = solid rim 100% / band 50% / band 25% (TIERS mask); hug state = rim
+  (`.rpc-bord`, 2.4 px) + `.rpc-fill::before` (50%) and `::after` (25%). `cursor.js?v=20261026h` on index, media,
+  rentals.
+
 ### 0.0.-120 PAGE TRANSITIONS: ONE CROSS-FADE FOR EVERY PAGE CHANGE; MORE TO COME CURSOR (2026-10-26)
 
 - Jack: pages snapped (Team / Home / Projects, and around a film opened from a News article). Measured with
