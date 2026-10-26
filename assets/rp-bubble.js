@@ -579,6 +579,9 @@
     /* 1.45: overshoot, so the backdrop band is fully off screen well before the flight ends (no pop) */
     var s3req = Math.max(3, 1.45 * far / (S * inner3));
     var cEnd = ZD[2] * (1 - 1 / s3req);
+    /* the way back starts where the backdrop band is just off screen, so there is no dead time
+       before the first layer comes back past the viewer */
+    if (o.dir === "out") cEnd = Math.min(cEnd, ZD[2] * (1 - 1 / Math.max(3, 1.08 * far / (S * inner3))));
     var lip = 0.083 * depth;   // rim thickness in bubble units: its inner contour is the opening
     var cv = document.createElement("canvas");
     cv.setAttribute("aria-hidden", "true");
