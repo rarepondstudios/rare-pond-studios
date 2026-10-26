@@ -102,12 +102,43 @@ function render(){renderTabs();active==='Home'?renderHome():renderCat();}
 /* Same-page wordmark/footer click (see the SAME-PAGE NAV snippet in index.html): the rentals
    "home" is the Select a Date view, so a home click also resets to that tab, not just scroll-top. */
 window.__samePageHome=function(){if(active!=='Home'){active='Home';render();}};
-/* 2026-10-25 (Jack): ONE search bar look everywhere: the search box, its "See Gear" button INSIDE the box on the right
-   (the on-screen enter), then the Select dates button. On narrow screens both drop below the box: See Gear sits in a
-   tab that hangs off the box's lower left (still inside its outline), Select dates beside it. */
+/* 2026-10-25 (Jack): ONE search bar look everywhere: the white search box with a Filters button inside it on the right,
+   then the Select dates button. Results update as you type, so there is no See Gear button (it added nothing: the
+   whole catalog is already on the page). Filters opens a collapsible panel under the bar: Department (Home only),
+   Type (single gear / kits / packages) and Available on my dates. */
 var DATE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v16H4z M4 9h16 M8 3v4 M16 3v4"/></svg>';
-function rpBar(pfx,val,ph,go){return '<div class="rpbar" id="'+pfx+'bar"><div class="rpq"><input class="search" id="'+pfx+'q" type="search" aria-label="Search gear" placeholder="'+esc(ph)+'" value="'+esc(val)+'" autocomplete="off" enterkeyhint="search"><span class="rptab"><button class="rpgo" id="'+pfx+'go" type="button">'+esc(go)+'</button></span></div>'
- +'<button class="datechip rpdate" id="'+pfx+'dchip" type="button">'+DATE_SVG+esc(datesLabel())+(days()?' · '+days()+'d':'')+'</button></div>';}
+var FIL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16 M7 12h10 M10 18h4"/></svg>';
+var FL={depts:[],types:[],avail:false},flOpen=false;
+var FL_TYPES=[['single','Single gear'],['kit','Kits'],['package','Packages']];
+function flType(p){return p.kind==='package'?'package':(rpGroupContents(p.contents||[]).length?'kit':'single');}
+function flHasD(){return !!(D.s&&D.e);}
+function flCount(home){return (home?FL.depts.length:0)+FL.types.length+(FL.avail&&flHasD()?1:0);}
+function flAvailOK(p){if(!FL.avail||!flHasD())return true;var A=window.RPAvail;if(!A||!A.capOf)return true;var c=A.capOf(p);return c===Infinity||c>0;}
+function flPass(p,home){
+ if(home&&FL.depts.length&&!FL.depts.some(function(d){return rpInDept(p,d);}))return false;
+ if(FL.types.length&&FL.types.indexOf(flType(p))<0)return false;
+ return flAvailOK(p);}
+function flBtnHTML(pfx,home){var n=flCount(home);return FIL_SVG+'<span>Filters</span>'+(n?'<b>'+n+'</b>':'');}
+function flPanel(pfx,home){
+ var row=function(lab,chips){return '<div class="rpfrow"><span class="rpflab">'+lab+'</span><div class="rpfchips">'+chips+'</div></div>';};
+ var h='<div class="rpfil'+(flOpen?' open':'')+'" id="'+pfx+'fil"><div class="rpfil-in"><div class="rpfil-pad">';
+ if(home)h+=row('Department',CATS.map(function(c){return '<button type="button" class="rpfc dot'+(FL.depts.indexOf(c)>=0?' on':'')+'" data-fd="'+esc(c)+'" style="--fc:'+COL[c]+'"><i></i>'+esc(LABELS[c]||c)+'</button>';}).join(''));
+ h+=row('Type',FL_TYPES.map(function(t){return '<button type="button" class="rpfc'+(FL.types.indexOf(t[0])>=0?' on':'')+'" data-ft="'+t[0]+'">'+t[1]+'</button>';}).join(''));
+ h+=row('Availability','<button type="button" class="rpfc'+(FL.avail&&flHasD()?' on':'')+'" data-fa="1">'+(flHasD()?'Available on my dates ('+esc(fmtRange())+')':'Available on my dates <u>pick dates</u>')+'</button>');
+ if(flCount(home))h+='<button type="button" class="rpfclear" data-fx="1">Clear filters</button>';
+ return h+'</div></div></div>';}
+function flBind(pfx,home,rerender){
+ var btn=$(pfx+'fbtn');if(!btn)return;
+ btn.onclick=function(){flOpen=!flOpen;var f=$(pfx+'fil');if(f)f.classList.toggle('open',flOpen);btn.classList.toggle('on',flOpen);btn.setAttribute('aria-expanded',flOpen?'true':'false');};
+ var redo=function(){var f=$(pfx+'fil');if(f)f.outerHTML=flPanel(pfx,home);btn.innerHTML=flBtnHTML(pfx,home);flBind(pfx,home,rerender);rerender();};
+ var f=$(pfx+'fil');if(!f)return;
+ f.querySelectorAll('[data-fd]').forEach(function(b){b.onclick=function(){var d=b.dataset.fd,i=FL.depts.indexOf(d);if(i>=0)FL.depts.splice(i,1);else FL.depts.push(d);redo();};});
+ f.querySelectorAll('[data-ft]').forEach(function(b){b.onclick=function(){var t=b.dataset.ft,i=FL.types.indexOf(t);if(i>=0)FL.types.splice(i,1);else FL.types.push(t);redo();};});
+ f.querySelectorAll('[data-fa]').forEach(function(b){b.onclick=function(){if(!flHasD()){FL.avail=true;openDates();return;}FL.avail=!FL.avail;redo();};});
+ f.querySelectorAll('[data-fx]').forEach(function(b){b.onclick=function(){if(home)FL.depts=[];FL.types=[];FL.avail=false;redo();};});}
+function rpBar(pfx,val,ph,home){return '<div class="rpbar" id="'+pfx+'bar"><div class="rpq"><input class="search" id="'+pfx+'q" type="search" aria-label="Search gear" placeholder="'+esc(ph)+'" value="'+esc(val)+'" autocomplete="off" enterkeyhint="search">'
+ +'<button class="rpfbtn'+(flOpen?' on':'')+'" id="'+pfx+'fbtn" type="button" aria-expanded="'+(flOpen?'true':'false')+'" aria-controls="'+pfx+'fil">'+flBtnHTML(pfx,home)+'</button></div>'
+ +'<button class="datechip rpdate" id="'+pfx+'dchip" type="button">'+DATE_SVG+esc(datesLabel())+(days()?' · '+days()+'d':'')+'</button></div>'+flPanel(pfx,home);}
 /* bring the results up under the search bar so they are the focus, not a sliver at the bottom of the screen */
 function rpFocusResults(barId){var bar=$(barId);if(!bar)return;var h=document.querySelector('header');var top=(h?h.getBoundingClientRect().bottom:0)+10;
  var y=window.scrollY+bar.getBoundingClientRect().top-top;if(Math.abs(y-window.scrollY)>8)window.scrollTo({top:Math.max(0,y),behavior:'smooth'});}
@@ -118,25 +149,24 @@ function renderHome(){
  var heroMark=((!homeLogo)||/rare-pond-color|g_ff961e8ddce4f40b/i.test(homeLogo))?'<img class="hlogo" src="/media/logos/rare-pond-rentals-color.webp" alt="Rare Pond Rentals" width="900" height="473">':('<img src="'+esc(homeLogo)+'" alt="Rare Pond Rentals">');
  var heroTitle=copyStr('home','heroTitle','Reserve your gear.');
  var heroSub=copyStr('home','heroSubtitle','Pick your rental dates, then browse our kit by category. Prices update automatically to how long you need each item.');
- var goBtn=copyStr('home','seeGearButton','See Gear');
  var crewBlurb=copyStr('crew','blurb','Hiring us to crew your shoot? We can fold a basic gear package into our day rate. The exact kit depends on which department you bring us in for.');
  var crewBtn=copyStr('crew','button','Ask about crewing your shoot →');
  $('stage').innerHTML='<div class="home"><div class="logowrap">'+heroMark+'</div><h2>'+esc(heroTitle)+'</h2><p class="homesub">'+esc(heroSub)+'</p>'
- +'<div class="hsearch">'+rpBar('h',hq,copyStr('home','searchPlaceholder','Search all gear: a name, a brand, a kind of light…'),goBtn)+'<div id="hres"></div></div>'
+ +'<div class="hsearch">'+rpBar('h',hq,copyStr('home','searchPlaceholder','Search all gear: a name, a brand, a kind of light…'),true)+'<div id="hres"></div></div>'
  +'<div class="crew"><p class="crewq">'+esc(crewBlurb)+'</p><button class="crewbtn" id="crewbtn">'+esc(crewBtn)+'</button></div></div>';
  $('hdchip').onclick=openDates;
  var hqi=$('hq');var go=function(){hAll=!String(hq||'').trim();renderHomeResults();rpFocusResults('hbar');};
  hqi.oninput=function(e){var had=!!String(hq||'').trim();hq=e.target.value;if(String(hq).trim())hAll=false;renderHomeResults();if(!had&&String(hq).trim())rpFocusResults('hbar');};
  hqi.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();hqi.blur();go();}};
- $('hgo').onclick=go;renderHomeResults();
+ flBind('h',true,renderHomeResults);renderHomeResults();
  $('crewbtn').onclick=function(){if(window.RPCrew)window.RPCrew.open();};}
 function renderCat(){
  const c=active,col=COL[c];
- const tool='<div class="ptool">'+rpBar('c',q,'Search '+(LABELS[c]||c)+'…','See Gear')+'<span class="count" id="cnt"></span></div>';
+ const tool='<div class="ptool">'+rpBar('c',q,'Search '+(LABELS[c]||c)+'…',false)+'<span class="count" id="cnt"></span></div>';
  $('stage').innerHTML='<div class="panel" style="border-color:'+hx(col,0.42)+';background:linear-gradient(180deg,'+hx(col,0.22)+','+hx(col,0.13)+');box-shadow:0 6px 40px 2px '+hx(col,0.4)+', inset 0 0 42px '+hx(col,0.12)+'">'+tool+'<div id="results"></div></div>';
  const qi=$('cq');qi.oninput=e=>{q=e.target.value.toLowerCase();renderResults();};
  qi.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();qi.blur();rpFocusResults('cbar');}};
- $('cgo').onclick=function(){rpFocusResults('cbar');};$('cdchip').onclick=openDates;renderResults();}
+ flBind('c',false,renderResults);$('cdchip').onclick=openDates;renderResults();}
 /* Within a category: packages live in their OWN collapsible box at the top
    (open by default), then the individual items follow in their white-divider
    sections. Search filters both. Package box open/closed state persists per
@@ -151,22 +181,23 @@ function rpMatch(p,qq){var w=String(qq||'').toLowerCase().split(/\s+/).filter(Bo
 /* Home: search all departments at once. Results are the same cards as the department tabs (add to cart works). */
 function renderHomeResults(){
  var r=$('hres');if(!r)return;rpEnsureStyles();
- if(!String(hq||'').trim()&&!hAll){r.innerHTML='';return;}
- var hits=RENTALS.filter(function(p){return (p.kind==='package'||!p.pkgOnly)&&rpMatch(p,hq);});
- if(!hits.length){r.innerHTML='<div class="empty">Nothing matches "'+esc(hq)+'". Try fewer words, or browse the departments above.</div>';return;}
- var html='<div class="hcount">'+(String(hq||'').trim()?hits.length+' match'+(hits.length!==1?'es':''):'All gear · '+hits.length+' items')+'</div>';
- CATS.forEach(function(c){var rows=hits.filter(function(p){return p.kind==='package'?rpInDept(p,c):p.cat===c;});if(!rows.length)return;
+ var hasQ=!!String(hq||'').trim(),nf=flCount(true);
+ if(!hasQ&&!hAll&&!nf){r.innerHTML='';return;}
+ var hits=RENTALS.filter(function(p){return (p.kind==='package'||!p.pkgOnly)&&rpMatch(p,hq)&&flPass(p,true);});
+ if(!hits.length){r.innerHTML='<div class="empty">'+(hasQ?'Nothing matches "'+esc(hq)+'"'+(nf?' with these filters':'')+'. Try fewer words':'Nothing matches these filters. Try fewer filters')+', or browse the departments above.</div>';return;}
+ var html='<div class="hcount">'+(hasQ||nf?hits.length+' match'+(hits.length!==1?'es':''):'All gear · '+hits.length+' items')+'</div>';
+ (FL.depts.length?CATS.filter(function(c){return FL.depts.indexOf(c)>=0;}):CATS).forEach(function(c){var rows=hits.filter(function(p){return p.kind==='package'?rpInDept(p,c):p.cat===c;});if(!rows.length)return;
   html+='<div class="hdept" style="--hc:'+COL[c]+'"><span></span>'+esc(LABELS[c]||c)+'<b>'+rows.length+'</b></div><div class="grid">'+rows.map(function(p){return card(p,COL[c]);}).join('')+'</div>';});
  r.innerHTML=html;bind();}
 function renderResults(){
  const c=active,col=COL[c];
  rpEnsureStyles();
- function _match(p){return rpMatch(p,q);}
+ function _match(p){return rpMatch(p,q)&&flPass(p,false);}
  function _sections(rows,cc){var ss=[...new Set(rows.map(x=>x.sec))];ss=rpSecSort(ss,rows);return ss.map(s=>'<div class="sub">'+esc(s)+'</div><div class="grid">'+rows.filter(x=>x.sec===s).map(p=>card(p,cc||col)).join('')+'</div>').join('');}
  /* gear marked only_in_packages is never listed on its own (it is picked inside a package) */
  var items=RENTALS.filter(p=>p.cat===c&&p.kind!=='package'&&!p.pkgOnly&&_match(p));
  var pkgs=RENTALS.filter(p=>p.kind==='package'&&rpInDept(p,c)&&_match(p));
- var blds=BUILDERS.filter(b=>rpInDept(b,c));
+ var blds=(FL.types.length&&FL.types.indexOf('package')<0)?[]:BUILDERS.filter(b=>rpInDept(b,c));
  /* carts sit at the bottom of the departments they are recommended for (items.also_in_departments) */
  var carts=c==='Carts'?[]:RENTALS.filter(p=>p.cat==='Carts'&&p.kind!=='package'&&!p.pkgOnly&&(p.alsoIn||[]).indexOf(c)>=0&&_match(p));
  const r=$('results');if(!r)return;
@@ -178,8 +209,8 @@ function renderResults(){
    +'<div class="rp-pkgbox-body" id="rppkgbody"><div><div class="grid rp-pkgbox-grid">'+pkgs.map(p=>card(p,col)).join('')+'</div></div></div></div>';
  }
  if(items.length){html+=_sections(items);}
- else if(!pkgs.length&&!blds.length&&!carts.length){html+='<div class="empty">'+(q?'Nothing matches your search.':'No items yet.')+'</div>';}
- else if(q&&!carts.length){html+='<div class="empty">No individual items match.</div>';}
+ else if(!pkgs.length&&!blds.length&&!carts.length){html+='<div class="empty">'+(q||flCount(false)?'Nothing matches your search'+(flCount(false)?' and filters':'')+'.':'No items yet.')+'</div>';}
+ else if((q||flCount(false))&&!carts.length){html+='<div class="empty">No individual items match.</div>';}
  if(carts.length){html+='<div class="sub rp-cartsub">Carts for '+esc(LABELS[c]||c)+'</div><div class="grid">'+carts.map(p=>card(p,COL.Carts)).join('')+'</div>';}
  r.innerHTML=html;
  var cn=$('cnt');if(cn)cn.textContent=items.length+' item'+(items.length!==1?'s':'')+(pkgs.length?' · '+pkgs.length+' package'+(pkgs.length!==1?'s':''):'')+(carts.length?' · '+carts.length+' cart'+(carts.length!==1?'s':''):'');
@@ -798,7 +829,7 @@ function crateReviewLines(){var out=[];BUILDERS.forEach(function(b){if(!bCount(b
 function crateTextLines(){var out=[];BUILDERS.forEach(function(b){if(!bCount(b))return;var hf=Number(b.handling)||0;out.push((b.button||b.name)+(hf?' ('+fmt(hf)+'/day handling)':'')+':');bEntries(b).forEach(function(e){out.push('  '+e.qty+'x '+e.p.name+' ('+((Number(e.p.fn)||0)>0?(fmt(Number(e.p.fn))+'/day'):'included')+')');});});return out;}
 function crateOrderPairs(){return crateEntries().filter(function(e){return e.p.dbid!=null;}).map(function(e){return 'b'+e.b.pkgId+'.'+e.p.dbid+':'+e.qty;});}
 /* Keep build-your-own picks correct after availability.js pulls fresh booking data for the chosen dates. */
-window.RPonAvail=function(){try{crateTrim();uc();if(builderOpen!=null)crateRefresh();else if(active!=='Home'&&BUILDERS.some(function(b){return rpInDept(b,active);})&&typeof renderResults==='function')renderResults();}catch(e){}};
+window.RPonAvail=function(){try{if(FL.avail&&flHasD()){if(active==='Home')renderHomeResults();else renderResults();}crateTrim();uc();if(builderOpen!=null)crateRefresh();else if(active!=='Home'&&BUILDERS.some(function(b){return rpInDept(b,active);})&&typeof renderResults==='function')renderResults();}catch(e){}};
 
 /* Keep the confirm step honest while it is open (2026-10-24): a date change clears the conflict list (Send re-checks),
    a cart trim from availability.js drops conflict lines that no longer apply, and the gear list and total re-render. */
