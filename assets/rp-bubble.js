@@ -83,7 +83,7 @@
     "vec4 blob(vec2 q,vec2 c,float r,vec3 col,float o,float z){",
     "  float d=length(q-c)/r;",
     "  float m=1.-smoothstep(.72,1.18,d);",
-    "  float tn=.5+.575*sn(vec3(q*1.25+o,z))+.18*sn(vec3(q*2.6-o,z*1.4));",
+    "  float tn=.5+.62*sn(vec3(q*1.25+o,z));",
     "  tn=smoothstep(.12,.92,tn);",
     "  vec3 lite=mix(col,vec3(1.),.06);",
     "  vec3 deep=pow(col,vec3(1.6));",
@@ -97,18 +97,21 @@
     "void main(){",
     "  vec2 p=v*uBox/uInset;",
     "  float r=rr(p);",
-    "  if(r>1.03){gl_FragColor=vec4(0.);return;}",
+    /* cheap early-outs before any noise: outside the cutter, or the clear centre that no band can reach */
+    "  if(r>1.03||r<.5){gl_FragColor=vec4(0.);return;}",
     "  float z=uSeed*17.+uT*.11;",
-    /* ---- ALPHA (Alpha_Shape + Alpha_Effects pre-comps) ---- */
-    "  float rm=rr(p+.0035*wv(p,3.,z*1.3));",                         // Minor Edge Distortion
-    "  float r2=rr(p+uWob*.045*wv(p,2.1,z+3.));",                     // Edge 2 turbulent displace
-    "  float r3=rr(p+uWob*.065*wv(p,1.7,z*.8+9.));",                  // Edge 3 turbulent displace
-    "  float e1=smoothstep(.902-.012*uSoft,.906+.008*uSoft,rm);",     // Edge 1 (solid rim)
+    /* ---- ALPHA (Alpha_Shape + Alpha_Effects pre-comps) ----
+       ONE turbulence field drives both wobbling bands (Edge 2 and Edge 3 sample it with different
+       amounts and swizzles), and the 4px Minor Edge Distortion is too small to see at web sizes. */
+    "  vec2 w=wv(p,1.9,z+3.);",
+    "  float r2=rr(p+uWob*.045*w);",                                 // Edge 2 turbulent displace
+    "  float r3=rr(p+uWob*.065*vec2(w.y,-w.x));",                     // Edge 3 turbulent displace
+    "  float e1=smoothstep(.902-.012*uSoft,.906+.008*uSoft,r);",      // Edge 1 (solid rim)
     "  float e2=smoothstep(.805-.022*uSoft,.81+.016*uSoft,r2)*.5;",   // Edge 2 (50%)
     "  float e3=smoothstep(.69-.07*uSoft,.70+.05*uSoft,r3)*.25*uInner;", // Edge 3 (25%)
-    "  float cut=1.-smoothstep(1.-uPx,1.+uPx,rm);",                   // Exterior Cutter
+    "  float cut=1.-smoothstep(1.-uPx,1.+uPx,r);",                    // Exterior Cutter
     "  float al=(1.-(1.-e1)*(1.-e2)*(1.-e3))*cut;",
-    "  if(al<.002){gl_FragColor=vec4(0.);return;}",
+    "  if(al<.004){gl_FragColor=vec4(0.);return;}",
     /* ---- COLOUR (Color pre-comp) ---- */
     "  float an=-uT*uSpin*.6283185;",                                 // Rotate: 360deg per 10 s
     "  vec2 q=mat2(cos(an),sin(an),-sin(an),cos(an))*p;",
@@ -123,8 +126,24 @@
   ].join("\n");
 
   var P = { wobble: 1, soft: 1, spin: 1, inner: 1, speed: 1 };
+  /* PERFORMANCE BUDGET (2026-10-26, after the first live version cost real frame rate):
+     - 24 fps, the AE comp's own rate. The motion is one slow turn per 10 s, so more is invisible.
+     - resolution: at most 1.25 device px per CSS px and 480 px on the long side. The look is soft
+       everywhere except the outer edge, which stays anti-aliased at that size.
+     - NO style or layout reads in the frame loop. Size comes from a ResizeObserver; colours, corner
+       radius and --rpb-depth are re-read only while a CSS transition is running on (or above) the
+       bubble, plus one slow round-robin refresh so nothing can stay stale.
+     - a bubble is drawn only when it is on screen (IntersectionObserver) AND actually visible
+       (checkVisibility: not opacity 0 / visibility hidden / display none), checked round-robin.
+     - frames are skipped while the carousel is being dragged (body.swiping), the tab is hidden, or
+       the ambient animation is idle (body.bg-idle), mirroring what the CSS already pauses.
+     - adaptive quality: if the PAGE (not just the bubbles) misses frames for a second, resolution
+       steps down (to 55%) and frame rate to 15; it steps back up once frames are smooth again. */
+  var FPS = 24, MAXPX = 480, DPR_CAP = 1.25;
+  var Q = { scale: 1, fps: FPS };
   var items = [], gl = null, glc = null, prog = null, U = {}, raf = 0;
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var canCheckVis = typeof Element !== "undefined" && "checkVisibility" in Element.prototype;
 
   function hex3(h) {
     h = String(h || "").trim().replace("#", "");
@@ -154,7 +173,7 @@
     if (gl === false) return false;
     try {
       glc = document.createElement("canvas");
-      gl = glc.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: false, preserveDrawingBuffer: true });
+      gl = glc.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false, powerPreference: "low-power" });
       if (!gl) { gl = false; return false; }
       var sh = function (type, src) {
         var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
@@ -170,16 +189,43 @@
       var loc = gl.getAttribLocation(prog, "a"); gl.enableVertexAttribArray(loc);
       gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
       ["uC1", "uC2", "uC3", "uBox", "uDepth", "uRad", "uT", "uSeed", "uPx", "uInset", "uWob", "uSoft", "uSpin", "uInner"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+      gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner);
+      glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
       return true;
     } catch (e) { gl = false; if (window.console) console.warn("RPBubble", e); return false; }
   }
 
-  var io = "IntersectionObserver" in window ? new IntersectionObserver(function (es) {
-    es.forEach(function (e) { var it = find(e.target); if (it) it.vis = e.isIntersecting; });
-    kick();
-  }, { rootMargin: "120px" }) : null;
-
   function find(el) { for (var i = 0; i < items.length; i++) if (items[i].el === el) return items[i]; return null; }
+
+  var io = "IntersectionObserver" in window ? new IntersectionObserver(function (es) {
+    es.forEach(function (e) { var it = find(e.target); if (it) it.onScreen = e.isIntersecting; });
+    kick();
+  }, { rootMargin: "80px" }) : null;
+  var ro = "ResizeObserver" in window ? new ResizeObserver(function (es) {
+    es.forEach(function (e) {
+      var it = find(e.target); if (!it) return;
+      var b = e.borderBoxSize && e.borderBoxSize[0];
+      it.w = b ? b.inlineSize : e.contentRect.width; it.h = b ? b.blockSize : e.contentRect.height;
+      it.dirty = Math.max(it.dirty, 1);
+    });
+    kick();
+  }) : null;
+
+  /* any CSS transition on a bubble or an ancestor (hover look fade, the carousel card's shape morph,
+     --rpb-depth) makes the affected bubbles re-read their style every frame until it ends */
+  function onTrans(e) {
+    var t = e.target; if (!t || !t.contains) return;
+    var live = e.type === "transitionrun" || e.type === "transitionstart";
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      if (t === it.el || t.contains(it.el)) {
+        if (live) { it.trans++; it.transAt = performance.now(); } else it.trans = Math.max(0, it.trans - 1);
+        it.dirty = Math.max(it.dirty, 2);
+      }
+    }
+    kick();
+  }
+  ["transitionrun", "transitionend", "transitioncancel"].forEach(function (ev) { document.addEventListener(ev, onTrans, true); });
 
   /* border-radius -> radius in units of the short half-side (1 = full circle / pill) */
   function radiusOf(cs, w, h) {
@@ -187,11 +233,23 @@
     function px(x, ref) { if (!x) return 0; return /%$/.test(x) ? parseFloat(x) / 100 * ref : parseFloat(x) || 0; }
     var rx = px(v[0], w), ry = px(v[1] || v[0], h);
     var s = Math.min(w, h) / 2;
-    return Math.min(1, Math.min(rx, ry) / s);
+    return s > 0 ? Math.min(1, Math.min(rx, ry) / s) : 1;
+  }
+
+  function readStyle(it) {
+    if (!it.w || !it.h) { var r = it.el.getBoundingClientRect(); it.w = it.el.offsetWidth || r.width; it.h = it.el.offsetHeight || r.height; }
+    var cs = getComputedStyle(it.el);
+    if (it.vars) {
+      var a = css3(cs.getPropertyValue(it.vars[0])), b = css3(cs.getPropertyValue(it.vars[1])), c = css3(cs.getPropertyValue(it.vars[2]));
+      if (a) it.cols = [a, b || a, c || a];
+    }
+    it.rad = radiusOf(cs, it.w, it.h);
+    it.depth = parseFloat(cs.getPropertyValue("--rpb-depth")) || 1;
+    it.styled = true;
   }
 
   function render(cols, W, H, box, rad, t, seed, inset, depth) {
-    if (glc.width < W || glc.height < H) { glc.width = Math.max(glc.width, W); glc.height = Math.max(glc.height, H); }
+    if (glc.width < W || glc.height < H) { glc.width = Math.max(glc.width, W, 256); glc.height = Math.max(glc.height, H, 256); }
     gl.viewport(0, glc.height - H, W, H);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3fv(U.uC1, cols[0]); gl.uniform3fv(U.uC2, cols[1]); gl.uniform3fv(U.uC3, cols[2]);
@@ -199,56 +257,87 @@
     gl.uniform1f(U.uT, t); gl.uniform1f(U.uSeed, seed);
     gl.uniform1f(U.uInset, inset);
     gl.uniform1f(U.uPx, 2.4 / Math.min(W, H));
-    gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 
   function draw(it, t) {
-    var w = it.el.clientWidth, h = it.el.clientHeight;
-    if (!w || !h) return;
-    var cs = getComputedStyle(it.el);
-    if (it.vars) {
-      var a = css3(cs.getPropertyValue(it.vars[0])), b = css3(cs.getPropertyValue(it.vars[1])), c = css3(cs.getPropertyValue(it.vars[2]));
-      if (a) {
-        var key = cs.getPropertyValue(it.vars[0]) + cs.getPropertyValue(it.vars[1]) + cs.getPropertyValue(it.vars[2]);
-        if (key !== it.key) { it.key = key; changed = true; }
-        it.cols = [a, b || a, c || a];
-      }
-    }
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var k = Math.min(1, (it.opts.max || 720) / (Math.max(w, h) * dpr));
+    if (it.dirty || it.trans || !it.styled) { readStyle(it); if (it.dirty) it.dirty--; }
+    var w = it.w, h = it.h;
+    if (!w || !h) return false;
+    var dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP) * Q.scale;
+    var k = Math.min(1, (it.opts.max || MAXPX) * Q.scale / (Math.max(w, h) * dpr));
     var W = Math.max(16, Math.round(w * dpr * k)), H = Math.max(16, Math.round(h * dpr * k));
     if (it.cv.width !== W || it.cv.height !== H) { it.cv.width = W; it.cv.height = H; }
     var s = Math.min(w, h);
-    render(it.cols, W, H, [w / s, h / s], radiusOf(cs, w, h), t, it.opts.seed, it.opts.inset || 1, parseFloat(cs.getPropertyValue("--rpb-depth")) || 1);
+    render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, it.opts.inset || 1, it.depth);
     it.ctx.clearRect(0, 0, W, H);
     it.ctx.drawImage(glc, 0, 0, W, H, 0, 0, W, H);   // viewport sits in the TOP-left W x H of the shared canvas
     it.drawn = true;
+    return true;
   }
 
-  var last = 0, simT = 0, changed = false;
+  /* round-robin housekeeping, a couple of bubbles per frame: real visibility + a slow style refresh */
+  var rr = 0;
+  function housekeep(now) {
+    if (!items.length) return;
+    for (var n = 0; n < 2; n++) {
+      rr = (rr + 1) % items.length;
+      var it = items[rr];
+      if (canCheckVis) it.shown = it.el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
+      if (it.trans && now - (it.transAt || 0) > 3000) it.trans = 0;   // a transition whose end event never came
+      if (now - (it.styledAt || 0) > 2000 && it.onScreen) { it.dirty = Math.max(it.dirty, 1); it.styledAt = now; }
+    }
+  }
+
+  /* adaptive quality from the page's own frame pacing */
+  var pace = { t0: 0, n: 0, slow: 0 };
+  function adapt(now, gap) {
+    if (!pace.t0) pace.t0 = now;
+    pace.n++; if (gap > 24) pace.slow++;
+    if (now - pace.t0 < 1000) return;
+    var ratio = pace.slow / Math.max(1, pace.n);
+    if (ratio > 0.25 && Q.scale > 0.56) { Q.scale = Math.max(0.55, Q.scale - 0.15); Q.fps = 15; }
+    else if (ratio < 0.05 && Q.scale < 1) { Q.scale = Math.min(1, Q.scale + 0.1); if (Q.scale >= 1) Q.fps = FPS; }
+    pace.t0 = now; pace.n = 0; pace.slow = 0;
+  }
+
+  var last = 0, lastDraw = 0, simT = 0;
   function frame(now) {
     raf = 0;
-    if (now - last < 31 && last) { raf = requestAnimationFrame(frame); return; }  // ~30 fps
-    var dt = Math.min(0.1, (now - (last || now)) / 1000); last = now;
-    if (!reduce) simT += dt * P.speed;
-    var live = false; changed = false;
-    if (!document.hidden) {
-      for (var i = 0; i < items.length; i++) {
-        var it = items[i];
-        if (!it.vis && it.drawn) continue;
-        draw(it, simT + it.opts.seed * 3.7);
-        live = true;
+    var gap = last ? now - last : 16; last = now;
+    var body = document.body;
+    var paused = document.hidden || (body && body.classList.contains("bg-idle"));
+    /* carousel drag / slide change: the cards are moving, so only the ones changing shape are
+       redrawn, at half rate; everything else holds its last frame */
+    var swiping = !!(body && body.classList.contains("swiping"));
+    if (!paused && !swiping) adapt(now, gap);
+    housekeep(now);
+    var due = now - lastDraw >= 1000 / (swiping ? 12 : Q.fps) - 2;
+    var pending = false, live = false;
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var vis = it.onScreen !== false && it.shown !== false;
+      if (!vis) continue;
+      live = true;
+      if (!it.drawn || it.trans) pending = true;
+    }
+    if ((due || pending) && !paused && gl) {
+      var dt = Math.min(0.1, (now - (lastDraw || now)) / 1000); lastDraw = now;
+      if (!reduce) simT += dt * P.speed;
+      for (var j = 0; j < items.length; j++) {
+        var x = items[j];
+        if (x.onScreen === false || x.shown === false) continue;
+        if ((reduce || swiping) && x.drawn && !x.trans && !x.dirty) continue;
+        draw(x, simT + x.opts.seed * 3.7);
       }
     }
-    /* reduced motion: time stands still; keep drawing only while a look is fading */
-    if (live && (!reduce || changed || items.some(function (x) { return !x.drawn; }))) raf = requestAnimationFrame(frame);
+    var keep = live && (!reduce || items.some(function (x) { return !x.drawn || x.trans || x.dirty; }));
+    if (keep || paused && live) raf = requestAnimationFrame(frame);
   }
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
   document.addEventListener("visibilitychange", kick);
-  /* reduced motion: hover / focus / keyboard selection can still change a bubble's look, so wake
-     the (otherwise idle) loop on any of them; it stops again once the colours settle */
-  if (reduce) ["pointerover", "pointerout", "focusin", "keydown"].forEach(function (ev) { document.addEventListener(ev, kick, { passive: true }); });
+  /* reduced motion: hover / focus can still change a bubble's look; wake the idle loop for it */
+  if (reduce) ["pointerover", "pointerout", "focusin"].forEach(function (ev) { document.addEventListener(ev, kick, { passive: true }); });
 
   function attach(el, opts) {
     opts = opts || {};
@@ -259,27 +348,35 @@
     cv.className = "rp-bubble-cv";
     cv.setAttribute("aria-hidden", "true");
     cv.setAttribute("data-cursor", "noscan");
+    cv.width = cv.height = 16;
     cv.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;border-radius:inherit";
     el.appendChild(cv);
     el.classList.add("rp-bubble-on");
     it = {
-      el: el, cv: cv, ctx: cv.getContext("2d"),
+      el: el, cv: cv, ctx: cv.getContext("2d", { alpha: true }),
       opts: { seed: opts.seed != null ? opts.seed : Math.random() * 10, inset: opts.inset, max: opts.max },
       vars: opts.look ? null : (opts.vars || ["--gg1", "--gg2", "--gg3"]),
       cols: lookVec(opts.look || { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" }),
-      vis: true, drawn: false
+      onScreen: io ? undefined : true, shown: undefined, drawn: false, styled: false, dirty: 1, trans: 0, rad: 1, depth: 1, w: 0, h: 0
     };
     items.push(it);
     if (io) io.observe(el);
+    if (ro) ro.observe(el);
     kick();
     return it;
   }
-  function setLook(el, look) { var it = find(el); if (!it) return; it.vars = null; it.cols = lookVec(look); kick(); }
+  function setLook(el, look) { var it = find(el); if (!it) return; it.vars = null; it.cols = lookVec(look); it.drawn = false; kick(); }
   function detach(el) {
     var i = -1; for (var j = 0; j < items.length; j++) if (items[j].el === el) i = j;
     if (i < 0) return;
     if (io) io.unobserve(el);
+    if (ro) ro.unobserve(el);
     items[i].cv.remove(); el.classList.remove("rp-bubble-on"); items.splice(i, 1);
+  }
+  function setParam(k, v) {
+    P[k] = v;
+    if (gl) { gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner); }
+    items.forEach(function (x) { x.drawn = false; }); kick();
   }
   var spriteCache = {};
   function sprite(look, px, t) {
@@ -287,10 +384,14 @@
     var key = [look && look.c1, look && look.c2, look && look.c3, px, t].join("|");
     if (spriteCache[key]) return spriteCache[key];
     if (!initGL()) return "";
-    render(lookVec(look), px, px, [1, 1], 1, t, 0.5, 1);
+    render(lookVec(look), px, px, [1, 1], 1, t, 0.5, 1, 1);
     var c = document.createElement("canvas"); c.width = c.height = px;
     c.getContext("2d").drawImage(glc, 0, 0, px, px, 0, 0, px, px);
     return (spriteCache[key] = c.toDataURL("image/png"));
   }
-  window.RPBubble = { attach: attach, setLook: setLook, detach: detach, sprite: sprite, params: P, redraw: kick, supported: function () { return initGL(); } };
+  window.RPBubble = {
+    attach: attach, setLook: setLook, detach: detach, sprite: sprite, params: P, setParam: setParam, quality: Q,
+    redraw: function () { items.forEach(function (x) { x.drawn = false; }); kick(); },
+    supported: function () { return initGL(); }
+  };
 })();

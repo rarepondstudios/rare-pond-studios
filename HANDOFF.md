@@ -57,6 +57,17 @@
   edge (rainbow hover). No WebGL = old CSS rims untouched.
 - Featured carousel card: the shader follows the element's computed border-radius (rounded-rect SDF), and
   `--rpb-depth:.5` on `.citem.feat .cedge` thins the bands so they match the round side bubbles.
+- **PERFORMANCE PASS (same day, Jack: FPS went way down).** Measured with Playwright + real GPU on the mini
+  (Chrome, `ignoreDefaultArgs:['--disable-gpu']`, 1440x900 @2x): first live version home 16 fps / about 25 /
+  projects 26 with 1.4 s of long tasks; after the fix 60 / 60 / 60, zero slow frames, carousel swipe 53, phone
+  390x844 @3x 60. Causes and fixes: (1) getComputedStyle on every bubble every frame -> style is now read only
+  while a CSS transition runs on or above the bubble (transitionrun/end), plus a 2 s round-robin refresh, and
+  size comes from a ResizeObserver; (2) the ambient `.bgb` sprites each had a spinning layer (dozens of
+  animated layers, and the reason even "bubbles off" sat at 29 fps) -> static; (3) render budget 24 fps,
+  1.25 device px per CSS px, 480 px max; (4) shader early-outs for the clear centre and half the noise calls;
+  (5) skip bubbles that are off screen OR invisible (checkVisibility: opacity 0 orbits, hidden cards), hold
+  frames while the carousel slides (only morphing cards redraw, at 12 fps); (6) adaptive quality steps
+  resolution and fps down if the page itself drops frames. Perf script: ~/claude_perf/fps.mjs (scratch).
 - Status: LIVE on rarepond.com since 2026-10-26 (Jack: "try these on the live site"; bubble-v3 fast-forwarded
   to main from worktree ~/rp_site_bubble). Rollback = revert the merge commits on main.
 

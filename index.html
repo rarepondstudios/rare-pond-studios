@@ -1174,10 +1174,9 @@ html.xw-active{overflow:hidden}
   .orbi.rp-rim-on::before,.about-anim-slot.rp-rim-on::before{display:none}
   .about-anim-slot.no-bubble .about-rim{display:none}
   /* ambient background bubbles: one still frame of the V3 bubble (signature), rendered once at
-     load into --bgb-ring and slowly turned, instead of a live canvas per bubble (there are dozens) */
-  html.rp-bgb-ring .bgb::after{background:var(--bgb-ring) center/100% 100% no-repeat;-webkit-mask:none;mask:none;opacity:calc(var(--ringop,.14) * 2.4);animation:bgbspin var(--rs,48s) linear infinite;animation-delay:var(--rd,0s)}
-  @keyframes bgbspin{to{transform:rotate(360deg)}}
-  @media(prefers-reduced-motion:reduce){html.rp-bgb-ring .bgb::after{animation:none}}
+     load into --bgb-ring. Static on purpose: dozens of them already drift, and a spinning layer
+     on each one cost frame rate for no visible gain (removed 2026-10-26). */
+  html.rp-bgb-ring .bgb::after{background:var(--bgb-ring) center/100% 100% no-repeat;-webkit-mask:none;mask:none;opacity:calc(var(--ringop,.14) * 2.4)}
   @media(prefers-reduced-motion:reduce){.orbi{animation:none}}
   /* No mobile scale override: orbit positions + sizes are computed from the bubble's live
      radius in buildOrbits (place()), so they track the bubble on every viewport. A fixed
@@ -1861,12 +1860,11 @@ function makeBgBubbles(host,count,fade){
     b.style.setProperty('--dx',(Math.random()*116-58).toFixed(0)+'px');
     b.style.setProperty('--d',(15+Math.random()*22).toFixed(1)+'s');
     b.style.animationDelay=(-Math.random()*42).toFixed(1)+'s';
-    b.style.setProperty('--rd',(-Math.random()*48).toFixed(1)+'s');
     c.appendChild(b);
   }
   host.appendChild(c);
 }
-function bgbInto(field,count){for(let i=0;i<count;i++){const b=document.createElement('div');b.className='bgb';const depth=Math.random();const size=Math.round(34+depth*depth*360);b.style.width=b.style.height=size+'px';b.style.left=(Math.random()*98).toFixed(1)+'%';b.style.top=(Math.random()*100).toFixed(1)+'%';b.style.setProperty('--peak',(0.12+depth*0.5).toFixed(2));b.style.setProperty('--ringop',(0.12+depth*0.20).toFixed(2));b.style.setProperty('--dx',(Math.random()*116-58).toFixed(0)+'px');b.style.setProperty('--d',(15+Math.random()*22).toFixed(1)+'s');b.style.animationDelay=(-Math.random()*42).toFixed(1)+'s';b.style.setProperty('--rd',(-Math.random()*48).toFixed(1)+'s');field.appendChild(b);}}
+function bgbInto(field,count){for(let i=0;i<count;i++){const b=document.createElement('div');b.className='bgb';const depth=Math.random();const size=Math.round(34+depth*depth*360);b.style.width=b.style.height=size+'px';b.style.left=(Math.random()*98).toFixed(1)+'%';b.style.top=(Math.random()*100).toFixed(1)+'%';b.style.setProperty('--peak',(0.12+depth*0.5).toFixed(2));b.style.setProperty('--ringop',(0.12+depth*0.20).toFixed(2));b.style.setProperty('--dx',(Math.random()*116-58).toFixed(0)+'px');b.style.setProperty('--d',(15+Math.random()*22).toFixed(1)+'s');b.style.animationDelay=(-Math.random()*42).toFixed(1)+'s';field.appendChild(b);}}
 /* Ambient background bubble count is CMS-driven (Site Settings -> home.bgBubbleCount) so Jack
    can fine-tune density without touching code. Safe fallback = 28. Hard-capped at 60 in code
    to protect rendering perf on weaker devices even if the CMS value is set too high. The
