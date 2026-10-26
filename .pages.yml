@@ -307,7 +307,7 @@ content:
           sits behind, the FRONT layer on top, and a glow between them grows as the customer adds gear.
           The package itself (name, contents, handling fee) is made in NocoDB, table packages.
         fields:
-          - { name: department, label: "Department (category ID, e.g. Grip)", type: string,
+          - { name: department, label: "Department (category ID, e.g. Grip & Electric)", type: string,
               description: "Must match the category ID exactly. The art is used by the build-your-own package of that department." }
           - { name: backImage, label: "Back layer (inside / rear walls)", type: image,
               description: "SPECS: transparent PNG, 1200 x 900 px (4:3), the object centred with about 60 px of empty space around it, under 400 KB, sRGB 8-bit. Both layers must be the same size and line up exactly." }

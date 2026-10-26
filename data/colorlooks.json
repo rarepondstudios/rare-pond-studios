@@ -97,6 +97,15 @@
       "taglineItalic": false
     },
     {
+      "key": "white",
+      "name": "White",
+      "kind": "category",
+      "c1": "#ffffff",
+      "c2": "#ffffff",
+      "c3": "#ffffff",
+      "taglineItalic": false
+    },
+    {
       "key": "geri",
       "name": "Geri-Action",
       "kind": "film",

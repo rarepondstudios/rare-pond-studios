@@ -18,7 +18,7 @@ def iid(c):
     cur.execute("select id from public.items where item_id_new=%s",(c,)); return cur.fetchone()[0]
 cur.execute("insert into public.orders(deal_name,client_name,stage,starts_on,ends_on,source,requested_items) values ('SITE TEST PENDING','Site Test','draft',%s,%s,'test',jsonb_build_array(jsonb_build_object('item_id',%s::bigint,'qty',1))) returning id",(s,e,iid('2100'))); o1=cur.fetchone()[0]
 cur.execute("insert into public.orders(deal_name,client_name,stage,starts_on,ends_on,source,requested_items) values ('SITE TEST CONFIRMED','Site Test','confirmed',%s,%s,'test',jsonb_build_array(jsonb_build_object('item_id',%s::bigint,'qty',2))) returning id",(s,e,iid('3101'))); o2=cur.fetchone()[0]
-cur.execute("insert into public.packages(name,departments,hidden,description) values ('Site Test Package','Lighting,Grip',false,'test') returning id"); p=cur.fetchone()[0]
+cur.execute("insert into public.packages(name,departments,hidden,description) values ('Site Test Package','Lighting,Grip & Electric',false,'test') returning id"); p=cur.fetchone()[0]
 cur.execute("insert into public.package_lines(package_id,item_id,qty) values (%s,%s,1),(%s,%s,2)",(p,iid('2103'),p,iid('3117')))
 c.commit()
 cur.execute("select price_per_day from public.packages where id=%s",(p,)); pr=float(cur.fetchone()[0])
@@ -33,22 +33,22 @@ try {
   const tap = (sel) => page.$eval(sel, el => el.click());     // clicks through the cookie banner (it is not what is under test)
   ok(true, 'live catalog + packages loaded');
   const tabs = await page.$$eval('.tab', ts => ts.map(t => t.dataset.c));
-  ok(tabs.includes('Carts'), 'Carts tab exists: ' + tabs.join(','));
+  ok(tabs.includes('Logistics'), 'Logistics tab exists: ' + tabs.join(','));
   // Grip: builder card first, clamps not listed alone, carts at the bottom, the two-department package in its box
-  await tap('.tab[data-c="Grip"]'); await page.waitForTimeout(400);
+  await tap('.tab[data-c="Grip & Electric"]'); await page.waitForTimeout(400);
   const grip = await page.evaluate(() => ({
     first: document.querySelector('#results > *')?.className || '', feat: document.querySelector('[data-builder] h3')?.textContent,
     cards: [...document.querySelectorAll('.card h3')].map(h => h.textContent),
     cartsub: document.querySelector('.rp-cartsub')?.textContent || '', pkgbox: !!document.querySelector('#rppkgbox') }));
   ok(grip.first.includes('rpcrate-feat') && /Grip Crate/.test(grip.feat || ''), 'Grip opens with the build-your-own card: ' + grip.feat);
   ok(!grip.cards.some(n => /Duckbill|Matthellini|Track Wedge|KUPO/.test(n)), 'crate-only gear is not listed on its own');
-  ok(/Carts for Grip/.test(grip.cartsub) && grip.cards.includes('Folding Hand Truck'), 'the hand truck sits under "Carts for Grip"');
+  ok(/Carts for Grip & Electric/.test(grip.cartsub) && grip.cards.includes('Folding Hand Truck'), 'the hand truck sits under "Carts for Grip & Electric"');
   ok(grip.pkgbox && grip.cards.includes('Site Test Package'), 'a two-department package shows in Grip');
   await tap('.tab[data-c="Lighting"]'); await page.waitForTimeout(300);
   const lightCards = await page.$$eval('.card h3', hs => hs.map(h => h.textContent));
   ok(lightCards.includes('Site Test Package') && lightCards.includes('Folding Hand Truck'), 'it shows in Lighting too, with the cart');
   // builder popup: layered art, KUPO finger, glow grows
-  await tap('.tab[data-c="Grip"]'); await page.waitForTimeout(300);
+  await tap('.tab[data-c="Grip & Electric"]'); await page.waitForTimeout(300);
   await tap('[data-builder]'); await page.waitForTimeout(400);
   const b1 = await page.evaluate(() => ({ back: document.querySelector('#rpbArt .rpb-back')?.getAttribute('src'), front: document.querySelector('#rpbArt .rpb-front')?.getAttribute('src'),
     loaded: [...document.querySelectorAll('#rpbArt img')].every(i => i.complete && i.naturalWidth > 0), g: getComputedStyle(document.getElementById('rpbArt')).getPropertyValue('--g'),
@@ -82,7 +82,7 @@ try {
   const msg = await page.evaluate(() => { var m = document.querySelector('#dp .rp-pendmsg'); return m ? { t: m.textContent, a: !!m.querySelector('a[data-contact]') } : null; });
   ok(msg && /not confirmed yet/.test(msg.t) && msg.a, 'its popup explains and links the contact form');
   await page.evaluate(() => closeDP());
-  await tap('.tab[data-c="Grip"]'); await page.waitForTimeout(800);
+  await tap('.tab[data-c="Grip & Electric"]'); await page.waitForTimeout(800);
   const half = await page.evaluate(() => { var h = [...document.querySelectorAll('.card h3')].find(x => x.textContent === 'Half Apple Box'); var c = h && h.closest('.card'); return c ? c.style.display : 'missing'; });
   ok(half === 'none', 'confirmed Half Apple Boxes are not shown for those dates (' + half + ')');
   const full = await page.evaluate(() => { var h = [...document.querySelectorAll('.card h3')].find(x => x.textContent === 'Full Apple Box'); var c = h && h.closest('.card'); return c ? c.style.display : 'missing'; });
