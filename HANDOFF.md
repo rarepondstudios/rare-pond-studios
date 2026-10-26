@@ -37,7 +37,18 @@
 
 ---
 
-## 0. LATEST SESSION (2026-10-25), READ THIS FIRST
+## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
+
+### 0.0.-117 HOME DUCK ANIM UPDATED TO THE 2026-09-03 SIMPLE EXPORT (WITH BLINK) (2026-10-26)
+
+- The home #about logo animation (media/brand/home-logo-anim, 94 frames) was still built from the 2026-08-22
+  RP_Anim-1_Short_Studios_NO-BG_16x9.mov. Newer master: Brand Kit RP Anim 1/Anim-1_Exports/RP_Anim-1_Simple_Studios_NO-BG_16x9.mov
+  (2026-09-03, adds the eyelid blink during the splash; same 144 frames, same timing and framing).
+- Staged that file into Website Repository/Rare Pond Brand (Web)/Animations/ (byte-identical copy); the previously staged
+  2026-08-28 Simple file moved to Rare Pond V3/Scrapped Designs/ as "(Older)". bts home_logo_anim_frames.py SRC renamed
+  Short -> Simple (it pointed at a file that no longer existed). Regenerated: same size 480x338, aspect, fps and trim
+  points; new manifest rev a7ff351864 so browsers fetch the new frames. index.html untouched.
+- To update again: re-stage the new .mov in Animations/ under the same name and run python3 ~/bts-automation/home_logo_anim_frames.py.
 
 ### 0.0.-116 SCAN APP: PROBLEM GEAR, PROFILE PAGE, NEW HEADER; WEBSITE FILTERS (2026-10-25)
 
