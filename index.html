@@ -3197,7 +3197,7 @@ function closeNews(instant){
   document.title=NEWS_LIST_TITLE;
   newsArt.setAttribute('aria-hidden','true');
   const hide=()=>{newsArt.classList.remove('open','closing','moving','fx');newsArt.style.visibility='';newsPanel.style.transform='';newsPanel.style.opacity='';newsPanel.style.clipPath='';newsPanel.className='na-panel';newsArt.querySelectorAll('.na-ghost').forEach(g=>g.remove());};
-  if(instant||newsRM()){newsArt.classList.remove('open');hide();return;}
+  if(instant||newsRM()){/* INSTANT means instant: without this the popup still ran its .28s opacity fade, and when a film had just covered it the article flashed back on top of the film */newsArt.style.transition='none';newsArt.classList.remove('open');hide();void newsArt.offsetWidth;newsArt.style.transition='';return;}
   const card=newsCardOf(key);
   if(!card||activeView!=='news'||!card.getBoundingClientRect().width){
     /* shrink back INTO the card (unlock first, then re-measure: the scrollbar came back) */
