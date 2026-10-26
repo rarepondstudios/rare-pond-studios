@@ -739,7 +739,7 @@ gear 7100+, containers EFX 01) and `Carts #B8C0CC` (look `silver`, block 9).
 - **Packages** live in their own table (`packages`, NocoDB "Packages"), not in items. Code `PKG-NNN`, its own
   numbering. Make one in NocoDB: add a row in "Packages" (name, kind, departments), then click **Gear** on that
   row and pick gear (the picker shows each item's code and department). Each pick is a line with qty 1 in
-  `package_lines`; set qty, or max for a Build your own, in "Contents (by package)". Packages are only made and
+  `package_lines`; set qty, or max for a Build your own, in the package_lines table. Packages are only made and
   edited in NocoDB (the scan app editor was removed 2026-10-25); the scan app only checks them out and in. The database refuses parts
   and gear from departments the package does not hold, and NocoDB shows the reason (add the department first).
 - **Price**: leave the day rate blank and it is the gear minus the discount (15% unless changed). Type a number
