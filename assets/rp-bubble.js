@@ -62,7 +62,7 @@
     "uniform vec3 uC1,uC2,uC3;",
     "uniform vec2 uBox,uScale;",
     "uniform float uGlow;",
-    "uniform float uDepth,uRad,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol;",
+    "uniform float uDeep,uDepth,uRad,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol;",
     /* Ashima / Stefan Gustavson 3D simplex noise (MIT) */
     "vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;}",
     "vec4 m289(vec4 x){return x-floor(x*(1./289.))*289.;}",
@@ -105,10 +105,10 @@
        seed, same clock as the bubble's rim, so the halo turns WITH the rim instead of on its own. */
     "  if(uGlow>.5){",
     "    if(r>1.3||r<.55){gl_FragColor=vec4(0.);return;}",
-    "    al=smoothstep(.55,.92,r)*(1.-smoothstep(.97,min(1.17,min(uScale.x,uScale.y)),r));",
+    "    al=smoothstep(.55,.92,r)*(1.-smoothstep(.96,min(1.2,min(uScale.x,uScale.y)-.02),r));",
     "  } else {",
     /* cheap early-outs before any noise: outside the cutter, or the clear centre that no band can reach */
-    "  if(r>1.03||r<.5){gl_FragColor=vec4(0.);return;}",
+    "  if(r>1.03||r<.5-.14*uDeep){gl_FragColor=vec4(0.);return;}",
     "  float z=uSeed*17.+uT*.11;",
     /* ---- ALPHA (Alpha_Shape + Alpha_Effects pre-comps) ----
        ONE turbulence field drives both wobbling bands (Edge 2 and Edge 3 sample it with different
@@ -117,8 +117,10 @@
     "  float r2=rr(p+uWob*.045*w);",                                 // Edge 2 turbulent displace
     "  float r3=rr(p+uWob*.065*vec2(w.y,-w.x));",                     // Edge 3 turbulent displace
     "  float e1=smoothstep(.917-.012*uSoft,.921+.008*uSoft,r);",      // Edge 1 (solid rim; stroke 80 since 2026-10-26, was 105)
-    "  float e2=smoothstep(.805-.022*uSoft,.81+.016*uSoft,r2)*.5;",   // Edge 2 (50%)
-    "  float e3=smoothstep(.69-.07*uSoft,.70+.05*uSoft,r3)*.25*uInner;", // Edge 3 (25%)
+    /* uDeep (hover, 0..1): the 50% and 25% bands grow inward so the bubble opens up ("peer deeper") */
+    "  float i2=.81-.07*uDeep, i3=.70-.13*uDeep;",
+    "  float e2=smoothstep(i2-.005-.022*uSoft,i2+.016*uSoft,r2)*.5;",   // Edge 2 (50%)
+    "  float e3=smoothstep(i3-.01-.07*uSoft,i3+.05*uSoft,r3)*.25*uInner;", // Edge 3 (25%)
     "  float cut=1.-smoothstep(1.-uPx,1.+uPx,r);",                    // Exterior Cutter
     "  al=(1.-(1.-e1)*(1.-e2)*(1.-e3))*cut;",
     "  }",
@@ -209,7 +211,7 @@
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       var loc = gl.getAttribLocation(prog, "a"); gl.enableVertexAttribArray(loc);
       gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+      ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
       gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner); gl.uniform1f(U.uCol, P.color);
       glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
       return true;
@@ -270,15 +272,16 @@
     }
     it.rad = radiusOf(cs, it.w, it.h);
     it.depth = parseFloat(cs.getPropertyValue("--rpb-depth")) || 1;
+    it.deep = parseFloat(cs.getPropertyValue("--rpb-deep")) || 0;
     it.styled = true;
   }
 
-  function render(cols, W, H, box, rad, t, seed, scale, depth, glow) {
+  function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep) {
     if (glc.width < W || glc.height < H) { glc.width = Math.max(glc.width, W, 256); glc.height = Math.max(glc.height, H, 256); }
     gl.viewport(0, glc.height - H, W, H);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3fv(U.uC1, cols[0]); gl.uniform3fv(U.uC2, cols[1]); gl.uniform3fv(U.uC3, cols[2]);
-    gl.uniform2f(U.uBox, box[0], box[1]); gl.uniform1f(U.uRad, rad); gl.uniform1f(U.uDepth, depth || 1);
+    gl.uniform2f(U.uBox, box[0], box[1]); gl.uniform1f(U.uRad, rad); gl.uniform1f(U.uDepth, depth || 1); gl.uniform1f(U.uDeep, deep || 0);
     gl.uniform1f(U.uT, t); gl.uniform1f(U.uSeed, seed);
     gl.uniform2f(U.uScale, scale[0], scale[1]); gl.uniform1f(U.uGlow, glow ? 1 : 0);
     gl.uniform1f(U.uPx, 2.4 / Math.min(W, H));
@@ -289,6 +292,7 @@
     if (it.dirty || it.trans || !it.styled) { readStyle(it); if (it.dirty) it.dirty--; }
     var w = it.w, h = it.h;
     if (!w || !h) return false;
+    w += 2 * it.bleed; h += 2 * it.bleed;   // glow canvases overhang their element so the halo fades out to nothing
     var dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP) * Q.scale * (it.opts.res || 1);
     var k = Math.min(1, (it.opts.max || MAXPX) / (Math.max(w, h) * dpr));
     var W = Math.max(16, Math.round(w * dpr * k)), H = Math.max(16, Math.round(h * dpr * k));
@@ -298,7 +302,7 @@
       render(it.cols, W, H, [bw / 2 / sb, bh / 2 / sb], it.rrad == null ? 1 : it.rrad, t, it.opts.seed, [w / 2 / sb, h / 2 / sb], 1, true);
     } else {
       var s = Math.min(w, h), inset = it.opts.inset || 1;
-      render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, [w / s / inset, h / s / inset], it.depth, false);
+      render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, [w / s / inset, h / s / inset], it.depth, false, it.deep);
     }
     it.ctx.clearRect(0, 0, W, H);
     it.ctx.drawImage(glc, 0, 0, W, H, 0, 0, W, H);   // viewport sits in the TOP-left W x H of the shared canvas
@@ -379,13 +383,14 @@
     cv.setAttribute("aria-hidden", "true");
     cv.setAttribute("data-cursor", "noscan");
     cv.width = cv.height = 16;
-    cv.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;border-radius:inherit";
+    var bleed = opts.glow ? (opts.bleed != null ? opts.bleed : 24) : 0;
+    cv.style.cssText = "position:absolute;inset:" + (-bleed) + "px;width:calc(100% + " + 2 * bleed + "px);height:calc(100% + " + 2 * bleed + "px);display:block;pointer-events:none;border-radius:inherit";
     el.appendChild(cv);
     el.classList.add("rp-bubble-on");
     it = {
       el: el, cv: cv, ctx: cv.getContext("2d", { alpha: true }),
       opts: { seed: opts.seed != null ? opts.seed : Math.random() * 10, inset: opts.inset, max: opts.max, res: opts.glow ? 0.5 : (opts.res || 1) },
-      ref: opts.glow ? (opts.ref || el) : null,
+      ref: opts.glow ? (opts.ref || el) : null, bleed: bleed,
       vars: opts.look ? null : (opts.vars || ["--gg1", "--gg2", "--gg3"]),
       cols: lookVec(opts.look || { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" }),
       onScreen: io ? undefined : true, shown: undefined, drawn: false, styled: false, dirty: 1, trans: 0, rad: 1, depth: 1, w: 0, h: 0

@@ -81,6 +81,18 @@
   same seed and clock as the rim, so the halo shows the rim's colours and turns with it; half resolution
   since CSS blurs it. The ::before hover halo is hidden on those bubbles (`.rp-glow-on`). (3) Colour speed
   0.15 was too slow -> 0.22 (about one turn per 45 s). Still 60 fps with 22 canvases.
+- **Hover = peer deeper, More to come, logo bubble haze.** (1) Hover / kb selection on grid bubbles and carousel
+  cards eases `--rpb-deep` 0 -> 1 (.7s, registered @property, read by the shader): the 50% band's inner edge
+  moves .81 -> .74 R and the 25% band's .70 -> .57 R; solid rim unchanged, centre stays clear for the reel.
+  Sticky touch-hover is neutralised; a real tap (.rp-tap) still shows it. (2) "More to come" placeholder now
+  has the V3 rim + synced glow; its rainbow hover is fed through `--gg*` (#ff5dd0 / #ffe65d / #5dffe0) and
+  the separate white `.ph-spin` sheen is hidden. Touch-media `!important` conic rules got `:not(.rp-bubble-on)`
+  so they can no longer paint over V3 layers. (3) Home logo bubble still looked blurrier although its render
+  density matched the others (measured 1.6 device px per canvas px on all rims): the cause was the OLD slot
+  look still drawn over the new rim (46 px + 96 px box-shadow glow and inner shadows). Removed for
+  `.rp-rim-on`; it now has a synced `.about-glow` canvas masked to outside the bubble. Light interior kept
+  for logo readability. Glow canvases now overhang their element by 24 px so the halo fades to zero.
+  Remaining old-style conic paint, by design: `.ncard::before` (news cards are rounded rectangles, not bubbles).
 - Status: LIVE on rarepond.com since 2026-10-26 (Jack: "try these on the live site"; bubble-v3 fast-forwarded
   to main from worktree ~/rp_site_bubble). Rollback = revert the merge commits on main.
 

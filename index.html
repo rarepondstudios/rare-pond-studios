@@ -1075,22 +1075,25 @@ html.xw-active{overflow:hidden}
   @media(hover:none){
     .bubble:hover{transform:rotateX(var(--tiltx)) rotateY(var(--tilty)) !important}
     .bubble:hover .glow{opacity:.32 !important;filter:blur(9px) !important;animation-play-state:paused !important}
-    .bubble.placeholder:hover .glow{opacity:.2 !important;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1)) !important}
-    .bubble:hover .edge{opacity:.45 !important;animation-play-state:paused !important}
-    .bubble.placeholder:hover .edge{opacity:.5 !important;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1)) !important}
+    .bubble.placeholder:hover .glow:not(.rp-bubble-on){opacity:.2 !important;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1)) !important}
+    .bubble:hover .edge:not(.rp-bubble-on){opacity:.45 !important;animation-play-state:paused !important}
+    .bubble.placeholder:hover .edge:not(.rp-bubble-on){opacity:.5 !important;background:conic-gradient(from var(--ang),var(--g1),var(--g2),var(--g3),var(--g2),var(--g1)) !important}
     .bubble:hover>.bubble-logo{opacity:1 !important;transform:translateX(-50%) !important}
     .bubble:hover .caption .t{opacity:0 !important}
     .bubble.placeholder:hover .ph-logo{opacity:0 !important}
     /* TAP reaction (Jack, mobile pass): a tap on the placeholder flashes its rainbow
        treatment + the RP mark via .rp-tap (JS, 1.4s). These OUTRANK the hover
        neutralizers above - .rp-tap is deliberate, not sticky-hover residue. */
-    .bubble.placeholder.rp-tap .glow{background:var(--rainbow) !important;opacity:.85 !important;animation-play-state:running !important}
-    .bubble.placeholder.rp-tap .edge{background:var(--rainbow) !important;opacity:1 !important}
+    .bubble.placeholder.rp-tap .glow:not(.rp-bubble-on){background:var(--rainbow) !important;opacity:.85 !important;animation-play-state:running !important}
+    .bubble.placeholder.rp-tap .edge:not(.rp-bubble-on){background:var(--rainbow) !important;opacity:1 !important}
+    /* V3: a sticky touch-hover must not leave the rim deepened or the placeholder rainbow on; a real tap (.rp-tap) still shows both */
+    .bubble:hover:not(.rp-tap) .edge.rp-bubble-on,.citem:hover .cedge.rp-bubble-on{--rpb-deep:0}
+    .bubble.placeholder.rp-glow-on:hover:not(.rp-tap){--gg1:var(--g1);--gg2:var(--g2);--gg3:var(--g3)}
     .bubble.placeholder.rp-tap .ph-logo{opacity:.95 !important}
     .bubble.placeholder:hover .ph-spin{opacity:0 !important}
     .citem:hover .cglow{opacity:.2 !important;animation-play-state:paused !important}
     .citem.feat:hover .cglow{opacity:.32 !important}
-    .citem:hover .cedge{opacity:.4 !important;animation-play-state:paused !important}
+    .citem:hover .cedge:not(.rp-bubble-on){opacity:.4 !important;animation-play-state:paused !important}
   }
   .bg-bubbles.fade-b{-webkit-mask:linear-gradient(180deg,#000 0,#000 82%,transparent 100%);mask:linear-gradient(180deg,#000 0,#000 82%,transparent 100%)}
   .bg-bubbles.fade-tb{-webkit-mask:linear-gradient(180deg,transparent 0,#000 12%,#000 70%,transparent 100%);mask:linear-gradient(180deg,transparent 0,#000 12%,#000 70%,transparent 100%)}
@@ -1173,7 +1176,26 @@ html.xw-active{overflow:hidden}
   /* the wide featured card would otherwise get bands sized to its HEIGHT (far thicker than on the
      round side bubbles); --rpb-depth thins them and eases with the card's .6s shape morph */
   @property --rpb-depth{syntax:"<number>";inherits:true;initial-value:1}
-  .cedge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-depth .6s}
+  /* HOVER = PEER DEEPER (Jack, 2026-10-26): on hover / keyboard selection the 50% and 25% bands grow
+     inward (--rpb-deep 0 -> 1, read by rp-bubble.js), so the rim seems to open up into the world inside
+     while the solid rim stays put. Kept moderate so a playing preview reel is never smothered. */
+  @property --rpb-deep{syntax:"<number>";inherits:true;initial-value:0}
+  .edge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-deep .7s cubic-bezier(.2,.8,.2,1)}
+  .cedge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-depth .6s,--rpb-deep .7s cubic-bezier(.2,.8,.2,1)}
+  .bubble:hover .edge.rp-bubble-on,.bubble.rpc-kbsel .edge.rp-bubble-on,.bubble.rp-tap .edge.rp-bubble-on,
+  .citem:hover .cedge.rp-bubble-on,.citem.rpc-kbsel .cedge.rp-bubble-on{--rpb-deep:1}
+  /* "More to come": same V3 bubble, and its rainbow hover now comes THROUGH the bubble (three rainbow
+     colours fed to the shader) instead of a flat conic disc and a separate white spinner */
+  .bubble.placeholder.rp-glow-on:hover,.bubble.placeholder.rp-glow-on.rp-tap,.bubble.placeholder.rp-glow-on.rpc-kbsel{--gg1:#ff5dd0;--gg2:#ffe65d;--gg3:#5dffe0}
+  .bubble.placeholder.rp-glow-on .ph-spin{display:none}
+  /* home logo bubble: the old CSS look's haze (outer box-shadow glow + inner shadows) sat on top of the
+     crisp V3 rim and made it read blurrier than every other bubble. It gets the same synced glow layer
+     as the project bubbles instead, masked to OUTSIDE the bubble because its interior is see-through. */
+  .about-anim-slot.rp-rim-on{box-shadow:none}
+  .about-glow{position:absolute;inset:-16px;border-radius:50%;pointer-events:none;z-index:0;filter:blur(9px);opacity:.32;
+    -webkit-mask:radial-gradient(closest-side,transparent 88%,#000 94%);mask:radial-gradient(closest-side,transparent 88%,#000 94%)}
+  .about-glow>.rp-bubble-cv{border-radius:0}
+  .about-anim-slot.no-bubble .about-glow{display:none}
   .citem.feat .cedge.rp-bubble-on{--rpb-depth:.5}
   .orbi-rim,.about-rim{position:absolute;inset:0;border-radius:50%;pointer-events:none}
   .orbi-rim{z-index:2}
@@ -1426,7 +1448,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026e"></script>
+<script src="/assets/rp-bubble.js?v=20261026f"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -1830,8 +1852,8 @@ function makeGridBubble(p,i){
   const gridVid=(!p.placeholder&&!p.poster&&p.focusVideo)
     ?`<video class="bubble-vid" data-src="${psrc(p.focusVideo)}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
   bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}${gridVid}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${fillVars(GRID_CAPTION_TPL,VARS[p.key])}</div></div>`;
-  /* V3 bubble rim (rp-bubble.js). The "more to come" placeholder keeps its CSS edge: its rainbow hover lives there. */
-  if(!p.placeholder&&window.RPBubble&&RPBubble.attach(bubble.querySelector('.edge'),{seed:1+i*1.7})){
+  /* V3 bubble rim (rp-bubble.js), on every grid bubble including "More to come" (its rainbow hover is fed through --gg*) */
+  if(window.RPBubble&&RPBubble.attach(bubble.querySelector('.edge'),{seed:1+i*1.7})){
     /* the halo outside the bubble draws the SAME colour field (same seed + clock) so it turns with the rim */
     if(RPBubble.attach(bubble.querySelector('.glow'),{glow:true,ref:bubble.querySelector('.bubble-inner'),seed:1+i*1.7}))bubble.classList.add('rp-glow-on');
   }
@@ -2007,9 +2029,13 @@ const ORB_SPEC=[
   if(cfg.enabled===false){slot.classList.add('no-bubble');return;}
   var look=LOOKS_BY_KEY[String(cfg.colorLook||'signature').trim()]||LOOKS_BY_KEY.signature||{};
   ['c1','c2','c3'].forEach(function(k){if(look[k])slot.style.setProperty('--bub-'+k,look[k]);});
-  /* V3 bubble rim (rp-bubble.js) replaces the CSS conic ring; the light interior + outer glow stay */
+  /* V3 bubble rim (rp-bubble.js) replaces the CSS conic ring and the old box-shadow glow; the light
+     interior stays (it keeps the colour logo readable). The glow layer shares the rim's seed + clock. */
   if(window.RPBubble){var rim=document.createElement('div');rim.className='about-rim';slot.insertBefore(rim,slot.firstChild);
-    if(RPBubble.attach(rim,{vars:['--bub-c1','--bub-c2','--bub-c3'],seed:0.7}))slot.classList.add('rp-rim-on');else rim.remove();}
+    if(RPBubble.attach(rim,{vars:['--bub-c1','--bub-c2','--bub-c3'],seed:0.7})){slot.classList.add('rp-rim-on');
+      var gl=document.createElement('div');gl.className='about-glow';slot.insertBefore(gl,slot.firstChild);
+      if(!RPBubble.attach(gl,{glow:true,ref:slot,vars:['--bub-c1','--bub-c2','--bub-c3'],seed:0.7}))gl.remove();}
+    else rim.remove();}
 })();
 
 /* ===== About-logo trigger-played animation ======================================================
