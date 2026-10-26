@@ -39,6 +39,31 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-120 PAGE TRANSITIONS: ONE CROSS-FADE FOR EVERY PAGE CHANGE; MORE TO COME CURSOR (2026-10-26)
+
+- Jack: pages snapped (Team / Home / Projects, and around a film opened from a News article). Measured with
+  Playwright on the mini (per-frame log + recorded video): header-nav clicks used the blue veil, but Back/Forward,
+  custom-page links (data-page) and links inside News articles had NO transition (hard snaps), and Back from a
+  film opened from a News article both retracted the film AND zoomed the article in from its card at once, with
+  the article briefly flashing over the film on the way in.
+- **`__viewSwap(swap)`** is now the single way to change page: a View Transition cross-fade of the whole page
+  (old and new at the same .38s, new rises 10px; `.site-header` and `#rp-cursor` have their own
+  view-transition-name with no animation so they stay perfectly still), the `#pageveil` fade where View
+  Transitions are unsupported, instant under reduced motion and before the first route render. Used by data-go
+  clicks (incl. contact/about from another page), data-page clicks, popstate when the base page changes
+  (`__routeOf()` classifies a path: film / page / news(+article) / team / projects / home), and non-film links
+  inside News articles. Films and articles keep their own circle / zoom animations.
+- **News article <-> film round trip:** a film opened from an article's logo remembers it (`sec._fromNews`).
+  Back restores the article INSTANTLY under the film (`newsOpenInstant`) and retracts the film into that logo;
+  Forward reopens the film from the logo (renderPath routes a film URL through `openProjectFrom` when its
+  article is open). Film links in an article body grow from the link. `closeNews(true)` is now truly instant
+  (it used to run the .28s fade, which flashed the article over the film).
+- **More to come cursor:** it had `cursor:default` and no role, so the cursor engine ignored it and kept the
+  coloured ring; `data-cursor` now includes `link`, so it engages and fades like the other bubbles.
+- Verified on the mini (real GPU): every step lands in the right state, 59-60 fps during each transition
+  (first run on a cold CDN edge was lower on the first film open), video frames show cross-fades and a clean
+  film <-> article round trip. Test: ~/claude_perf/t2m.mjs (scratch).
+
 ### 0.0.-119 V3 BUBBLE (FROM AFTER EFFECTS) ON EVERY BUBBLE, PREVIEW BRANCH `bubble-v3` (2026-10-26)
 
 - Jack designed a new bubble in After Effects (RP Anim 1 project, folder "Bubble 2": `RP_V3_Bubble`,
