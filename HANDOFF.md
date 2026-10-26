@@ -65,8 +65,10 @@
   `.rp-settle`); copy arrives at 0.8 s (`.universe.rp-zoom.open .u-inner`). The halo fades out during the flight.
   Close runs the same flight backwards, starting with the backdrop band at the screen edge.
 - CURSOR (`assets/cursor.js`): free ring = solid rim 100% / band 50% / band 25% (TIERS mask); hug state = rim
-  (`.rpc-bord`, 2.4 px) + `.rpc-fill::before` (50%) and `::after` (25%). `cursor.js?v=20261026h` on index, media,
-  rentals.
+  (`.rpc-bord`, 2.4 px) + `.rpc-fill::before` (50%) and `::after` (25%). cursor.js is a SHARED module: the edit lives in
+  the master `~/bts-automation/cursor.js` (social_ui_sync.py publishes it to both sites; editing only the repo copy
+  was reverted by the sync within minutes). Gated by host: jackcarlsen.com keeps its single solid band.
+  `cursor.js?v=20261026l` on index, media, rentals.
 
 ### 0.0.-120 PAGE TRANSITIONS: ONE CROSS-FADE FOR EVERY PAGE CHANGE; MORE TO COME CURSOR (2026-10-26)
 
