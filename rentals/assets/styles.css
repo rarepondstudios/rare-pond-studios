@@ -287,7 +287,8 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 /* Home subtitle on one line at normal desktop widths (Jack 2026-10-25); it still wraps on narrow screens */
 .home p.homesub{max-width:min(100%,960px);text-wrap:balance}
 /* Home: search all gear (2026-10-25) */
-.hsearch{max-width:min(100%,960px);margin:22px auto 4px;text-align:left}
+.hsearch{width:100%;max-width:min(100%,960px);margin:22px auto 4px;text-align:left;align-self:stretch}
+#hres{width:100%}
 .hsearch input.search{display:block;width:100%;max-width:560px;margin:0 auto;padding:14px 18px;border-radius:14px;border:1px solid rgba(255,255,255,.34);background:rgba(255,255,255,.14);color:#fff;font-size:16px;font-family:inherit}
 .hsearch input.search::placeholder{color:#dce8ff}
 .hsearch .hcount{text-align:center;color:#cfe0f5;font-size:14px;margin:14px 0 4px}
