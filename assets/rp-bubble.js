@@ -600,8 +600,12 @@
     var ms = o.ms || 1400, t0 = performance.now(), tBase = simT + seed * 3.7;
     Z = { o: o, it: it, cv: cv, hide: hide, raf: 0 };
     var z = Z;
+    var first = true;
     function step(now) {
       if (Z !== z) return;
+      /* the clock starts on the first real frame: opening a film builds its page in the same task, and a
+         slow first frame should hold the opening pose, not make the flight jump ahead */
+      if (first && now !== t0) { first = false; t0 = now - 16; }
       var t = Math.min(1, (now - t0) / ms);
       var tt = o.dir === "out" ? 1 - t : t;
       var e = easeIO(tt), c = cEnd * e;
