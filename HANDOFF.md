@@ -59,7 +59,7 @@
   type); Filters button inside the search box opens a collapsible panel: Department (Home), Type (Single gear / Kits =
   anything with kit contents / Packages), Available on my dates (opens the date picker if no dates; a package counts
   only when every piece in it is free).
-- Tests: scan_ui_test.py rewritten for all of the above (45 checks); scan_edge_test updated for the /search redirect.
+- Tests: scan_ui_test.py rewritten for all of the above (44 checks); scan_edge_test and scan_stress_test updated. Menu badge count cached 20 s (cleared on any save), help table 5 min.
 
 ### 0.0.-115 SCAN APP: PROFILE, SIGN-IN SCREEN, HOW IT WORKS, INVENTORY SEARCH, ACTIVITY CHARTS (2026-10-25)
 
