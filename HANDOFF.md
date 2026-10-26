@@ -74,6 +74,13 @@
 - **Thinner rim + slower again.** Jack thinned Edge 1 in AE (stroke 105 -> 80): shader rim inner edge 0.90 -> 0.92 R.
   Colour still too fast: `P.color` 0.3 -> 0.15 (about one turn per 67 s). The script tag now carries
   `?v=` (bump it on EVERY rp-bubble.js edit) so browsers never run a stale copy.
+- **Consistency pass.** (1) Home logo bubble looked blurrier: MAXPX 480 capped it below the others'
+  density; now every bubble renders at the same 1.25 device px per CSS px (MAXPX 1600 is only a guard).
+  (2) Project bubbles' outer glow spun the opposite way on its own CSS `--ang` clock: `.glow` / `.cglow`
+  are now drawn by the same shader in GLOW mode (`attach(glowEl,{glow:true,ref:bubbleEl,seed:<rim seed>})`),
+  same seed and clock as the rim, so the halo shows the rim's colours and turns with it; half resolution
+  since CSS blurs it. The ::before hover halo is hidden on those bubbles (`.rp-glow-on`). (3) Colour speed
+  0.15 was too slow -> 0.22 (about one turn per 45 s). Still 60 fps with 22 canvases.
 - Status: LIVE on rarepond.com since 2026-10-26 (Jack: "try these on the live site"; bubble-v3 fast-forwarded
   to main from worktree ~/rp_site_bubble). Rollback = revert the merge commits on main.
 

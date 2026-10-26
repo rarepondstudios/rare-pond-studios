@@ -43,6 +43,8 @@
 
    API
      RPBubble.attach(el, {vars:[a,b,c] | look:{c1,c2,c3}, seed, max})  canvas fills el
+     RPBubble.attach(glowEl, {glow:true, ref:bubbleEl, seed})  halo layer; pass the SAME seed as
+                                             the bubble's rim so both show the same colours at once
      RPBubble.setLook(el, {c1,c2,c3})        fixed look instead of CSS vars
      RPBubble.detach(el)
      RPBubble.sprite({c1,c2,c3}, px, t)      one still frame as a data: URL (ambient bubbles)
@@ -58,8 +60,9 @@
     "precision highp float;",
     "varying vec2 v;",
     "uniform vec3 uC1,uC2,uC3;",
-    "uniform vec2 uBox;",
-    "uniform float uDepth,uRad,uT,uSeed,uPx,uInset,uWob,uSoft,uSpin,uInner,uCol;",
+    "uniform vec2 uBox,uScale;",
+    "uniform float uGlow;",
+    "uniform float uDepth,uRad,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol;",
     /* Ashima / Stefan Gustavson 3D simplex noise (MIT) */
     "vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;}",
     "vec4 m289(vec4 x){return x-floor(x*(1./289.))*289.;}",
@@ -95,8 +98,15 @@
     "  vec3 c=(s.rgb*s.a*(1.-b.a)+b.rgb*b.a*(1.-s.a)+s.a*b.a*ovl(b.rgb,s.rgb))/a;",
     "  return vec4(c,a);}",
     "void main(){",
-    "  vec2 p=v*uBox/uInset;",
+    "  vec2 p=v*uScale;",                                               // canvas -> bubble units (1 = bubble edge)
     "  float r=rr(p);",
+    "  float al;",
+    /* GLOW mode: the soft halo layer outside a bubble (.glow / .cglow). Same colour field, same
+       seed, same clock as the bubble's rim, so the halo turns WITH the rim instead of on its own. */
+    "  if(uGlow>.5){",
+    "    if(r>1.3||r<.55){gl_FragColor=vec4(0.);return;}",
+    "    al=smoothstep(.55,.92,r)*(1.-smoothstep(.97,min(1.17,min(uScale.x,uScale.y)),r));",
+    "  } else {",
     /* cheap early-outs before any noise: outside the cutter, or the clear centre that no band can reach */
     "  if(r>1.03||r<.5){gl_FragColor=vec4(0.);return;}",
     "  float z=uSeed*17.+uT*.11;",
@@ -110,7 +120,8 @@
     "  float e2=smoothstep(.805-.022*uSoft,.81+.016*uSoft,r2)*.5;",   // Edge 2 (50%)
     "  float e3=smoothstep(.69-.07*uSoft,.70+.05*uSoft,r3)*.25*uInner;", // Edge 3 (25%)
     "  float cut=1.-smoothstep(1.-uPx,1.+uPx,r);",                    // Exterior Cutter
-    "  float al=(1.-(1.-e1)*(1.-e2)*(1.-e3))*cut;",
+    "  al=(1.-(1.-e1)*(1.-e2)*(1.-e3))*cut;",
+    "  }",
     "  if(al<.004){gl_FragColor=vec4(0.);return;}",
     /* ---- COLOUR (Color pre-comp) ---- */
     "  float tc=uT*uCol;",                                              // colour clock (slower than AE, see P.color)
@@ -129,8 +140,9 @@
 
   /* color: speed of the COLOUR field (spin, plate evolution, wave) relative to the AE loop. Jack
      (2026-10-26): the gradients moved way too fast at the AE rate, slow and subtle wanted -> 0.3,
-     then "still too fast" -> 0.15, about one turn per 67 s. The rim's band wobble keeps the AE speed. */
-  var P = { wobble: 1, soft: 1, spin: 1, inner: 1, speed: 1, color: 0.15 };
+     then "still too fast" -> 0.15, then "too slow now" -> 0.22, about one turn per 45 s. The rim's band
+     wobble keeps the AE speed. */
+  var P = { wobble: 1, soft: 1, spin: 1, inner: 1, speed: 1, color: 0.22 };
   /* PERFORMANCE BUDGET (2026-10-26, after the first live version cost real frame rate):
      - 24 fps, the AE comp's own rate. The motion is one slow turn per 10 s, so more is invisible.
      - resolution: at most 1.25 device px per CSS px and 480 px on the long side. The look is soft
@@ -144,7 +156,11 @@
        the ambient animation is idle (body.bg-idle), mirroring what the CSS already pauses.
      - adaptive quality: if the PAGE (not just the bubbles) misses frames for a second, resolution
        steps down (to 55%) and frame rate to 15; it steps back up once frames are smooth again. */
-  var FPS = 24, MAXPX = 480, DPR_CAP = 1.25;
+  /* MAXPX only guards against absurd sizes now. It used to be 480, which quietly rendered the big
+     home logo bubble (460 css px) at a lower density than the smaller bubbles, so it looked blurrier
+     (Jack, 2026-10-26). Every bubble now gets the same 1.25 device px per CSS px; glow layers, which
+     are blurred by CSS anyway, render at half that. */
+  var FPS = 24, MAXPX = 1600, DPR_CAP = 1.25;
   var Q = { scale: 1, fps: FPS };
   var items = [], gl = null, glc = null, prog = null, U = {}, raf = 0;
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -193,7 +209,7 @@
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       var loc = gl.getAttribLocation(prog, "a"); gl.enableVertexAttribArray(loc);
       gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ["uC1", "uC2", "uC3", "uBox", "uDepth", "uRad", "uT", "uSeed", "uPx", "uInset", "uWob", "uSoft", "uSpin", "uInner", "uCol"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+      ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
       gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner); gl.uniform1f(U.uCol, P.color);
       glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
       return true;
@@ -223,7 +239,7 @@
     var live = e.type === "transitionrun" || e.type === "transitionstart";
     for (var i = 0; i < items.length; i++) {
       var it = items[i];
-      if (t === it.el || t.contains(it.el)) {
+      if (t === it.el || t.contains(it.el) || (it.ref && (t === it.ref || t.contains(it.ref)))) {
         if (live) { it.trans++; it.transAt = performance.now(); } else it.trans = Math.max(0, it.trans - 1);
         it.dirty = Math.max(it.dirty, 2);
       }
@@ -244,6 +260,10 @@
   function readStyle(it) {
     if (!it.w || !it.h) { var r = it.el.getBoundingClientRect(); it.w = it.el.offsetWidth || r.width; it.h = it.el.offsetHeight || r.height; }
     var cs = getComputedStyle(it.el);
+    if (it.ref) {   // glow layer: the bubble's own box and corner radius define the shape
+      it.rw = it.ref.offsetWidth; it.rh = it.ref.offsetHeight;
+      it.rrad = radiusOf(getComputedStyle(it.ref), it.rw, it.rh);
+    }
     if (it.vars) {
       var a = css3(cs.getPropertyValue(it.vars[0])), b = css3(cs.getPropertyValue(it.vars[1])), c = css3(cs.getPropertyValue(it.vars[2]));
       if (a) it.cols = [a, b || a, c || a];
@@ -253,14 +273,14 @@
     it.styled = true;
   }
 
-  function render(cols, W, H, box, rad, t, seed, inset, depth) {
+  function render(cols, W, H, box, rad, t, seed, scale, depth, glow) {
     if (glc.width < W || glc.height < H) { glc.width = Math.max(glc.width, W, 256); glc.height = Math.max(glc.height, H, 256); }
     gl.viewport(0, glc.height - H, W, H);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3fv(U.uC1, cols[0]); gl.uniform3fv(U.uC2, cols[1]); gl.uniform3fv(U.uC3, cols[2]);
     gl.uniform2f(U.uBox, box[0], box[1]); gl.uniform1f(U.uRad, rad); gl.uniform1f(U.uDepth, depth || 1);
     gl.uniform1f(U.uT, t); gl.uniform1f(U.uSeed, seed);
-    gl.uniform1f(U.uInset, inset);
+    gl.uniform2f(U.uScale, scale[0], scale[1]); gl.uniform1f(U.uGlow, glow ? 1 : 0);
     gl.uniform1f(U.uPx, 2.4 / Math.min(W, H));
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
@@ -269,12 +289,17 @@
     if (it.dirty || it.trans || !it.styled) { readStyle(it); if (it.dirty) it.dirty--; }
     var w = it.w, h = it.h;
     if (!w || !h) return false;
-    var dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP) * Q.scale;
-    var k = Math.min(1, (it.opts.max || MAXPX) * Q.scale / (Math.max(w, h) * dpr));
+    var dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP) * Q.scale * (it.opts.res || 1);
+    var k = Math.min(1, (it.opts.max || MAXPX) / (Math.max(w, h) * dpr));
     var W = Math.max(16, Math.round(w * dpr * k)), H = Math.max(16, Math.round(h * dpr * k));
     if (it.cv.width !== W || it.cv.height !== H) { it.cv.width = W; it.cv.height = H; }
-    var s = Math.min(w, h);
-    render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, it.opts.inset || 1, it.depth);
+    if (it.ref) {
+      var bw = it.rw || w, bh = it.rh || h, sb = Math.min(bw, bh) / 2;
+      render(it.cols, W, H, [bw / 2 / sb, bh / 2 / sb], it.rrad == null ? 1 : it.rrad, t, it.opts.seed, [w / 2 / sb, h / 2 / sb], 1, true);
+    } else {
+      var s = Math.min(w, h), inset = it.opts.inset || 1;
+      render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, [w / s / inset, h / s / inset], it.depth, false);
+    }
     it.ctx.clearRect(0, 0, W, H);
     it.ctx.drawImage(glc, 0, 0, W, H, 0, 0, W, H);   // viewport sits in the TOP-left W x H of the shared canvas
     it.drawn = true;
@@ -359,7 +384,8 @@
     el.classList.add("rp-bubble-on");
     it = {
       el: el, cv: cv, ctx: cv.getContext("2d", { alpha: true }),
-      opts: { seed: opts.seed != null ? opts.seed : Math.random() * 10, inset: opts.inset, max: opts.max },
+      opts: { seed: opts.seed != null ? opts.seed : Math.random() * 10, inset: opts.inset, max: opts.max, res: opts.glow ? 0.5 : (opts.res || 1) },
+      ref: opts.glow ? (opts.ref || el) : null,
       vars: opts.look ? null : (opts.vars || ["--gg1", "--gg2", "--gg3"]),
       cols: lookVec(opts.look || { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" }),
       onScreen: io ? undefined : true, shown: undefined, drawn: false, styled: false, dirty: 1, trans: 0, rad: 1, depth: 1, w: 0, h: 0
@@ -389,7 +415,7 @@
     var key = [look && look.c1, look && look.c2, look && look.c3, px, t].join("|");
     if (spriteCache[key]) return spriteCache[key];
     if (!initGL()) return "";
-    render(lookVec(look), px, px, [1, 1], 1, t, 0.5, 1, 1);
+    render(lookVec(look), px, px, [1, 1], 1, t, 0.5, [1, 1], 1, false);
     var c = document.createElement("canvas"); c.width = c.height = px;
     c.getContext("2d").drawImage(glc, 0, 0, px, px, 0, 0, px, px);
     return (spriteCache[key] = c.toDataURL("image/png"));

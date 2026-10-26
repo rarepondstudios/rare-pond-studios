@@ -1163,6 +1163,13 @@ html.xw-active{overflow:hidden}
      !important because the hover and special-glow rules above repaint these layers at higher
      specificity. No WebGL = no canvas = the old CSS rims stay exactly as they were. */
   .edge.rp-bubble-on,.cedge.rp-bubble-on,.m-edge.rp-bubble-on{background:none!important;-webkit-mask:none!important;mask:none!important;opacity:1!important;animation:none!important;filter:none!important}
+  /* Halo layers drawn by the same shader in glow mode (same seed + clock as the rim, so they turn
+     together; the old CSS conic halo spun the other way on its own --ang clock). Their opacity, blur,
+     bob and hover behaviour are unchanged; only the conic paint goes. The ::before hover halo is
+     dropped on these bubbles: it could only ever be a separate CSS spin. */
+  .glow.rp-bubble-on,.cglow.rp-bubble-on{background:none!important;-webkit-mask:none!important;mask:none!important}
+  .bubble.rp-glow-on::before,.citem.rp-glow-on::before{display:none}
+  .glow.rp-bubble-on>.rp-bubble-cv,.cglow.rp-bubble-on>.rp-bubble-cv{border-radius:0}
   /* the wide featured card would otherwise get bands sized to its HEIGHT (far thicker than on the
      round side bubbles); --rpb-depth thins them and eases with the card's .6s shape morph */
   @property --rpb-depth{syntax:"<number>";inherits:true;initial-value:1}
@@ -1419,7 +1426,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026d"></script>
+<script src="/assets/rp-bubble.js?v=20261026e"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -1824,7 +1831,10 @@ function makeGridBubble(p,i){
     ?`<video class="bubble-vid" data-src="${psrc(p.focusVideo)}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
   bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}${gridVid}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${fillVars(GRID_CAPTION_TPL,VARS[p.key])}</div></div>`;
   /* V3 bubble rim (rp-bubble.js). The "more to come" placeholder keeps its CSS edge: its rainbow hover lives there. */
-  if(!p.placeholder&&window.RPBubble)RPBubble.attach(bubble.querySelector('.edge'),{seed:1+i*1.7});
+  if(!p.placeholder&&window.RPBubble&&RPBubble.attach(bubble.querySelector('.edge'),{seed:1+i*1.7})){
+    /* the halo outside the bubble draws the SAME colour field (same seed + clock) so it turns with the rim */
+    if(RPBubble.attach(bubble.querySelector('.glow'),{glow:true,ref:bubble.querySelector('.bubble-inner'),seed:1+i*1.7}))bubble.classList.add('rp-glow-on');
+  }
   bubble.addEventListener('pointermove',e=>{if(!INTERACTIVE)return;const r=bubble.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;if(!isWebKit){bubble.style.setProperty('--mx',(px*100).toFixed(1)+'%');bubble.style.setProperty('--my',(py*100).toFixed(1)+'%');}const tm=7;bubble.style.setProperty('--tilty',((px-.5)*tm*2).toFixed(2)+'deg');bubble.style.setProperty('--tiltx',((.5-py)*tm*2).toFixed(2)+'deg');});
   bubble.addEventListener('pointerleave',()=>{if(INTERACTIVE){bubble.style.setProperty('--mx','73%');bubble.style.setProperty('--my','26%');bubble.style.setProperty('--tiltx','0deg');bubble.style.setProperty('--tilty','0deg');}});
   if(!p.placeholder){
@@ -2190,7 +2200,9 @@ const citems=CAROUSEL.map((p,i)=>{
      near-full-size children, and these ovals must never drive the outline shape - only the
      visible .cbub surface should (see assets/cursor.js scanShape). */
   el.innerHTML=`<div class="cdrop" data-cursor="noscan"></div><div class="cglow" data-cursor="noscan"></div><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
-  if(window.RPBubble)RPBubble.attach(el.querySelector('.cedge'),{seed:2+i*2.3});   /* V3 bubble rim; follows the featured card's rounded-rect morph */
+  if(window.RPBubble&&RPBubble.attach(el.querySelector('.cedge'),{seed:2+i*2.3})){   /* V3 bubble rim; follows the featured card's rounded-rect morph */
+    if(RPBubble.attach(el.querySelector('.cglow'),{glow:true,ref:el.querySelector('.cbub'),seed:2+i*2.3}))el.classList.add('rp-glow-on');   /* halo in sync with the rim */
+  }
   el.addEventListener('mouseenter',()=>{
     if(el.classList.contains('feat'))return;   /* featured card uses its own .focus-vid reel */
     startPreview(el.querySelector('.side-vid'));   /* shared hardened path */
