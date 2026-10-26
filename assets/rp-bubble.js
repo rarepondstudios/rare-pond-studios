@@ -59,7 +59,7 @@
     "varying vec2 v;",
     "uniform vec3 uC1,uC2,uC3;",
     "uniform vec2 uBox;",
-    "uniform float uDepth,uRad,uT,uSeed,uPx,uInset,uWob,uSoft,uSpin,uInner;",
+    "uniform float uDepth,uRad,uT,uSeed,uPx,uInset,uWob,uSoft,uSpin,uInner,uCol;",
     /* Ashima / Stefan Gustavson 3D simplex noise (MIT) */
     "vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;}",
     "vec4 m289(vec4 x){return x-floor(x*(1./289.))*289.;}",
@@ -113,19 +113,24 @@
     "  float al=(1.-(1.-e1)*(1.-e2)*(1.-e3))*cut;",
     "  if(al<.004){gl_FragColor=vec4(0.);return;}",
     /* ---- COLOUR (Color pre-comp) ---- */
-    "  float an=-uT*uSpin*.6283185;",                                 // Rotate: 360deg per 10 s
+    "  float tc=uT*uCol;",                                              // colour clock (slower than AE, see P.color)
+    "  float zc=uSeed*17.+tc*.11;",
+    "  float an=-tc*uSpin*.6283185;",                                 // Rotate: 360deg per 10 s at uCol 1
     "  vec2 q=mat2(cos(an),sin(an),-sin(an),cos(an))*p;",
-    "  q+=.12*wv(q,1.3,z*.7+21.);",                                    // Turbulent Displace
-    "  q.x+=.025*sin(q.y*5.+uT*.9);",                                  // Wave Warp
-    "  vec4 b1=blob(q,vec2(-1.007,-.614),1.247,uC3,1.7,z);",          // Color Blob 1 (sky, bottom)
-    "  vec4 b2=blob(q,vec2(.969,-.528),1.268,uC1,4.1,z+5.);",         // Color Blob 2 (blue, Overlay)
-    "  vec4 b3=blob(q,vec2(-.024,1.203),1.382,uC2,8.3,z+9.);",        // Color Blob 3 (violet, Overlay)
+    "  q+=.12*wv(q,1.3,zc*.7+21.);",                                    // Turbulent Displace
+    "  q.x+=.025*sin(q.y*5.+tc*.9);",                                  // Wave Warp
+    "  vec4 b1=blob(q,vec2(-1.007,-.614),1.247,uC3,1.7,zc);",          // Color Blob 1 (sky, bottom)
+    "  vec4 b2=blob(q,vec2(.969,-.528),1.268,uC1,4.1,zc+5.);",         // Color Blob 2 (blue, Overlay)
+    "  vec4 b3=blob(q,vec2(-.024,1.203),1.382,uC2,8.3,zc+9.);",        // Color Blob 3 (violet, Overlay)
     "  vec4 f=over(over(b1,b2),b3);",
     "  vec3 col=mix(uC1,f.rgb,f.a);",                                  // Composite Over Layer
     "  gl_FragColor=vec4(col*al,al);}"                                 // premultiplied
   ].join("\n");
 
-  var P = { wobble: 1, soft: 1, spin: 1, inner: 1, speed: 1 };
+  /* color: speed of the COLOUR field (spin, plate evolution, wave) relative to the AE loop. Jack
+     (2026-10-26): the gradients moved way too fast at the AE rate, slow and subtle wanted -> 0.3,
+     about one turn per 33 s. The rim's band wobble keeps the AE speed. */
+  var P = { wobble: 1, soft: 1, spin: 1, inner: 1, speed: 1, color: 0.3 };
   /* PERFORMANCE BUDGET (2026-10-26, after the first live version cost real frame rate):
      - 24 fps, the AE comp's own rate. The motion is one slow turn per 10 s, so more is invisible.
      - resolution: at most 1.25 device px per CSS px and 480 px on the long side. The look is soft
@@ -188,8 +193,8 @@
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       var loc = gl.getAttribLocation(prog, "a"); gl.enableVertexAttribArray(loc);
       gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ["uC1", "uC2", "uC3", "uBox", "uDepth", "uRad", "uT", "uSeed", "uPx", "uInset", "uWob", "uSoft", "uSpin", "uInner"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
-      gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner);
+      ["uC1", "uC2", "uC3", "uBox", "uDepth", "uRad", "uT", "uSeed", "uPx", "uInset", "uWob", "uSoft", "uSpin", "uInner", "uCol"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+      gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner); gl.uniform1f(U.uCol, P.color);
       glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
       return true;
     } catch (e) { gl = false; if (window.console) console.warn("RPBubble", e); return false; }
@@ -375,7 +380,7 @@
   }
   function setParam(k, v) {
     P[k] = v;
-    if (gl) { gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner); }
+    if (gl) { gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner); gl.uniform1f(U.uCol, P.color); }
     items.forEach(function (x) { x.drawn = false; }); kick();
   }
   var spriteCache = {};

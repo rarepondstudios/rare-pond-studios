@@ -68,6 +68,9 @@
   (5) skip bubbles that are off screen OR invisible (checkVisibility: opacity 0 orbits, hidden cards), hold
   frames while the carousel slides (only morphing cards redraw, at 12 fps); (6) adaptive quality steps
   resolution and fps down if the page itself drops frames. Perf script: ~/claude_perf/fps.mjs (scratch).
+- **Colour field slowed (Jack: gradients moving way too fast, make it subtle).** New `P.color` (default 0.3)
+  scales the colour clock only: spin, plate evolution and wave warp now run at 30% of the AE loop (about one
+  turn per 33 s). The rim's band wobble keeps the AE speed. Tune that one number to change it.
 - Status: LIVE on rarepond.com since 2026-10-26 (Jack: "try these on the live site"; bubble-v3 fast-forwarded
   to main from worktree ~/rp_site_bubble). Rollback = revert the merge commits on main.
 
