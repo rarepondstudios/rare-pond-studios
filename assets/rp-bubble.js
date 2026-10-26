@@ -56,7 +56,7 @@
 
   var VS = "attribute vec2 a;varying vec2 v;void main(){v=a;gl_Position=vec4(a,0.,1.);}";
 
-  var FS = [
+  var HEAD = [
     "precision highp float;",
     "varying vec2 v;",
     "uniform vec3 uC1,uC2,uC3;",
@@ -64,7 +64,7 @@
     "uniform float uGlow;",
     "uniform vec3 uPal[8];",
     "uniform float uPalN,uRb;",
-    "uniform float uDeep,uDepth,uRad,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol;",
+    "uniform float uDeep,uDepth,uRad,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol,uSh;",
     /* Ashima / Stefan Gustavson 3D simplex noise (MIT) */
     "vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;}",
     "vec4 m289(vec4 x){return x-floor(x*(1./289.))*289.;}",
@@ -105,19 +105,57 @@
     "  float a=s.a+b.a-s.a*b.a; if(a<1e-4) return vec4(0.);",
     "  vec3 c=(s.rgb*s.a*(1.-b.a)+b.rgb*b.a*(1.-s.a)+s.a*b.a*ovl(b.rgb,s.rgb))/a;",
     "  return vec4(c,a);}",
+    /* ---- COLOUR (Color pre-comp), as a function so the depth zoom can sample it per layer ---- */
+    "vec3 colAt(vec2 p){",
+    "  float tc=uT*uCol;",                                              // colour clock (slower than AE, see P.color)
+    "  float zc=uSeed*17.+tc*.11;",
+    "  float an=-tc*uSpin*.6283185;",                                 // Rotate: 360deg per 10 s at uCol 1
+    "  vec2 q=mat2(cos(an),sin(an),-sin(an),cos(an))*p;",
+    "  q+=.12*wv(q,1.3,zc*.7+21.);",                                    // Turbulent Displace
+    "  q.x+=.025*sin(q.y*5.+tc*.9);",                                  // Wave Warp
+    "  vec4 b1=blob(q,vec2(-1.007,-.614),1.247,uC3,1.7,zc);",          // Color Blob 1 (sky, bottom)
+    "  vec4 b2=blob(q,vec2(.969,-.528),1.268,uC1,4.1,zc+5.);",         // Color Blob 2 (blue, Overlay)
+    "  vec4 b3=blob(q,vec2(-.024,1.203),1.382,uC2,8.3,zc+9.);",        // Color Blob 3 (violet, Overlay)
+    "  vec4 f=over(over(b1,b2),b3);",
+    "  vec3 col=mix(uC1,f.rgb,f.a);",                                  // Composite Over Layer
+    "  if(uRb>.001){",                                                  // special look: the whole ramp wraps round the bubble
+    "    float h=atan(q.y,q.x)/6.2831853+.5+.06*sn(vec3(q*1.4,zc+31.));",
+    "    col=mix(col,pal(fract(h)),uRb);",
+    "  }",
+    "  return col;}",
+    /* ---- SHINE (RP_V3_Bubble_Shine_PRE-COMP, Jack's AE build, saved 2026-10-26 16:28) ----
+       Three white ellipses, top right, in bubble units (centre 1080,1080, R 853.7 in the 2160 comp):
+         Shine 3  centre (.3914,.5728) radii (.3155,.1884)  blur 75  Turbulent 30/40  opacity 20%
+         Shine 2  centre (.4459,.5962) radii (.1895,.1151)  blur 30  Turbulent 20/30  opacity 40%
+         Shine 1  centre (.3692,.6424) radii (.0757,.0569)  blur 10                   opacity 40%
+       all clipped by the Exterior Cutter. On a rounded card it is pinned to the top-right corner. */
+    "float shE(vec2 d,vec2 rad,float w){float k=length(d/rad);float sd=(k-1.)*min(rad.x,rad.y);return 1.-smoothstep(-w,w,sd);}",
+    "vec2 shC(){return vec2(.42,.6)+uBox-vec2(1.);}",
+    "float shineA(vec2 p,float z){",
+    "  vec2 o=uBox-vec2(1.);",
+    "  float s3=shE(p-(vec2(.3914,.5728)+o)+.035*uWob*wv(p,10.,z+40.),vec2(.3155,.1884),.105)*.20;",
+    "  float s2=shE(p-(vec2(.4459,.5962)+o)+.023*uWob*wv(p,14.,z+47.),vec2(.1895,.1151),.042)*.40;",
+    "  float s1=shE(p-(vec2(.3692,.6424)+o),vec2(.0757,.0569),.019)*.40;",
+    "  return 1.-(1.-s1)*(1.-s2)*(1.-s3);}",
+  ];
+  var FS = HEAD.concat([
     "void main(){",
     "  vec2 p=v*uScale;",                                               // canvas -> bubble units (1 = bubble edge)
     "  float r=rr(p);",
-    "  float al;",
     /* GLOW mode: the soft halo layer outside a bubble (.glow / .cglow). Same colour field, same
        seed, same clock as the bubble's rim, so the halo turns WITH the rim instead of on its own. */
     "  if(uGlow>.5){",
     "    if(r>1.3||r<.55){gl_FragColor=vec4(0.);return;}",
-    "    al=smoothstep(.55,.92,r)*(1.-smoothstep(.96,min(1.2,min(uScale.x,uScale.y)-.02),r));",
-    "  } else {",
-    /* cheap early-outs before any noise: outside the cutter, or the clear centre that no band can reach */
-    "  if(r>1.03||r<.5-.14*uDeep){gl_FragColor=vec4(0.);return;}",
+    "    float ag=smoothstep(.55,.92,r)*(1.-smoothstep(.96,min(1.2,min(uScale.x,uScale.y)-.02),r));",
+    "    if(ag<.004){gl_FragColor=vec4(0.);return;}",
+    "    gl_FragColor=vec4(colAt(p)*ag,ag);return;",
+    "  }",
+    "  if(r>1.03){gl_FragColor=vec4(0.);return;}",
     "  float z=uSeed*17.+uT*.11;",
+    "  float sa=0.;",
+    "  if(uSh>.5&&length(p-shC())<.62) sa=shineA(p,z);",
+    /* cheap early-out: the clear centre that no band (and no shine) can reach */
+    "  if(r<.5-.14*uDeep&&sa<.004){gl_FragColor=vec4(0.);return;}",
     /* ---- ALPHA (Alpha_Shape + Alpha_Effects pre-comps) ----
        ONE turbulence field drives both wobbling bands (Edge 2 and Edge 3 sample it with different
        amounts and swizzles), and the 4px Minor Edge Distortion is too small to see at web sizes. */
@@ -130,28 +168,44 @@
     "  float e2=smoothstep(i2-.005-.022*uSoft,i2+.016*uSoft,r2)*.5;",   // Edge 2 (50%)
     "  float e3=smoothstep(i3-.01-.07*uSoft,i3+.05*uSoft,r3)*.25*uInner;", // Edge 3 (25%)
     "  float cut=1.-smoothstep(1.-uPx,1.+uPx,r);",                    // Exterior Cutter
-    "  al=(1.-(1.-e1)*(1.-e2)*(1.-e3))*cut;",
-    "  }",
-    "  if(al<.004){gl_FragColor=vec4(0.);return;}",
-    /* ---- COLOUR (Color pre-comp) ---- */
-    "  float tc=uT*uCol;",                                              // colour clock (slower than AE, see P.color)
-    "  float zc=uSeed*17.+tc*.11;",
-    "  float an=-tc*uSpin*.6283185;",                                 // Rotate: 360deg per 10 s at uCol 1
-    "  vec2 q=mat2(cos(an),sin(an),-sin(an),cos(an))*p;",
-    "  q+=.12*wv(q,1.3,zc*.7+21.);",                                    // Turbulent Displace
-    "  q.x+=.025*sin(q.y*5.+tc*.9);",                                  // Wave Warp
-    "  vec4 b1=blob(q,vec2(-1.007,-.614),1.247,uC3,1.7,zc);",          // Color Blob 1 (sky, bottom)
-    "  vec4 b2=blob(q,vec2(.969,-.528),1.268,uC1,4.1,zc+5.);",         // Color Blob 2 (blue, Overlay)
-    "  vec4 b3=blob(q,vec2(-.024,1.203),1.382,uC2,8.3,zc+9.);",        // Color Blob 3 (violet, Overlay)
-    "  vec4 f=over(over(b1,b2),b3);",
-    "  vec3 col=mix(uC1,f.rgb,f.a);",                                  // Composite Over Layer
-    /* special look: the whole ramp wraps round the bubble and turns with the same field (q is rotated + warped) */
-    "  if(uRb>.001){",
-    "    float h=atan(q.y,q.x)/6.2831853+.5+.06*sn(vec3(q*1.4,zc+31.));",
-    "    col=mix(col,pal(fract(h)),uRb);",
-    "  }",
-    "  gl_FragColor=vec4(col*al,al);}"                                 // premultiplied
-  ].join("\n");
+    "  float al=(1.-(1.-e1)*(1.-e2)*(1.-e3))*cut;",
+    "  sa*=cut;",
+    "  if(al<.004&&sa<.004){gl_FragColor=vec4(0.);return;}",
+    "  vec3 pc=al>.004?colAt(p)*al:vec3(0.);",
+    "  gl_FragColor=vec4(vec3(1.)*sa+pc*(1.-sa),sa+al*(1.-sa));}"    // shine (white) over the rim, premultiplied
+  ]).join("\n");
+
+  /* DEPTH ZOOM (opening a film from its bubble). The three tiers are three planes of a set: the
+     solid rim is the closest, the 50% band sits further back and the 25% band further still. The
+     camera flies through them: each plane i at depth D[i] appears at scale D[i]/(D[i]-c) as the
+     camera advances by c, so the rim rushes past first and the deeper bands follow later and
+     slower. Each plane keeps its own colours (sampled at its own scale), the shine rides on the rim. */
+  var FSZ = HEAD.concat([
+    "uniform vec3 uS;",
+    "uniform vec2 uCen,uView;",
+    "uniform float uSpx,uPxz;",
+    "void main(){",
+    "  vec2 fc=(v*.5+.5)*uView;",
+    "  vec2 p=(fc-vec2(uCen.x,uView.y-uCen.y))/uSpx;",                  // bubble units, y up
+    "  vec2 q1=p/uS.x, q2=p/uS.y, q3=p/uS.z;",
+    "  float r1=rr(q1), r2=rr(q2), r3=rr(q3);",
+    "  float i2=.81-.07*uDeep, i3=.70-.13*uDeep;",
+    "  bool sh=uSh>.5&&length(q1-shC())<.62;",
+    "  if((r1>1.03||r1<.88)&&(r2>1.03||r2<i2-.12)&&(r3>1.03||r3<i3-.2)&&!sh){gl_FragColor=vec4(0.);return;}",
+    "  float z=uSeed*17.+uT*.11;",
+    "  vec2 w2=wv(q2,1.9,z+3.), w3=wv(q3,1.9,z+3.);",
+    "  float d2=rr(q2+uWob*.045*w2), d3=rr(q3+uWob*.065*vec2(w3.y,-w3.x));",
+    "  float a1=smoothstep(.917-.012*uSoft,.921+.008*uSoft,r1)*(1.-smoothstep(1.-uPxz/uS.x,1.+uPxz/uS.x,r1));",
+    "  float a2=smoothstep(i2-.005-.022*uSoft,i2+.016*uSoft,d2)*.5*(1.-smoothstep(1.-uPxz/uS.y,1.+uPxz/uS.y,r2));",
+    "  float a3=smoothstep(i3-.01-.07*uSoft,i3+.05*uSoft,d3)*.25*uInner*(1.-smoothstep(1.-uPxz/uS.z,1.+uPxz/uS.z,r3));",
+    "  float sa=sh?shineA(q1,z)*(1.-smoothstep(1.-uPxz/uS.x,1.+uPxz/uS.x,r1)):0.;",
+    "  vec4 acc=vec4(0.);",
+    "  if(a3>.003){acc=vec4(colAt(q3)*a3,a3);}",                                              // background plane
+    "  if(a2>.003){acc=vec4(colAt(q2)*a2+acc.rgb*(1.-a2),a2+acc.a*(1.-a2));}",               // mid-ground plane
+    "  if(a1>.003){acc=vec4(colAt(q1)*a1+acc.rgb*(1.-a1),a1+acc.a*(1.-a1));}",               // foreground plane (the rim)
+    "  if(sa>.003){acc=vec4(vec3(1.)*sa+acc.rgb*(1.-sa),sa+acc.a*(1.-sa));}",
+    "  gl_FragColor=acc;}"
+  ]).join("\n");
 
   /* color: speed of the COLOUR field (spin, plate evolution, wave) relative to the AE loop. Jack
      (2026-10-26): the gradients moved way too fast at the AE rate, slow and subtle wanted -> 0.3,
@@ -216,20 +270,40 @@
         if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
         return s;
       };
-      prog = gl.createProgram();
-      gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS));
-      gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
-      gl.linkProgram(prog); gl.useProgram(prog);
+      mkShader = sh;
+      prog = link(FS);
+      U = locs(prog, []);
       var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-      var loc = gl.getAttribLocation(prog, "a"); gl.enableVertexAttribArray(loc);
-      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
-      gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner); gl.uniform1f(U.uCol, P.color);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+      gl.useProgram(prog);
+      /* the depth-zoom program is compiled when the browser is idle, so the first click never waits for it */
+      (window.requestIdleCallback || function (f) { return setTimeout(f, 1500); })(function () { try { ensureZ(); } catch (e) {} });
       glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
       return true;
     } catch (e) { gl = false; if (window.console) console.warn("RPBubble", e); return false; }
   }
+
+  var mkShader = null, progZ = null, UZ = null;
+  var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh"];
+  function link(fs) {
+    var p = gl.createProgram();
+    gl.attachShader(p, mkShader(gl.VERTEX_SHADER, VS));
+    gl.attachShader(p, mkShader(gl.FRAGMENT_SHADER, fs));
+    gl.bindAttribLocation(p, 0, "a");
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    return p;
+  }
+  function locs(p, extra) { var o = {}; NAMES.concat(extra).forEach(function (n) { o[n] = gl.getUniformLocation(p, n); }); return o; }
+  function ensureZ() {
+    if (progZ || !gl) return !!progZ;
+    progZ = link(FSZ);
+    UZ = locs(progZ, ["uS", "uCen", "uView", "uSpx", "uPxz"]);
+    return true;
+  }
+  function params(u) { gl.uniform1f(u.uWob, P.wobble); gl.uniform1f(u.uSoft, P.soft); gl.uniform1f(u.uSpin, P.spin); gl.uniform1f(u.uInner, P.inner); gl.uniform1f(u.uCol, P.color); }
 
   function find(el) { for (var i = 0; i < items.length; i++) if (items[i].el === el) return items[i]; return null; }
 
@@ -308,6 +382,7 @@
 
   function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep, rb, pal) {
     if (glc.width < W || glc.height < H) { glc.width = Math.max(glc.width, W, 256); glc.height = Math.max(glc.height, H, 256); }
+    gl.useProgram(prog); params(U); gl.uniform1f(U.uSh, glow ? 0 : 1);
     gl.viewport(0, glc.height - H, W, H);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3fv(U.uC1, cols[0]); gl.uniform3fv(U.uC2, cols[1]); gl.uniform3fv(U.uC3, cols[2]);
@@ -443,7 +518,6 @@
   }
   function setParam(k, v) {
     P[k] = v;
-    if (gl) { gl.uniform1f(U.uWob, P.wobble); gl.uniform1f(U.uSoft, P.soft); gl.uniform1f(U.uSpin, P.spin); gl.uniform1f(U.uInner, P.inner); gl.uniform1f(U.uCol, P.color); }
     items.forEach(function (x) { x.drawn = false; }); kick();
   }
   var spriteCache = {};
@@ -457,7 +531,98 @@
     c.getContext("2d").drawImage(glc, 0, 0, px, px, 0, 0, px, px);
     return (spriteCache[key] = c.toDataURL("image/png"));
   }
+  /* ===== DEPTH ZOOM: open a film by flying through the bubble (Jack, 2026-10-26) =====
+     The bubble's three tiers become three planes of a stage set: the solid rim is the foreground,
+     the 50% band the mid-ground, the 25% band the backdrop. A camera moves forward by c; plane i
+     (depth D[i]) is drawn at scale D[i]/(D[i]-c), so the rim rushes past first and the deeper bands
+     follow later and slower, which is the parallax that sells the depth. The flight is drawn
+     full-viewport on its own overlay canvas (FSZ) while the bubble's own canvas is hidden.
+     zoom({el, dir:'in'|'out', ms, hide:[elements], onFrame(info), onDone}) -> true if it runs.
+     onFrame gets {t, e, clip}: clip is the rim's INNER contour in viewport px ({cx, cy, hx, hy, r}),
+     the opening the next page is revealed through, or null once it has left the screen. */
+  var Z = null, ZD = [1, 1.3, 1.65];
+  function easeIO(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function zoomStop(run) {
+    if (!Z) return;
+    var z = Z; Z = null;
+    cancelAnimationFrame(z.raf);
+    z.cv.remove();
+    z.it.cv.style.visibility = "";
+    z.hide.forEach(function (h) { h.style.visibility = ""; });
+    z.it.drawn = false; kick();
+    if (run && z.o.onDone) z.o.onDone();
+  }
+  function zoom(o) {
+    o = o || {};
+    zoomStop(true);
+    if (reduce || !o.el || !initGL()) return false;
+    try { if (!ensureZ()) return false; } catch (e) { return false; }
+    var it = find(o.el); if (!it) return false;
+    var r = o.el.getBoundingClientRect();
+    if (r.width < 4 || r.height < 4) return false;
+    readStyle(it);
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var S = Math.min(r.width, r.height) / 2, cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    var box = [r.width / 2 / S, r.height / 2 / S], depth = it.depth || 1, deep = it.deep || 0;
+    /* how far the camera must travel: until the BACKDROP band's inner edge has left the screen */
+    var far = Math.max(Math.hypot(cx, cy), Math.hypot(vw - cx, cy), Math.hypot(cx, vh - cy), Math.hypot(vw - cx, vh - cy));
+    var inner3 = Math.max(0.2, Math.min(box[0], box[1]) - (1 - (0.70 - 0.13 * deep) + 0.14) * depth);
+    var s3req = Math.max(3, far / (S * inner3));
+    var cEnd = ZD[2] * (1 - 1 / s3req);
+    var lip = 0.083 * depth;   // rim thickness in bubble units: its inner contour is the opening
+    var cv = document.createElement("canvas");
+    cv.setAttribute("aria-hidden", "true");
+    cv.style.cssText = "position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:100002;pointer-events:none";
+    var k = Math.min(window.devicePixelRatio || 1, DPR_CAP) * Q.scale * 0.8;
+    var W = Math.max(16, Math.round(vw * k)), H = Math.max(16, Math.round(vh * k));
+    cv.width = W; cv.height = H;
+    document.body.appendChild(cv);
+    var ctx = cv.getContext("2d", { alpha: true });
+    var hide = (o.hide || []).filter(Boolean);
+    it.cv.style.visibility = "hidden";
+    hide.forEach(function (h) { h.style.visibility = "hidden"; });
+    var ms = o.ms || 1400, t0 = performance.now(), tBase = simT + it.opts.seed * 3.7;
+    Z = { o: o, it: it, cv: cv, hide: hide, raf: 0 };
+    var z = Z;
+    function step(now) {
+      if (Z !== z) return;
+      var t = Math.min(1, (now - t0) / ms);
+      var tt = o.dir === "out" ? 1 - t : t;
+      var e = easeIO(tt), c = cEnd * e;
+      var s = ZD.map(function (d) { return d - c > 0.02 ? d / (d - c) : 1e4; });
+      if (glc.width < W || glc.height < H) { glc.width = Math.max(glc.width, W); glc.height = Math.max(glc.height, H); }
+      gl.useProgram(progZ); params(UZ);
+      gl.viewport(0, glc.height - H, W, H);
+      gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform3fv(UZ.uC1, it.cols[0]); gl.uniform3fv(UZ.uC2, it.cols[1]); gl.uniform3fv(UZ.uC3, it.cols[2]);
+      gl.uniform2f(UZ.uBox, box[0], box[1]); gl.uniform1f(UZ.uRad, it.rad); gl.uniform1f(UZ.uDepth, depth); gl.uniform1f(UZ.uDeep, deep);
+      if (it.rb && it.pal && it.pal.n > 1) { gl.uniform1f(UZ.uRb, it.rb); gl.uniform1f(UZ.uPalN, it.pal.n); gl.uniform3fv(UZ.uPal, it.pal.flat); }
+      else gl.uniform1f(UZ.uRb, 0);
+      gl.uniform1f(UZ.uT, tBase + (now - t0) / 1000 * P.speed); gl.uniform1f(UZ.uSeed, it.opts.seed); gl.uniform1f(UZ.uSh, 1);
+      gl.uniform3f(UZ.uS, s[0], s[1], s[2]);
+      gl.uniform2f(UZ.uCen, cx * k, cy * k); gl.uniform2f(UZ.uView, W, H);
+      gl.uniform1f(UZ.uSpx, S * k); gl.uniform1f(UZ.uPxz, 1.2 / (S * k));
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      ctx.clearRect(0, 0, W, H);
+      ctx.drawImage(glc, 0, 0, W, H, 0, 0, W, H);
+      var clip = null;
+      if (s[0] < 1e3) {
+        var hx = Math.max(0, box[0] - lip) * S * s[0], hy = Math.max(0, box[1] - lip) * S * s[0];
+        var rad = Math.max(0, Math.min(box[0], box[1]) * it.rad - lip) * S * s[0];
+        /* still needed while any viewport corner lies outside the opening (rounded-box distance) */
+        var qx = Math.max(cx, vw - cx) - (hx - rad), qy = Math.max(cy, vh - cy) - (hy - rad);
+        if (Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - rad > -1)
+          clip = { cx: cx, cy: cy, hx: hx, hy: hy, r: rad };
+      }
+      if (o.onFrame) o.onFrame({ t: t, e: e, clip: clip });
+      if (t >= 1) { zoomStop(true); return; }
+      z.raf = requestAnimationFrame(step);
+    }
+    step(t0);
+    return true;
+  }
   window.RPBubble = {
+    zoom: zoom, zoomStop: function () { zoomStop(false); },
     attach: attach, setLook: setLook, detach: detach, sprite: sprite, params: P, setParam: setParam, quality: Q,
     redraw: function () { items.forEach(function (x) { x.drawn = false; }); kick(); },
     supported: function () { return initGL(); }

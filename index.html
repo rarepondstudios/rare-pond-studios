@@ -813,6 +813,16 @@ html.xw-active{overflow:hidden}
        --fgm is the hand-picked middle stop, kept exactly as it was. */
     --fg1:var(--g1);--fg2:var(--g2);--fg3:var(--g3);--fgm:rgb(123,108,255)}
   .universe.u-over{z-index:100001}
+  /* DEPTH ZOOM into a film (Jack, 2026-10-26). rp-bubble.js flies the camera through the bubble's three
+     tiers (rim = foreground, 50% band = mid-ground, 25% band = backdrop) on an overlay canvas and hands
+     back the rim's inner contour every frame; the film is revealed through that opening (inline
+     clip-path), its backdrop pushing in slightly as we pass, and the page copy arrives once all three
+     layers are behind us. Falls back to the circle wipe without WebGL, under reduced motion, and when
+     the film was opened from something that is not a bubble (the News logo button). */
+  .universe.rp-zoom .u-bg,.universe.rp-zoom .u-vid{transform:scale(var(--uz,1));transform-origin:var(--ox,50%) var(--oy,50%)}
+  .universe.rp-zoom.open .u-inner{transition:opacity .6s .8s,transform .6s .8s}
+  .universe.rp-settle .u-bg{transition:transform .9s cubic-bezier(.2,.8,.2,1)}
+  .universe.rp-settle .u-vid{transition:opacity .8s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
   /* ===== PAGE TRANSITIONS (2026-10-26, Jack: pages snapped) =====
      Every in-site page change (nav, footer, buttons, custom pages, Back/Forward, links in News articles)
      goes through __viewSwap(): a View Transition cross-fade of the whole page, the new page rising in
@@ -1226,6 +1236,15 @@ html.xw-active{overflow:hidden}
      one was tried and read as a faint second outline (Jack, 2026-10-26). */
   .about-anim-slot.rp-rim-on{box-shadow:none}
   .citem.feat .cedge.rp-bubble-on{--rpb-depth:.5}
+  /* SHINE (Jack's AE "RP_V3_Bubble_Shine_PRE-COMP", 2026-10-26): the three-tier glare is now drawn by
+     rp-bubble.js on the rim canvas, pinned top right (the site's light source). The old CSS speculars
+     are switched off wherever that canvas is on; without WebGL they stay exactly as they were. */
+  .bubble-inner:has(>.edge.rp-bubble-on) .glass .spec,
+  .citem:has(.cedge.rp-bubble-on) .cspec,
+  .m-bubble:has(>.m-edge.rp-bubble-on) .m-spec,
+  .about-anim-slot.rp-rim-on::after{display:none}
+  .orbi.rp-rim-on::after{background:radial-gradient(120% 100% at 50% 122%,rgba(0,10,34,.34),transparent 52%)}
+  html.rp-bgb-ring .bgb{background:radial-gradient(circle at 50% 55%,rgba(170,200,255,.22),rgba(120,150,235,.10) 52%,rgba(90,120,210,.04) 72%,transparent 78%)}
   .orbi-rim,.about-rim{position:absolute;inset:0;border-radius:50%;pointer-events:none}
   .orbi-rim{z-index:2}
   .about-rim{z-index:0}
@@ -1477,7 +1496,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026g"></script>
+<script src="/assets/rp-bubble.js?v=20261026h"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2697,6 +2716,52 @@ function applyFlashLook(sec,key){
   /* only a look film gets a derived middle stop; the signature keeps its own literal */
   sec.style.setProperty('--fgm','color-mix(in srgb,'+h1+','+h2+')');
 }
+/* ===== DEPTH ZOOM HOST =====
+   The V3 rim canvas of the bubble the film opens from, in the same order bubbleOrigin() asks (grid
+   bubble, featured card, any card), only if it is actually on screen. hide = its halo, which would
+   otherwise hang in place while the rim flies past. */
+function zoomHost(key){
+  if(!key||!window.RPBubble||!RPBubble.zoom)return null;
+  const esc=(window.CSS&&CSS.escape)?CSS.escape(key):String(key).replace(/"/g,'\\"');
+  const sel='[data-pk="'+esc+'"]';
+  const cands=[...document.querySelectorAll('.bubble'+sel+' .edge.rp-bubble-on'),
+               ...document.querySelectorAll('.citem.feat'+sel+' .cedge.rp-bubble-on'),
+               ...document.querySelectorAll('.citem'+sel+' .cedge.rp-bubble-on')];
+  for(const el of cands){
+    const r=el.getBoundingClientRect();
+    if(r.width>4&&r.height>4&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth){
+      const host=el.closest('.bubble,.citem');
+      return {el,hide:host?[host.querySelector('.glow.rp-bubble-on,.cglow.rp-bubble-on')]:[]};
+    }
+  }
+  return null;
+}
+function uZoomClear(sec){
+  sec.style.removeProperty('clip-path');sec.style.removeProperty('-webkit-clip-path');
+  sec.style.removeProperty('opacity');sec.style.removeProperty('--uz');
+  sec.classList.remove('rp-zoom');
+}
+/* runs the flight; returns false (nothing changed) if it cannot, so the caller uses the circle wipe */
+function uZoom(sec,zh,dir,done){
+  const clipOf=c=>{
+    if(!c)return 'none';
+    if(Math.abs(c.hx-c.hy)<.5&&c.r>=c.hx-.5)return 'circle('+c.r.toFixed(1)+'px at '+c.cx.toFixed(1)+'px '+c.cy.toFixed(1)+'px)';
+    return 'inset('+(c.cy-c.hy).toFixed(1)+'px '+(innerWidth-c.cx-c.hx).toFixed(1)+'px '+(innerHeight-c.cy-c.hy).toFixed(1)+'px '+(c.cx-c.hx).toFixed(1)+'px round '+c.r.toFixed(1)+'px)';
+  };
+  sec.style.transition='none';
+  sec.classList.add('rp-zoom');
+  const ok=RPBubble.zoom({el:zh.el,hide:zh.hide,dir,ms:dir==='in'?1500:1150,
+    onFrame:f=>{
+      const cp=clipOf(f.clip);sec.style.clipPath=cp;sec.style.webkitClipPath=cp;
+      /* in: the film fades up over the first moments so the bubble's preview hands over softly;
+         out: it fades back into the preview as the rim lands on the bubble */
+      sec.style.opacity=dir==='in'?Math.min(1,f.t/.18).toFixed(3):(f.t>.82?Math.max(0,(1-f.t)/.18):1).toFixed(3);
+      if(dir==='in')sec.style.setProperty('--uz',(1+.08*f.e).toFixed(4));
+    },
+    onDone:()=>{done&&done();}});
+  if(!ok){sec.classList.remove('rp-zoom');sec.style.transition='';}
+  return ok;
+}
 function openUniverse(key){
   if(!SECTIONS[key])return;
   const first=!built[key];
@@ -2718,6 +2783,8 @@ function openUniverse(key){
      circle drags the whole circle sideways. So we cut the transition, plant the closed
      circle at the new origin, force the browser to commit that (offsetWidth), and only then
      hand the transition back - the standard "snap to the start, then animate" move. */
+  if(window.RPBubble&&RPBubble.zoomStop)RPBubble.zoomStop();   // a close still flying: drop it, start clean
+  uZoomClear(sec);sec.classList.remove('rp-settle');
   sec.style.transition='none';
   sec.classList.remove('open','closing','flash','flash-out');
   setOrigin(sec,key);
@@ -2726,8 +2793,18 @@ function openUniverse(key){
   void sec.offsetWidth;
   sec.style.transition='';
 
-  sec.classList.add('flash');
-  requestAnimationFrame(()=>sec.classList.add('open'));currentOpen=sec;
+  const zh=sec._fromEl?null:zoomHost(key);
+  if(zh&&uZoom(sec,zh,'in',()=>{
+    /* landed: hand the page back to its normal open state, backdrop settling from the push-in */
+    sec.style.transition='none';uZoomClear(sec);sec.classList.add('rp-settle');void sec.offsetWidth;sec.style.transition='';
+    setTimeout(()=>sec.classList.remove('rp-settle'),1000);
+  })){
+    sec.classList.add('open');
+  }else{
+    sec.classList.add('flash');
+    requestAnimationFrame(()=>sec.classList.add('open'));
+  }
+  currentOpen=sec;
   syncFocusVideo();     // the carousel is behind a full-screen film now - stop decoding it
   /* Play the expanded-page background reel through the SAME hardened engine as the carousel
      side cards / grid bubbles (lazy src, reveal-when-ready, retry-once play, single active,
@@ -2748,9 +2825,23 @@ function closeUniverse(sec){
      shifted 34px behind an open film, the retraction started 34px off and crept to the right
      place. Now it starts on the bubble and stays there. */
   document.body.classList.remove('locked');
+  if(window.RPBubble&&RPBubble.zoomStop)RPBubble.zoomStop();
+  uZoomClear(sec);sec.classList.remove('rp-settle');
   sec.style.transition='none';
   setOrigin(sec,sec.dataset.key);
   void sec.offsetWidth;
+  /* depth zoom in reverse: the backdrop band comes back past us first, then the mid-ground, and the
+     rim lands on the bubble, the film shrinking back into its opening */
+  const zh=sec._fromEl?null:zoomHost(sec.dataset.key);
+  if(zh&&uZoom(sec,zh,'out',()=>{
+    sec.style.visibility='hidden';uZoomClear(sec);sec.classList.remove('closing','flash','flash-out');
+    sec.style.transition='none';void sec.offsetWidth;sec.style.transition='';
+  })){
+    sec.classList.add('closing');sec.classList.remove('flash','open');currentOpen=null;
+    stopSideVid(sec.querySelector('.u-vid'));
+    syncFocusVideo();
+    return;
+  }
   sec.style.transition='';
   sec.classList.add('closing','flash-out');sec.classList.remove('flash','open');currentOpen=null;
   const done=(e)=>{if(e.target!==sec||(e.propertyName!=='clip-path'&&e.propertyName!=='-webkit-clip-path'))return;sec.style.visibility='hidden';sec.classList.remove('closing','flash','flash-out');sec.removeEventListener('transitionend',done);};
@@ -3583,7 +3674,7 @@ __main().catch(e=>console.error("init error",e));</script>
 </script>
 <!-- Shared across rarepond.com + jackcarlsen.com (single source: bts-automation/social_ui.js,
      published by social_ui_sync.py). Contact-bubble hover-glow + social-link transport wipe. -->
-<script src="/assets/social_ui.js" defer></script><script src="/assets/cursor.js" defer></script>
+<script src="/assets/social_ui.js" defer></script><script src="/assets/cursor.js?v=20261026h" defer></script>
 <script src="/assets/xwipe.js" defer></script>
 <script src="/assets/xnav.js" defer></script>
 <script src="/assets/contact.js" defer></script>

@@ -150,6 +150,8 @@
 
   /* ---- boot --------------------------------------------------------------- */
   function boot() {
+    var TIERS = "radial-gradient(farthest-side,transparent calc(100% - 8.6px),rgba(0,0,0,.25) calc(100% - 8px),rgba(0,0,0,.25) calc(100% - 5.3px)," +
+      "rgba(0,0,0,.5) calc(100% - 4.8px),rgba(0,0,0,.5) calc(100% - 2.8px),#000 calc(100% - 2.3px),#000 calc(100% - .6px),transparent 100%)";
     var css =
       /* PROJECT COLOR LOOK: the ring's gradients read --rpc-a/b/c (registered so changes
          TRANSITION smoothly). JS retargets them to the color look of the project/section the
@@ -183,15 +185,20 @@
       /* FREE state: an OPEN RING, solid gradient band at the rim (loader silhouette, not animated),
          clear empty gap between the band and the centre dot. Band = feathered radial mask. */
       ".rpc-glow{background:conic-gradient(from calc(210deg + var(--rpc-spin,0rad)),color-mix(in srgb,var(--rpc-a) 95%,transparent),color-mix(in srgb,var(--rpc-b) 95%,transparent),color-mix(in srgb,var(--rpc-c) 95%,transparent),color-mix(in srgb,var(--rpc-a) 95%,transparent));" +
-      "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px));" +
-      "mask:radial-gradient(farthest-side,transparent calc(100% - 6.5px),#000 calc(100% - 4px),#000 calc(100% - 2px),transparent calc(100% - .25px))}" +
+      /* THREE TIERS (Jack, 2026-10-26), the V3 bubble's opacity design in miniature: a solid rim
+         (100%), a mid band at 50% and an inner band at 25%, in the AE comp's proportions */
+      "-webkit-mask:" + TIERS + ";mask:" + TIERS + "}" +
       ".rpc-fill{opacity:0;background:color-mix(in srgb,var(--rpc-a) 10%,transparent);box-shadow:0 0 18px -4px color-mix(in srgb,var(--rpc-b) 55%,transparent)}" +
       /* hug BORDER: a 3px band that inherits the page's colour-look gradient. The xor-mask
          (content-box vs full box) leaves only the border band visible at any border-radius. */
-      ".rpc-bord{position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .18s ease;padding:3px;" +
+      ".rpc-bord{position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .18s ease;padding:2.4px;" +
       "background:conic-gradient(from 140deg,var(--rpc-a),var(--rpc-b),var(--rpc-c),var(--rpc-a));" +
       "-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;" +
       "mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}" +
+      /* hug state, same three tiers: .rpc-bord is the solid rim, the fill's two pseudo bands sit inside it at 50% and 25% */
+      ".rpc-fill::before,.rpc-fill::after{content:'';position:absolute;border-radius:inherit;background:conic-gradient(from 140deg,var(--rpc-a),var(--rpc-b),var(--rpc-c),var(--rpc-a));" +
+      "-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}" +
+      ".rpc-fill::before{inset:2.4px;padding:2.6px;opacity:.5}.rpc-fill::after{inset:5px;padding:3px;opacity:.25}" +
       ".rpc-ring.hover .rpc-glow{opacity:0}.rpc-ring.hover .rpc-fill{opacity:1}.rpc-ring.hover .rpc-bord{opacity:1}" +
       "#rp-cursor.on .rpc-ring.textish{opacity:.3}" +
       ".rpc-dot{position:fixed;left:0;top:0;width:5px;height:5px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
