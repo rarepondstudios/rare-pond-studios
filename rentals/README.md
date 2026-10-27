@@ -85,13 +85,15 @@ kept in sync automatically and should be treated as read-only.
    The database gives it **one unit** (one physical copy) by itself, so it shows as "1 available".
 2. **More copies:** add a row in **units** per extra copy, linked to the item; they get letters A, B, C.
    The site shows "N available" for N copies.
-3. **If gear is lost, sold or retired**, delete its unit rows. To pull a copy
+3. **Parts of a kit** (sub-items, `parent_id` set) count per copy of the kit: set **Per copy** (how many come with ONE
+   copy). The part's copies follow the kit's copies by themselves (3 C-Stands x 1 Base = 3 Bases); see OPERATIONS.
+4. **If gear is lost, sold or retired**, delete its unit rows. To pull a copy
    temporarily, set its `condition_status` to `in_repair` or `missing` (NocoDB
    units, view **Condition**): availability, reservations and the scan app skip
    it, a damage_events row opens by itself, and setting it back to `ok` closes
    that row. `items.copies_condition` shows every item's copies at a glance
    (read only). With **zero units the item auto-hides** from the catalog.
-4. **Bookings are handled automatically:** the date picker calls the
+5. **Bookings are handled automatically:** the date picker calls the
    `catalog_availability` RPC, so an item still shows in the catalog
    but is **greyed out for dates where all its units are already booked**. You do
    not manage that by hand.

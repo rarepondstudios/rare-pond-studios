@@ -39,6 +39,25 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-126 RENTALS: PARTS COUNT PER COPY OF THEIR KIT (2026-10-26)
+
+- Jack: "if there are 3 C-Stands with sub-item Base, there are 3 bases." Before, a part's qty was its total with no
+  link to the kit's copies: 3 C-Stands had 1 Turtle Base (one copy, one pill, the checklist asked for the lot).
+- Database (`bts-automation/migrations/20261026c_parts_per_copy.sql`, applied and proved by
+  `rentals_per_copy_20261026_apply.py`, 17/17, backup `backups/rentals_per_copy_20261026/`): new `items.per_copy`
+  (NocoDB **Per copy**, beside qty, with a description); part copies = kit copies x Per copy, kept both ways (kit copy
+  added/deleted, Per copy edited, part qty typed as a multiple, hand-added part copy checked at commit by the deferred
+  `rp_parts_per_copy_chk`). `rp_items_qty_trg` now fires on any qty change (not only "update of qty") so Per copy edits
+  make copies. Kit value counts Per copy (per kit copy); no value moved.
+- Jack's answers applied: PB6 2102 parts 1 per bar (magnets North/South were the 3-bar total, Per copy 1), C-Stand gobo
+  heads 2 per stand (6 each model), PB6 Grid 2106 bag 1 per grid. 43 part copies added (3115/3116 parts, 2102.001-.007,
+  2106.001). No sticker printed yet, so they simply join the first print (`make.py status`: 352 sub pills).
+- Scan app: checklist asks for Per copy pieces; a pooled part shows missing on a copy only when spares cannot cover it
+  (`/u/3115-A`: Turtle Base checkbox, Gobo head 2 pieces). Website `app.js` contents use `per_copy`.
+- Checked through NocoDB's own API: Per copy 2 -> 3 -> 2 on 3116.006 made and removed 3 copies; qty 7 refused with the
+  reason. Unrelated failures seen and left: `rentals_print_ready_test.py` "next free number (3119)" (3119 is a gap since
+  the ladder moved) and `test-rentals-packages` "KUPO finger" (that crate item was renamed); both fail without this change.
+
 ### 0.0.-125 PAGE LOAD: NOTHING SNAPS IN (2026-10-26)
 
 - Jack: on a reload (home or any page) the elements visibly snapped in. Recorded on the mini: the load veil

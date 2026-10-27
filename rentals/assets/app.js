@@ -624,7 +624,7 @@ function sbToRentals(rows){if(!rows||!rows.length)return null;var out=[],byId={}
    var _sp=r.shared_parent_ids;
    if(_sp!=null&&_sp!==""){var _xs=(Array.isArray(_sp)?_sp:String(_sp).split(/[^0-9]+/)).map(function(x){return parseInt(x,10);}).filter(function(x){return x&&x!==r.parent_id;});_xs.forEach(function(x){if(_parents.indexOf(x)<0)_parents.push(x);});}
    if(_parents.length>1&&_pq<_parents.length){try{console.warn('[RP Rentals] sub-item "'+r.name+'" (id '+r.id+') is shared across '+_parents.length+' parents but only '+_pq+' unit(s) exist, showing on its primary parent only.');}catch(e){}_parents=[r.parent_id];}
-   var _per=_parents.length>1?1:_pq;
+   var _per=_parents.length>1?1:(parseInt(r.per_copy,10)||_pq); /* per copy of the kit (2026-10-26): 3 C-Stands show 1 Turtle Base each, not 3 */
    for(var _pi=0;_pi<_parents.length;_pi++){var par=byId[rpRootOf(_parents[_pi],rows)];if(par)par.contents.push({l:r.name,v:sbMoney(r.replacement_value),g:(r.sub_group||r.section),img:r.photo||"",q:_per});}
   }return out.length?out:null;}
 /* Sections (2026-10-25): their order comes from public.sections.sort_order per department (lower first); sections the

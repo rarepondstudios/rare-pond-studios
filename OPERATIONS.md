@@ -325,6 +325,15 @@ Camera CAM, Lighting LGT, Grip & Electric G&E, Sound SND, Effects EFX, DIT DIT, 
     copies are added (next free letters) or the highest unbooked ones removed, or add / delete a unit and qty follows.
     A copy that is out or has bookings, scans or reports is never removed (refused with the reason; set its condition
     instead). An unprinted letter that is removed is free again; a printed one is retired (`migrations/20261025i`).
+  - **Parts count per copy of their kit (2026-10-26, `migrations/20261026c`):** a part's **Per copy** (NocoDB items,
+    next to qty, parts only) is how many come with ONE copy of its kit; its copies = kit copies x Per copy, always.
+    Add a C-Stand copy and every C-Stand part gains its Per copy; delete one and they lose it (highest unbooked
+    first, same history rule). Edit Per copy to change how many come with each. Typing a part's qty works only as a
+    whole multiple of the kit's copies (refused with the reason otherwise); a copy added to a part by hand in units is
+    checked when saved the same way (fine on a one-copy kit, where Per copy simply follows). Parts are a pool, not
+    tied to one kit copy; lettered parts are still the way to tell copies apart. The scan app's checklist for a copy
+    asks for Per copy pieces and only shows a part missing when the spare copies cannot cover it; the website lists
+    each kit's contents per copy (`per_copy`, falls back to qty).
   - Sub-items always carry their item's department (change the item's, the sub-items follow).
   - Names are trimmed (no stray spaces). `sort_order`, which the website lists by, follows the ID.
   - Unit names are generated: "Item name (2100-A)"; a container's unit is just its name. What sets one
@@ -716,7 +725,7 @@ merged), Sound 4 `green` #34A853, Effects 5 `lightblue` #4FC3F7 (special effects
 
 - A normal item carries its own replacement value (today's new price at a major US retailer or the maker).
 - **Kit value rule (2026-10-25):** a kit's value = its **own_value** (what the kit or empty case cost) + every part
-  (value x qty) that is NOT ticked **Came with the kit**. So adding a part (an AirTag, a spare battery) adds its value,
+  (value x Per copy, since 2026-10-26: the value is per kit copy) that is NOT ticked **Came with the kit**. So adding a part (an AirTag, a spare battery) adds its value,
   removing it takes it off, and changing it moves the kit. Tick "Came with the kit" on parts that were in the box,
   since the kit's own price already covers them (do this when entering a new kit). Typing a new total on a kit keeps
   that total (own_value is adjusted); a total lower than its added parts is refused. Kept by database triggers.
