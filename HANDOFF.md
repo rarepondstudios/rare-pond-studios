@@ -39,6 +39,15 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-140 WIDER WATER BANDS, WATERLINE EASES IN (2026-10-27)
+
+- Jack: more distance between the three layers in the water entry and the sideways sweep, the 25% band
+  the widest, the 50% band narrower; and the waterline must not just be there at the bottom when a slow
+  load shows it. rp-water.js (master `bts-automation/rp_water.js`): water entry bands 4% / 8% / 20% of the
+  screen height (were 3.5 / 6 / 8), sweep bands 10% / 24% of the width (were 9 / 12); the slow-load
+  waterline now starts fully below the screen and eases in over 1.3 s; rise 1.2 s, sweep 0.7 s in /
+  0.85 s out (the bands travel further). Checked on a recording with a throttled connection.
+
 ### 0.0.-139 ENTERING THE WATER (LOAD COVER), THREE-BAND SIDEWAYS SWEEP, POP-IN AUDIT + STANDARD (2026-10-27)
 
 - Jack: check the whole site for pop-in; carry the lessons to future work and other sites even with a
