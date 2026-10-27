@@ -39,6 +39,20 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-125 PAGE LOAD: NOTHING SNAPS IN (2026-10-26)
+
+- Jack: on a reload (home or any page) the elements visibly snapped in. Recorded on the mini: the load veil
+  lifted on the window `load` event, which fires BEFORE the page is built (content comes from JSON), so the
+  carousel showed empty glass, then images, logos and bubble rims popped in one by one.
+- Veil (head script): now also waits for `window.__contentReady`, resolved by `firstScreenReady()` at the end
+  of `__main`: every on-screen image decoded (capped at 2.5 s), then two frames so the rims have drawn. Safety
+  cap 4 s (was 3.5).
+- After the reveal: `lateImagesFade()` fades any image that finishes loading in the first 8 s (single-keyframe
+  Web Animation to its own opacity, once per image, so carousel moves never flicker); rp-bubble.js canvases
+  start transparent and fade in (.45 s) on their first frame (also on view switches).
+- Verified with reload recordings (home, projects, team, mobile): the page is complete when the veil lifts;
+  no large single-frame changes after the reveal.
+
 ### 0.0.-124 PERFORMANCE ON ORDINARY COMPUTERS; FILMS CLOSE INTO THE PAGE YOU NAVIGATE TO (2026-10-26)
 
 - Jack: the site ran horribly on other people's computers (only the mini and his rendering PC were fine);
