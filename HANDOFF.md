@@ -39,6 +39,41 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-124 PERFORMANCE ON ORDINARY COMPUTERS; FILMS CLOSE INTO THE PAGE YOU NAVIGATE TO (2026-10-26)
+
+- Jack: the site ran horribly on other people's computers (only the mini and his rendering PC were fine);
+  background bubbles should not animate their edges; fix the rest without hurting the look. And edge cases:
+  open a film on Home, go to Projects: the exit must collapse into THAT page's bubble for the film (round
+  vs the featured card's rounded rectangle, both ways), or do a plain transition when the page has none.
+- How it was measured: Chrome on the mini forced to software rendering (SwiftShader WebGL + software
+  compositing), a worst-case stand-in for a weak GPU, `~/claude_perf/weak.mjs` and `probe.mjs` (toggles each
+  suspect). Home at 2x DPR went 12 -> 41 fps, About 12 -> 56, Projects 31 -> 60, Projects hover 30 -> 60, the
+  film flight 38 -> 46, film / team pages 60. Real GPU: 60 everywhere, unchanged.
+- rp-bubble.js scheduling: every bubble has its own next-draw time, three kinds: `live` (band wobble, 24 fps
+  adaptive), `glow` (halos, 8 fps: colour only), `still` (drawn once, redrawn only when its look / shape /
+  size changes; a periodic style refresh compares a signature first). A frame never spends more than 8 ms
+  drawing (the rest waits a frame); first draws get a random phase so bubbles never all land on one frame.
+  `opts.still` / `opts.liveWhen(el)`; hover wakes the loop.
+  - still: the orbit bubbles round the home logo; team photos unless hovered; carousel SIDE cards (only the
+    featured card, or one under the pointer / keyboard, animates).
+- No CSS blur over the halo canvases (`.glow/.cglow.rp-bubble-on{filter:none}`), the single biggest cost on
+  Home; screenshots with and without were compared and match (the shader's halo is already soft).
+- Ambient bubble fields lost their CSS masks (`.home-bubbles`, `.bg-bubbles.fade-b`): each bubble carries its
+  share of the fade in its own opacity (`bgbFill(field, base, fade)`), none are made where invisible.
+- Flight: the band planes share one colour sample, the wobble is only evaluated near band edges, the shine's
+  turbulence only where it can reach; the flight drops its own resolution by 30% steps (to 0.3) if the
+  machine cannot hold the frame rate (it starts sharp).
+- Edge cases (index.html):
+  - `renderPath` / `openCustomPage`: when a film is open, the page UNDER it switches first, then the film
+    closes into that page; back to the same page leaves it exactly as it is (no jump to the top).
+  - `zoomHost()` then finds that page's bubble for the film: grid bubble (round), featured card (rounded
+    rect) or a visible side card; the flight takes the live shape of whichever it lands on.
+  - no bubble for the film on screen (Team, News, a custom page without it, scrolled away): the film fades
+    out to the page (.42 s) instead of a wipe aimed at nothing. News-logo opens keep their wipe.
+  - no flight when another film is already covering the page.
+  - while a film covers the page, newly shown bubbles are still drawn once (paused only stops animation).
+  - `window.__rpZ` records the last flight (for the test scripts). `~/claude_perf/edge.mjs` walks the cases.
+
 ### 0.0.-123 DEPTH ZOOM: CONNECTED LAYERS, FEATHERED REVEAL, LOGO FADE, LOOK FADES AFTER A CLOSE (2026-10-26)
 
 - Jack: when the planes separate you could see the gaps between them; layers should continue so they always
