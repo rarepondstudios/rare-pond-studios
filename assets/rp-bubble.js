@@ -393,6 +393,7 @@
       if (a) it.cols = [a, b || a, c || a];
     }
     it.rad = radiusOf(cs, it.w, it.h);
+    if (it.host) edgeMedia(it, cs.borderRadius);
     it.depth = parseFloat(cs.getPropertyValue("--rpb-depth")) || 1;
     it.deep = parseFloat(cs.getPropertyValue("--rpb-deep")) || 0;
     it.rb = parseFloat(cs.getPropertyValue("--rpb-rainbow")) || 0;
@@ -448,7 +449,10 @@
        parent has no computed style yet. */
     var w = it.w, h = it.h;
     if (!w || !h) return false;
-    if (it.clipped == null) { it.clipped = clipParent(it.el); if (it.clipped) it.cv.style.borderRadius = "0"; }
+    if (it.clipped == null) {
+      it.host = clipParent(it.el); it.clipped = !!it.host;
+      if (it.clipped) { it.cv.style.borderRadius = "0"; edgeMedia(it, getComputedStyle(it.el).borderRadius); }
+    }
     w += 2 * it.bleed; h += 2 * it.bleed;   // glow canvases overhang their element so the halo fades out to nothing
     /* while it changes shape (the carousel morph) it renders at 70%: it is moving, and it is the
        heaviest moment (the card swap stuttered on ordinary machines) */
@@ -584,11 +588,31 @@
       var cs = getComputedStyle(e);
       if ((cs.overflow && cs.overflow !== "visible") || (cs.clipPath && cs.clipPath !== "none")) {
         var q = e.getBoundingClientRect();
-        return cs.clipPath === "none" && cs.borderRadius === br && Math.abs(q.left - r.left) < 1 && Math.abs(q.top - r.top) < 1 &&
-          Math.abs(q.width - r.width) < 1 && Math.abs(q.height - r.height) < 1;
+        var cp = cs.clipPath === "none" || (br === "50%" && /^circle\(50%/.test(cs.clipPath));
+        return (cp && cs.borderRadius === br && Math.abs(q.left - r.left) < 1 && Math.abs(q.top - r.top) < 1 &&
+          Math.abs(q.width - r.width) < 1 && Math.abs(q.height - r.height) < 1) ? e : null;
       }
     }
-    return false;
+    return null;
+  }
+  /* The photo / video under a clipped rim must stop just short of the clip. Chrome clips each composited
+     layer (a video, the rim canvas) separately, each with its own antialiased edge, so where they meet
+     at the very edge the photo still bleeds through the opaque rim by up to a quarter, a hairline that
+     shimmers as the bubble bobs. Any full-size media sibling of the rim gets a clip 1.5px inside the
+     edge; the rim's solid band covers that strip. Re-applied when the radius changes (the morph). */
+  function edgeMedia(it, br) {
+    if (!it.host || it.mbr === br) return;
+    it.mbr = br;
+    var hr = it.host.getBoundingClientRect();
+    for (var c = it.host.firstElementChild; c; c = c.nextElementSibling) {
+      if (c === it.el || c.contains(it.el)) continue;
+      if (!(c.matches("img,video,picture,canvas") || c.querySelector("img,video,canvas") || getComputedStyle(c).backgroundImage !== "none")) continue;
+      var r = c.getBoundingClientRect();
+      if (Math.abs(r.width - hr.width) > 1 || Math.abs(r.height - hr.height) > 1) continue;
+      if (c.style.clipPath && !c.hasAttribute("data-rpb-edge")) continue;   // the page's own clip wins
+      c.setAttribute("data-rpb-edge", "");
+      c.style.clipPath = "inset(1.5px round " + br + ")";
+    }
   }
   function attach(el, opts) {
     opts = opts || {};
@@ -629,6 +653,8 @@
     if (i < 0) return;
     if (io) io.unobserve(el);
     if (ro) ro.unobserve(el);
+    var h = items[i].host;
+    if (h) for (var c = h.firstElementChild; c; c = c.nextElementSibling) if (c.hasAttribute("data-rpb-edge")) { c.removeAttribute("data-rpb-edge"); c.style.removeProperty("clip-path"); }
     items[i].cv.remove(); el.classList.remove("rp-bubble-on"); items.splice(i, 1);
   }
   function setParam(k, v) {
