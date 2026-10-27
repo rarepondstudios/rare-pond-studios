@@ -98,11 +98,11 @@
     },
     {
       "key": "white",
-      "name": "White",
+      "name": "Off-White",
       "kind": "category",
-      "c1": "#ffffff",
-      "c2": "#ffffff",
-      "c3": "#ffffff",
+      "c1": "#e6e8eb",
+      "c2": "#e6e8eb",
+      "c3": "#e6e8eb",
       "taglineItalic": false
     },
     {
