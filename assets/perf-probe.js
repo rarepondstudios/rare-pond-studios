@@ -70,9 +70,17 @@
   addEventListener("focus", function () { ev("window focus"); });
   addEventListener("resize", function () { ev("resize " + innerWidth + "x" + innerHeight); });
   addEventListener("pointermove", function () { ptrMoves++; }, { passive: true });
+  /* every 0.5 s: the page's frame cadence (median ms per frame), bubble resolution / fps / tier; a cadence
+     that jumps (a browser switching to 30 fps, say) is logged in events with the step that was running */
+  var curStep = "start", lastCad = 0;
+  R.timelineCols = ["t", "cadenceMs", "scale", "fps", "tier", "moveRing"];
   var tl = setInterval(function () {
-    var B = window.RPBubble, q = B && B.quality, ti = B && B.tier && B.tier();
-    if (R.timeline.length < 200) R.timeline.push([Math.round(performance.now()), q ? Math.round(q.scale * 100) / 100 : null, q ? q.fps : null, ti ? ti.tier : null, ti ? ti.moveRing : null]);
+    var B = window.RPBubble, q = B && B.quality, ti = B && B.tier && B.tier(), now = performance.now();
+    var g = gaps.filter(function (x) { return x[0] > now - 500; }).map(function (x) { return x[1]; }).sort(function (a, b) { return a - b; });
+    var cad = g.length ? Math.round(g[g.length >> 1] * 10) / 10 : null;
+    if (cad && lastCad && (cad > lastCad * 1.4 || cad < lastCad / 1.4)) ev("cadence " + lastCad + " -> " + cad + " ms per frame, during: " + curStep);
+    if (cad) lastCad = cad;
+    if (R.timeline.length < 200) R.timeline.push([Math.round(now), cad, q ? Math.round(q.scale * 100) / 100 : null, q ? q.fps : null, ti ? ti.tier : null, ti ? ti.moveRing : null]);
   }, 500);
 
   /* ---------- panel ---------- */
@@ -120,6 +128,7 @@
   }
   function step(n, title, fn) {
     say(n + "  " + title + "...");
+    curStep = n + " " + title;
     var t = performance.now();
     return Promise.resolve().then(fn).then(function (v) {
       R.steps[n + " " + title] = { ms: Math.round(performance.now() - t), data: v };
@@ -316,7 +325,8 @@
     var nx = document.getElementById("carNext"); if (!nx) return Promise.resolve({ _line: "carousel not found" });
     var res = [], p = Promise.resolve();
     for (var i = 0; i < n; i++) p = p.then(function () {
-      var mv = {}, t1 = performance.now(), b0 = bstats(), l0 = loafs.length;
+      var mv = {}, t1 = performance.now(), b0 = bstats();
+      curStep = (label || "carousel") + " move " + (res.length + 1);
       nx.click();
       return wait(350).then(function () { mv.mid = card(false); delete mv.mid.thumb; return wait(1150); }).then(function () {
         var t2 = performance.now(), g = win(t1, t2);
