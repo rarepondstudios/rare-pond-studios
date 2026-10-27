@@ -31,7 +31,9 @@
       '.rp-hatwrap>img{display:block}' +
       '.rp-hat{position:absolute;left:var(--rp-hat-x,36%);top:var(--rp-hat-y,8%);' +
       'width:var(--rp-hat-w,85%);height:auto;transform:translate(-50%,-50%);' +
-      'pointer-events:none;z-index:3;-webkit-user-select:none;user-select:none}';
+      'pointer-events:none;z-index:3;-webkit-user-select:none;user-select:none;opacity:0;transition:opacity .45s ease}' +
+      /* fades in once loaded, never pops onto a logo already on screen (pop-in audit, 2026-10-27) */
+      '.rp-hat.rp-hat-in{opacity:1}@media (prefers-reduced-motion:reduce){.rp-hat{transition:none}}';
     var el = document.createElement('style');
     el.id = STYLE_ID;
     el.textContent = css;
@@ -53,7 +55,11 @@
     hat.alt = '';
     hat.setAttribute('aria-hidden', 'true');
     hat.setAttribute('decoding', 'async');
+    var show = function () { requestAnimationFrame(function () { hat.classList.add('rp-hat-in'); }); };
+    hat.addEventListener('load', show, { once: true });
+    hat.addEventListener('error', show, { once: true });
     hat.src = HAT_SRC;
+    if (hat.complete && hat.naturalWidth) show();
     w.appendChild(hat);
     img.setAttribute('data-rp-hat', '1');
   }
