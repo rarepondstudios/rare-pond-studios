@@ -1500,7 +1500,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026r"></script>
+<script src="/assets/rp-bubble.js?v=20261026s"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2758,17 +2758,27 @@ function zoomHost(key){
 }
 function uZoomClear(sec){
   sec.style.removeProperty('clip-path');sec.style.removeProperty('-webkit-clip-path');
+  sec.style.removeProperty('mask-image');sec.style.removeProperty('-webkit-mask-image');
+  sec.style.removeProperty('mask-composite');sec.style.removeProperty('-webkit-mask-composite');
   sec.style.removeProperty('opacity');sec.style.removeProperty('--usc');
   sec.classList.remove('rp-zoom');
   /* a flight cut short (Back mid-flight) never ran its own cleanup: restore any faded logo */
-  uFront([...document.querySelectorAll('.bubble-logo,.clogo,.divehint')].filter(e=>e.style.scale),null);
+  uFront([...document.querySelectorAll('.bubble-logo,.clogo,.divehint')].filter(e=>e.style.opacity),'show');
 }
-function uFront(els,op){
+/* the bubble's logo / dive-in pill during a flight. Opacity ONLY (Jack, 2026-10-26: no size change,
+   it read as a shift): it fades out as the flight leaves, and only fades back in once the way back
+   has landed. 'hide' = fade out, 'off' = gone at once (it is under the film anyway), 'show' = fade in */
+function uFront(els,how){
   els.forEach(el=>{
-    if(op==null){el.style.removeProperty('opacity');el.style.removeProperty('scale');el.style.removeProperty('transition');return;}
-    el.style.setProperty('transition','none','important');
-    el.style.setProperty('opacity',op.toFixed(3),'important');
-    el.style.scale=(1+.25*(1-op)).toFixed(3);   /* it drifts toward the viewer as it goes */
+    clearTimeout(el._uft);
+    if(how==='show'){
+      el.style.setProperty('transition','opacity .45s ease','important');
+      el.style.removeProperty('opacity');
+      el._uft=setTimeout(()=>el.style.removeProperty('transition'),520);
+      return;
+    }
+    el.style.setProperty('transition',how==='hide'?'opacity .28s ease':'none','important');
+    el.style.setProperty('opacity','0','important');
   });
 }
 const _ss=(a,b,x)=>{x=Math.min(1,Math.max(0,(x-a)/(b-a)));return x*x*(3-2*x);};
@@ -2779,6 +2789,21 @@ function uZoom(sec,zh,dir,done){
     if(Math.abs(c.hx-c.hy)<.5&&c.r>=c.hx-.5)return 'circle('+c.r.toFixed(1)+'px at '+c.cx.toFixed(1)+'px '+c.cy.toFixed(1)+'px)';
     return 'inset('+(c.cy-c.hy).toFixed(1)+'px '+(innerWidth-c.cx-c.hx).toFixed(1)+'px '+(innerHeight-c.cy-c.hy).toFixed(1)+'px '+(c.cx-c.hx).toFixed(1)+'px round '+c.r.toFixed(1)+'px)';
   };
+  /* the reveal feather as a mask: the film fully there inside the backdrop band's inner edge, gone at
+     the middle of the rim. A round bubble gets one radial fade; the rounded featured card gets a soft
+     rectangle (a horizontal and a vertical fade, intersected); the clip at the rim trims its corners. */
+  const px=v=>v.toFixed(1)+'px';
+  const maskOf=r=>{
+    if(!r)return null;
+    const a=r.inn,b=r.out;
+    if(Math.abs(b.hx-b.hy)<.5&&b.r>=b.hx-.5){
+      const ri=Math.min(a.r,b.r-1);
+      return {img:'radial-gradient(circle at '+px(r.cx)+' '+px(r.cy)+',#000 '+px(ri)+',transparent '+px(b.r)+')'};
+    }
+    const ax=Math.min(a.hx,b.hx-1),ay=Math.min(a.hy,b.hy-1);
+    return {img:'linear-gradient(90deg,transparent '+px(r.cx-b.hx)+',#000 '+px(r.cx-ax)+',#000 '+px(r.cx+ax)+',transparent '+px(r.cx+b.hx)+'),'+
+                'linear-gradient(180deg,transparent '+px(r.cy-b.hy)+',#000 '+px(r.cy-ay)+',#000 '+px(r.cy+ay)+',transparent '+px(r.cy+b.hy)+')',two:true};
+  };
   sec.style.transition='none';
   sec.classList.add('rp-zoom');
   /* the way back lands in the colours the bubble will actually show: its hover look (the one the film
@@ -2788,22 +2813,31 @@ function uZoom(sec,zh,dir,done){
     const r=zh.el.getBoundingClientRect();
     if(__uPtr.x>=r.left&&__uPtr.x<=r.right&&__uPtr.y>=r.top&&__uPtr.y<=r.bottom)look=sec._zlook;
   }
+  const front=zh.front||[];
   const ok=RPBubble.zoom({el:zh.el,hide:zh.hide,dir,look,ms:dir==='in'?1500:1150,
     onFrame:f=>{
       const cp=clipOf(f.clip);sec.style.clipPath=cp;sec.style.webkitClipPath=cp;
+      const m=maskOf(f.reveal);
+      if(m){
+        sec.style.webkitMaskImage=m.img;sec.style.maskImage=m.img;
+        if(m.two){sec.style.webkitMaskComposite='source-in';sec.style.maskComposite='intersect';}
+        else{sec.style.removeProperty('-webkit-mask-composite');sec.style.removeProperty('mask-composite');}
+      }else{
+        ['mask-image','-webkit-mask-image','mask-composite','-webkit-mask-composite'].forEach(k=>sec.style.removeProperty(k));
+      }
       /* in: the film fades up over the first moments so the bubble's preview hands over softly;
          out: it fades back into the preview as the rim lands on the bubble */
       const op=dir==='in'?Math.min(1,f.t/.18):(f.t>.82?Math.max(0,(1-f.t)/.18):1);
       sec.style.opacity=op.toFixed(3);
-      uFront(zh.front||[],1-op);   /* the logo crossfades with the film, exactly complementary */
       /* the film's darkening scrim waits until the layers are behind us, so the opening shows the
          film's world itself (not a dark disc); on the way back it lifts first */
       sec.style.setProperty('--usc',(dir==='in'?_ss(.55,.95,f.t):1-_ss(0,.3,f.t)).toFixed(3));
     },
-    onDone:()=>{uFront(zh.front||[],null);done&&done();}});
-  if(!ok){sec.classList.remove('rp-zoom');sec.style.transition='';}
-  else if(dir==='in')sec._zlook=ok.look;
-  return !!ok;
+    onDone:()=>{if(dir==='out')uFront(front,'show');done&&done();}});
+  if(!ok){sec.classList.remove('rp-zoom');sec.style.transition='';return false;}
+  if(dir==='in'){sec._zlook=ok.look;uFront(front,'hide');}
+  else uFront(front,'off');
+  return true;
 }
 var __uPtr=null;
 addEventListener('pointermove',e=>{if(e.pointerType==='mouse')__uPtr={x:e.clientX,y:e.clientY};},{passive:true});

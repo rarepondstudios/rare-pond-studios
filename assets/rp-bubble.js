@@ -191,13 +191,17 @@
     "  float r1=rr(q1), r2=rr(q2), r3=rr(q3);",
     "  float i2=.81-.07*uDeep, i3=.70-.13*uDeep;",
     "  bool sh=uSh>.5&&length(q1-shC())<.62;",
-    "  if((r1>1.03||r1<.88)&&(r2>1.03||r2<i2-.12)&&(r3>1.03||r3<i3-.2)&&!sh){gl_FragColor=vec4(0.);return;}",
+    /* CONNECTED LAYERS (Jack, 2026-10-26): every band continues OUTWARD under the layers in front of it,
+       all the way to the rim's outer edge, so when the planes separate the parts they uncover are still
+       band, never a gap. Only the foreground rim's exterior cutter ends them. */
+    "  if(r1>1.03||(r1<.88&&r2<i2-.12&&r3<i3-.2&&!sh)){gl_FragColor=vec4(0.);return;}",
     "  float z=uSeed*17.+uT*.11;",
     "  vec2 w2=wv(q2,1.9,z+3.), w3=wv(q3,1.9,z+3.);",
     "  float d2=rr(q2+uWob*.045*w2), d3=rr(q3+uWob*.065*vec2(w3.y,-w3.x));",
-    "  float a1=smoothstep(.917-.012*uSoft,.921+.008*uSoft,r1)*(1.-smoothstep(1.-uPxz/uS.x,1.+uPxz/uS.x,r1));",
-    "  float a2=smoothstep(i2-.005-.022*uSoft,i2+.016*uSoft,d2)*.5*(1.-smoothstep(1.-uPxz/uS.y,1.+uPxz/uS.y,r2));",
-    "  float a3=smoothstep(i3-.01-.07*uSoft,i3+.05*uSoft,d3)*.25*uInner*(1.-smoothstep(1.-uPxz/uS.z,1.+uPxz/uS.z,r3));",
+    "  float cut1=1.-smoothstep(1.-uPxz/uS.x,1.+uPxz/uS.x,r1);",
+    "  float a1=smoothstep(.917-.012*uSoft,.921+.008*uSoft,r1)*cut1;",
+    "  float a2=smoothstep(i2-.005-.022*uSoft,i2+.016*uSoft,d2)*.5*cut1;",
+    "  float a3=smoothstep(i3-.01-.07*uSoft,i3+.05*uSoft,d3)*.25*uInner*cut1;",
     "  float sa=sh?shineA(q1,z)*(1.-smoothstep(1.-uPxz/uS.x,1.+uPxz/uS.x,r1)):0.;",
     "  vec4 acc=vec4(0.);",
     "  if(a3>.003){acc=vec4(colAt(q3)*a3,a3);}",                                              // background plane
@@ -589,6 +593,15 @@
     var S = Math.min(r.width, r.height) / 2;
     return { S: S, cx: r.left + r.width / 2, cy: r.top + r.height / 2, box: [r.width / 2 / S, r.height / 2 / S] };
   }
+  /* a rounded-box contour d bubble units inside the bubble's edge, at px-per-unit k: half extents + radius */
+  function contour(box, rad0, d, k) {
+    return { hx: Math.max(0, box[0] - d) * k, hy: Math.max(0, box[1] - d) * k, r: Math.max(0, Math.min(box[0], box[1]) * rad0 - d) * k };
+  }
+  /* does that contour (centred at cx, cy) contain the whole viewport? */
+  function covers(c, cx, cy, vw, vh) {
+    var qx = Math.max(cx, vw - cx) - (c.hx - c.r), qy = Math.max(cy, vh - cy) - (c.hy - c.r);
+    return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - c.r < -1;
+  }
   function zoom(o) {
     o = o || {};
     zoomStop(true);
@@ -669,7 +682,18 @@
         if (Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - rad > -1)
           clip = { cx: cx, cy: cy, hx: hx, hy: hy, r: rad };
       }
-      if (o.onFrame) o.onFrame({ t: t, e: e, clip: clip, s1: s[0] });
+      /* REVEAL FEATHER: the next page fades in across the whole layered band, fully there inside the
+         backdrop band's inner edge and gone at the middle of the rim, so the hand-over between the pages
+         is spread under all three layers instead of happening at one line. null once the backdrop's
+         inner edge has left the screen (the page is simply there). */
+      var reveal = null;
+      var d3in = (1 - (0.70 - 0.13 * deep + 0.02)) * depth;
+      var inn = contour(box, rad0, d3in, S * s[2]);
+      if (!covers(inn, cx, cy, vw, vh)) {
+        var out = s[0] < 1e3 ? contour(box, rad0, lip, S * s[0]) : { hx: 2e4, hy: 2e4, r: 2e4 };
+        reveal = { cx: cx, cy: cy, inn: inn, out: out };
+      }
+      if (o.onFrame) o.onFrame({ t: t, e: e, clip: clip, reveal: reveal, s1: s[0] });
       if (t >= 1) { zoomStop(true); return; }
       z.raf = requestAnimationFrame(step);
     }
