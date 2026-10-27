@@ -442,8 +442,13 @@
 
   function draw(it, t) {
     if (it.dirty || it.trans || !it.styled) { readStyle(it); if (it.dirty) it.dirty--; }
+    /* inside a clipping parent the PARENT's rounded clip is the only edge: a canvas with its own
+       border-radius antialiased a second time, letting a hairline of the photo show around the rim.
+       Decided here, not in attach(): a bubble is often built before it is put in the page, when its
+       parent has no computed style yet. */
     var w = it.w, h = it.h;
     if (!w || !h) return false;
+    if (it.clipped == null) { it.clipped = clipParent(it.el); if (it.clipped) it.cv.style.borderRadius = "0"; }
     w += 2 * it.bleed; h += 2 * it.bleed;   // glow canvases overhang their element so the halo fades out to nothing
     /* while it changes shape (the carousel morph) it renders at 70%: it is moving, and it is the
        heaviest moment (the card swap stuttered on ordinary machines) */
@@ -598,12 +603,11 @@
       ref: opts.glow ? (opts.ref || el) : null, bleed: bleed,
       vars: opts.look ? null : (opts.vars || ["--gg1", "--gg2", "--gg3"]),
       cols: lookVec(opts.look || { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" }),
-      clipped: opts.glow ? false : (opts.clipped != null ? !!opts.clipped : clipParent(el)),
+      clipped: opts.glow ? false : (opts.clipped != null ? !!opts.clipped : null),   /* null: decided on the first draw, once it is in the page */
       onScreen: io ? undefined : true, shown: undefined, drawn: false, styled: false, dirty: 1, trans: 0, rad: 1, depth: 1, w: 0, h: 0
     };
     /* inside a clipping parent the PARENT's rounded clip is the only edge: a canvas with its own
        border-radius antialiased a second time, letting a hairline of the photo show around the rim */
-    if (it.clipped) cv.style.borderRadius = "0";
     items.push(it);
     if (io) io.observe(el);
     if (ro) ro.observe(el);
