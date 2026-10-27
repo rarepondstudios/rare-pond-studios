@@ -586,8 +586,11 @@ Adding a new block type is two edits; the doc says exactly which two.
 
 ## Database permissions - the rule
 
-The browser holds a **public** Supabase key. It must be able to call **exactly one** function:
-`catalog_availability` (a read, used to show what gear is free). Nothing else.
+The browser holds a **public** Supabase key. It may call **exactly two** functions:
+`catalog_availability` (a read, used to show what gear is free) and, since 2026-10-27 with Jack's
+OK, `submit_perf_report` (write-only: the `?perf=1` diagnostic stores one report in
+`public.perf_reports`; size-capped, at most 20 per 10 minutes, rows kept 30 days; the table itself
+is not readable or writable by the public key). Nothing else.
 
 **July 2026:** an audit found 15 `SECURITY DEFINER` functions were callable by the public key.
 `SECURITY DEFINER` bypasses row-level security, so a visitor could have invoked order, HubSpot
@@ -605,8 +608,17 @@ FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public'
   AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid=p.oid AND d.deptype='e');
 ```
-Only `catalog_availability` may be `true`. n8n uses the `service_role` key and bypasses all of
-this, so tightening these grants never affects the automations.
+Only `catalog_availability` and `submit_perf_report` may be `true`. n8n uses the `service_role` key
+and bypasses all of this, so tightening these grants never affects the automations.
+
+**2026-10-27:** that check, run after `20261027b`, found 33 functions open again (everything
+created since July: the July default-privileges fix covered the wrong role, and functions created
+by `postgres` were open). Two were `SECURITY DEFINER` (`rp_kit_adopt`, which changes data, and
+`rp_section_for`). Fixed by `20261027c_revoke_anon_functions.sql`: EXECUTE revoked from public,
+anon and authenticated on every public function except the two above, and default privileges set
+for role `postgres` too. Verified: only those two are executable by anon/authenticated,
+`service_role` still runs all 70 `rp_` functions, `rpc/rp_section_for` is no longer reachable,
+`catalog_availability` still answers 200.
 
 ## Closing a page (the maintenance cover)
 
@@ -654,15 +666,56 @@ copy of the site, so a tier is a different way of drawing the SAME page and anyt
 - Safety, while the page runs: a software renderer -> lite; the WebGL copy self-check (a test card
   drawn, copied and read back at load) failing -> css, one reload behind the page veil; frames still
   slow at the lowest resolution for 3 s -> lite (remembered), still slow in lite -> css next visit.
+- "Slow" is judged against the page's own cadence (since 2026-10-27, code 20261027k). A STEADY low
+  frame rate (Chrome Energy Saver and macOS Low Power Mode cap pages at 30 fps; 30 Hz screens; remote
+  desktops) is not overload: when the cadence is low the engine holds the bubbles still for 1.2 s and
+  compares. Frames come back -> the bubbles are the cost and quality steps down; they do not -> a cap,
+  full quality kept, re-tested later. `RPBubble.stats.paceTest` / `RPBubble.debug().state.pace` say
+  which. (Before, a 30 fps cap read as overload: 15 fps choppy rims and a remembered lite tier.)
 - A bubble that changes shape (the carousel card's circle-to-card morph) and misses three frames in a
   row gets a CSS ring for the rest of the move instead of a stretched stale picture; two such moves and
   the page rings every move.
-- `rarepond.com/?perf=1` shows the tier and why, the self-check and the copy calibration.
+- Only PROJECT bubbles animate (the grid's film bubbles and the carousel's film cards, Jack
+  2026-10-27). Everything else is `still: true`: one fixed frame, redrawn only when its look or size
+  changes (About rim, "More to come", team photos, rentals logo splash, gear cards and popup). The
+  CSS bob / drift of those elements stays. New non-project bubbles: pass `still: true`.
+- `rarepond.com/?perf=1`: the full diagnostic (see "The ?perf=1 diagnostic" below).
 - RULES for new work: put a new bubble effect through `RPBubble.attach()`; give anything that animates
-  continuously an `html.rp-fx-lite` rule (index.html "EFFECT TIERS"); bump `CODE_VER` (with the
-  `?v=` on the script tags) whenever rp-bubble.js changes so every device re-tests.
+  continuously an `html.rp-fx-lite` rule (index.html "EFFECT TIERS"); bump `CODE_VER` whenever
+  rp-bubble.js changes so every device re-tests (the `?v=` on script tags is automatic now, see
+  "Asset versions").
+- The shared WebGL canvas every bubble is drawn in starts at 768 x 512 and grows to fit the largest
+  bubble drawn (never shrinks, at most screen-sized). Keep it small: Firefox and Safari copy the whole
+  canvas for every bubble, so its size is a per-copy cost (screen-sized cost Firefox ~4 ms a copy).
 - Carousel card layers: `.citem > .cbody` (bobs, owns the corner radius and its morph) > `.cbub` (the
   picture, clipped) + `.cedge` (the rim, NOT clipped, 2 px outside the picture) + `.divehint`.
+
+## Asset versions (every page, automatic, since 2026-10-27)
+
+Cloudflare's zone setting makes browsers keep `.js` / `.css` for 4 hours (it overrides the
+`max-age=0` that Pages sends, so `_headers` cannot change it; HTML and `/data/*.json` do revalidate
+every load). So every reference to a local script or stylesheet in every tracked page carries
+`?v=<first 10 hex of its SHA-1>`, set by `tools/stamp-rentals-assets.py` from the global pre-commit
+hook (`bts-automation/hooks/pre-commit`) on any commit that stages an `.html`, `.js` or `.css` file.
+A changed file gets a new URL on the next page load everywhere; unchanged files stay cached. Never
+edit `?v=` by hand. Fonts (`/assets/fonts/`, immutable) are skipped; scripts that load another asset
+(contact.js -> contact.css) are stamped too. Keeping a site up to date costs nothing at runtime: the
+page revalidates its HTML (one small request) and nothing polls.
+
+## The ?perf=1 diagnostic
+
+`rarepond.com/?perf=1` (assets/perf-probe.js) runs one ~65 s test on the visitor's machine and sends
+the full report to `public.perf_reports` through `submit_perf_report`; the panel shows the report
+number. It first checks it is running the live version (reloads once if not), then records: machine,
+GPU and WebGPU adapter, the bubble engine's state and every bubble (`RPBubble.debug()`), the
+featured card's layers, rim pixels on all four sides and a small picture, rest frames, an A/B
+(bubbles frozen / CSS animations paused / both / half resolution), four carousel moves (card checked
+mid-move and after), two moves with the shared WebGL canvas at its old screen size, scrolling, the projects page, a
+film open and close, copy micro-benchmarks, slowest / largest resources, a page census, console
+errors, focus changes and pointer movement. Read a report on the mini with
+`python3 ~/bts-automation/perf_report.py list` / `perf_report.py <id>` (writes ~/claude_perf/rep_<id>.json). If sending fails, the
+panel offers the JSON as a download. Never `getImageData()` a live bubble canvas (read a copy):
+Chrome moves a canvas off the GPU after a few reads, which halved the page's frame rate in testing.
 
 ## Things that have bitten us (don't re-learn these)
 

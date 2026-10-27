@@ -39,6 +39,43 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-135 ONE-RUN DIAGNOSTIC (?perf=1, AUTO-SENT), 30 FPS CAP != OVERLOAD, STILL NON-PROJECT BUBBLES, EVERY ASSET VERSIONED (2026-10-27)
+
+- Jack: still lag (now on his own machine too) and the partial rim on the featured card; wanted ONE
+  comprehensive test he runs once per computer, assurance that other computers run the latest
+  version, and only project bubbles animating (bob / drift stay).
+- `rarepond.com/?perf=1` rewritten (assets/perf-probe.js v8): ~65 s, sends the full report to
+  Supabase `perf_reports` via the write-only `submit_perf_report` (migration 20261027b, Jack OK'd it
+  as the second public function). Panel shows the report number. Contents: OPERATIONS.md "The ?perf=1
+  diagnostic". Read with `python3 ~/bts-automation/perf_report.py list|<id>`.
+- `RPBubble.debug()` / `canvasOf()` added (state of the engine and every bubble; A/B switches).
+- First test run found a real bug: when the browser's frame rate is CAPPED at a steady 30 fps (Chrome
+  Energy Saver, macOS Low Power Mode, 30 Hz screens, remote desktop), the adaptive quality read every
+  frame as slow: rims dropped to 15 fps (visibly choppy, "laggy") and the device was saved into the
+  lite tier. Fixed (code 20261027k): slow is judged against the page's own cadence, and a low cadence
+  is TESTED by holding the bubbles still 1.2 s. Simulated cap -> "a frame-rate cap, not the bubbles",
+  full quality kept; simulated heavy bubbles -> "the bubbles are the cost", steps down. The new code
+  version also discards every device's remembered tier, so anyone stuck in lite is re-tested.
+- Second finding (Firefox and WebKit runs): Firefox and Safari copy the WHOLE shared WebGL canvas on every
+  bubble copy. It had been made screen-sized (2048 x 1445 here) in -134 to dodge a suspected stale copy
+  after growth; a copy then cost Firefox ~4 ms (1280 x 768: ~1.5 ms) and the page ran 36-69 fps,
+  119 fps with the bubbles held still. Now (code 20261027l) the canvas starts at 768 x 512 and grows
+  to fit the largest bubble drawn (12% headroom, never shrinks); a growth is followed by a throwaway
+  copy, a redraw of that frame's bubbles and a copy self-check (`RPBubble.stats.atlasGrow`). Probe step
+  7 runs two moves at the old size on the visitor's machine for comparison.
+- Probe lesson: `getImageData()` on a live bubble canvas makes Chrome move it off the GPU and halved
+  the page's frame rate; the probe reads a copy.
+- Still (one fixed frame, `still: true`): About rim, "More to come" (grid and carousel), team photos,
+  rentals logo splash and gear cards. Project grid bubbles and carousel film cards stay live.
+- Every local .js/.css in every page now carries `?v=<content hash>` (tools/stamp-rentals-assets.py,
+  run by the global pre-commit hook for any html/js/css commit). Cloudflare's zone keeps .js/.css 4 h
+  in browsers, which is how a computer could run old bubble code after a deploy. HTML revalidates every
+  load; nothing polls, so staying current costs nothing at runtime.
+- Supabase security: the post-migration check found 33 public functions executable by the public key
+  (incl. SECURITY DEFINER rp_kit_adopt and rp_section_for). Migration 20261027c revokes them; only
+  catalog_availability and submit_perf_report remain. See OPERATIONS.md "Database permissions".
+- Waiting on: Jack runs ?perf=1 on each computer and sends the report numbers.
+
 ### 0.0.-134 CAROUSEL CARD REBUILT, EFFECT TIERS WITH AUTOMATIC FALLBACK (2026-10-27)
 
 - Jack: the carousel card still broke on Windows and the iPad (rim missing its right/bottom, black edges
