@@ -64,7 +64,8 @@
     "uniform float uGlow;",
     "uniform vec3 uPal[8];",
     "uniform float uPalN,uRb;",
-    "uniform float uDeep,uDepth,uRad,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol,uSh,uClip,uEll,uOut;",
+    "uniform vec2 uRad;",
+    "uniform float uDeep,uDepth,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol,uSh,uClip,uEll,uOut;",
     /* Ashima / Stefan Gustavson 3D simplex noise (MIT) */
     "vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;}",
     "vec4 m289(vec4 x){return x-floor(x*(1./289.))*289.;}",
@@ -84,7 +85,17 @@
     "vec2 wv(vec2 p,float f,float z){return vec2(sn(vec3(p*f,z)),sn(vec3(p*f+vec2(7.3,-3.1),z+11.)));}",
     /* distance-from-centre equivalent for a rounded box: 1.0 on the border, like length(p) on a circle */
     /* uEll: an ELLIPSE instead (e.g. the rentals logo bubble), same 1.0-on-the-border convention */
-    "float rr(vec2 p){if(uEll>.5)return 1.+(length(p/uBox)-1.)*min(uBox.x,uBox.y)/uDepth;vec2 q=abs(p)-uBox+uRad;return 1.+(length(max(q,0.))+min(max(q.x,q.y),0.)-uRad)/uDepth;}",
+    /* uRad (2026-10-27) is the corner's two radii, x and y, exactly as CSS has them. The featured carousel
+       card is 13% / 20%: elliptical corners, and on its way to and from a circle every value in between.
+       A single circular radius (the old uRad) only matched CSS when the two were equal, which is why the
+       round bubbles were always right and the rectangle was not: its rim and bands followed a different
+       shape from the card under it, by a lot mid-morph (thick blobs, a dark band, missing edges). The
+       corner is now an ellipse quadrant (distance approximated by f / |grad f|), the sides are straight. */
+    "float rr(vec2 p){if(uEll>.5)return 1.+(length(p/uBox)-1.)*min(uBox.x,uBox.y)/uDepth;",
+    "  vec2 R=max(uRad,vec2(1e-4)), a=abs(p), q=a-(uBox-R); float d;",
+    "  if(q.x>0.&&q.y>0.){vec2 e=q/R; float k0=length(e), k1=length(e/R); d=k0*(k0-1.)/max(k1,1e-5);}",
+    "  else d=max(a.x-uBox.x,a.y-uBox.y);",
+    "  return 1.+d/uDepth;}",
     /* outward distance for the splash: on an ellipse rr() grows faster along the long axis (its level
        sets are scaled ellipses), which made the outer rings twice as wide at the sides; this divides by
        the gradient, so the rings keep an even width all the way round */
@@ -397,7 +408,7 @@
       } else STATS.calib = "unreadable";
     } catch (e) { STATS.calib = "error " + e.message; }
   }
-  var STATS = { ver: "20261027e", compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
+  var STATS = { ver: "20261027f", compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
   var progZ = null, UZ = null;
   var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut"];
   /* compile + link WITHOUT asking for the result (asking blocks until the driver is done) */
@@ -507,14 +518,18 @@
   }
   ["transitionrun", "transitionend", "transitioncancel"].forEach(function (ev) { document.addEventListener(ev, onTrans, true); });
 
-  /* border-radius -> radius in units of the short half-side (1 = full circle / pill) */
+  /* border-radius -> [x radius, y radius] in units of the short half-side, with CSS's own rule that
+     radii too big for the box are scaled down together (50% = a circle on a square, an ellipse otherwise;
+     999px = a pill) */
   function radiusOf(cs, w, h) {
     var v = (cs.borderTopLeftRadius || "").trim().split(/\s+/);
     function px(x, ref) { if (!x) return 0; return /%$/.test(x) ? parseFloat(x) / 100 * ref : parseFloat(x) || 0; }
     var rx = px(v[0], w), ry = px(v[1] || v[0], h);
+    var f = Math.min(1, rx > 0 ? w / (2 * rx) : 1, ry > 0 ? h / (2 * ry) : 1);
     var s = Math.min(w, h) / 2;
-    return s > 0 ? Math.min(1, Math.min(rx, ry) / s) : 1;
+    return s > 0 ? [rx * f / s, ry * f / s] : [1, 1];
   }
+  function radMin(r) { return r && r.length ? Math.min(r[0], r[1]) : (r == null ? 1 : r); }
 
   function readStyle(it) {
     if (!it.w || !it.h) { var r = it.el.getBoundingClientRect(); it.w = it.el.offsetWidth || r.width; it.h = it.el.offsetHeight || r.height; }
@@ -572,7 +587,7 @@
     gl.viewport(0, dbh - h, w, h);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3fv(U.uC1, cols[0]); gl.uniform3fv(U.uC2, cols[1]); gl.uniform3fv(U.uC3, cols[2]);
-    gl.uniform2f(U.uBox, box[0], box[1]); gl.uniform1f(U.uRad, rad); gl.uniform1f(U.uDepth, depth || 1); gl.uniform1f(U.uDeep, deep || 0);
+    gl.uniform2f(U.uBox, box[0], box[1]); gl.uniform2f(U.uRad, rad[0], rad[1]); gl.uniform1f(U.uDepth, depth || 1); gl.uniform1f(U.uDeep, deep || 0);
     if (rb && pal && pal.n > 1) { gl.uniform1f(U.uRb, rb); gl.uniform1f(U.uPalN, pal.n); gl.uniform3fv(U.uPal, pal.flat); }
     else gl.uniform1f(U.uRb, 0);
     gl.uniform1f(U.uT, t); gl.uniform1f(U.uSeed, seed);
@@ -617,7 +632,7 @@
     var src;
     if (it.ref) {
       var bw = it.rw || w, bh = it.rh || h, sb = Math.min(bw, bh) / 2;
-      src = render(it.cols, W, H, [bw / 2 / sb, bh / 2 / sb], it.rrad == null ? 1 : it.rrad, t, it.opts.seed, [w / 2 / sb, h / 2 / sb], 1, true, 0, it.rb, it.pal, false);
+      src = render(it.cols, W, H, [bw / 2 / sb, bh / 2 / sb], it.rrad == null ? [1, 1] : it.rrad, t, it.opts.seed, [w / 2 / sb, h / 2 / sb], 1, true, 0, it.rb, it.pal, false);
     } else if (it.opts.splash) {
       /* the shape is the ELEMENT's box; the canvas overhangs it by the bleed, where the outer rings live */
       var sE = Math.min(it.w, it.h) / 2;
@@ -808,7 +823,7 @@
       vars: opts.look ? null : (opts.vars || ["--gg1", "--gg2", "--gg3"]),
       cols: lookVec(opts.look || { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" }),
       clipped: (opts.glow || opts.splash) ? false : (opts.clipped != null ? !!opts.clipped : null),   /* null: decided on the first draw, once it is in the page */
-      onScreen: io ? undefined : true, shown: undefined, drawn: false, styled: false, dirty: 1, trans: 0, rad: 1, depth: 1, w: 0, h: 0
+      onScreen: io ? undefined : true, shown: undefined, drawn: false, styled: false, dirty: 1, trans: 0, rad: [1, 1], depth: 1, w: 0, h: 0
     };
     /* inside a clipping parent the PARENT's rounded clip is the only edge: a canvas with its own
        border-radius antialiased a second time, letting a hairline of the photo show around the rim */
@@ -838,7 +853,7 @@
     var key = [look && look.c1, look && look.c2, look && look.c3, px, t].join("|");
     if (spriteCache[key]) return spriteCache[key];
     if (!initGL() || !ready(true)) return "";
-    var src = render(lookVec(look), px, px, [1, 1], 1, t, 0.5, [1, 1], 1, false);
+    var src = render(lookVec(look), px, px, [1, 1], [1, 1], t, 0.5, [1, 1], 1, false);
     var c = document.createElement("canvas"); c.width = c.height = px;
     copyOut(c.getContext("2d"), src, px, px);
     return (spriteCache[key] = c.toDataURL("image/png"));
@@ -930,7 +945,7 @@
     zooming = true;
     /* the look is SNAPSHOTTED: once the film covers the bubble its hover look starts fading back to
        the resting colours, and the flight must keep the colours the viewer clicked on */
-    var cols = lk ? lk.cols : it.cols.slice(), rb = lk ? lk.rb : it.rb, pal = lk ? lk.pal : it.pal, rad0 = it.rad, seed = it.opts.seed;
+    var cols = lk ? lk.cols : it.cols.slice(), rb = lk ? lk.rb : it.rb, pal = lk ? lk.pal : it.pal, rad0 = it.rad, radS = radMin(it.rad), seed = it.opts.seed;
     var hide = (o.hide || []).filter(Boolean);
     it.cv.style.visibility = "hidden";
     hide.forEach(function (h) { h.style.setProperty("opacity", "0", "important"); });   /* the halo fades on its own opacity transition */
@@ -973,7 +988,7 @@
       gl.viewport(0, 0, bw, bh);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform3fv(UZ.uC1, cols[0]); gl.uniform3fv(UZ.uC2, cols[1]); gl.uniform3fv(UZ.uC3, cols[2]);
-      gl.uniform2f(UZ.uBox, box[0], box[1]); gl.uniform1f(UZ.uRad, rad0); gl.uniform1f(UZ.uDepth, depth); gl.uniform1f(UZ.uDeep, deep);
+      gl.uniform2f(UZ.uBox, box[0], box[1]); gl.uniform2f(UZ.uRad, rad0[0], rad0[1]); gl.uniform1f(UZ.uDepth, depth); gl.uniform1f(UZ.uDeep, deep);
       if (rb && pal && pal.n > 1) { gl.uniform1f(UZ.uRb, rb); gl.uniform1f(UZ.uPalN, pal.n); gl.uniform3fv(UZ.uPal, pal.flat); }
       else gl.uniform1f(UZ.uRb, 0);
       gl.uniform1f(UZ.uT, tBase + (now - t0) / 1000 * P.speed); gl.uniform1f(UZ.uSeed, seed); gl.uniform1f(UZ.uSh, 1);
@@ -984,7 +999,7 @@
       var clip = null;
       if (s[0] < 1e3) {
         var hx = Math.max(0, box[0] - lip) * S * s[0], hy = Math.max(0, box[1] - lip) * S * s[0];
-        var rad = Math.max(0, Math.min(box[0], box[1]) * rad0 - lip) * S * s[0];
+        var rad = Math.max(0, Math.min(box[0], box[1]) * radS - lip) * S * s[0];
         /* still needed while any viewport corner lies outside the opening (rounded-box distance) */
         var qx = Math.max(cx, vw - cx) - (hx - rad), qy = Math.max(cy, vh - cy) - (hy - rad);
         if (Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - rad > -1)
@@ -996,9 +1011,9 @@
          inner edge has left the screen (the page is simply there). */
       var reveal = null;
       var d3in = (1 - (0.70 - 0.13 * deep + 0.02)) * depth;
-      var inn = contour(box, rad0, d3in, S * s[2]);
+      var inn = contour(box, radS, d3in, S * s[2]);
       if (!covers(inn, cx, cy, vw, vh)) {
-        var out = s[0] < 1e3 ? contour(box, rad0, lip, S * s[0]) : { hx: 2e4, hy: 2e4, r: 2e4 };
+        var out = s[0] < 1e3 ? contour(box, radS, lip, S * s[0]) : { hx: 2e4, hy: 2e4, r: 2e4 };
         reveal = { cx: cx, cy: cy, inn: inn, out: out };
       }
       if (o.onFrame) o.onFrame({ t: t, e: e, clip: clip, reveal: reveal, s1: s[0] });

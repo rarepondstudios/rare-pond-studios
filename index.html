@@ -61,7 +61,7 @@
 <link rel="icon" type="image/png" sizes="48x48" href="/media/site/favicon-48.png">
 <link rel="apple-touch-icon" href="/media/site/apple-touch-icon.png">
 <!-- Production error beacon. Loads FIRST so it is watching before any other script parses. -->
-<script src="/assets/error-beacon.js"></script><script>/* ?perf=1 loads the performance probe (assets/perf-probe.js); nothing for normal visitors */if(/[?&]perf=1\b/.test(location.search)){var __pp=document.createElement("script");__pp.src="/assets/perf-probe.js?v=4";__pp.defer=true;document.head.appendChild(__pp);}</script>
+<script src="/assets/error-beacon.js"></script><script>/* ?perf=1 loads the performance probe (assets/perf-probe.js); nothing for normal visitors */if(/[?&]perf=1\b/.test(location.search)){var __pp=document.createElement("script");__pp.src="/assets/perf-probe.js?v=5";__pp.defer=true;document.head.appendChild(__pp);}</script>
 <!-- Reserves the event banner's space before the first paint, so the page does not jump
      down when the banner arrives. Must stay here, in <head>, with no defer/async. -->
 <script src="/assets/banner-reserve.js"></script>
@@ -1523,7 +1523,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261027e"></script>
+<script src="/assets/rp-bubble.js?v=20261027f"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
