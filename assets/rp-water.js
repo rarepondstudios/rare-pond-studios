@@ -69,7 +69,9 @@
     o = o || {};
     var L = look(o.look), sky = o.sky || "#ffffff", s = null, loop = 0, t0 = now(), mode = "sky", deep = 0, rise = null, done = false, fin = null;
     /* thickness of the three bands and the wobble, in viewport heights (the bubble's proportions) */
-    function dims(H) { return { t1: 0.035 * H, t2: 0.06 * H, t3: 0.08 * H, A: Math.max(5, 0.011 * H) }; }
+    /* (2026-10-27, Jack: "more distance between the three layers", the 25% band the widest, the 50% band
+       narrower) */
+    function dims(H) { return { t1: 0.04 * H, t2: 0.08 * H, t3: 0.2 * H, A: Math.max(5, 0.011 * H) }; }
     function draw() {
       var S = surface(el), x = S.x, W = S.W, H = S.H, d = dims(H), t = (now() - t0) / 1000;
       el.style.background = "transparent";
@@ -92,8 +94,9 @@
       loop = 0; if (done) return;
       var H = el.clientHeight || innerHeight, d = dims(H), all = d.t1 + d.t2 + d.t3 + 2 * d.A;
       if (mode === "peek") {
-        var p = Math.min(1, (now() - rise.t) / 700);
-        s = lerp(H + d.A, H * 0.86, easeOut(p)); deep = 1;
+        /* starts fully below the screen and eases in, so the wave is never just there at the bottom */
+        var p = Math.min(1, (now() - rise.t) / 1300);
+        s = lerp(H + 2 * d.A + 2, H * 0.84, easeIO(p)); deep = 1;
       } else if (mode === "rise") {
         var q = Math.min(1, (now() - rise.t) / rise.ms), e = easeIO(q);
         s = lerp(rise.from, -all, e);
@@ -124,12 +127,12 @@
         if (!window.__revealedAt) window.__revealedAt = performance.now();   /* the moment the page starts to show (read by the pop-in audit) */
         if (!OK) { finish(); return; }
         var H = el.clientHeight || innerHeight, d = dims(H);
-        rise = { t: now(), ms: ms || 1050, from: mode === "peek" && s != null ? s : H + d.A, deep: mode === "peek" ? 1 : 0 };
+        rise = { t: now(), ms: ms || 1200, from: mode === "peek" && s != null ? s : H + 2 * d.A + 2, deep: mode === "peek" ? 1 : 0 };
         mode = "rise"; s = rise.from;
         if (!loop) loop = requestAnimationFrame(tick);
         /* a background tab never runs the animation: finish anyway */
-        setTimeout(function () { if (!done && document.hidden) finish(); }, (ms || 1050) + 300);
-        setTimeout(finish, (ms || 1050) + 2500);
+        setTimeout(function () { if (!done && document.hidden) finish(); }, (ms || 1200) + 300);
+        setTimeout(finish, (ms || 1200) + 2500);
       },
       done: function () { return done; },
       setLook: function (l) { L = look(l); }
@@ -155,16 +158,17 @@
       if (phase === "in") {
         /* PARALLAX: the leading 25% and 50% bands are slower than the solid one, so it catches up and
            they compress as it covers */
-        w2 = 0.09 * W * (1 - 0.45 * e); w3 = 0.12 * W * (1 - 0.45 * e);
-        eS = lerp(W + A + 0.21 * W, -A, e);
+        /* band widths (2026-10-27): the 25% band the widest, the 50% band narrower */
+        w2 = 0.1 * W * (1 - 0.45 * e); w3 = 0.24 * W * (1 - 0.45 * e);
+        eS = lerp(W + 2 * A + 0.34 * W, -A, e);
         e50 = eS - w2; e25 = e50 - w3;
         band(x, false, H, e25, e50, t, 2.2, 1.3, A, g, 0.25);
         band(x, false, H, e50, eS, t, 1.3, 0, A, g, 0.5);
         band(x, false, H, eS, W + 50, t, 0, null, A, g, 1);
       } else {
         /* the solid band moves on; the 50% and 25% bands trail it and spread out as they go */
-        w2 = 0.09 * W * (0.55 + 0.45 * e); w3 = 0.12 * W * (0.55 + 0.45 * e);
-        eS = lerp(W + A, -A - 0.21 * W - 2 * A, e);
+        w2 = 0.1 * W * (0.55 + 0.45 * e); w3 = 0.24 * W * (0.55 + 0.45 * e);
+        eS = lerp(W + A, -A - 0.34 * W - 2 * A, e);
         e50 = eS + w2; e25 = e50 + w3;
         band(x, false, H, -50, eS, t, null, 0, A, g, 1);
         band(x, false, H, eS, e50, t, 0, 1.3, A, g, 0.5);

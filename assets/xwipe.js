@@ -38,8 +38,8 @@
       if(window.__resetThemeColor) window.__resetThemeColor(600);
       var fin=function(){ clearAll(w); };
       if(canSweep()){
-        SW = RPWater.sweep(w,{dir:dir,phase:'out',ms:700,done:fin});
-        setTimeout(fin,1500);
+        SW = RPWater.sweep(w,{dir:dir,phase:'out',ms:850,done:fin});
+        setTimeout(fin,1700);
         return;
       }
       w.style.transition='none'; w.style.transform='translateX(0)'; void w.offsetWidth;
@@ -77,8 +77,8 @@
     var did=false, go=function(){ if(did)return; did=true; location.href=url.href; };
     w.style.display='block';
     if(canSweep()){
-      SW = RPWater.sweep(w,{dir:dir,phase:'in',ms:600,done:go});
-      setTimeout(go,900);
+      SW = RPWater.sweep(w,{dir:dir,phase:'in',ms:700,done:go});
+      setTimeout(go,1000);
       return;
     }
     w.style.transition='none'; w.style.transform='translateX('+startX+')'; void w.offsetWidth;
