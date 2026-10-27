@@ -33,7 +33,7 @@
    Keep the mouse still and the tab in front while it runs. */
 (function () {
   "use strict";
-  var PROBE_VER = 10;
+  var PROBE_VER = 11;
   var KEY = "sb_publishable_VFAFJq23B8hJAGViL2nDiA_uTAVxe05";   /* public by design (also in rentals/assets/app.js) */
   var SEND = "https://gnifidmyahtzydwvaegj.supabase.co/rest/v1/rpc/submit_perf_report";
   var T0 = performance.now();
@@ -340,6 +340,7 @@
         mv.end = card(false);
         res.push(mv);
         say("    " + label + " move " + res.length + ": " + mv.frames.fps + " fps, max " + mv.frames.max + " ms, " + mv.end._line);
+        return grab((label || "carousel") + " move " + res.length).then(function (g) { if (g) mv.screen = g.sides || g.error; });
       });
     });
     return p.then(function () { return { moves: res, _line: "done" }; });
@@ -522,9 +523,141 @@
     return o;
   }
 
+  /* ---------- screen check: what is ACTUALLY on screen (2026-10-27) ----------
+     Report #10 (Jack's Windows PC) read the featured card's rim canvas back pixel by pixel and found it
+     complete, while Jack saw it cut off on screen. A canvas read-back cannot see what the browser then
+     puts on the screen, so with the visitor's permission (one click, then pick this window or the screen)
+     the probe records the screen itself (getDisplayMedia) and compares, at points just inside all four
+     edges of the card's rim, the colour on screen with the colour in the rim canvas. Four coloured
+     squares in the window's corners (shown only for the instant of each grab) locate the page in the
+     recording. Each grab also keeps a small picture of the card as it appeared on screen. */
+  var SC = { status: "not asked", grabs: [] }, scVideo = null, scStream = null;
+  function askScreen() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) { SC.status = "not available in this browser"; return Promise.resolve(SC); }
+    return new Promise(function (res) {
+      var wrap = document.createElement("div"), go = document.createElement("button"), skip = document.createElement("button"), t0 = performance.now();
+      wrap.style.cssText = "margin-top:10px;display:flex;gap:8px;flex-wrap:wrap";
+      go.textContent = "Allow the screen check";
+      skip.textContent = "Skip it";
+      [go, skip].forEach(function (b, i) { b.style.cssText = "pointer-events:auto;cursor:pointer;font:800 14px system-ui,sans-serif;padding:9px 14px;border-radius:8px;border:0;" + (i ? "background:#444;color:#fff" : "background:#7dff9a;color:#000"); wrap.appendChild(b); });
+      say("SCREEN CHECK: click the green button, then choose THIS browser window (or the whole screen) and Share / Allow. It records only while the test runs.");
+      box.appendChild(wrap); box.style.pointerEvents = "auto";
+      var to = setTimeout(function () { done("skipped (no click within 40 s)"); }, 40000);
+      function done(st) {
+        clearTimeout(to); SC.status = st; SC.waitMs = Math.round(performance.now() - t0);
+        wrap.remove(); box.style.pointerEvents = "none";
+        lines[lines.length - 1] = "    screen check: " + st; out(); res(SC);
+      }
+      skip.onclick = function () { done("skipped by the visitor"); };
+      go.onclick = function () {
+        var opts = { video: { frameRate: 30 }, audio: false, preferCurrentTab: true, selfBrowserSurface: "include", surfaceSwitching: "exclude", monitorTypeSurfaces: "include" };
+        navigator.mediaDevices.getDisplayMedia(opts).then(function (st) {
+          scStream = st; var v = document.createElement("video"); v.muted = true; v.playsInline = true; v.srcObject = st;
+          var tr = st.getVideoTracks()[0]; try { var se = tr.getSettings(); SC.surface = se.displaySurface || null; SC.size = [se.width, se.height]; } catch (e) {}
+          SC.label = tr.label;
+          tr.addEventListener("ended", function () { ev("screen recording ended"); scVideo = null; });
+          return v.play().then(function () { scVideo = v; return wait(700); });
+        }).then(function () { done("on (" + (SC.surface || "?") + ")"); }, function (e) { done("not allowed (" + (e && e.name || e) + ")"); });
+      };
+    });
+  }
+  var MK = [["tl", [255, 0, 255]], ["tr", [0, 255, 0]], ["bl", [0, 255, 255]], ["br", [255, 255, 0]]];
+  function markers(on) {
+    if (!on) { (markers.els || []).forEach(function (e) { e.remove(); }); markers.els = []; return; }
+    markers.els = MK.map(function (m) {
+      var e = document.createElement("div"), c = m[1];
+      e.style.cssText = "position:fixed;z-index:2147483647;width:18px;height:18px;pointer-events:none;box-sizing:border-box;border:3px solid #000;background:rgb(" + c.join(",") + ");" + (m[0][0] === "t" ? "top:4px;" : "bottom:4px;") + (m[0][1] === "l" ? "left:4px" : "right:4px");
+      document.documentElement.appendChild(e); return e;
+    });
+  }
+  function grab(tag) {
+    if (!scVideo || !scVideo.videoWidth) return Promise.resolve(null);
+    var el = featured(), edge = el && el.querySelector(".cedge"), cv = edge && window.RPBubble && RPBubble.canvasOf ? RPBubble.canvasOf(edge) : null;
+    if (!cv) return Promise.resolve(null);
+    markers(true); var vis = box.style.visibility; box.style.visibility = "hidden";
+    return raf2().then(function () { return wait(320); }).then(function () {
+      var g = { tag: tag, t: Math.round(performance.now()), during: curStep };
+      try {
+        var mpos = markers.els.map(function (e) { var r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+        var v = scVideo, VW = v.videoWidth, VH = v.videoHeight;
+        var fc = document.createElement("canvas"); fc.width = VW; fc.height = VH;
+        var fx = fc.getContext("2d", { willReadFrequently: true }); fx.drawImage(v, 0, 0, VW, VH);
+        markers(false); box.style.visibility = vis;
+        var F = fx.getImageData(0, 0, VW, VH).data;
+        /* each marker: centroid of its pure colour, searched in its own quarter of the recording */
+        var found = MK.map(function (m, i) {
+          var c = m[1], x0 = m[0][1] === "l" ? 0 : VW >> 1, y0 = m[0][0] === "t" ? 0 : VH >> 1, sx = 0, sy = 0, n = 0;
+          for (var y = y0; y < y0 + (VH >> 1); y++) for (var x = x0; x < x0 + (VW >> 1); x++) { var o = (y * VW + x) * 4; if (Math.abs(F[o] - c[0]) + Math.abs(F[o + 1] - c[1]) + Math.abs(F[o + 2] - c[2]) < 80) { sx += x; sy += y; n++; } }
+          return n >= 12 ? [sx / n, sy / n, n] : null;
+        });
+        g.frame = [VW, VH]; g.markers = found.map(function (f) { return f ? f.map(function (q) { return Math.round(q); }) : null; });
+        if (!found[0] || !found[1] || !found[2]) { g.error = "page not found in the recording (pick this window or the whole screen)"; return g; }
+        var ax = (found[1][0] - found[0][0]) / (mpos[1][0] - mpos[0][0]), bx = found[0][0] - ax * mpos[0][0];
+        var ay = (found[2][1] - found[0][1]) / (mpos[2][1] - mpos[0][1]), by = found[0][1] - ay * mpos[0][1];
+        g.map = [ax, bx, ay, by].map(function (q) { return Math.round(q * 1000) / 1000; });
+        /* the rim canvas, read through a copy */
+        var W = cv.width, H = cv.height, tc = document.createElement("canvas"); tc.width = W; tc.height = H;
+        var tx = tc.getContext("2d", { willReadFrequently: true }); tx.drawImage(cv, 0, 0); var C = tx.getImageData(0, 0, W, H).data;
+        var r = cv.getBoundingClientRect(), item = el;
+        function side(name, pt) {
+          var ok = 0, n = 0, covered = 0, bad = [];
+          for (var i = 0; i < 24; i++) {
+            var f = 0.2 + 0.6 * i / 23, p = pt(f), px = p[0], py = p[1];
+            var top = document.elementFromPoint(px, py); if (top && !item.contains(top)) { covered++; continue; }
+            var cx = Math.min(W - 1, Math.max(0, Math.floor((px - r.left) / r.width * W))), cy = Math.min(H - 1, Math.max(0, Math.floor((py - r.top) / r.height * H)));
+            var co = (cy * W + cx) * 4; if (C[co + 3] < 240) continue;
+            var fxp = Math.round(ax * px + bx), fyp = Math.round(ay * py + by); if (fxp < 1 || fyp < 1 || fxp >= VW - 1 || fyp >= VH - 1) continue;
+            var sr = 0, sg = 0, sb = 0; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var fo = ((fyp + dy) * VW + fxp + dx) * 4; sr += F[fo]; sg += F[fo + 1]; sb += F[fo + 2]; }
+            sr /= 9; sg /= 9; sb /= 9;
+            var dist = Math.abs(sr - C[co]) + Math.abs(sg - C[co + 1]) + Math.abs(sb - C[co + 2]);
+            n++; if (dist < 90) ok++; else if (bad.length < 4) bad.push([Math.round(sr), Math.round(sg), Math.round(sb), "want", C[co], C[co + 1], C[co + 2]].join(" "));
+          }
+          return { pct: n ? Math.round(100 * ok / n) : null, n: n, covered: covered, bad: bad };
+        }
+        var d = 6;   /* css px inside the edge: well inside the solid rim band */
+        g.sides = {
+          top: side("top", function (f) { return [r.left + r.width * f, r.top + d]; }),
+          right: side("right", function (f) { return [r.right - d, r.top + r.height * f]; }),
+          bottom: side("bottom", function (f) { return [r.left + r.width * f, r.bottom - d]; }),
+          left: side("left", function (f) { return [r.left + d, r.top + r.height * f]; })
+        };
+        /* the card as it appeared on screen, small */
+        var m = 30, x0 = Math.max(0, Math.round(ax * (r.left - m) + bx)), y0 = Math.max(0, Math.round(ay * (r.top - m) + by));
+        var x1 = Math.min(VW, Math.round(ax * (r.right + m) + bx)), y1 = Math.min(VH, Math.round(ay * (r.bottom + m) + by));
+        if (x1 - x0 > 8 && y1 - y0 > 8) {
+          var k = Math.min(1, 380 / (x1 - x0)), sc = document.createElement("canvas"); sc.width = Math.round((x1 - x0) * k); sc.height = Math.round((y1 - y0) * k);
+          sc.getContext("2d").drawImage(fc, x0, y0, x1 - x0, y1 - y0, 0, 0, sc.width, sc.height);
+          g.thumb = sc.toDataURL("image/jpeg", 0.75);
+        }
+        var s = g.sides; g._line = "on screen, rim present (top/right/bottom/left) " + [s.top.pct, s.right.pct, s.bottom.pct, s.left.pct].map(function (q) { return q == null ? "?" : q + "%"; }).join(" / ");
+      } catch (e) { g.error = String(e && e.message || e); markers(false); box.style.visibility = vis; }
+      return g;
+    }).then(function (g) { if (g) { SC.grabs.push(g); if (g._line || g.error) say("    [" + tag + "] " + (g.error || g._line)); } return g; });
+  }
+  /* what every resolution change used to do to the rim canvas: shrink it 20%, look at the screen, let it grow back, look again */
+  function resizeTest() {
+    var el = featured(), edge = el && el.querySelector(".cedge");
+    if (!edge || !window.RPBubble || !RPBubble.debug) return Promise.resolve({ _line: "not possible here" });
+    if (!scVideo) return Promise.resolve({ _line: "skipped (no screen check)" });
+    var o = {};
+    return grab("before the resize test").then(function (g) {
+      o.before = g && g.sides; RPBubble.debug({ el: edge, resizeTest: 0.8, items: false }); return wait(900);
+    }).then(function () { return grab("canvas shrunk 20%, as resolution changes used to do"); }).then(function (g) {
+      o.shrunk = g && g.sides; RPBubble.debug({ el: edge, resizeTest: 0, items: false }); return wait(900);
+    }).then(function () { return grab("canvas grown back"); }).then(function (g) {
+      o.back = g && g.sides;
+      function f(sd) { return sd ? [sd.top.pct, sd.right.pct, sd.bottom.pct, sd.left.pct].join("/") : "?"; }
+      o._line = "rim on screen % before " + f(o.before) + ", shrunk " + f(o.shrunk) + ", grown back " + f(o.back);
+      return o;
+    });
+  }
+  function stopScreen() { try { if (scStream) scStream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} scVideo = null; }
+
   /* ---------- send ---------- */
   function finish() {
     clearInterval(tl);
+    stopScreen();
+    R.screen = SC;
     R.totalMs = Math.round(performance.now() - T0);
     R.pointerMoves = ptrMoves;
     R.longTasksAll = { n: longs.length, ms: Math.round(longs.reduce(function (s, l) { return s + l[1]; }, 0)) };
@@ -533,6 +666,7 @@
     var body = JSON.stringify(R);
     if (body.length > 560000) {   /* stay under the table's limit: drop the pictures first */
       Object.keys(R.steps).forEach(function (k) { var d = R.steps[k] && R.steps[k].data; (function strip(x) { if (!x || typeof x !== "object") return; for (var p in x) { if (p === "thumb") x[p] = "dropped"; else strip(x[p]); } })(d); });
+      if (R.screen && R.screen.grabs) R.screen.grabs.forEach(function (g, i) { if (i > 3 && g.thumb) g.thumb = "dropped"; });
       body = JSON.stringify(R);
     }
     if (R.choppy) say("NOTE: " + R.choppy);
@@ -560,13 +694,17 @@
   /* ---------- run ---------- */
   function run() {
     return step(0, "freshness", freshness)
+      .then(function () { return askScreen(); })
+      .then(function () { return grab("page loaded"); })
       .then(function () { return step(1, "this machine", machine); })
       .then(function () { return step(2, "bubble engine", engine); })
       .then(function () { return step(3, "featured card", function () { return card(true); }); })
       .then(function () { return step(4, "at rest (5 s)", function () { return measure("rest", 5000).then(function (m) { m._line = fmt(m); return m; }); }); })
+      .then(function () { return grab("after 5 s at rest"); })
       .then(function () { return step(5, "A/B: what costs the frames", ab); })
       .then(function () { return step(6, "carousel, 4 moves", function () { return moves(4, ""); }); })
       .then(function () { return step(7, "carousel with the old screen-sized WebGL canvas", atlasAB); })
+      .then(function () { return step("7b", "canvas resize test (on screen)", resizeTest); })
       .then(function () { return step(8, "scrolling", scrolling); })
       .then(function () { return step(9, "projects page", projects); })
       .then(function () { return step(10, "open and close a film", film); })

@@ -280,7 +280,7 @@
      (Jack, 2026-10-26). Every bubble now gets the same 1.25 device px per CSS px; glow layers, which
      are blurred by CSS anyway, render at half that. */
   var FPS = 24, MAXPX = 1600, DPR_CAP = 1.25;
-  var CODE_VER = "20261027m";
+  var CODE_VER = "20261027n";
 
   /* ===== EFFECT TIERS (2026-10-27, Jack: "safety measures and automatic backup versions of the website
      that it can cleanly fall back to if a computer can't handle it ... when future updates are made, it
@@ -720,14 +720,27 @@
     w += 2 * it.bleed; h += 2 * it.bleed;   // glow canvases overhang their element so the halo fades out to nothing
     /* while it changes shape (the carousel morph) it renders at 70%: it is moving, and it is the
        heaviest moment (the card swap stuttered on ordinary machines) */
-    var dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP) * Q.scale * (it.opts.res || 1) * (it.trans ? 0.7 : 1);
-    var k = Math.min(1, (it.opts.max || MAXPX) / (Math.max(w, h) * dpr));
-    var W = Math.max(16, Math.round(w * dpr * k)), H = Math.max(16, Math.round(h * dpr * k));
+    /* THE CANVAS NEVER SHRINKS (2026-10-27, ?perf=1 report #10, Jack's Windows PC, Firefox 158, GTX 980).
+       The report read the featured card's canvas back pixel by pixel: its rim was complete on all four
+       sides, yet on screen Jack saw it cut off at the right and bottom, "fine for a few frames when the
+       site first loaded, then broke". So the drawing was right and what Firefox put on screen was not.
+       What changes a few frames in: this canvas's backing store was resized whenever the resolution
+       adapted (slow frames while the shaders build at load, then back up), and to 70% for every
+       transition. A canvas shown at a size the screen still believes is the OLD one is exactly a picture
+       cut off at the right and bottom by the ratio of the two. Now the backing store is sized once, to
+       the full-quality size of the largest shape the bubble has had (64 px steps), and only ever grows;
+       a lower resolution (adaptive quality, mid-move) is rendered smaller and stretched into the whole
+       canvas. Resolution changes and moves never resize a canvas any more. */
+    var base = Math.min(window.devicePixelRatio || 1, DPR_CAP) * (it.opts.res || 1);
+    var k = Math.min(1, (it.opts.max || MAXPX) / (Math.max(w, h) * base));
+    var FW = Math.max(16, Math.round(w * base * k)), FH = Math.max(16, Math.round(h * base * k));
+    var q = Q.scale * (it.trans ? 0.7 : 1);
+    var W = Math.max(16, Math.round(FW * q)), H = Math.max(16, Math.round(FH * q));
     var cw = it.cv.width, ch = it.cv.height;
-    /* mid-transition the backing store is only reallocated when it is >20% off: CSS scales it meanwhile
-       (re-allocating a canvas on every frame of a morph was a big part of that stutter) */
-    if (it.trans && cw > 16 && Math.abs(W - cw) < cw * 0.2 && Math.abs(H - ch) < ch * 0.2) { W = cw; H = ch; }
-    if (cw !== W || ch !== H) { it.cv.width = W; it.cv.height = H; }
+    if (!it.hold && (cw < FW || ch < FH)) {
+      cw = Math.max(cw, Math.ceil(FW / 64) * 64); ch = Math.max(ch, Math.ceil(FH / 64) * 64);
+      it.cv.width = cw; it.cv.height = ch; it.resizes = (it.resizes || 0) + 1;
+    }
     var src;
     if (it.ref) {
       var bw = it.rw || w, bh = it.rh || h, sb = Math.min(bw, bh) / 2;
@@ -744,8 +757,8 @@
       src = render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, [w / s / inset, h / s / inset], it.depth, false, it.deep, it.rb, it.pal, it.clipped);
       renderEll = false;
     }
-    it.ctx.clearRect(0, 0, W, H);
-    copyOut(it.ctx, src, W, H);
+    it.ctx.clearRect(0, 0, cw, ch);
+    copyOut(it.ctx, src, cw, ch);   /* rendered at W x H, stretched over the whole canvas */
     it.lastSrc = src; it.lastWH = [W, H];   // the render sits in the TOP-left of the shared canvas
     if (!it.shownOnce) { it.shownOnce = true; it.cv.style.opacity = "1"; }
     it.drawn = true;
@@ -1278,6 +1291,16 @@
       items.forEach(function (x) { x.drawn = false; }); kick();
     }
     if (o.check && gl && progReady) out.check = selfCheck(true);
+    /* {el, resizeTest: 0.8}: shrink that bubble's canvas to 80% and hold it there (what every resolution
+       change used to do), {el, resizeTest: 0}: let it grow back. The probe looks at the screen in between. */
+    if (o.el && o.resizeTest != null) {
+      var rt = find(o.el);
+      if (rt) {
+        if (o.resizeTest) { rt.hold = true; rt.cv.width = Math.max(16, Math.round(rt.cv.width * o.resizeTest)); rt.cv.height = Math.max(16, Math.round(rt.cv.height * o.resizeTest)); }
+        else rt.hold = false;
+        rt.drawn = false; kick();
+      }
+    }
     var now = performance.now(), lost = null, maxTex = null;
     try { if (gl) { lost = gl.isContextLost(); maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE); } } catch (e) {}
     out.state = {
@@ -1293,7 +1316,7 @@
       return {
         i: i, el: selOf(x.el), parent: selOf(pe), gp: selOf(pe && pe.parentElement), kind: kindOf(x), still: x.opts.still, glow: !!x.ref, splash: x.opts.splash,
         seed: r1(x.opts.seed), rect: [r.left, r.top, r.width, r.height].map(Math.round), cvRect: [cr.left, cr.top, cr.width, cr.height].map(r1),
-        cv: [x.cv.width, x.cv.height], lastWH: x.lastWH || null, lastSrc: x.lastSrc ? x.lastSrc.map(r1) : null, wh: [r1(x.w), r1(x.h)], bleed: x.bleed,
+        cv: [x.cv.width, x.cv.height], resizes: x.resizes || 0, hold: !!x.hold, lastWH: x.lastWH || null, lastSrc: x.lastSrc ? x.lastSrc.map(r1) : null, wh: [r1(x.w), r1(x.h)], bleed: x.bleed,
         clipped: x.clipped, host: selOf(x.host), rad: x.rad ? x.rad.map(function (v) { return Math.round(v * 1000) / 1000; }) : null, br: x.br, depth: x.depth, deep: x.deep, rb: x.rb,
         onScreen: x.onScreen, shown: x.shown, drawn: x.drawn, shownOnce: !!x.shownOnce, dirty: x.dirty, trans: x.trans, shapeT: x.shapeT || 0, ring: x.ring || false, moveMiss: x.moveMiss || 0,
         lastDrawAgo: x.lastDraw ? Math.round(now - x.lastDraw) : null, drawnF: x.drawnF || null, cols: x.cols.map(hexOf),
