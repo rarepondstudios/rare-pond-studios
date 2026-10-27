@@ -39,6 +39,31 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-136 FEATURED CARD CUT OFF ON JACK'S WINDOWS PC: THE DRAWING IS RIGHT, THE SCREEN IS NOT; CANVASES NEVER SHRINK; PROBE SEES THE SCREEN (2026-10-27)
+
+- Report #10 (Jack's PC: Windows, Firefox 158, GTX 980, 2560 x 1440 at 1.5x): performance fine (240 fps
+  at rest, 212 scrolling). The card's rim canvas read back COMPLETE on all four sides (35-39 px solid band
+  each), the copy self-check ok, the shared canvas grown to 1472 x 832 and checked ok, yet Jack saw the
+  card cut off at right / bottom, "fine for a few frames when the site first loaded, then broke". So it
+  is how Firefox there puts the canvas on the screen, not what is drawn in it.
+- Likely trigger, fixed (code 20261027n): every resolution change (adaptive quality while the shaders
+  build at load, then back up; 70% during transitions) RESIZED the rim canvas's backing store. A canvas
+  shown at a size the screen still takes for the old one is cut off at right and bottom by the ratio.
+  Now a canvas's backing store is sized once to the full-quality size of the largest shape it has had
+  (64 px steps) and only grows (a card becoming the featured one jumps straight to the largest bubble
+  canvas size: one resize per card, ever); lower resolutions render smaller and are stretched into it.
+- Probe v11 (?perf=1) adds a SCREEN CHECK: one click, the visitor shares this window or the screen
+  (getDisplayMedia); four corner squares in colours the site never uses (rotating per grab) locate the
+  page in the recording; rims are held still for the grab; at 24 points just inside each edge of the
+  card the screen colour is compared with the rim canvas (the film logo and banners excluded). Grabs at
+  load, after rest, after every carousel move, and a resize test (canvas shrunk 20% and held, then grown
+  back) showing whether a resize is what cuts it off on that machine. Small pictures of the card as seen
+  on screen go in the report. Not on iPad / iPhone (no getDisplayMedia). Verified on the mini with a
+  stand-in recording (Playwright screenshots as the stream): 100% on every side normally, right side
+  0% with the card deliberately clipped. `perf_report.py <id>` prints the per-side screen results.
+- The 30 fps drop in earlier mini runs was headless Chrome only (headed Chrome ran 120 fps throughout).
+- Waiting on: Jack reruns ?perf=1 on the Windows PC (allowing the screen check) and the other devices.
+
 ### 0.0.-135 ONE-RUN DIAGNOSTIC (?perf=1, AUTO-SENT), 30 FPS CAP != OVERLOAD, STILL NON-PROJECT BUBBLES, EVERY ASSET VERSIONED (2026-10-27)
 
 - Jack: still lag (now on his own machine too) and the partial rim on the featured card; wanted ONE

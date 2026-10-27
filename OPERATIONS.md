@@ -688,6 +688,10 @@ copy of the site, so a tier is a different way of drawing the SAME page and anyt
   continuously an `html.rp-fx-lite` rule (index.html "EFFECT TIERS"); bump `CODE_VER` whenever
   rp-bubble.js changes so every device re-tests (the `?v=` on script tags is automatic now, see
   "Asset versions").
+- A bubble's own canvas NEVER SHRINKS (since 20261027n): its backing store is sized to the full-quality
+  size of the largest shape it has had and only grows; lower resolutions are rendered smaller and
+  stretched into it. Resizing it on resolution changes is the likely cause of the featured card being
+  cut off on Jack's Windows PC (Firefox). Do not reintroduce per-frame or per-quality canvas resizes.
 - The shared WebGL canvas every bubble is drawn in starts at 768 x 512 and grows to fit the largest
   bubble drawn (never shrinks, at most screen-sized). Keep it small: Firefox and Safari copy the whole
   canvas for every bubble, so its size is a per-copy cost (screen-sized cost Firefox ~4 ms a copy).
@@ -715,7 +719,10 @@ GPU and WebGPU adapter, the bubble engine's state and every bubble (`RPBubble.de
 featured card's layers, rim pixels on all four sides and a small picture, rest frames, an A/B
 (bubbles frozen / CSS animations paused / both / half resolution), four carousel moves (card checked
 mid-move and after), two moves with the shared WebGL canvas at its old screen size, scrolling, the projects page, a
-film open and close, copy micro-benchmarks, slowest / largest resources, a page census, console
+film open and close, copy micro-benchmarks, a SCREEN CHECK (one click: the visitor shares the
+window; the card's rim on screen is compared with the rim canvas at 24 points per edge, at load, after
+rest, after every move, and around a forced canvas resize; small pictures of the card as seen on
+screen; not on iPad / iPhone), slowest / largest resources, a page census, console
 errors, focus changes and pointer movement. Read a report on the mini with
 `python3 ~/bts-automation/perf_report.py list` / `perf_report.py <id>` (writes ~/claude_perf/rep_<id>.json). If sending fails, the
 panel offers the JSON as a download. Never `getImageData()` a live bubble canvas (read a copy):
