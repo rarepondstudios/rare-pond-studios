@@ -2245,8 +2245,18 @@ const ORB_SPEC=[
       function loadAll(){ return new Promise(function(res){ var nx=0, act=0, left=N;
         function pump(){ while(act<6&&nx<N){ act++; loadFrame(nx++).then(function(){ act--; if(--left===0)res(); else pump(); }); } }
         pump(); }); }
+      /* POP-IN (2026-10-27 audit, phones): the frames finish loading about a second after the page is
+         shown; when the logo was then only PARTLY on screen, swapping in the animation canvas replaced the
+         finished logo with the bare palette in plain view. Now it waits until the logo is either well in
+         view (and plays the intro) or off screen (and seeds the palette for the scroll-in). */
+      function visNow(){ var r=(slot||host).getBoundingClientRect(), vh=innerHeight||document.documentElement.clientHeight; return Math.max(0,Math.min(r.bottom,vh)-Math.max(r.top,0))/(r.height||1); }
       function start(){
-        loadAll().then(function(){ ready=true; bubble.classList.add('anim-on');
+        loadAll().then(function(){
+          var v0=visNow(), sd=!!(navigator.connection&&navigator.connection.saveData);
+          if(!sd&&v0>0&&v0<0.45){ var w=function(){ var v=visNow(); if(v>=0.45||v<=0){ removeEventListener('scroll',w); removeEventListener('resize',w); swapIn(); } }; addEventListener('scroll',w,{passive:true}); addEventListener('resize',w); return; }
+          swapIn();
+        }); }
+      function swapIn(){ ready=true; bubble.classList.add('anim-on');
           // Seed by initial visibility: already comfortably in view at load (tall / 4K monitor
           // with #about above the fold, or a deep link) -> PLAY the intro forward once so it is
           // actually seen (Save-Data snaps to the finished logo; reduced-motion kept the static
@@ -2257,7 +2267,7 @@ const ORB_SPEC=[
           if(vis>=0.45&&!saveData){ /* Already in view at load (tall / 4K monitor with #about above the fold, or a deep link): PLAY the intro forward once from the palette so it is actually seen, instead of snapping straight to the finished logo. reduced-motion is handled above (static logo kept); Save-Data snaps to the end without autoplay. */ curF=0; mode='fwd'; drawn=-1; paint(); orb(0); kick(); }
           else if(vis>=0.45){ curF=N-1; mode='done'; drawn=-1; paint(); orb(1); }
           else { curF=0; mode='palette'; drawn=-1; paint(); orb(0); }
-          }); }
+      }
       // Defer the loading burst until the browser is idle after first paint, so it never competes with
       // the initial page load (another source of the scroll-in hitch)...
       // ...AND (2026-10-01) only once #about is within 1.5 viewports of being seen. The frame set is
