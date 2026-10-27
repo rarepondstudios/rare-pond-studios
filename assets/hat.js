@@ -55,7 +55,8 @@
     hat.alt = '';
     hat.setAttribute('aria-hidden', 'true');
     hat.setAttribute('decoding', 'async');
-    var show = function () { requestAnimationFrame(function () { hat.classList.add('rp-hat-in'); }); };
+    /* the transparent start must be computed before the class goes on, or the fade is skipped */
+    var show = function () { void hat.offsetWidth; requestAnimationFrame(function () { void hat.offsetWidth; hat.classList.add('rp-hat-in'); }); };
     hat.addEventListener('load', show, { once: true });
     hat.addEventListener('error', show, { once: true });
     hat.src = HAT_SRC;
