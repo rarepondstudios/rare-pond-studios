@@ -79,6 +79,17 @@
   overflow" (body has overflow-x:hidden; do NOT add `html{overflow-x:clip}`), and the Cloudflare Insights
   SSL error (the mini's network). Test scripts: `~/claude_perf` (carousel.mjs, bob.mjs, halo.mjs, rperf.mjs,
   clips.mjs, qc.mjs).
+### 0.0.-128 RENTALS: FIXED-NUMBER EXCEPTION, 7999 EMOTIONAL SUPPORT DUCKY (FREE) (2026-10-26)
+
+- Jack: an exception to the no-gap number rule. New `items.fixed_number` (NocoDB **Fixed number**,
+  `bts-automation/migrations/20261026d_fixed_numbers.sql`); `rentals_id_audit.py` and `rentals_print_ready_test.py`
+  skip fixed numbers in the gap check (print-ready 38/38, new case: next Logistics gear takes 7102, never past 7999).
+- New item 7999 **Emotional Support Ducky**: Logistics > Accessories, $0/day, $0 value, one copy (7999-A), sticker S,
+  Fixed number ticked. Photo for now: the duck logo (`media/logos/duck-mark.webp`, uploaded through NocoDB storage).
+- Site `app.js`: standalone gear at $0/day reads **Free** (was "Included", which stays for package lines); a $0
+  replacement value is hidden. Live check: Logistics tab card "Emotional Support Ducky, 1 available, Free".
+  Print-ready test now accepts 0 (not empty) day rates and values, and its kit-value check counts Per copy.
+
 ### 0.0.-127 RENTALS: 3131 -> 3119 (NO GAP IN GRIP & ELECTRIC), PACKAGES TEST FINGER (2026-10-26)
 
 - Jack: the last Grip & Electric number takes the free 3119. 4-Socket Extension Reel (50ft) 3131 -> 3119, its part

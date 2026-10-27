@@ -273,6 +273,12 @@ Camera CAM, Lighting LGT, Grip & Electric G&E, Sound SND, Effects EFX, DIT DIT, 
   the lowest free number in their range, sub-items the lowest free `.###` in their item, units the
   lowest free letter. Sub-items never use up item numbers. The database row id is plumbing and is
   never shown or printed.
+- **No gaps, with one exception (2026-10-26):** each department's gear numbers run without gaps (checked by
+  `rentals_id_audit.py` and `rentals_print_ready_test.py`). An item ticked **Fixed number** (`items.fixed_number`,
+  `migrations/20261026d`) keeps a number chosen on purpose and is left out of that check: today only 7999
+  Emotional Support Ducky (Logistics). New gear still takes the lowest free number (next Logistics gear: 7102).
+- **Free gear:** a $0 day rate is allowed on purpose and the site shows **Free** (package lines still say Included);
+  a $0 replacement value is not shown. An empty day rate or value is still flagged.
 - **Call names:** a container is called by its department code (`dept_blocks.call_prefix`, listed above)
   + the last two digits, and the database keeps that at the end of its name in
   brackets ("Nanuk 935 Case (CAM 01)"); rename freely, the bracket is re-added. The same two digits go
