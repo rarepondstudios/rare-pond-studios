@@ -1503,7 +1503,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026t"></script>
+<script src="/assets/rp-bubble.js?v=20261026u"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2827,7 +2827,7 @@ function uZoom(sec,zh,dir,done){
   const ok=RPBubble.zoom({el:zh.el,hide:zh.hide,dir,look,ms:dir==='in'?1500:1150,
     onFrame:f=>{
       const cp=clipOf(f.clip);sec.style.clipPath=cp;sec.style.webkitClipPath=cp;
-      const m=maskOf(f.reveal);
+      const m=window.__rpNoMask?null:maskOf(f.reveal);
       if(m){
         sec.style.webkitMaskImage=m.img;sec.style.maskImage=m.img;
         if(m.two){sec.style.webkitMaskComposite='source-in';sec.style.maskComposite='intersect';}

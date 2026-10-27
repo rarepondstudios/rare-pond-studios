@@ -215,7 +215,7 @@
      (2026-10-26): the gradients moved way too fast at the AE rate, slow and subtle wanted -> 0.3,
      then "still too fast" -> 0.15, then "too slow now" -> 0.22, about one turn per 45 s. The rim's band
      wobble keeps the AE speed. */
-  var P = { wobble: 1, soft: 1, spin: 1, inner: 1, speed: 1, color: 0.22 };
+  var P = { wobble: 1, soft: 1, spin: 1, inner: 1, speed: 1, color: 0.22, zres: 0.6 };
   /* PERFORMANCE BUDGET (2026-10-26, after the first live version cost real frame rate):
      - 24 fps, the AE comp's own rate. The motion is one slow turn per 10 s, so more is invisible.
      - resolution: at most 1.25 device px per CSS px and 480 px on the long side. The look is soft
@@ -636,7 +636,10 @@
        overlay, instead of being copied into a 2D canvas every frame (that copy is a GPU readback on
        iOS Safari and was the main cost there). The bubbles behind hold their last frame meanwhile:
        the film covers them, and their colour drift is far too slow to notice 1.5 s of it. */
-    var k = Math.min(window.devicePixelRatio || 1, DPR_CAP) * Q.scale * 0.8;
+    /* zres: the flight's resolution in device px per CSS px (before the DPR cap). Everything in it is
+       soft or very large once it moves, and since every band now continues out to the rim the shader
+       runs on most of the screen, so it renders at about half the pixels of a bubble and is scaled up. */
+    var k = Math.min(window.devicePixelRatio || 1, DPR_CAP) * Q.scale * P.zres;
     var W = Math.max(16, Math.round(vw * k)), H = Math.max(16, Math.round(vh * k));
     glc.width = W; glc.height = H;
     glc.setAttribute("aria-hidden", "true");
