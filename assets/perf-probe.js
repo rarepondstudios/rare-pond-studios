@@ -577,6 +577,8 @@
     if (!scVideo || !scVideo.videoWidth) return Promise.resolve(null);
     var el = featured(), edge = el && el.querySelector(".cedge"), cv = edge && window.RPBubble && RPBubble.canvasOf ? RPBubble.canvasOf(edge) : null;
     if (!cv) return Promise.resolve(null);
+    /* the rims are held still for the grab, so the screen and the canvas show the same moment */
+    var B = window.RPBubble; if (B && B.debug) B.debug({ freeze: true, items: false });
     markers(true); var vis = box.style.visibility; box.style.visibility = "hidden";
     var mpos = null, fc = null, fx = null, F = null, VW = 0, VH = 0, found = null, tries = 0, g = { tag: tag, t: Math.round(performance.now()), during: curStep };
     /* each marker: centroid of its pure colour, searched in its own quarter of the recording */
@@ -613,7 +615,7 @@
         /* the rim canvas, read through a copy */
         var W = cv.width, H = cv.height, tc = document.createElement("canvas"); tc.width = W; tc.height = H;
         var tx = tc.getContext("2d", { willReadFrequently: true }); tx.drawImage(cv, 0, 0); var C = tx.getImageData(0, 0, W, H).data;
-        var r = cv.getBoundingClientRect(), item = el;
+        var r = cv.getBoundingClientRect(), item = el.querySelector(".cbody") || el;   /* covered = anything outside the card body: the film logo, a cookie banner */
         function side(name, pt) {
           var ok = 0, n = 0, covered = 0, bad = [];
           for (var i = 0; i < 24; i++) {
@@ -647,7 +649,7 @@
         var s = g.sides; g._line = "on screen, rim present (top/right/bottom/left) " + [s.top.pct, s.right.pct, s.bottom.pct, s.left.pct].map(function (q) { return q == null ? "?" : q + "%"; }).join(" / ");
       } catch (e) { g.error = String(e && e.message || e); markers(false); box.style.visibility = vis; }
       return g;
-    }).then(function (g) { if (g) { SC.grabs.push(g); if (g._line || g.error) say("    [" + tag + "] " + (g.error || g._line)); } return g; });
+    }).then(function (g) { if (B && B.debug) B.debug({ freeze: false, items: false }); if (g) { SC.grabs.push(g); if (g._line || g.error) say("    [" + tag + "] " + (g.error || g._line)); } return g; });
   }
   /* what every resolution change used to do to the rim canvas: shrink it 20%, look at the screen, let it grow back, look again */
   function resizeTest() {
