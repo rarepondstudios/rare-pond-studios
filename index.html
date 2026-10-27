@@ -1131,7 +1131,7 @@ html.xw-active{overflow:hidden}
     .citem.feat:hover .cglow{opacity:.32 !important}
     .citem:hover .cedge:not(.rp-bubble-on){opacity:.4 !important;animation-play-state:paused !important}
   }
-  .bg-bubbles.fade-b{-webkit-mask:linear-gradient(180deg,#000 0,#000 82%,transparent 100%);mask:linear-gradient(180deg,#000 0,#000 82%,transparent 100%)}
+  /* .bg-bubbles.fade-b: the fade is now carried by each bubble's own opacity (bgbFill), no mask */
   .bg-bubbles.fade-tb{-webkit-mask:linear-gradient(180deg,transparent 0,#000 12%,#000 70%,transparent 100%);mask:linear-gradient(180deg,transparent 0,#000 12%,#000 70%,transparent 100%)}
   .bubble.placeholder .ph-spin{position:absolute;inset:0;z-index:6;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .45s ease;mix-blend-mode:screen;background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,0) 244deg,rgba(255,255,255,.5) 310deg,rgba(255,255,255,.98) 346deg,rgba(255,255,255,.5) 360deg);-webkit-mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);mask:radial-gradient(closest-side,transparent 38%,rgba(0,0,0,.18) 60%,rgba(0,0,0,.55) 80%,#000 100%);animation:phspin 1.7s linear infinite}
   .bubble.placeholder:hover .ph-spin{opacity:.95}
@@ -1139,7 +1139,7 @@ html.xw-active{overflow:hidden}
   /* ===== v24: continuous home background ===== */
   #view-home{position:relative;background:linear-gradient(180deg,#e0f1ff 0%,#abdaf6 8%,#6fabe1 18%,#3d7bbc 33%,#1d5089 58%,#193f76 80%,#163f72 100%)}
   .home-canvas{position:absolute;left:0;right:0;top:0;height:0;z-index:0;pointer-events:none;overflow:hidden;background:linear-gradient(180deg,#e0f1ff 0%,#abdaf6 8%,#6fabe1 18%,#3d7bbc 33%,#1d5089 58%,#193f76 80%,#163f72 100%)}
-  .home-bubbles{position:absolute;inset:0;overflow:hidden;-webkit-mask:linear-gradient(180deg,#000 0,#000 70%,transparent 90%);mask:linear-gradient(180deg,#000 0,#000 70%,transparent 90%)}
+  .home-bubbles{position:absolute;inset:0;overflow:hidden}   /* fade at 70-90% now per bubble (bgbFill), no mask */
   /* ===== v24: youtube click-to-play facade ===== */
   .u-embed{position:relative}
   .yt-facade{position:absolute;inset:0;width:100%;height:100%;border:0;padding:0;cursor:pointer;background-size:cover;background-position:center;display:grid;place-items:center}
@@ -1503,7 +1503,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026u"></script>
+<script src="/assets/rp-bubble.js?v=20261026v"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -1942,38 +1942,45 @@ PROJECTS.forEach((p,i)=>grid.appendChild(makeGridBubble(p,i)));
 const BGB_FIELDS=[];
 function bgbPlan(){const w=innerWidth,h=innerHeight;return{a:Math.min(1,Math.max(.3,(w*h)/(1440*900))),k:Math.min(1,Math.max(.5,w/1280))};}
 let __bgbP=bgbPlan();
-function bgbFill(field,base){
+/* fade: [a,b] = the bubbles fade out between a and b (fractions of the field's height). This used to be
+   a CSS mask over the whole field, which forced the browser to re-composite the entire masked field on
+   every frame of every drifting bubble (a big cost on ordinary GPUs); now each bubble simply carries
+   its own share of the fade in its opacity, and none are made where they would be invisible. */
+function bgbFill(field,base,fade){
   field.textContent='';
   const n=Math.round(base*__bgbP.a),k=__bgbP.k;
   for(let i=0;i<n;i++){
+    const top=Math.random();
+    const m=fade?1-Math.min(1,Math.max(0,(top-fade[0])/(fade[1]-fade[0]))):1;
+    if(m<=0.02)continue;
     const b=document.createElement('div');b.className='bgb';
     const depth=Math.random();
     const size=Math.round((34+depth*depth*360)*k);
     b.style.width=b.style.height=size+'px';
     b.style.left=(Math.random()*98).toFixed(1)+'%';
-    b.style.top=(Math.random()*100).toFixed(1)+'%';
-    b.style.setProperty('--peak',(0.12+depth*0.5).toFixed(2));
-    b.style.setProperty('--ringop',(0.12+depth*0.20).toFixed(2));
+    b.style.top=(top*100).toFixed(1)+'%';
+    b.style.setProperty('--peak',((0.12+depth*0.5)*m).toFixed(2));
+    b.style.setProperty('--ringop',((0.12+depth*0.20)*m).toFixed(2));
     b.style.setProperty('--dx',((Math.random()*116-58)*k).toFixed(0)+'px');
     b.style.setProperty('--d',(15+Math.random()*22).toFixed(1)+'s');
     b.style.animationDelay=(-Math.random()*42).toFixed(1)+'s';
     field.appendChild(b);
   }
 }
-function bgbInto(field,count){BGB_FIELDS.push([field,count]);bgbFill(field,count);}
+function bgbInto(field,count,fade){BGB_FIELDS.push([field,count,fade]);bgbFill(field,count,fade);}
 function makeBgBubbles(host,count,fade){
   if(!host)return;
   const c=document.createElement('div');c.className='bg-bubbles'+(fade?' '+fade:'');
-  bgbInto(c,count);
+  bgbInto(c,count,fade==='fade-b'?[.82,1]:null);
   host.appendChild(c);
 }
-{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{const p=bgbPlan();if(Math.abs(p.a-__bgbP.a)>.12||Math.abs(p.k-__bgbP.k)>.12){__bgbP=p;BGB_FIELDS.forEach(([f,n])=>bgbFill(f,n));}},350);},{passive:true});}
+{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{const p=bgbPlan();if(Math.abs(p.a-__bgbP.a)>.12||Math.abs(p.k-__bgbP.k)>.12){__bgbP=p;BGB_FIELDS.forEach(([f,n,fd])=>bgbFill(f,n,fd));}},350);},{passive:true});}
 /* Ambient background bubble count is CMS-driven (Site Settings -> home.bgBubbleCount) so Jack
    can fine-tune density without touching code. Safe fallback = 28. Hard-capped at 60 in code
    to protect rendering perf on weaker devices even if the CMS value is set too high. The
    bubbles are still the same perf-optimized composited/animated elements; this only scales N. */
 const BG_BUBBLES=Math.max(0,Math.min(60,Math.round(Number(SITE.home&&SITE.home.bgBubbleCount))||28));
-(function buildHomeCanvas(){const vh=document.getElementById('view-home');if(!vh)return;const canvas=document.createElement('div');canvas.className='home-canvas';const field=document.createElement('div');field.className='home-bubbles';canvas.appendChild(field);bgbInto(field,BG_BUBBLES);vh.insertBefore(canvas,vh.firstChild);
+(function buildHomeCanvas(){const vh=document.getElementById('view-home');if(!vh)return;const canvas=document.createElement('div');canvas.className='home-canvas';const field=document.createElement('div');field.className='home-bubbles';canvas.appendChild(field);bgbInto(field,BG_BUBBLES,[.70,.90]);vh.insertBefore(canvas,vh.firstChild);
   /* Size the bubble layer so it ends exactly at the contact section. The OLD version only
      measured at load + 400ms + 1300ms, so ANY later reflow - a web font swapping in, a late
      poster/image, the event banner settling - left the canvas at a stale height. Because the
@@ -2027,7 +2034,7 @@ const ORB_SPEC=[
     if(look.c2)orb.style.setProperty('--oc2',look.c2);
     if(look.c3)orb.style.setProperty('--oc3',look.c3);
     orb.innerHTML='<span class="orbi"><img src="'+k+'" alt="" loading="lazy"><span class="orbi-rim"></span></span>';
-    if(window.RPBubble&&RPBubble.attach(orb.querySelector('.orbi-rim'),{vars:['--oc1','--oc2','--oc3'],seed:5+i*1.3,max:400}))orb.querySelector('.orbi').classList.add('rp-rim-on');
+    if(window.RPBubble&&RPBubble.attach(orb.querySelector('.orbi-rim'),{vars:['--oc1','--oc2','--oc3'],seed:5+i*1.3,max:400,still:true}))orb.querySelector('.orbi').classList.add('rp-rim-on');
     wrap.appendChild(orb);orbs.push({el:orb,s:s});
   });
   host.appendChild(wrap);
@@ -2294,8 +2301,11 @@ const citems=CAROUSEL.map((p,i)=>{
      near-full-size children, and these ovals must never drive the outline shape - only the
      visible .cbub surface should (see assets/cursor.js scanShape). */
   el.innerHTML=`<div class="cdrop" data-cursor="noscan"></div><div class="cglow" data-cursor="noscan"></div><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
-  if(window.RPBubble&&RPBubble.attach(el.querySelector('.cedge'),{seed:2+i*2.3})){   /* V3 bubble rim; follows the featured card's rounded-rect morph */
-    if(RPBubble.attach(el.querySelector('.cglow'),{glow:true,ref:el.querySelector('.cbub'),seed:2+i*2.3}))el.classList.add('rp-glow-on');   /* halo in sync with the rim */
+  /* only the FEATURED card (or one under the pointer / keyboard) animates; the side cards hold a still
+     frame of the same bubble and only redraw when their look or shape changes (performance, 2026-10-26) */
+  const _cLive=()=>el.matches('.feat,:hover,.rpc-kbsel');
+  if(window.RPBubble&&RPBubble.attach(el.querySelector('.cedge'),{seed:2+i*2.3,liveWhen:_cLive})){   /* V3 bubble rim; follows the featured card's rounded-rect morph */
+    if(RPBubble.attach(el.querySelector('.cglow'),{glow:true,ref:el.querySelector('.cbub'),seed:2+i*2.3,liveWhen:_cLive}))el.classList.add('rp-glow-on');   /* halo in sync with the rim */
   }
   el.addEventListener('mouseenter',()=>{
     if(el.classList.contains('feat'))return;   /* featured card uses its own .focus-vid reel */
@@ -2503,7 +2513,7 @@ if(teamList){TEAM.forEach((m,i)=>{
     .join('');
   const _linksHTML=_links?`<div class="m-links rp-soc">${_links}</div>`:'';
   row.innerHTML=`<div class="m-photo"><div class="m-bubble">${ph}<div class="m-rim"></div><div class="m-spec"></div><div class="m-edge"></div></div></div><div class="m-copy"><h3>${m.name}</h3><div class="m-role">${m.role}</div><p class="m-desc">${m.desc}</p>${_linksHTML}</div>`;
-  if(window.RPBubble)RPBubble.attach(row.querySelector('.m-edge'),{vars:['--g1','--g2','--g3']});
+  if(window.RPBubble){const mb=row.querySelector('.m-bubble');RPBubble.attach(row.querySelector('.m-edge'),{vars:['--g1','--g2','--g3'],liveWhen:()=>mb.matches(':hover')});}   /* team photos: a still rim unless hovered */
   teamList.appendChild(row);
 });}
 const universes=document.getElementById('universes');
@@ -2888,7 +2898,8 @@ function openUniverse(key){
   void sec.offsetWidth;
   sec.style.transition='';
 
-  const zh=sec._fromEl?null:zoomHost(key);
+  /* no flight when another film is already covering the page (its bubbles are hidden under it) */
+  const zh=(sec._fromEl||(currentOpen&&currentOpen!==sec))?null:zoomHost(key);
   let zoomed=false;
   if(zh&&uZoom(sec,zh,'in',()=>{
     /* landed: hand the page back to its normal open state (nothing moves after this point) */
@@ -2937,6 +2948,22 @@ function closeUniverse(sec){
     sec.style.transition='none';void sec.offsetWidth;sec.style.transition='';
   })){
     sec.classList.add('closing');sec.classList.remove('flash','open');currentOpen=null;
+    stopSideVid(sec.querySelector('.u-vid'));
+    syncFocusVideo();
+    return;
+  }
+  if(!sec._fromEl){
+    /* the page it closes into has no bubble for this film on screen (another page, or scrolled away):
+       a plain cross-fade to the page, like any other page change, instead of a wipe aimed at nothing */
+    sec.classList.add('closing');sec.classList.remove('flash','open');currentOpen=null;
+    sec.style.clipPath='none';sec.style.webkitClipPath='none';   /* stay full screen while it fades */
+    void sec.offsetWidth;
+    sec.style.transition='opacity .42s ease';sec.style.opacity='0';
+    setTimeout(()=>{
+      if(sec.classList.contains('open')||sec.style.visibility==='hidden')return;   /* reopened meanwhile */
+      sec.style.visibility='hidden';uCover(false);uZoomClear(sec);sec.classList.remove('closing');
+      sec.style.transition='none';void sec.offsetWidth;sec.style.transition='';
+    },460);
     stopSideVid(sec.querySelector('.u-vid'));
     syncFocusVideo();
     return;
@@ -3501,7 +3528,9 @@ const SLUG2KEY={},KEY2SLUG={};
 __projects.filter(p=>!p.placeholder).forEach(p=>{const sl=p.slug||slugify(p.title);SLUG2KEY[sl]=p.key;KEY2SLUG[p.key]=sl;});
 function pathForDest(d){return d==='team'?'/team':d==='projects'?'/projects':d==='news'?'/news':'/';}
 /* render app state for a path (no history writes) */
-function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]&&newsOpen&&!currentOpen){const lk=newsArt.querySelector('a.na-proj[data-proj="'+SLUG2KEY[seg]+'"]');if(lk){openProjectFrom(lk,SLUG2KEY[seg]);return;}}{const nm0=/^news\/([^\/]+)$/.exec(seg),sec0=currentOpen;if(nm0&&sec0&&sec0._fromNews&&newsKey(nm0[1])===sec0._fromNews&&NEWS_BY_KEY[sec0._fromNews]){if(activeView!=='news')showView('news');document.title=NEWS_LIST_TITLE;sec0.classList.add('u-over');newsOpenInstant(sec0._fromNews);sec0._fromEl=newsArt.querySelector('a.na-proj[data-proj="'+sec0.dataset.key+'"]')||null;closeUniverse(sec0);document.body.classList.add('locked');setTimeout(()=>sec0.classList.remove('u-over'),850);return;}}if(SLUG2KEY[seg]){/* A film opens OVER the projects view. Custom pages can show bubbles, so a film can now be opened from one - make sure we swap the backdrop to projects first, exactly as a fresh load of /geriaction does, instead of leaving the custom page sitting underneath. The same for News: showView('projects') also drops an expanded article instantly, otherwise the film and the article overlay (both z-index 100) stack and the body lock is left behind. */if(activeView==='page'||activeView==='news'){cpMarkNav('');showView('projects');}openUniverse(SLUG2KEY[seg]);return;}if(currentOpen)closeUniverse(currentOpen);/* /news and /news/<key>: the list view, plus the article expanded over it */const nm=/^news(?:\/([^\/]+))?$/.exec(seg);if(nm){if(activeView!=='news')showView('news');document.title=NEWS_LIST_TITLE;const nk=nm[1]?newsKey(nm[1]):'';if(nk&&NEWS_BY_KEY[nk]){if(newsOpen!==nk)openNews(nk);}else if(newsOpen)closeNews();return;}if(seg==='team')showView('team');else if(seg==='projects')showView('projects');else showView('home');}
+function renderPath(path){const seg=(path||'/').split('#')[0].replace(/\/+$/,'').replace(/^\//,'');if(SLUG2KEY[seg]&&newsOpen&&!currentOpen){const lk=newsArt.querySelector('a.na-proj[data-proj="'+SLUG2KEY[seg]+'"]');if(lk){openProjectFrom(lk,SLUG2KEY[seg]);return;}}{const nm0=/^news\/([^\/]+)$/.exec(seg),sec0=currentOpen;if(nm0&&sec0&&sec0._fromNews&&newsKey(nm0[1])===sec0._fromNews&&NEWS_BY_KEY[sec0._fromNews]){if(activeView!=='news')showView('news');document.title=NEWS_LIST_TITLE;sec0.classList.add('u-over');newsOpenInstant(sec0._fromNews);sec0._fromEl=newsArt.querySelector('a.na-proj[data-proj="'+sec0.dataset.key+'"]')||null;closeUniverse(sec0);document.body.classList.add('locked');setTimeout(()=>sec0.classList.remove('u-over'),850);return;}}if(SLUG2KEY[seg]){/* A film opens OVER the projects view. Custom pages can show bubbles, so a film can now be opened from one - make sure we swap the backdrop to projects first, exactly as a fresh load of /geriaction does, instead of leaving the custom page sitting underneath. The same for News: showView('projects') also drops an expanded article instantly, otherwise the film and the article overlay (both z-index 100) stack and the body lock is left behind. */if(activeView==='page'||activeView==='news'){cpMarkNav('');showView('projects');}openUniverse(SLUG2KEY[seg]);return;}/* A film open over this route change: switch the page UNDER it first (the film covers it), then close
+   the film INTO the new page, so its exit lands on that page's bubble for the film (or simply fades
+   when the new page has none). Closing first measured the OLD page's bubble. */const sec0=currentOpen;/* back to the SAME page the film covers: leave it exactly as it is (showView would jump it to the top and pull the bubble away from under the landing film) */const sv=v=>{if(!sec0||activeView!==v)showView(v);};/* /news and /news/<key>: the list view, plus the article expanded over it */const nm=/^news(?:\/([^\/]+))?$/.exec(seg);if(nm){if(activeView!=='news')showView('news');document.title=NEWS_LIST_TITLE;const nk=nm[1]?newsKey(nm[1]):'';if(nk&&NEWS_BY_KEY[nk]){if(newsOpen!==nk)openNews(nk);}else if(newsOpen)closeNews();}else if(seg==='team')sv('team');else if(seg==='projects')sv('projects');else sv('home');if(sec0)closeUniverse(sec0);}
 /* push a URL then render (in-page nav clicks) */
 /* --- custom-page routing -------------------------------------------------
    Custom pages live at  /<slug>   (e.g. /submit-a-screenplay).
@@ -3538,10 +3567,11 @@ function cpMarkNav(slug){
 function openCustomPage(slug){
   const pg = PAGE_BY_SLUG[slug];
   if (!pg) { showView('home'); cpMarkNav(''); return false; }
-  if (currentOpen) closeUniverse(currentOpen);
+  const sec0 = currentOpen;   /* page first, then the film closes into it (see renderPath) */
   renderCustomPage(pg);
   showView('page');
   cpMarkNav(slug);
+  if (sec0) closeUniverse(sec0);
   return true;
 }
 /* ===== CLOSED PAGES IN THE SPA =====

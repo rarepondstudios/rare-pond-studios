@@ -467,49 +467,63 @@
     pace.t0 = now; pace.n = 0; pace.slow = 0;
   }
 
-  var last = 0, lastDraw = 0, simT = 0, drawN = 0;
-  var COARSE = !!(window.matchMedia && matchMedia("(hover: none)").matches);
+  var last = 0, simT = 0;
+  /* SCHEDULING (2026-10-26, "running horribly on other people's computers"). Every bubble has its own
+     next-draw time instead of all of them being drawn together in one heavy frame:
+       live   the AE band wobble, 24 fps (adaptive Q.fps): the bubbles you look at and click
+       glow   the soft halos: colour only, which turns once per ~45 s, so 8 fps is indistinguishable
+       still  drawn once, then again only when its look / shape / size actually changes (hover look
+              fades, the carousel morph): the bubbles in the background (opts.still, or opts.liveWhen
+              returning false, e.g. the carousel's side cards)
+     and a frame never spends more than BUDGET ms drawing: what is left waits for the next frame, so
+     the page keeps its own frame rate on a weak GPU instead of stalling. */
+  var GLOW_FPS = 8, BUDGET = 8;
+  function kindOf(x) {
+    if (x.opts.still) return "still";
+    if (x.opts.liveWhen) { try { if (!x.opts.liveWhen(x.el)) return "still"; } catch (e) {} }
+    return x.ref ? "glow" : "live";
+  }
+  function sigOf(x) { return [x.cols && x.cols.join(), x.rad, x.depth, x.deep, x.rb, x.w, x.h, x.rw, x.rh, x.rrad].join("|"); }
   function frame(now) {
     raf = 0;
     var gap = last ? now - last : 16; last = now;
     var body = document.body;
+    var hidden = document.hidden;
     /* u-cover: a film page covers everything (index.html uCover) */
-    var paused = document.hidden || (body && (body.classList.contains("bg-idle") || body.classList.contains("u-cover")));
-    /* carousel drag / slide change: the cards are moving, so only the ones changing shape are
-       redrawn, at half rate; everything else holds its last frame */
+    var paused = hidden || !!(body && (body.classList.contains("bg-idle") || body.classList.contains("u-cover")));
+    /* carousel drag / slide change: only bubbles that are changing shape or look are redrawn */
     var swiping = !!(body && body.classList.contains("swiping"));
     if (!paused && !swiping) adapt(now, gap);
     housekeep(now);
-    var due = now - lastDraw >= 1000 / (swiping ? 12 : Q.fps) - 2;
-    var pending = false, live = false;
-    for (var i = 0; i < items.length; i++) {
-      var it = items[i];
-      var vis = it.onScreen !== false && it.shown !== false;
-      if (!vis) continue;
-      live = true;
-      if (!it.drawn || it.trans) pending = true;
-    }
-    if ((due || pending) && !paused && gl && !zooming) {
-      var dt = Math.min(0.1, (now - (lastDraw || now)) / 1000); lastDraw = now;
-      if (!reduce) simT += dt * P.speed;
-      drawN++;
+    if (!paused && !reduce) simT += Math.min(0.1, gap / 1000) * P.speed;
+    var wants = false;
+    if (gl && !zooming && !hidden) {
+      var t0 = performance.now();
       for (var j = 0; j < items.length; j++) {
         var x = items[j];
-        /* phones / tablets: the soft halos behind the bubbles update at half rate (their colour drift
-           is far too slow to see the difference); the rims keep the full 24 fps */
-        if (x.ref && COARSE && (drawN & 1) && x.drawn && !x.trans) continue;
         if (x.onScreen === false || x.shown === false) continue;
-        if ((reduce || swiping) && x.drawn && !x.trans && !x.dirty) continue;
-        draw(x, simT + x.opts.seed * 3.7);
+        var must = !x.drawn || x.trans || x.dirty;
+        var kind = (paused || reduce || swiping) ? "still" : kindOf(x);
+        if (!must && kind === "still") continue;
+        wants = true;
+        if (!must && now < (x.next || 0)) continue;
+        if (x.drawn && performance.now() - t0 > BUDGET) continue;   /* over budget: next frame */
+        /* a periodic style refresh of a still bubble only redraws if something actually changed */
+        if (must && x.drawn && !x.trans && kind === "still") {
+          readStyle(x); x.dirty = Math.max(0, x.dirty - 1);
+          if (sigOf(x) === x.sig) continue;
+        }
+        var iv = 1000 / (kind === "glow" ? GLOW_FPS : Q.fps);
+        x.next = x.drawn ? now + iv : now + iv * Math.random();   /* first draw: random phase, so they spread out */
+        if (draw(x, simT + x.opts.seed * 3.7)) x.sig = sigOf(x);
       }
     }
-    var keep = live && (!reduce || items.some(function (x) { return !x.drawn || x.trans || x.dirty; }));
-    if (keep || paused && live) raf = requestAnimationFrame(frame);
+    if (wants) raf = requestAnimationFrame(frame);
   }
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
   document.addEventListener("visibilitychange", kick);
-  /* reduced motion: hover / focus can still change a bubble's look; wake the idle loop for it */
-  if (reduce) ["pointerover", "pointerout", "focusin"].forEach(function (ev) { document.addEventListener(ev, kick, { passive: true }); });
+  /* hover / focus can change a bubble's look or make a still bubble live (opts.liveWhen): wake the idle loop */
+  ["pointerover", "pointerout", "focusin"].forEach(function (ev) { document.addEventListener(ev, kick, { passive: true }); });
 
   function attach(el, opts) {
     opts = opts || {};
@@ -527,7 +541,7 @@
     el.classList.add("rp-bubble-on");
     it = {
       el: el, cv: cv, ctx: cv.getContext("2d", { alpha: true }),
-      opts: { seed: opts.seed != null ? opts.seed : Math.random() * 10, inset: opts.inset, max: opts.max, res: opts.glow ? 0.5 : (opts.res || 1) },
+      opts: { seed: opts.seed != null ? opts.seed : Math.random() * 10, inset: opts.inset, max: opts.max, res: opts.glow ? 0.5 : (opts.res || 1), still: !!opts.still, liveWhen: opts.liveWhen || null },
       ref: opts.glow ? (opts.ref || el) : null, bleed: bleed,
       vars: opts.look ? null : (opts.vars || ["--gg1", "--gg2", "--gg3"]),
       cols: lookVec(opts.look || { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" }),
