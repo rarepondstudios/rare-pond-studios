@@ -39,6 +39,47 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-126 V3 RIM QC: CAROUSEL, EDGE HAIRLINE, HALO, RENTALS (2026-10-26)
+
+- Jack (someone else opened the site): animated rims only showed on the top-left bubbles, the carousel swap
+  stuttered, a thin line of the photo peeked out around bubble edges as they bobbed, the halo popped in a
+  second after closing a film, and the three-tier look should come to Rentals at the same efficiency.
+- Rims only on the top-left: the 8 ms frame budget always started at item 0, so on slower machines the
+  later bubbles starved. `frame()` now starts from a rotating index (fair). Measured on the mini in software
+  mode: every grid rim animates.
+- Shared WebGL canvas: capped at 2048 px (`GLMAX`) and every read uses `gl.drawingBufferWidth/Height`
+  (a browser can silently give a smaller buffer than asked; the copy then read garbage at the edges).
+- Carousel swap: while a bubble changes shape (`it.trans`) it renders at 70% and keeps its canvas backing
+  store unless the size moved by more than 20% (it was reallocated every frame). Measured, 4 swaps: GPU 46 fps,
+  software 33 fps, no frame over 67 ms.
+- Edge hairline, three causes, all fixed in `assets/rp-bubble.js` so any future bubble gets it for free:
+  1. "is this rim inside a clipping parent" was decided in `attach()`, before off-page-built bubbles (the
+     carousel) had a computed style, so it was false for them. Now decided on the first draw.
+  2. It only counts when the clipping parent has EXACTLY the rim's box and border-radius (or a 50% bubble
+     with `clip-path: circle(50%)`); then the rim paints opaque to the edge (`max(cut,uClip)` in the
+     shader), the canvas gets no radius of its own, and the parent's clip is the only edge.
+  3. Chrome clips each composited layer (video, canvas) separately, so the photo still bled through the
+     edge pixel. Full-size media siblings of a clipped rim get `clip-path: inset(1.5px round <radius>)`
+     (marked `data-rpb-edge`, re-applied when the radius morphs, removed on detach); the rim's solid band
+     covers that strip.
+  Rule for new bubbles: put the rim element as a full-size child of the element that clips the photo, with
+  the same border-radius. Verified with 2x zoomed crops of the featured card, carousel and grid while bobbing.
+- Halo after closing a film: it now starts fading back in at 70% of the close flight; measured at its
+  resting opacity before the flight lands (GPU and software).
+- Rentals V3 (`rentals/assets/v3.js`, needs `/assets/rp-bubble.js` and `looks.js`): ellipse rim on the Home
+  logo bubble (Signature look, live); a rim in the department's colour look on the hovered / keyboard-selected
+  gear card (made on enter, released 420 ms after leave, at most 3, replaces the thin hover outline); a still,
+  slim rim (`--rpb-depth:.035`) on the open gear popup. `app.js` cards and popup carry `data-cat`. No WebGL:
+  nothing changes. Measured vs main: GPU 60 fps everywhere (home, hover sweep, popup, popup scroll);
+  software hover sweep 22.5 vs 21.9 fps on main (that cost is the existing card scale, not the rims).
+- News: `news_media_sync.py` always writes both webp rungs; the missing `-1600.webp` files (404 / broken
+  image on high-DPI screens) were backfilled for oiaf-2026 and geri-action-world-premiere.
+- Stickers: v65 in `~/bts-automation/rentals_stickers` (soft per-tier edges with varying blur, AE shine).
+- QC (desktop, laptop, tablet, phone, every page): no page errors. Not site bugs: the home "22 px
+  overflow" (body has overflow-x:hidden; do NOT add `html{overflow-x:clip}`), and the Cloudflare Insights
+  SSL error (the mini's network). Test scripts: `~/claude_perf` (carousel.mjs, bob.mjs, halo.mjs, rperf.mjs,
+  clips.mjs, qc.mjs).
+
 ### 0.0.-125 PAGE LOAD: NOTHING SNAPS IN (2026-10-26)
 
 - Jack: on a reload (home or any page) the elements visibly snapped in. Recorded on the mini: the load veil
