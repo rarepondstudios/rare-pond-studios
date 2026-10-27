@@ -581,6 +581,9 @@
     zooming = false;
     z.it.cv.style.visibility = "";
     z.hide.forEach(function (h) { h.style.removeProperty("opacity"); });
+    /* repaint the bubble NOW, in the colours the flight landed in, before anything else changes: its
+       canvas otherwise showed a stale frame (from before the film opened) for one frame */
+    try { if (gl) { readStyle(z.it); draw(z.it, simT + z.it.opts.seed * 3.7); } } catch (e) {}
     z.it.drawn = false; kick();
     if (run && z.o.onDone) z.o.onDone();
   }

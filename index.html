@@ -547,7 +547,9 @@ html.xw-active{overflow:hidden}
   /* the hover-look colour swap fires for the KEYBOARD selection too (.rpc-kbsel is the kb
      mirror of :hover) - without it, kb interaction left bubbles AND the adopting cursor on the
      signature colours while the mouse showed the project look */
-  .citem.rp-hover-look:hover,.citem.rp-hover-look.rpc-kbsel,.bubble.rp-hover-look:hover,.bubble.rp-hover-look.rpc-kbsel{--gg1:var(--h1,var(--g1));--gg2:var(--h2,var(--g2));--gg3:var(--h3,var(--g3))}
+  /* .rp-zsel: the bubble a film is closing back into keeps its look while the flight lands, then the
+     class comes off and the look FADES to whatever the bubble should show (Jack, 2026-10-26: it snapped) */
+  .citem.rp-hover-look:hover,.citem.rp-hover-look.rpc-kbsel,.bubble.rp-hover-look:hover,.bubble.rp-hover-look.rpc-kbsel,.citem.rp-hover-look.rp-zsel,.bubble.rp-hover-look.rp-zsel{--gg1:var(--h1,var(--g1));--gg2:var(--h2,var(--g2));--gg3:var(--h3,var(--g3))}
   .bubble.rp-glow-special:hover .glow,.bubble.rp-glow-special:hover .edge,
   .citem.rp-glow-special:hover .cglow,.citem.rp-glow-special:hover .cedge{background:var(--rp-glow)}
   .caption{position:absolute;left:50%;top:calc(100% + 20px);transform:translateX(-50%);text-align:center;white-space:nowrap;pointer-events:none}
@@ -1220,7 +1222,7 @@ html.xw-active{overflow:hidden}
   .edge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-deep .7s cubic-bezier(.2,.8,.2,1),--rpb-rainbow .45s ease}
   .cedge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-depth .6s,--rpb-deep .7s cubic-bezier(.2,.8,.2,1),--rpb-rainbow .45s ease}
   .bubble:hover .edge.rp-bubble-on,.bubble.rpc-kbsel .edge.rp-bubble-on,.bubble.rp-tap .edge.rp-bubble-on,
-  .citem:hover .cedge.rp-bubble-on,.citem.rpc-kbsel .cedge.rp-bubble-on{--rpb-deep:1}
+  .citem:hover .cedge.rp-bubble-on,.citem.rpc-kbsel .cedge.rp-bubble-on,.bubble.rp-zsel .edge.rp-bubble-on,.citem.rp-zsel .cedge.rp-bubble-on{--rpb-deep:1}
   /* "More to come": same V3 bubble, and its rainbow hover now comes THROUGH the bubble (three rainbow
      colours fed to the shader) instead of a flat conic disc and a separate white spinner */
   /* RAINBOW, the colour looks' "special" (assets/looks.js SPECIALS): more stops than three hex boxes can
@@ -1232,7 +1234,8 @@ html.xw-active{overflow:hidden}
   .rp-glow-special{--rpb-pal:var(--rp-glow)}
   .bubble.placeholder.rp-glow-on:hover,.bubble.placeholder.rp-glow-on.rp-tap,.bubble.placeholder.rp-glow-on.rpc-kbsel,
   .bubble.rp-glow-special.rp-glow-on:hover,.bubble.rp-glow-special.rp-glow-on.rpc-kbsel,
-  .citem.rp-glow-special.rp-glow-on:hover,.citem.rp-glow-special.rp-glow-on.rpc-kbsel{--rpb-rainbow:1}
+  .citem.rp-glow-special.rp-glow-on:hover,.citem.rp-glow-special.rp-glow-on.rpc-kbsel,
+  .bubble.placeholder.rp-glow-on.rp-zsel,.bubble.rp-glow-special.rp-glow-on.rp-zsel,.citem.rp-glow-special.rp-glow-on.rp-zsel{--rpb-rainbow:1}
   .glow.rp-bubble-on,.cglow.rp-bubble-on{transition:opacity .45s ease,filter .45s ease,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-rainbow .45s ease}
   .bubble.placeholder.rp-glow-on .ph-spin{display:none}
   /* home logo bubble: the old CSS look's haze (outer box-shadow glow + inner shadows) sat on top of the
@@ -1500,7 +1503,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026s"></script>
+<script src="/assets/rp-bubble.js?v=20261026t"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2750,7 +2753,7 @@ function zoomHost(key){
       const host=el.closest('.bubble,.citem');
       /* front = what sits IN FRONT of the bubble (its logo, the dive-in pill): it crossfades with the
          film instead of being covered by it, so nothing pops in or out of the layering */
-      return {el,hide:host?[host.querySelector('.glow.rp-bubble-on,.cglow.rp-bubble-on')]:[],
+      return {el,host,hide:host?[host.querySelector('.glow.rp-bubble-on,.cglow.rp-bubble-on')]:[],
               front:host?[...host.querySelectorAll(':scope>.bubble-logo,:scope>.clogo,.divehint')]:[]};
     }
   }
@@ -2762,6 +2765,8 @@ function uZoomClear(sec){
   sec.style.removeProperty('mask-composite');sec.style.removeProperty('-webkit-mask-composite');
   sec.style.removeProperty('opacity');sec.style.removeProperty('--usc');
   sec.classList.remove('rp-zoom');
+  /* the closed-into bubble lets go of the film's look: its colours now fade to what it should show */
+  document.querySelectorAll('.rp-zsel').forEach(e=>e.classList.remove('rp-zsel'));
   /* a flight cut short (Back mid-flight) never ran its own cleanup: restore any faded logo */
   uFront([...document.querySelectorAll('.bubble-logo,.clogo,.divehint')].filter(e=>e.style.opacity),'show');
 }
@@ -2806,13 +2811,18 @@ function uZoom(sec,zh,dir,done){
   };
   sec.style.transition='none';
   sec.classList.add('rp-zoom');
-  /* the way back lands in the colours the bubble will actually show: its hover look (the one the film
-     was opened with) if the pointer will be resting on it, its resting colours otherwise */
-  let look=null;
-  if(dir==='out'&&sec._zlook&&__uPtr&&!matchMedia('(hover:none)').matches){
-    const r=zh.el.getBoundingClientRect();
-    if(__uPtr.x>=r.left&&__uPtr.x<=r.right&&__uPtr.y>=r.top&&__uPtr.y<=r.bottom)look=sec._zlook;
+  /* BOTH WAYS the flight is in the film's own colour look, on every device (a tap on a phone never had
+     time to fade the look in before the flight read it). The bubble is held in its look (.rp-zsel), set
+     INSTANTLY here (its canvas is hidden for the flight, so nothing visibly snaps) so the flight reads the
+     finished look. After a close lands the class comes off and the bubble's colours FADE to what it
+     should show: the look again if the pointer is on it, its resting colours otherwise (touch: resting). */
+  if(zh.host){
+    const tr=[zh.el,...zh.hide].filter(Boolean);
+    tr.forEach(e=>e.style.setProperty('transition','none','important'));
+    zh.host.classList.add('rp-zsel');
+    tr.forEach(e=>{getComputedStyle(e).getPropertyValue('--gg1');e.style.removeProperty('transition');});
   }
+  const look=null;
   const front=zh.front||[];
   const ok=RPBubble.zoom({el:zh.el,hide:zh.hide,dir,look,ms:dir==='in'?1500:1150,
     onFrame:f=>{
@@ -2834,13 +2844,11 @@ function uZoom(sec,zh,dir,done){
       sec.style.setProperty('--usc',(dir==='in'?_ss(.55,.95,f.t):1-_ss(0,.3,f.t)).toFixed(3));
     },
     onDone:()=>{if(dir==='out')uFront(front,'show');done&&done();}});
-  if(!ok){sec.classList.remove('rp-zoom');sec.style.transition='';return false;}
-  if(dir==='in'){sec._zlook=ok.look;uFront(front,'hide');}
+  if(!ok){sec.classList.remove('rp-zoom');sec.style.transition='';if(zh.host)zh.host.classList.remove('rp-zsel');return false;}
+  if(dir==='in')uFront(front,'hide');
   else uFront(front,'off');
   return true;
 }
-var __uPtr=null;
-addEventListener('pointermove',e=>{if(e.pointerType==='mouse')__uPtr={x:e.clientX,y:e.clientY};},{passive:true});
 /* while a film covers the page (from the click until it has closed again) the page's ambient motion
    underneath is paused: the drifting bubbles, the bob, the rim shader. Nobody can see it, and on a
    phone it was GPU time stolen from the film and its transitions. Paused, not stopped, so nothing
