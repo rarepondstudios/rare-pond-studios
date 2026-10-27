@@ -33,7 +33,7 @@
    Keep the mouse still and the tab in front while it runs. */
 (function () {
   "use strict";
-  var PROBE_VER = 11;
+  var PROBE_VER = 12;
   var KEY = "sb_publishable_VFAFJq23B8hJAGViL2nDiA_uTAVxe05";   /* public by design (also in rentals/assets/app.js) */
   var SEND = "https://gnifidmyahtzydwvaegj.supabase.co/rest/v1/rpc/submit_perf_report";
   var T0 = performance.now();
@@ -136,7 +136,8 @@
     say(n + "  " + title + "...");
     curStep = n + " " + title;
     var t = performance.now();
-    return Promise.resolve().then(fn).then(function (v) {
+    /* a step that never finishes (Jack's run sat at step 10) is abandoned after 60 s and the test goes on */
+    return Promise.race([Promise.resolve().then(fn), wait(60000).then(function () { throw new Error("timed out after 60 s"); })]).then(function (v) {
       R.steps[n + " " + title] = { ms: Math.round(performance.now() - t), data: v };
       lines[lines.length - 1] = n + "  " + title + (v && v._line ? ": " + v._line : ": done");
       if (v && v._line) delete v._line;
@@ -613,12 +614,14 @@
         if (!F) { g.error = "no frame from the recording"; return g; }
         found = find(null);
         g.frame = [VW, VH]; g.markers = found.map(function (f) { return f ? f.map(function (q) { return Math.round(q); }) : null; });
-        if (!found[0] || !found[1] || !found[2]) { g.error = "page not found in the recording (pick this window or the whole screen)"; return g; }
-        /* the three squares must sit on a rectangle with the window's proportions, or something else matched */
-        var wx = found[1][0] - found[0][0], hy = found[2][1] - found[0][1], ex = mpos[1][0] - mpos[0][0], ey = mpos[2][1] - mpos[0][1];
-        if (wx <= 0 || hy <= 0 || Math.abs(found[1][1] - found[0][1]) > 0.03 * hy || Math.abs(found[2][0] - found[0][0]) > 0.03 * wx || Math.abs((wx / hy) / (ex / ey) - 1) > 0.06) { g.error = "corner squares did not line up (something on screen matched their colour)"; return g; }
-        var ax = (found[1][0] - found[0][0]) / (mpos[1][0] - mpos[0][0]), bx = found[0][0] - ax * mpos[0][0];
-        var ay = (found[2][1] - found[0][1]) / (mpos[2][1] - mpos[0][1]), by = found[0][1] - ay * mpos[0][1];
+        if (!found[0] || !found[2]) { g.error = "page not found in the recording (pick this window or the whole screen)"; return g; }
+        /* one scale from the two LEFT squares (screen pixels are square), offsets from the top-left one. The
+           right-hand squares are only a check: on Jack's PC something red near the window's top-right
+           corner (report #26) was taken for one of them and skewed the mapping by 0.6%. */
+        var ey = mpos[2][1] - mpos[0][1], sc = (found[2][1] - found[0][1]) / ey;
+        if (!(sc > 0.2 && sc < 6) || Math.abs(found[2][0] - found[0][0]) > 0.02 * (found[2][1] - found[0][1])) { g.error = "corner squares did not line up (something on screen matched their colour)"; return g; }
+        var ax = sc, bx = found[0][0] - sc * mpos[0][0], ay = sc, by = found[0][1] - sc * mpos[0][1];
+        g.rightCheck = [1, 3].map(function (i) { var f = found[i]; if (!f) return null; return Math.round(Math.hypot(f[0] - (ax * mpos[i][0] + bx), f[1] - (ay * mpos[i][1] + by))); });
         g.map = [ax, bx, ay, by].map(function (q) { return Math.round(q * 1000) / 1000; });
         /* the rim canvas, read through a copy */
         var W = cv.width, H = cv.height, tc = document.createElement("canvas"); tc.width = W; tc.height = H;
@@ -677,6 +680,34 @@
       return o;
     });
   }
+  /* on-screen A/B: one change at a time to the featured card, a grab with it, then put back. Tells which
+     part of the card's on-screen composition makes a machine drop the rim's right / bottom. */
+  function variants() {
+    var el = featured(), edge = el && el.querySelector(".cedge"), cv = edge && window.RPBubble && RPBubble.canvasOf ? RPBubble.canvasOf(edge) : null;
+    if (!cv) return Promise.resolve({ _line: "not possible here" });
+    if (!scVideo) return Promise.resolve({ _line: "skipped (no screen check)" });
+    var body = el.querySelector(".cbody"), bub = el.querySelector(".cbub");
+    var list = [
+      ["as shipped", function () {}, function () {}],
+      ["rounded corners on the rim canvas (the old way)", function () { cv.style.borderRadius = "inherit"; }, function () { cv.style.borderRadius = "0"; }],
+      ["rim canvas on its own layer", function () { cv.style.willChange = "transform"; }, function () { cv.style.willChange = ""; }],
+      ["card not bobbing", function () { if (body) body.style.animation = "none"; }, function () { if (body) body.style.animation = ""; }],
+      ["picture without paint containment", function () { if (bub) bub.style.contain = "none"; }, function () { if (bub) bub.style.contain = ""; }]
+    ];
+    var o = { results: [] };
+    return list.reduce(function (p, v) {
+      return p.then(function () {
+        v[1](); if (window.RPBubble) RPBubble.redraw();
+        return wait(700).then(function () { return grab(v[0]); }).then(function (g) {
+          var sd = g && g.sides; o.results.push([v[0], sd ? [sd.top.pct, sd.right.pct, sd.bottom.pct, sd.left.pct] : (g && g.error)]);
+          v[2](); return wait(300);
+        });
+      });
+    }, Promise.resolve()).then(function () {
+      o._line = o.results.map(function (r) { return r[0] + ": " + (Array.isArray(r[1]) ? r[1].join("/") : r[1]); }).join(" | ");
+      return o;
+    });
+  }
   function stopScreen() { try { if (scStream) scStream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {} scVideo = null; }
 
   /* ---------- send ---------- */
@@ -704,6 +735,11 @@
         lines[lines.length - 1] = "REPORT SENT: #" + id;
         say("Done. Tell Claude the report number: #" + id);
         box.style.background = "rgba(0,40,10,.94)";
+        /* impossible to miss: a big notice in the middle of the screen */
+        var big = document.createElement("div");
+        big.style.cssText = "position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;background:#0b3d1a;color:#fff;font:800 28px/1.3 system-ui,sans-serif;padding:28px 36px;border-radius:16px;box-shadow:0 10px 60px rgba(0,0,0,.6);text-align:center;pointer-events:none";
+        big.textContent = "Test finished. Report #" + id + " was sent.";
+        document.documentElement.appendChild(big);
       })
       .catch(function (e) {
         lines[lines.length - 1] = "sending failed (" + e.message + ")";
@@ -731,6 +767,7 @@
       .then(function () { return step(6, "carousel, 4 moves", function () { return moves(4, ""); }); })
       .then(function () { return step(7, "carousel with the old screen-sized WebGL canvas", atlasAB); })
       .then(function () { return step("7b", "canvas resize test (on screen)", resizeTest); })
+      .then(function () { return step("7c", "what fixes the card on screen (A/B)", variants); })
       .then(function () { return step(8, "scrolling", scrolling); })
       .then(function () { return step(9, "projects page", projects); })
       .then(function () { return step(10, "open and close a film", film); })

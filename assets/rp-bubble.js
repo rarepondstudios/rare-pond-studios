@@ -280,7 +280,7 @@
      (Jack, 2026-10-26). Every bubble now gets the same 1.25 device px per CSS px; glow layers, which
      are blurred by CSS anyway, render at half that. */
   var FPS = 24, MAXPX = 1600, DPR_CAP = 1.25;
-  var CODE_VER = "20261027n";
+  var CODE_VER = "20261027o";
 
   /* ===== EFFECT TIERS (2026-10-27, Jack: "safety measures and automatic backup versions of the website
      that it can cleanly fall back to if a computer can't handle it ... when future updates are made, it
@@ -1060,8 +1060,15 @@
     var bleed = (opts.glow || opts.splash) ? (opts.bleed != null ? opts.bleed : (opts.splash ? 64 : 24)) : 0;
     /* starts transparent and fades in on its first frame (no rim popping in when a page loads or a view
        switches) */
-    cv.style.cssText = "position:absolute;inset:" + (-bleed) + "px;width:calc(100% + " + 2 * bleed + "px);height:calc(100% + " + 2 * bleed + "px);display:block;pointer-events:none;border-radius:inherit;opacity:0;transition:opacity .45s ease";
-    if (opts.splash) cv.style.borderRadius = "0";   /* the outer rings must not be cut by a rounded canvas */
+    cv.style.cssText = "position:absolute;inset:" + (-bleed) + "px;width:calc(100% + " + 2 * bleed + "px);height:calc(100% + " + 2 * bleed + "px);display:block;pointer-events:none;border-radius:0;opacity:0;transition:opacity .45s ease";
+    /* NO ROUNDED CORNERS ON THE CANVAS (2026-10-27, ?perf=1 reports #25 / #26, Jack's Windows PC, Firefox
+       158). The screen check recorded his screen: the featured card's rim was on screen along the top and
+       left (100% of the test points) and MISSING along the right and bottom (0%), at load, at rest, after
+       every carousel move and before / after a forced canvas resize, while the same canvas read back
+       complete. The canvas inherited the card's elliptical corners (13% / 20%), and the round bubbles,
+       which never broke there, have square canvases (their clipping parent is the edge). The shader
+       already draws the bubble's own corners (transparent outside the shape, measured), so the CSS
+       corner on the canvas was only ever a second, redundant cut, and on that machine a wrong one. */
     el.appendChild(cv);
     el.classList.add("rp-bubble-on");
     it = {
