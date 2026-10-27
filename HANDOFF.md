@@ -39,6 +39,29 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-123 DEPTH ZOOM: CONNECTED LAYERS, FEATHERED REVEAL, LOGO FADE, LOOK FADES AFTER A CLOSE (2026-10-26)
+
+- Jack: when the planes separate you could see the gaps between them; layers should continue so they always
+  read as connected, which also lets the page hand-over hide over a larger space. The logo should fade out
+  without changing size and fade back in at the end. On a phone, leaving a film snapped from the project's
+  colour look back to signature; it must fade (desktop: to whatever look applies under the cursor; touch:
+  land in the project look, then fade to signature).
+- `FSZ` (rp-bubble.js): bands 2 and 3 now continue OUTWARD to the rim's outer edge (their cut is the
+  foreground plane's exterior cutter, `cut1`), so uncovered areas are always band, never gap.
+- Reveal: besides the clip at the middle of the rim, the film is MASKED with a feather from the backdrop
+  band's inner edge (fully there) to the rim middle (gone): onFrame `reveal {cx, cy, inn, out}` from
+  `contour()` / `covers()`. Round bubbles: one radial-gradient; rounded card: two linear fades intersected.
+- Logo / dive-in pill (`uFront(els,'hide'|'off'|'show')`): opacity only, no scale; fades out as the flight
+  leaves, stays hidden under the film, fades in (.45 s) only after the way back has landed.
+- Colour look: the flight is in the film's look BOTH ways on every device. index.html puts `.rp-zsel` on
+  the bubble (applied instantly, its canvas is hidden for the flight) so the flight reads the finished look;
+  `.rp-zsel` mirrors the hover look / deep bands / rainbow. On landing, rp-bubble repaints the bubble at once
+  in the landing colours (`zoomStop`), then `.rp-zsel` comes off and the CSS transition fades it to what it
+  should show. Verified by sampling the rim canvas per frame: lands in the look, fades to signature over
+  ~400 ms, no jump.
+- `P.zres` 0.6: the flight renders at 0.6 of the bubble pixel density (the bands now cover most of the
+  screen). Stress script also checks no `.rp-zsel` is left behind.
+
 ### 0.0.-122 DEPTH ZOOM POLISH + PHONE PERFORMANCE + AMBIENT BUBBLE DENSITY (2026-10-26)
 
 - Jack (screen recording from his iPhone): laggy on mobile, the look was off (the bubble turned into a black
