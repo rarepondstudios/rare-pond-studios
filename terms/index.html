@@ -13,8 +13,12 @@
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <link rel="stylesheet" href="/assets/chrome.css?v=4be183eb31">
 <link rel="stylesheet" href="/assets/legal.css?v=0aa226150a">
+<!-- load cover: ENTERING THE WATER (assets/rp-water.js, 2026-10-27); this page's sky is its dark-blue header -->
+<style>#pageveil{position:fixed;inset:0;z-index:2147483000;background:#0b2545;pointer-events:none}#pageveil.pv-gone{display:none}</style>
+<script src="/assets/rp-water.js?v=e1c09dee42"></script>
 </head>
 <body>
+<div id="pageveil" aria-hidden="true"></div>
 <div class="lg-caustics" aria-hidden="true"></div>
 <div class="lg-caustics-top" aria-hidden="true"></div>
 
@@ -46,6 +50,8 @@
 
 <script src="/assets/socials.js?v=691174df7f"></script><script src="/assets/hat.js?v=9676a66ba0" defer></script>
 <script src="/assets/legal-render.js?v=396c71fcd5"></script>
+<script>/* the cover lifts once the policy text is drawn (legal-render.js) and the header logo is decoded */
+if(window.RPWater)RPWater.page({sky:'#0b2545',ready:function(){var m=document.querySelector('.lg-main h2, .lg-main p');var l=document.querySelector('.lg-logo img');return !!m&&(!l||l.complete);}});</script>
 <script>
 (function () {
   var esc = function (s) {

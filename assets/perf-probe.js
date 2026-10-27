@@ -154,7 +154,7 @@
     String(doc).replace(/["']((?:\/|\.\.\/)?(?:[A-Za-z0-9_\-]+\/)*assets\/[A-Za-z0-9_.\-\/]+\.(?:js|css))(?:\?v=([0-9A-Za-z]+))?["']/g, function (m, p, v) { o[p] = v || ""; return m; });
     return o;
   }
-  var BUB = "/assets/" + "rp-bubble.js";   /* built, so the version stamper (tools/stamp-rentals-assets.py) leaves it alone */
+  var BUB = "/assets/" + "rp-bubble.js";   /* built, so the version stamper (tools/stamp-assets.py) leaves it alone */
   function freshness() {
     var mine = {};
     Array.prototype.forEach.call(document.querySelectorAll("script[src],link[rel=stylesheet][href]"), function (e) {

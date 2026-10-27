@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Give every page's own scripts and stylesheets a version that changes whenever the file changes.
 
-(2026-10-25, rentals only; 2026-10-27 every page and every shared asset. The file name is kept because the
-global pre-commit hook calls it by this name.)
+SHARED TOOL: master bts-automation/stamp_assets.py, published to tools/stamp-assets.py in rp_site_work AND
+jackcarlsen-website by social_ui_sync.py (2026-10-27; it began as rp_site_work's tools/stamp-rentals-assets.py
+on 2026-10-25). Edit the master, not a copy.
 
-WHY: Cloudflare tells browsers to keep .js and .css for 4 hours (the rarepond.com zone's Browser Cache TTL
-overrides the max-age=0 Cloudflare Pages sends, so _headers cannot fix it). After a deploy a returning visitor
-kept the OLD script until its ?v= changed: new tab icons "missing" (2026-10-25), and on 2026-10-27 Jack could not
-be sure his other computers were running the latest bubble code. Every reference like
+WHY: Cloudflare tells browsers to keep .js and .css for 4 hours (the rarepond.com and jackcarlsen.com zones'
+Browser Cache TTL overrides the max-age=0 Cloudflare Pages sends, so _headers cannot fix it). After a deploy a
+returning visitor kept the OLD script until its ?v= changed: new tab icons "missing" (2026-10-25), and on
+2026-10-27 Jack could not be sure his other computers were running the latest bubble code. Every reference like
     "/assets/chrome.css"   "/assets/rp-bubble.js?v=..."   "assets/app.js?v=..." (relative to the page)
 in a tracked .html page (and in a tracked .js file that loads another asset, e.g. contact.js -> contact.css)
 gets ?v=<first 10 characters of the file's SHA-1>. Every change gets a fresh URL, an unchanged file stays cached.
@@ -16,7 +17,7 @@ Fonts (/assets/fonts/, cached as immutable under their own file names) and a fil
 
 Run by the pre-commit hook (bts-automation/hooks/pre-commit, global core.hooksPath) on every commit that stages an
 .html, .js or .css file, by people and by the scheduled jobs alike, using the STAGED copy of each file; also safe to
-run by hand: python3 tools/stamp-rentals-assets.py   Nobody edits v= by hand any more.
+run by hand: python3 tools/stamp-assets.py   Nobody edits v= by hand any more.
 Exit 0 always; prints what it changed."""
 import hashlib, os, posixpath, re, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -99,4 +100,4 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except Exception as e:   # never block a commit
-        print("stamp-rentals-assets: " + str(e)); sys.exit(0)
+        print("stamp-assets: " + str(e)); sys.exit(0)

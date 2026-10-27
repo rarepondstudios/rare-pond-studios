@@ -707,7 +707,7 @@ copy of the site, so a tier is a different way of drawing the SAME page and anyt
 Cloudflare's zone setting makes browsers keep `.js` / `.css` for 4 hours (it overrides the
 `max-age=0` that Pages sends, so `_headers` cannot change it; HTML and `/data/*.json` do revalidate
 every load). So every reference to a local script or stylesheet in every tracked page carries
-`?v=<first 10 hex of its SHA-1>`, set by `tools/stamp-rentals-assets.py` from the global pre-commit
+`?v=<first 10 hex of its SHA-1>`, set by `tools/stamp-assets.py` from the global pre-commit
 hook (`bts-automation/hooks/pre-commit`) on any commit that stages an `.html`, `.js` or `.css` file.
 A changed file gets a new URL on the next page load everywhere; unchanged files stay cached. Never
 edit `?v=` by hand. Fonts (`/assets/fonts/`, immutable) are skipped; scripts that load another asset
@@ -891,7 +891,7 @@ merged), Sound 4 `green` #34A853, Effects 5 `lightblue` #4FC3F7 (special effects
 - **Script versions:** rentals/index.html loads `assets/app.js?v=`, `availability.js?v=`, `styles.css?v=`. Cloudflare
   tells browsers to keep those files 4 hours, so the `v=` must change whenever a file changes. The pre-commit hook
   (`bts-automation/hooks/pre-commit`, global `core.hooksPath`) sets each `v=` to the file's content hash in the commit
-  (`tools/stamp-rentals-assets.py`). Nobody edits `v=` by hand any more.
+  (`tools/stamp-assets.py`). Nobody edits `v=` by hand any more.
 - **Built-in catalog:** the page paints the `let RENTALS=[...]` list at the top of app.js at once and swaps in the live
   catalog a moment later. `tools/refresh-rentals-snapshot.mjs` rebuilds that list from the live database with the
   page's own code; launchd `com.rarepond.rentalssnapshot` runs it hourly (`bts-automation/rentals_snapshot_sync.py`,

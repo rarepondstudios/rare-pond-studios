@@ -1,4 +1,4 @@
-/* Directional gradient wipe between Studio <-> Rentals / Media (cross-document).
+/* Directional three-tier band sweep (was: a gradient panel with speed lines) between Studio <-> Rentals / Media (cross-document).
    A signature-gradient panel sweeps across the screen in ONE continuous direction that
    spans the page load: the source page slides it IN to cover, the destination page slides
    it the rest of the way OUT to reveal. Direction is carried across the navigation in
@@ -12,49 +12,15 @@
   var docEl = document.documentElement;
   function panel(){ return document.getElementById('xwipe'); }
 
-  /* ---------- SPEED LINES (injected; no per-page markup) ----------
-     Thin parallel streaks INSIDE the wipe panel that drift along the sweep direction a
-     little faster than the panel itself - a subtle velocity cue. Seamlessness contract:
-     the lines exist ONLY while the panel is actually sliding, and their opacity keyframes
-     start AND end at 0. At the cross-document handoff the panel is at rest (fully
-     covering) with lines at opacity 0 on both sides, so the cut stays invisible and no
-     cross-page animation-phase sync is needed. They inherit #xwipe's edge mask, so
-     streaks feather out with the panel's soft edges. Hidden under reduced-motion. */
-  function linesCss(){
-    if(document.getElementById('xw-lines-css')) return;
-    var s=document.createElement('style'); s.id='xw-lines-css';
-    s.textContent=
-      '.xw-lines{position:absolute;top:0;bottom:0;left:-400px;right:-400px;opacity:0;pointer-events:none;'+
-      'background-image:'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.75) 14%,rgba(255,255,255,.75) 27%,rgba(255,255,255,0) 38%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 31%,rgba(255,255,255,.5) 47%,rgba(255,255,255,.5) 62%,rgba(255,255,255,0) 75%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 12%,rgba(255,255,255,.7) 24%,rgba(255,255,255,.7) 39%,rgba(255,255,255,0) 49%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 55%,rgba(255,255,255,.45) 67%,rgba(255,255,255,.45) 78%,rgba(255,255,255,0) 90%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 3%,rgba(255,255,255,.65) 17%,rgba(255,255,255,.65) 29%,rgba(255,255,255,0) 41%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 42%,rgba(255,255,255,.5) 55%,rgba(255,255,255,.5) 68%,rgba(255,255,255,0) 79%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 20%,rgba(255,255,255,.7) 33%,rgba(255,255,255,.7) 49%,rgba(255,255,255,0) 60%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 63%,rgba(255,255,255,.45) 74%,rgba(255,255,255,.45) 84%,rgba(255,255,255,0) 94%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 8%,rgba(255,255,255,.6) 19%,rgba(255,255,255,.6) 28%,rgba(255,255,255,0) 37%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 47%,rgba(255,255,255,.4) 58%,rgba(255,255,255,.4) 71%,rgba(255,255,255,0) 83%),'+
-      'linear-gradient(90deg,rgba(255,255,255,0) 27%,rgba(255,255,255,.55) 40%,rgba(255,255,255,.55) 52%,rgba(255,255,255,0) 63%);'+
-      'background-size:1187px 4px,911px 3px,1409px 4px,769px 3px,1063px 3px,857px 3px,1301px 4px,701px 2px,997px 3px,1151px 2px,821px 4px;'+
-      'background-position:83px 6%,461px 15%,-127px 21%,293px 33%,139px 41%,547px 47%,-211px 59%,373px 64%,29px 74%,613px 83%,-73px 92%;'+
-      'background-repeat:repeat-x;will-change:transform,opacity}'+
-      '@keyframes xw-lines-l{from{transform:translateX(320px)}to{transform:translateX(-320px)}}'+
-      '@keyframes xw-lines-r{from{transform:translateX(-320px)}to{transform:translateX(320px)}}'+
-      '@keyframes xw-lines-fade{0%{opacity:0}30%{opacity:.7}70%{opacity:.7}100%{opacity:0}}'+
-      '@media (prefers-reduced-motion:reduce){.xw-lines{display:none!important}}';
-    document.head.appendChild(s);
-  }
-  linesCss();
-  function runLines(w,dir,ms){
-    if(RM||!w) return;
-    var el=w.querySelector('.xw-lines');
-    if(!el){ el=document.createElement('div'); el.className='xw-lines'; el.setAttribute('aria-hidden','true'); w.appendChild(el); }
-    el.style.animation='none'; void el.offsetWidth;   /* restart cleanly on rapid hops */
-    el.style.animation='xw-lines-'+(dir==='L'?'l':'r')+' '+ms+'ms linear both, xw-lines-fade '+ms+'ms ease both';
-  }
-  function clearAll(w){ docEl.classList.remove('xw-active','xw-cover'); if(w){ w.style.display='none'; w.style.transition=''; w.style.transform=''; var ln=w.querySelector('.xw-lines'); if(ln) ln.style.animation=''; } }
+  /* THREE-TIER BANDS (2026-10-27, Jack: "remove the motion lines ... replace them with the three tier
+     opacity look"): the panel is drawn by assets/rp-water.js (RPWater.sweep): the 25% band leads, the 50%
+     band follows, the solid band covers, with parallax and the bubble rim's wobbling edges; the next page
+     carries the motion on (solid band moves off, the 50% and 25% bands trail it). Fully covered, the
+     canvas shows exactly the panel's own CSS gradient, so the hand-over between the pages stays seamless.
+     Without RPWater (or canvas) the panel slides as before. */
+  var SW = null;
+  function canSweep(){ return !!(window.RPWater && RPWater.ok); }
+  function clearAll(w){ docEl.classList.remove('xw-active','xw-cover'); if(SW){ try{SW.stop();}catch(e){} SW=null; } if(w){ w.style.display='none'; w.style.transition=''; w.style.transform=''; w.style.background=''; } }
 
   /* ---------- DESTINATION: finish the sweep (slide the covering panel off-screen) ---------- */
   (function reveal(){
@@ -69,12 +35,16 @@
     function slide(){
       if(slid)return; slid=true;                 // run once: the load-ready path AND the safety timer both call this
       docEl.classList.add('xw-active'); docEl.classList.remove('xw-cover');
+      if(window.__resetThemeColor) window.__resetThemeColor(600);
+      var fin=function(){ clearAll(w); };
+      if(canSweep()){
+        SW = RPWater.sweep(w,{dir:dir,phase:'out',ms:700,done:fin});
+        setTimeout(fin,1500);
+        return;
+      }
       w.style.transition='none'; w.style.transform='translateX(0)'; void w.offsetWidth;
       w.style.transition='transform .6s cubic-bezier(.65,0,.35,1)';
       w.style.transform='translateX('+outX+')';
-      runLines(w,dir,600);
-      if(window.__resetThemeColor) window.__resetThemeColor(600);
-      var fin=function(){ clearAll(w); };
       w.addEventListener('transitionend',function h(e){ if(e.propertyName!=='transform')return; w.removeEventListener('transitionend',h); fin(); });
       setTimeout(fin,1000);
     }
@@ -104,11 +74,16 @@
     if(window.__setThemeColor) window.__setThemeColor('#3f6bff');
     var startX = (dir==='L') ? '100%' : '-100%';            // L enters from the right, R from the left
     docEl.classList.add('xw-active');
-    w.style.display='block'; w.style.transition='none'; w.style.transform='translateX('+startX+')'; void w.offsetWidth;
+    var did=false, go=function(){ if(did)return; did=true; location.href=url.href; };
+    w.style.display='block';
+    if(canSweep()){
+      SW = RPWater.sweep(w,{dir:dir,phase:'in',ms:600,done:go});
+      setTimeout(go,900);
+      return;
+    }
+    w.style.transition='none'; w.style.transform='translateX('+startX+')'; void w.offsetWidth;
     w.style.transition='transform .5s cubic-bezier(.65,0,.35,1)';
     w.style.transform='translateX(0)';
-    runLines(w,dir,500);
-    var did=false, go=function(){ if(did)return; did=true; location.href=url.href; };
     w.addEventListener('transitionend',function h(e){ if(e.propertyName!=='transform')return; w.removeEventListener('transitionend',h); go(); });
     setTimeout(go,560);
   }, true);

@@ -9,6 +9,7 @@
 <!-- theme-color controller (shared pattern): lets the wipe tint the mobile browser chrome -->
 <script>(function(){var BASE="#06122b";function meta(){var m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement('meta');m.setAttribute('name','theme-color');document.head.appendChild(m);}return m;}meta().setAttribute('content',BASE);var t=null;window.__setThemeColor=function(c){try{clearTimeout(t);t=null;meta().setAttribute('content',c||BASE);}catch(e){}};window.__resetThemeColor=function(d){try{clearTimeout(t);t=setTimeout(function(){meta().setAttribute('content',BASE);t=null;},d||0);}catch(e){}};})();</script>
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
+<script src="/assets/rp-water.js?v=e1c09dee42"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="/media/site/favicon-32.png">
 <link rel="apple-touch-icon" href="/media/site/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/chrome.css?v=4be183eb31">
@@ -164,10 +165,10 @@ main{position:relative;z-index:2}
 .mfoot .tag,.mfoot .fsoc,.mfoot .flinks,.mfoot .copy{position:relative;z-index:1}
 .mfoot .copy{margin-top:12px}
 /* directional wipe panel (shared engine: /assets/xwipe.js) */
-#xwipe{position:fixed;top:0;bottom:0;left:-20vw;width:140vw;z-index:2147483600;background:linear-gradient(90deg,#56c8ff 0%,#3f6bff 50%,#9b5cff 100%);-webkit-mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);transform:translateX(0);pointer-events:none;will-change:transform;display:none}
+#xwipe{position:fixed;top:0;bottom:0;left:0;width:100vw;z-index:2147483600;background:linear-gradient(90deg,#56c8ff 0%,#3f6bff 50%,#9b5cff 100%);pointer-events:none;display:none}
 html.xw-cover #xwipe,html.xw-active #xwipe{display:block}
 html.xw-active{overflow:hidden}
-#pageveil{position:fixed;inset:0;z-index:2147483000;background:var(--sig);pointer-events:none;opacity:1}
+#pageveil{position:fixed;inset:0;z-index:2147483000;background:#0b2545;pointer-events:none;opacity:1}
 #pageveil.pv-hide{opacity:0;transition:opacity .55s ease}
 #pageveil.pv-gone{display:none}
 @media (prefers-reduced-motion:reduce){#xwipe{display:none!important}#pageveil.pv-hide{transition:none}}
@@ -339,7 +340,7 @@ html.xw-active{overflow:hidden}
   }).catch(function(){});
 })();
 </script>
-<script src="/assets/xwipe.js?v=44ab7d1289" defer></script>
+<script src="/assets/xwipe.js?v=b1002b4345" defer></script>
 <script src="/assets/xnav.js?v=af1a5e39de" defer></script>
 <script src="/assets/contact.js?v=1b38fb002d" defer></script>
 <script src="/assets/social_ui.js?v=1da69add3f" defer></script><script src="/assets/cursor.js?v=9a7b77bd62" defer></script>
@@ -392,8 +393,11 @@ html.xw-active{overflow:hidden}
 <script>
 /* page-load veil: masks first-load image pop-in; self-removing, never blocks interaction */
 (function(){var v=document.getElementById('pageveil');if(!v)return;var done=false;
+  /* ENTERING THE WATER (assets/rp-water.js, 2026-10-27): this page's sky is its dark-blue header */
+  var W=window.RPWater,ctl=(W&&W.ok)?W.veil(v,{sky:'#0b2545'}):null;
+  var peekT=setTimeout(function(){if(ctl&&!done)ctl.peek();},450);
   function gone(){v.classList.add('pv-gone');}
-  function hide(){if(done)return;done=true;v.classList.add('pv-hide');var t=setTimeout(gone,900);v.addEventListener('transitionend',function(){clearTimeout(t);gone();},{once:true});}
+  function hide(){if(done)return;done=true;clearTimeout(peekT);if(ctl){ctl.reveal();return;}v.classList.add('pv-hide');var t=setTimeout(gone,900);v.addEventListener('transitionend',function(){clearTimeout(t);gone();},{once:true});}
   var fonts=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
   var loaded=new Promise(function(r){document.readyState==='complete'?r():addEventListener('load',r,{once:true});});
   Promise.all([fonts,loaded]).then(function(){requestAnimationFrame(function(){requestAnimationFrame(hide);});});

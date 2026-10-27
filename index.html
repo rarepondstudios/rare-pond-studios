@@ -61,7 +61,7 @@
 <link rel="icon" type="image/png" sizes="48x48" href="/media/site/favicon-48.png">
 <link rel="apple-touch-icon" href="/media/site/apple-touch-icon.png">
 <!-- Production error beacon. Loads FIRST so it is watching before any other script parses. -->
-<script src="/assets/error-beacon.js?v=1e27fe5588"></script><script>/* ?perf=1 loads the performance probe (assets/perf-probe.js); nothing for normal visitors */if(/[?&]perf=1\b/.test(location.search)){var __pp=document.createElement("script");__pp.src="/assets/perf-probe.js?v=0d7b1d8a97";__pp.defer=true;document.head.appendChild(__pp);}</script>
+<script src="/assets/error-beacon.js?v=1e27fe5588"></script><script>/* ?perf=1 loads the performance probe (assets/perf-probe.js); nothing for normal visitors */if(/[?&]perf=1\b/.test(location.search)){var __pp=document.createElement("script");__pp.src="/assets/perf-probe.js?v=0209c5c7c0";__pp.defer=true;document.head.appendChild(__pp);}</script>
 <!-- Reserves the event banner's space before the first paint, so the page does not jump
      down when the banner arrives. Must stay here, in <head>, with no defer/async. -->
 <script src="/assets/banner-reserve.js?v=c666a94c98"></script>
@@ -75,17 +75,20 @@
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 </script>
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
+<script src="/assets/rp-water.js?v=e1c09dee42"></script>
 <style>
 /* page-load veil - masks first-load asset pop-in; self-removing, never blocks interaction.
-   Colour = a colour-look (data/site.json -> veil.colorLook) muted onto a dark base. */
-#pageveil{position:fixed;inset:0;z-index:2147483000;background:radial-gradient(circle at 50% 42%,#56c8ff,#3f6bff 46%,#9b5cff 100%);pointer-events:none;opacity:1}
+   ENTERING THE WATER (2026-10-27, assets/rp-water.js): it starts white like the header, holds while the
+   page loads, then a three-tier waterline rises over the screen and the page is there beneath it. The
+   water's colours = a colour-look (data/site.json -> veil.colorLook). */
+#pageveil{position:fixed;inset:0;z-index:2147483000;background:#ffffff;pointer-events:none;opacity:1}
 #pageveil.pv-hide{opacity:0;transition:opacity .55s ease}
 #pageveil.pv-gone{display:none}
 @keyframes pvRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .view.pv-rise{animation:pvRise .6s cubic-bezier(.2,.7,.2,1) both}
 @media (prefers-reduced-motion:reduce){#pageveil.pv-hide{transition:none}.view.pv-rise{animation:none}}
 /* Directional gradient wipe (Studio <-> Rentals / Media). Signature gradient panel; slides across the page-load boundary. */
-#xwipe{position:fixed;top:0;bottom:0;left:-20vw;width:140vw;z-index:2147483600;background:linear-gradient(90deg,#56c8ff 0%,#3f6bff 50%,#9b5cff 100%);-webkit-mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);mask:linear-gradient(90deg,transparent 0,#000 14.3%,#000 85.7%,transparent 100%);transform:translateX(0);pointer-events:none;will-change:transform;display:none}
+#xwipe{position:fixed;top:0;bottom:0;left:0;width:100vw;z-index:2147483600;background:linear-gradient(90deg,#56c8ff 0%,#3f6bff 50%,#9b5cff 100%);pointer-events:none;display:none}
 html.xw-cover #xwipe,html.xw-active #xwipe{display:block}
 html.xw-active{overflow:hidden}
 @media (prefers-reduced-motion:reduce){#xwipe{display:none!important}}
@@ -1359,10 +1362,19 @@ html.xw-active{overflow:hidden}
     var v=document.getElementById('pageveil');
     if(!v){window.__revealPage=function(){};return;}
     var done=false;
+    /* ENTERING THE WATER (assets/rp-water.js): white holds while the page loads; a slow load shows the
+       waterline coming up at the bottom (after 450 ms, so a fast load never flickers it); when ready the
+       water rises over the screen. Without canvas / with reduced motion: the old plain fade. */
+    var W=window.RPWater, ctl=(W&&W.ok)?W.veil(v,{sky:'#ffffff'}):null;
+    window.__veilCtl=ctl;
+    if(window.__setThemeColor)window.__setThemeColor('#ffffff');
+    var peekT=setTimeout(function(){if(ctl&&!done)ctl.peek();},450);
     function gone(){v.classList.add('pv-gone');}
     function rise(){ try{var vs=document.querySelectorAll('.view');for(var i=0;i<vs.length;i++){if(getComputedStyle(vs[i]).display!=='none')vs[i].classList.add('pv-rise');}}catch(e){} }
-    function hide(){ if(done)return; done=true; window.__revealedAt=performance.now(); rise(); v.classList.add('pv-hide');
+    function hide(){ if(done)return; done=true; clearTimeout(peekT); window.__revealedAt=performance.now(); rise();
       if(window.__resetThemeColor)window.__resetThemeColor(0);   // veil lifting -> chrome back to dark
+      if(ctl){ctl.reveal();return;}
+      v.classList.add('pv-hide');
       var t=setTimeout(gone,900);
       v.addEventListener('transitionend',function(){clearTimeout(t);gone();},{once:true});
     }
@@ -1397,7 +1409,7 @@ html.xw-active{overflow:hidden}
         var lc=name.toLowerCase(),slug=lc.replace(/[^a-z0-9]+/g,''),look=null;
         for(var i=0;i<list.length;i++){var o=list[i]||{},kk=String(o.key||'').toLowerCase(),nn=String(o.name||'').toLowerCase();
           if(kk===lc||nn===lc||kk.replace(/[^a-z0-9]+/g,'')===slug||nn.replace(/[^a-z0-9]+/g,'')===slug){look=o;break;}}
-        if(look&&look.c1){var st=((cfg.style||'')+'').toLowerCase();v.style.background=st==='full'?fullGrad(look.c1,look.c2,look.c3):mutedGrad(look.c1,look.c2);}
+        if(look&&look.c1){window.__veilLook=look;if(ctl){ctl.setLook(look);return;}var st=((cfg.style||'')+'').toLowerCase();v.style.background=st==='full'?fullGrad(look.c1,look.c2,look.c3):mutedGrad(look.c1,look.c2);}
       });
     }catch(e){}})();
   })();
@@ -1532,7 +1544,7 @@ html.xw-active{overflow:hidden}
     <button class="lb-nav lb-next" type="button" data-kb-dir="1" aria-label="Next article">›</button>
   </div>
 
-<!-- ?v= is the file's content hash, set automatically on every commit (tools/stamp-rentals-assets.py): never edit it by hand -->
+<!-- ?v= is the file's content hash, set automatically on every commit (tools/stamp-assets.py): never edit it by hand -->
 <script src="/assets/rp-bubble.js?v=276d698d85"></script>
 <script>async function __main(){
 
@@ -3679,7 +3691,7 @@ function __pageFade(swap){
   var reduced=(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);
   if(!v||reduced){swap();return;}
   v.classList.remove('pv-gone','pv-hide');
-  if(window.__setThemeColor)window.__setThemeColor('#3f6bff');   // chrome matches the veil while it covers
+  if(window.__setThemeColor)window.__setThemeColor('#ffffff');   // chrome matches the veil while it covers
   v.style.transition='none';v.style.opacity='0';void v.offsetWidth;
   v.style.transition='opacity .18s ease';v.style.opacity='1';
   var did=false;
@@ -3696,6 +3708,8 @@ function __pageFade(swap){
     function startFade(){
       if(started)return;started=true;
       try{__instTop();}catch(e){}                                  // re-assert top: nothing may have scrolled under the cover
+      /* the same water entry as the page load, a little quicker */
+      if(window.RPWater&&RPWater.ok){if(window.__resetThemeColor)window.__resetThemeColor(0);RPWater.veil(v,{sky:'#ffffff',look:window.__veilLook}).reveal(function(){v.style.transition='';v.style.opacity='';},800);return;}
       v.style.transition='opacity .34s ease';v.style.opacity='0';
       if(window.__resetThemeColor)window.__resetThemeColor(340);   // restore chrome as the veil fades out
       var fin=function(){v.classList.add('pv-gone');v.style.transition='';v.style.opacity='';};
@@ -3841,7 +3855,7 @@ __main().catch(e=>console.error("init error",e));</script>
      and only ever touches genuine cross-document links (never data-go / data-page / hash / same-doc). -->
 <script>
 (function(){
-  var VEIL="#3f6bff";
+  var VEIL="#ffffff";   /* the cover is white now: the next page starts white and enters the water */
   function outgoingFade(url){
     var v=document.getElementById('pageveil');
     var reduced=(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);
@@ -3878,7 +3892,7 @@ __main().catch(e=>console.error("init error",e));</script>
 <!-- Shared across rarepond.com + jackcarlsen.com (single source: bts-automation/social_ui.js,
      published by social_ui_sync.py). Contact-bubble hover-glow + social-link transport wipe. -->
 <script src="/assets/social_ui.js?v=1da69add3f" defer></script><script src="/assets/cursor.js?v=9a7b77bd62" defer></script>
-<script src="/assets/xwipe.js?v=44ab7d1289" defer></script>
+<script src="/assets/xwipe.js?v=b1002b4345" defer></script>
 <script src="/assets/xnav.js?v=af1a5e39de" defer></script>
 <script src="/assets/contact.js?v=1b38fb002d" defer></script>
 </body>
