@@ -815,14 +815,13 @@ html.xw-active{overflow:hidden}
   .universe.u-over{z-index:100001}
   /* DEPTH ZOOM into a film (Jack, 2026-10-26). rp-bubble.js flies the camera through the bubble's three
      tiers (rim = foreground, 50% band = mid-ground, 25% band = backdrop) on an overlay canvas and hands
-     back the rim's inner contour every frame; the film is revealed through that opening (inline
-     clip-path), its backdrop pushing in slightly as we pass, and the page copy arrives once all three
-     layers are behind us. Falls back to the circle wipe without WebGL, under reduced motion, and when
+     back an opening cut along the middle of the solid rim every frame (so its edge always hides under
+     the opaque foreground layer); the film is revealed through it (inline clip-path), the bubble's
+     logo crossfades with the film, the film's dark scrim waits until the layers are behind us, and the
+     page copy arrives last. Nothing moves after the flight lands. Falls back to the circle wipe without WebGL, under reduced motion, and when
      the film was opened from something that is not a bubble (the News logo button). */
-  .universe.rp-zoom .u-bg,.universe.rp-zoom .u-vid{transform:scale(var(--uz,1));transform-origin:var(--ox,50%) var(--oy,50%)}
+  .universe.rp-zoom .u-scrim{opacity:var(--usc,1)}
   .universe.rp-zoom.open .u-inner{transition:opacity .6s .8s,transform .6s .8s}
-  .universe.rp-settle .u-bg{transition:transform .9s cubic-bezier(.2,.8,.2,1)}
-  .universe.rp-settle .u-vid{transition:opacity .8s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
   /* ===== PAGE TRANSITIONS (2026-10-26, Jack: pages snapped) =====
      Every in-site page change (nav, footer, buttons, custom pages, Back/Forward, links in News articles)
      goes through __viewSwap(): a View Transition cross-fade of the whole page, the new page rising in
@@ -1496,7 +1495,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026k"></script>
+<script src="/assets/rp-bubble.js?v=20261026m"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -1928,26 +1927,39 @@ function makeGridBubble(p,i){
 PROJECTS.forEach((p,i)=>grid.appendChild(makeGridBubble(p,i)));
 /* ambient bubbles wear one still frame of the V3 bubble in the signature look (see html.rp-bgb-ring CSS) */
 (function(){if(!window.RPBubble||!RPBubble.supported())return;const sg=LOOKS_BY_KEY.signature||{c1:'#3f6bff',c2:'#9b5cff',c3:'#56c8ff'};const url=RPBubble.sprite(sg,256,2.4);if(!url)return;document.documentElement.style.setProperty('--bgb-ring','url('+url+')');document.documentElement.classList.add('rp-bgb-ring');})();
-function makeBgBubbles(host,count,fade){
-  if(!host)return;
-  const c=document.createElement('div');c.className='bg-bubbles'+(fade?' '+fade:'');
-  for(let i=0;i<count;i++){
+/* AMBIENT BUBBLE DENSITY scales with the screen (Jack, 2026-10-26: right on desktop, far too dense
+   on a phone). The CMS count (home.bgBubbleCount) is the count for a 1440x900 desktop; smaller screens
+   get proportionally fewer (by screen area, at least 30%) and smaller (by width, at least half size)
+   bubbles. A resize or rotation that changes the plan noticeably rebuilds every field. */
+const BGB_FIELDS=[];
+function bgbPlan(){const w=innerWidth,h=innerHeight;return{a:Math.min(1,Math.max(.3,(w*h)/(1440*900))),k:Math.min(1,Math.max(.5,w/1280))};}
+let __bgbP=bgbPlan();
+function bgbFill(field,base){
+  field.textContent='';
+  const n=Math.round(base*__bgbP.a),k=__bgbP.k;
+  for(let i=0;i<n;i++){
     const b=document.createElement('div');b.className='bgb';
     const depth=Math.random();
-    const size=Math.round(34+depth*depth*360);
+    const size=Math.round((34+depth*depth*360)*k);
     b.style.width=b.style.height=size+'px';
     b.style.left=(Math.random()*98).toFixed(1)+'%';
     b.style.top=(Math.random()*100).toFixed(1)+'%';
     b.style.setProperty('--peak',(0.12+depth*0.5).toFixed(2));
     b.style.setProperty('--ringop',(0.12+depth*0.20).toFixed(2));
-    b.style.setProperty('--dx',(Math.random()*116-58).toFixed(0)+'px');
+    b.style.setProperty('--dx',((Math.random()*116-58)*k).toFixed(0)+'px');
     b.style.setProperty('--d',(15+Math.random()*22).toFixed(1)+'s');
     b.style.animationDelay=(-Math.random()*42).toFixed(1)+'s';
-    c.appendChild(b);
+    field.appendChild(b);
   }
+}
+function bgbInto(field,count){BGB_FIELDS.push([field,count]);bgbFill(field,count);}
+function makeBgBubbles(host,count,fade){
+  if(!host)return;
+  const c=document.createElement('div');c.className='bg-bubbles'+(fade?' '+fade:'');
+  bgbInto(c,count);
   host.appendChild(c);
 }
-function bgbInto(field,count){for(let i=0;i<count;i++){const b=document.createElement('div');b.className='bgb';const depth=Math.random();const size=Math.round(34+depth*depth*360);b.style.width=b.style.height=size+'px';b.style.left=(Math.random()*98).toFixed(1)+'%';b.style.top=(Math.random()*100).toFixed(1)+'%';b.style.setProperty('--peak',(0.12+depth*0.5).toFixed(2));b.style.setProperty('--ringop',(0.12+depth*0.20).toFixed(2));b.style.setProperty('--dx',(Math.random()*116-58).toFixed(0)+'px');b.style.setProperty('--d',(15+Math.random()*22).toFixed(1)+'s');b.style.animationDelay=(-Math.random()*42).toFixed(1)+'s';field.appendChild(b);}}
+{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{const p=bgbPlan();if(Math.abs(p.a-__bgbP.a)>.12||Math.abs(p.k-__bgbP.k)>.12){__bgbP=p;BGB_FIELDS.forEach(([f,n])=>bgbFill(f,n));}},350);},{passive:true});}
 /* Ambient background bubble count is CMS-driven (Site Settings -> home.bgBubbleCount) so Jack
    can fine-tune density without touching code. Safe fallback = 28. Hard-capped at 60 in code
    to protect rendering perf on weaker devices even if the CMS value is set too high. The
@@ -2731,16 +2743,28 @@ function zoomHost(key){
     const r=el.getBoundingClientRect();
     if(r.width>4&&r.height>4&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth){
       const host=el.closest('.bubble,.citem');
-      return {el,hide:host?[host.querySelector('.glow.rp-bubble-on,.cglow.rp-bubble-on')]:[]};
+      /* front = what sits IN FRONT of the bubble (its logo, the dive-in pill): it crossfades with the
+         film instead of being covered by it, so nothing pops in or out of the layering */
+      return {el,hide:host?[host.querySelector('.glow.rp-bubble-on,.cglow.rp-bubble-on')]:[],
+              front:host?[...host.querySelectorAll(':scope>.bubble-logo,:scope>.clogo,.divehint')]:[]};
     }
   }
   return null;
 }
 function uZoomClear(sec){
   sec.style.removeProperty('clip-path');sec.style.removeProperty('-webkit-clip-path');
-  sec.style.removeProperty('opacity');sec.style.removeProperty('--uz');
+  sec.style.removeProperty('opacity');sec.style.removeProperty('--usc');
   sec.classList.remove('rp-zoom');
 }
+function uFront(els,op){
+  els.forEach(el=>{
+    if(op==null){el.style.removeProperty('opacity');el.style.removeProperty('scale');el.style.removeProperty('transition');return;}
+    el.style.setProperty('transition','none','important');
+    el.style.setProperty('opacity',op.toFixed(3),'important');
+    el.style.scale=(1+.25*(1-op)).toFixed(3);   /* it drifts toward the viewer as it goes */
+  });
+}
+const _ss=(a,b,x)=>{x=Math.min(1,Math.max(0,(x-a)/(b-a)));return x*x*(3-2*x);};
 /* runs the flight; returns false (nothing changed) if it cannot, so the caller uses the circle wipe */
 function uZoom(sec,zh,dir,done){
   const clipOf=c=>{
@@ -2755,10 +2779,14 @@ function uZoom(sec,zh,dir,done){
       const cp=clipOf(f.clip);sec.style.clipPath=cp;sec.style.webkitClipPath=cp;
       /* in: the film fades up over the first moments so the bubble's preview hands over softly;
          out: it fades back into the preview as the rim lands on the bubble */
-      sec.style.opacity=dir==='in'?Math.min(1,f.t/.18).toFixed(3):(f.t>.82?Math.max(0,(1-f.t)/.18):1).toFixed(3);
-      if(dir==='in')sec.style.setProperty('--uz',(1+.08*f.e).toFixed(4));
+      const op=dir==='in'?Math.min(1,f.t/.18):(f.t>.82?Math.max(0,(1-f.t)/.18):1);
+      sec.style.opacity=op.toFixed(3);
+      uFront(zh.front||[],1-op);   /* the logo crossfades with the film, exactly complementary */
+      /* the film's darkening scrim waits until the layers are behind us, so the opening shows the
+         film's world itself (not a dark disc); on the way back it lifts first */
+      sec.style.setProperty('--usc',(dir==='in'?_ss(.55,.95,f.t):1-_ss(0,.3,f.t)).toFixed(3));
     },
-    onDone:()=>{done&&done();}});
+    onDone:()=>{uFront(zh.front||[],null);done&&done();}});
   if(!ok){sec.classList.remove('rp-zoom');sec.style.transition='';}
   return ok;
 }
@@ -2784,7 +2812,7 @@ function openUniverse(key){
      circle at the new origin, force the browser to commit that (offsetWidth), and only then
      hand the transition back - the standard "snap to the start, then animate" move. */
   if(window.RPBubble&&RPBubble.zoomStop)RPBubble.zoomStop();   // a close still flying: drop it, start clean
-  uZoomClear(sec);sec.classList.remove('rp-settle');
+  uZoomClear(sec);
   sec.style.transition='none';
   sec.classList.remove('open','closing','flash','flash-out');
   setOrigin(sec,key);
@@ -2795,9 +2823,8 @@ function openUniverse(key){
 
   const zh=sec._fromEl?null:zoomHost(key);
   if(zh&&uZoom(sec,zh,'in',()=>{
-    /* landed: hand the page back to its normal open state, backdrop settling from the push-in */
-    sec.style.transition='none';uZoomClear(sec);sec.classList.add('rp-settle');void sec.offsetWidth;sec.style.transition='';
-    setTimeout(()=>sec.classList.remove('rp-settle'),1000);
+    /* landed: hand the page back to its normal open state (nothing moves after this point) */
+    sec.style.transition='none';uZoomClear(sec);void sec.offsetWidth;sec.style.transition='';
   })){
     sec.classList.add('open');
   }else{
@@ -2826,7 +2853,7 @@ function closeUniverse(sec){
      place. Now it starts on the bubble and stays there. */
   document.body.classList.remove('locked');
   if(window.RPBubble&&RPBubble.zoomStop)RPBubble.zoomStop();
-  uZoomClear(sec);sec.classList.remove('rp-settle');
+  uZoomClear(sec);
   sec.style.transition='none';
   setOrigin(sec,sec.dataset.key);
   void sec.offsetWidth;

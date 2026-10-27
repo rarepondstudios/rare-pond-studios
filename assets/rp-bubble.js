@@ -471,7 +471,7 @@
       live = true;
       if (!it.drawn || it.trans) pending = true;
     }
-    if ((due || pending) && !paused && gl) {
+    if ((due || pending) && !paused && gl && !zooming) {
       var dt = Math.min(0.1, (now - (lastDraw || now)) / 1000); lastDraw = now;
       if (!reduce) simT += dt * P.speed;
       for (var j = 0; j < items.length; j++) {
@@ -549,17 +549,27 @@
      zoom({el, dir:'in'|'out', ms, hide:[elements], onFrame(info), onDone}) -> true if it runs.
      onFrame gets {t, e, clip}: clip is the rim's INNER contour in viewport px ({cx, cy, hx, hy, r}),
      the opening the next page is revealed through, or null once it has left the screen. */
-  var Z = null, ZD = [1, 1.3, 1.65];
+  var Z = null, ZD = [1, 1.3, 1.65], zooming = false;
   function easeIO(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
   function zoomStop(run) {
     if (!Z) return;
     var z = Z; Z = null;
     cancelAnimationFrame(z.raf);
-    z.cv.remove();
+    glc.remove(); glc.style.cssText = "";
+    zooming = false;
     z.it.cv.style.visibility = "";
     z.hide.forEach(function (h) { h.style.removeProperty("opacity"); });
     z.it.drawn = false; kick();
     if (run && z.o.onDone) z.o.onDone();
+  }
+  /* the host's box right now. Bubbles bob, scale on hover and the page shifts when the scroll lock
+     comes off, so the flight follows the live element every frame; a box measured once at the start
+     left the rim misaligned with the bubble when it landed, and the bubble snapped into place */
+  function hostBox(el, prev) {
+    var r = el.getBoundingClientRect();
+    if (r.width < 4 || r.height < 4) return prev;
+    var S = Math.min(r.width, r.height) / 2;
+    return { S: S, cx: r.left + r.width / 2, cy: r.top + r.height / 2, box: [r.width / 2 / S, r.height / 2 / S] };
   }
   function zoom(o) {
     o = o || {};
@@ -567,30 +577,34 @@
     if (reduce || !o.el || !initGL()) return false;
     try { if (!ensureZ()) return false; } catch (e) { return false; }
     var it = find(o.el); if (!it) return false;
-    var r = o.el.getBoundingClientRect();
-    if (r.width < 4 || r.height < 4) return false;
+    var hb = hostBox(o.el, null);
+    if (!hb) return false;
     readStyle(it);
     var vw = window.innerWidth, vh = window.innerHeight;
-    var S = Math.min(r.width, r.height) / 2, cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    var box = [r.width / 2 / S, r.height / 2 / S], depth = it.depth || 1, deep = it.deep || 0;
+    var depth = it.depth || 1, deep = it.deep || 0;
     /* how far the camera must travel: until the BACKDROP band's inner edge has left the screen */
-    var far = Math.max(Math.hypot(cx, cy), Math.hypot(vw - cx, cy), Math.hypot(cx, vh - cy), Math.hypot(vw - cx, vh - cy));
-    var inner3 = Math.max(0.2, Math.min(box[0], box[1]) - (1 - (0.70 - 0.13 * deep) + 0.14) * depth);
+    function farOf(b) { return Math.max(Math.hypot(b.cx, b.cy), Math.hypot(vw - b.cx, b.cy), Math.hypot(b.cx, vh - b.cy), Math.hypot(vw - b.cx, vh - b.cy)); }
+    var far = farOf(hb);
+    var inner3 = Math.max(0.2, Math.min(hb.box[0], hb.box[1]) - (1 - (0.70 - 0.13 * deep) + 0.14) * depth);
     /* 1.45: overshoot, so the backdrop band is fully off screen well before the flight ends (no pop) */
-    var s3req = Math.max(3, 1.45 * far / (S * inner3));
-    var cEnd = ZD[2] * (1 - 1 / s3req);
+    var cEnd = ZD[2] * (1 - 1 / Math.max(3, 1.45 * far / (hb.S * inner3)));
     /* the way back starts where the backdrop band is just off screen, so there is no dead time
        before the first layer comes back past the viewer */
-    if (o.dir === "out") cEnd = Math.min(cEnd, ZD[2] * (1 - 1 / Math.max(3, 1.08 * far / (S * inner3))));
-    var lip = 0.083 * depth;   // rim thickness in bubble units: its inner contour is the opening
-    var cv = document.createElement("canvas");
-    cv.setAttribute("aria-hidden", "true");
-    cv.style.cssText = "position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:100002;pointer-events:none";
+    if (o.dir === "out") cEnd = Math.min(cEnd, ZD[2] * (1 - 1 / Math.max(3, 1.08 * far / (hb.S * inner3))));
+    /* the opening the next page shows through is cut along the MIDDLE of the solid rim, so its edge
+       is always hidden under the opaque foreground layer (never a visible hard edge) */
+    var lip = 0.042 * depth;
+    /* PERFORMANCE: the flight is drawn straight into the shared WebGL canvas, put on the page as the
+       overlay, instead of being copied into a 2D canvas every frame (that copy is a GPU readback on
+       iOS Safari and was the main cost there). The bubbles behind hold their last frame meanwhile:
+       the film covers them, and their colour drift is far too slow to notice 1.5 s of it. */
     var k = Math.min(window.devicePixelRatio || 1, DPR_CAP) * Q.scale * 0.8;
     var W = Math.max(16, Math.round(vw * k)), H = Math.max(16, Math.round(vh * k));
-    cv.width = W; cv.height = H;
-    document.body.appendChild(cv);
-    var ctx = cv.getContext("2d", { alpha: true });
+    glc.width = W; glc.height = H;
+    glc.setAttribute("aria-hidden", "true");
+    glc.style.cssText = "position:fixed;left:0;top:0;width:" + vw + "px;height:" + vh + "px;z-index:100002;pointer-events:none";
+    document.body.appendChild(glc);
+    zooming = true;
     /* the look is SNAPSHOTTED: once the film covers the bubble its hover look starts fading back to
        the resting colours, and the flight must keep the colours the viewer clicked on */
     var cols = it.cols.slice(), rb = it.rb, pal = it.pal, rad0 = it.rad, seed = it.opts.seed;
@@ -598,7 +612,7 @@
     it.cv.style.visibility = "hidden";
     hide.forEach(function (h) { h.style.setProperty("opacity", "0", "important"); });   /* the halo fades on its own opacity transition */
     var ms = o.ms || 1400, t0 = performance.now(), tBase = simT + seed * 3.7;
-    Z = { o: o, it: it, cv: cv, hide: hide, raf: 0 };
+    Z = { o: o, it: it, hide: hide, raf: 0 };
     var z = Z;
     var first = true;
     function step(now) {
@@ -609,10 +623,11 @@
       var t = Math.min(1, (now - t0) / ms);
       var tt = o.dir === "out" ? 1 - t : t;
       var e = easeIO(tt), c = cEnd * e;
+      hb = hostBox(o.el, hb);
+      var S = hb.S, cx = hb.cx, cy = hb.cy, box = hb.box;
       var s = ZD.map(function (d) { return d - c > 0.02 ? d / (d - c) : 1e4; });
-      if (glc.width < W || glc.height < H) { glc.width = Math.max(glc.width, W); glc.height = Math.max(glc.height, H); }
       gl.useProgram(progZ); params(UZ);
-      gl.viewport(0, glc.height - H, W, H);
+      gl.viewport(0, 0, W, H);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform3fv(UZ.uC1, cols[0]); gl.uniform3fv(UZ.uC2, cols[1]); gl.uniform3fv(UZ.uC3, cols[2]);
       gl.uniform2f(UZ.uBox, box[0], box[1]); gl.uniform1f(UZ.uRad, rad0); gl.uniform1f(UZ.uDepth, depth); gl.uniform1f(UZ.uDeep, deep);
@@ -623,8 +638,6 @@
       gl.uniform2f(UZ.uCen, cx * k, cy * k); gl.uniform2f(UZ.uView, W, H);
       gl.uniform1f(UZ.uSpx, S * k); gl.uniform1f(UZ.uPxz, 1.2 / (S * k));
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      ctx.clearRect(0, 0, W, H);
-      ctx.drawImage(glc, 0, 0, W, H, 0, 0, W, H);
       var clip = null;
       if (s[0] < 1e3) {
         var hx = Math.max(0, box[0] - lip) * S * s[0], hy = Math.max(0, box[1] - lip) * S * s[0];
@@ -634,7 +647,7 @@
         if (Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - rad > -1)
           clip = { cx: cx, cy: cy, hx: hx, hy: hy, r: rad };
       }
-      if (o.onFrame) o.onFrame({ t: t, e: e, clip: clip });
+      if (o.onFrame) o.onFrame({ t: t, e: e, clip: clip, s1: s[0] });
       if (t >= 1) { zoomStop(true); return; }
       z.raf = requestAnimationFrame(step);
     }
