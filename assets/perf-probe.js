@@ -237,7 +237,11 @@
   function alphaProfile(cv) {
     try {
       var W = cv.width, H = cv.height; if (W < 8 || H < 8) return { size: [W, H] };
-      var x = cv.getContext("2d").getImageData(0, 0, W, H).data;
+      /* read a COPY: getImageData on the bubble's own canvas makes Chrome move that canvas off the GPU for
+         good after a few reads, which halved the whole page's frame rate in the first test run */
+      var tmp = document.createElement("canvas"); tmp.width = W; tmp.height = H;
+      var tx = tmp.getContext("2d", { willReadFrequently: true }); tx.drawImage(cv, 0, 0);
+      var x = tx.getImageData(0, 0, W, H).data;
       function A(px, py) { return x[(py * W + px) * 4 + 3]; }
       function C(px, py) { var o = (py * W + px) * 4; return [x[o], x[o + 1], x[o + 2], x[o + 3]]; }
       function band(get, n) {   /* from the edge inwards: first opaque pixel, how many in a row, alpha of the first 24 */

@@ -280,7 +280,7 @@
      (Jack, 2026-10-26). Every bubble now gets the same 1.25 device px per CSS px; glow layers, which
      are blurred by CSS anyway, render at half that. */
   var FPS = 24, MAXPX = 1600, DPR_CAP = 1.25;
-  var CODE_VER = "20261027j";
+  var CODE_VER = "20261027k";
 
   /* ===== EFFECT TIERS (2026-10-27, Jack: "safety measures and automatic backup versions of the website
      that it can cleanly fall back to if a computer can't handle it ... when future updates are made, it
@@ -794,22 +794,62 @@
     }
   }
 
-  /* adaptive quality from the page's own frame pacing */
-  var pace = { t0: 0, n: 0, slow: 0 };
+  /* ===== ADAPTIVE QUALITY from the page's own frame pacing (rewritten 2026-10-27) =====
+     Before: a frame slower than 24 ms counted as slow, and when most were slow the bubbles dropped to
+     55% resolution at 15 fps and, after three such seconds, the device was put in the lite tier and
+     REMEMBERED. The ?perf=1 probe (report #2, Chrome on the mini) showed the flaw: the browser itself
+     went to a steady 30 fps (33.3 ms every frame) in the middle of the run, the bubble engine using about
+     1 ms of each frame, and the code read that as overload: 15 fps choppy rims and a saved lite tier.
+     A steady 30 fps is a frame-rate CAP (Chrome's Energy Saver, macOS Low Power Mode, a 30 Hz screen, a
+     remote desktop, a playing video on some machines), and lowering the bubbles cannot raise it.
+     Now: "slow" is measured against the page's own cadence (a frame clearly longer than the usual one),
+     and when the cadence itself is low the engine TESTS whether it is the cause: it holds the bubbles
+     still for 1.2 s (they keep their last frame) and compares. Frames come back -> the bubbles are the
+     cost and quality steps down as before. They do not -> it is a cap: full quality is kept (restored if
+     it had been lowered), the result is in RPBubble.stats.paceTest, and it re-tests later (30 s, then
+     doubling up to 5 min). The tier only ever drops for slowness the bubbles were shown to cause. */
+  var pace = { t0: 0, gaps: [], slowWin: 0, goodWin: 0 };
+  var AT = { on: 0, before: 0, gaps: [], last: -1e9, every: 30000, bound: false };
+  function median(a) { var x = a.slice().sort(function (p, q) { return p - q; }); return x.length ? x[x.length >> 1] : 0; }
+  function atAbort(now) { if (!AT.on) return; AT.on = 0; AT.last = now - AT.every + 5000; }   /* try again in 5 s */
   function adapt(now, gap) {
-    if (DBG.scale) return;
-    if (!pace.t0) pace.t0 = now;
-    pace.n++; if (gap > 24) pace.slow++;
+    if (DBG.scale || DBG.freeze) return;
+    if (gap > 250) { pace.t0 = 0; pace.gaps = []; return; }   /* the loop had been idle, not slow */
+    if (AT.on) {
+      AT.gaps.push(gap);
+      if (now - AT.on < 1200) return;
+      var mf = median(AT.gaps.slice(4));
+      AT.on = 0; AT.last = now;
+      AT.bound = mf < AT.before * 0.75;
+      STATS.paceTest = "page " + Math.round(AT.before) + " ms per frame, " + Math.round(mf) + " ms with the bubbles held still: " + (AT.bound ? "the bubbles are the cost" : "a frame-rate cap, not the bubbles");
+      if (!AT.bound) { AT.every = Math.min(300000, AT.every * 2); Q.scale = TIER === "lite" ? 0.75 : 1; Q.fps = FPS; pace.slowWin = 0; }
+      pace.t0 = now; pace.gaps = [];
+      return;
+    }
+    if (!pace.t0) { pace.t0 = now; pace.gaps = []; }
+    pace.gaps.push(gap);
     if (now - pace.t0 < 1000) return;
-    var ratio = pace.slow / Math.max(1, pace.n);
-    if (ratio > 0.25 && Q.scale > 0.56) { Q.scale = Math.max(0.55, Q.scale - 0.15); Q.fps = 15; }
-    else if (ratio < 0.05 && Q.scale < (TIER === "lite" ? 0.75 : 1)) { Q.scale = Math.min(TIER === "lite" ? 0.75 : 1, Q.scale + 0.1); if (Q.scale >= 1) Q.fps = FPS; }
-    /* still slow at the lowest resolution, second after second: this device cannot hold the full
-       effects. Lite now (remembered), and if even lite stays slow, css from the next visit. */
-    pace.slowWin = ratio > 0.3 ? (pace.slowWin || 0) + 1 : 0;
-    if (TIER === "full" && Q.scale <= 0.56 && pace.slowWin >= 3) { setTier("lite", "frames stayed slow at the lowest resolution", true); pace.slowWin = 0; }
+    var med = median(pace.gaps), lim = Math.max(24, med * 1.6), slow = 0;
+    pace.gaps.forEach(function (g) { if (g > lim) slow++; });
+    var ratio = slow / Math.max(1, pace.gaps.length);
+    STATS.cadence = Math.round(med * 10) / 10;
+    pace.t0 = now; pace.gaps = [];
+    /* a low cadence that has not been explained yet: test it (not while anything is moving or zooming) */
+    if (med >= 24 && !AT.bound && now - AT.last > AT.every && !zooming && !items.some(function (x) { return x.trans || x.shapeT > 0; })) {
+      AT.on = now; AT.before = med; AT.gaps = []; return;
+    }
+    if (med < 24 && AT.bound && ++pace.goodWin >= 10) { AT.bound = false; pace.goodWin = 0; }   /* recovered for a while: forget */
+    if (med >= 24) pace.goodWin = 0;
+    var low = med >= 24 && AT.bound;
+    var top = TIER === "lite" ? 0.75 : 1;
+    if ((ratio > 0.25 || low) && Q.scale > 0.56) { Q.scale = Math.max(0.55, Q.scale - 0.15); Q.fps = 15; }
+    else if (ratio < 0.05 && !low && !AT.bound && Q.scale < top) { Q.scale = Math.min(top, Q.scale + 0.1); if (Q.scale >= 1) Q.fps = FPS; }
+    /* still slow at the lowest resolution, second after second, and shown to be the bubbles' doing (or
+       janky frames well beyond the cadence): this device cannot hold the full effects. Lite now
+       (remembered), and if even lite stays slow, css from the next visit. */
+    pace.slowWin = (ratio > 0.3 || low) ? pace.slowWin + 1 : 0;
+    if (TIER === "full" && Q.scale <= 0.56 && pace.slowWin >= 3) { setTier("lite", low ? "frames stayed slow at the lowest resolution (" + STATS.paceTest + ")" : "frames stayed uneven at the lowest resolution", true); pace.slowWin = 0; }
     else if (TIER === "lite" && pace.slowWin >= 6) { fxSave("css", "frames stayed slow even in lite"); pace.slowWin = 0; }
-    pace.t0 = now; pace.n = 0; pace.slow = 0;
   }
 
   var last = 0, simT = 0, rot = 0;
@@ -836,11 +876,14 @@
     var hidden = document.hidden;
     /* u-cover: a film page covers everything (index.html uCover) */
     var paused = hidden || !!(body && (body.classList.contains("bg-idle") || body.classList.contains("u-cover")));
-    if (DBG.freeze) { if (gl) raf = requestAnimationFrame(frame); return; }
     /* carousel drag / slide change: only bubbles that are changing shape or look are redrawn */
     var swiping = !!(body && body.classList.contains("swiping"));
     if (!paused && !swiping) adapt(now, gap);
+    else atAbort(now);
     housekeep(now);
+    /* held still: the probe's A/B (DBG.freeze) or the pacing test above (AT.on); the loop keeps running */
+    if (AT.on && items.some(function (x) { return x.trans || x.shapeT > 0; })) atAbort(now);   /* something started moving: never hold it */
+    if (DBG.freeze || AT.on) { if (gl) raf = requestAnimationFrame(frame); return; }
     if (!paused && !reduce) simT += Math.min(0.1, gap / 1000) * P.speed;
     var wants = false;
     if (gl && !progReady) {   /* shaders still building in the background: check again next frame */
@@ -1210,6 +1253,7 @@
       ver: CODE_VER, tier: TIER, why: TIER_WHY, moveRing: MOVE_RING, staleMoves: staleMoves, q: { scale: r1(Q.scale * 10) / 10, fps: Q.fps }, dbg: { freeze: DBG.freeze, scale: DBG.scale },
       atlas: ATLAS.slice(), glc: glc ? [glc.width, glc.height] : null, dbuf: gl ? [gl.drawingBufferWidth, gl.drawingBufferHeight] : null,
       cal: CAL, gl: gl === false ? "off" : gl ? "on" : "not started", progReady: progReady, zReady: zReady, par: !!PAR, soft: SOFT, reduce: !!reduce,
+      pace: { cadence: STATS.cadence || null, test: STATS.paceTest || null, bubblesAreTheCost: AT.bound, testing: !!AT.on, retestEvery: AT.every },
       zooming: zooming, frame: FR, simT: r1(simT), loopRunning: !!raf, items: items.length, contextLost: lost, maxTex: maxTex, dpr: window.devicePixelRatio || 1
     };
     if (o.items !== false) out.items = items.map(function (x, i) {
