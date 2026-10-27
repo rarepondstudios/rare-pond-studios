@@ -39,7 +39,7 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
-### 0.0.-126 V3 RIM QC: CAROUSEL, EDGE HAIRLINE, HALO, RENTALS (2026-10-26)
+### 0.0.-128 V3 RIM QC: CAROUSEL, EDGE HAIRLINE, HALO, RENTALS (2026-10-26)
 
 - Jack (someone else opened the site): animated rims only showed on the top-left bubbles, the carousel swap
   stuttered, a thin line of the photo peeked out around bubble edges as they bobbed, the halo popped in a
@@ -79,6 +79,32 @@
   overflow" (body has overflow-x:hidden; do NOT add `html{overflow-x:clip}`), and the Cloudflare Insights
   SSL error (the mini's network). Test scripts: `~/claude_perf` (carousel.mjs, bob.mjs, halo.mjs, rperf.mjs,
   clips.mjs, qc.mjs).
+### 0.0.-127 RENTALS: 3131 -> 3119 (NO GAP IN GRIP & ELECTRIC), PACKAGES TEST FINGER (2026-10-26)
+
+- Jack: the last Grip & Electric number takes the free 3119. 4-Socket Extension Reel (50ft) 3131 -> 3119, its part
+  3131.001 -> 3119.001 and both unit codes followed (direct item_no update; nothing printed, nothing retired).
+  `~/Desktop/RarePond_Rental_Labels/Renumber_2026-10-26.csv` rows updated to the final numbers.
+- All departments checked with `rentals_id_audit.py`: no gaps, duplicates, wrong department digits, part or unit code
+  mismatches anywhere. `rentals_print_ready_test.py` 37/37.
+- `tools/test-rentals-packages.mjs` looks for "Finger with Round Camera Plate" (the renamed KUPO finger): ALL PASS.
+
+### 0.0.-126 RENTALS: PARTS COUNT PER COPY OF THEIR KIT (2026-10-26)
+
+- Jack: "if there are 3 C-Stands with sub-item Base, there are 3 bases." Before, a part's qty was its total with no
+  link to the kit's copies: 3 C-Stands had 1 Turtle Base (one copy, one pill, the checklist asked for the lot).
+- Database (`bts-automation/migrations/20261026c_parts_per_copy.sql`, applied and proved by
+  `rentals_per_copy_20261026_apply.py`, 17/17, backup `backups/rentals_per_copy_20261026/`): new `items.per_copy`
+  (NocoDB **Per copy**, beside qty, with a description); part copies = kit copies x Per copy, kept both ways (kit copy
+  added/deleted, Per copy edited, part qty typed as a multiple, hand-added part copy checked at commit by the deferred
+  `rp_parts_per_copy_chk`). `rp_items_qty_trg` now fires on any qty change (not only "update of qty") so Per copy edits
+  make copies. Kit value counts Per copy (per kit copy); no value moved.
+- Jack's answers applied: PB6 2102 parts 1 per bar (magnets North/South were the 3-bar total, Per copy 1), C-Stand gobo
+  heads 2 per stand (6 each model), PB6 Grid 2106 bag 1 per grid. 43 part copies added (3115/3116 parts, 2102.001-.007,
+  2106.001). No sticker printed yet, so they simply join the first print (`make.py status`: 352 sub pills).
+- Scan app: checklist asks for Per copy pieces; a pooled part shows missing on a copy only when spares cannot cover it
+  (`/u/3115-A`: Turtle Base checkbox, Gobo head 2 pieces). Website `app.js` contents use `per_copy`.
+- Checked through NocoDB's own API: Per copy 2 -> 3 -> 2 on 3116.006 made and removed 3 copies; qty 7 refused with the
+  reason. The two unrelated test failures seen then were fixed in 0.0.-127.
 
 ### 0.0.-125 PAGE LOAD: NOTHING SNAPS IN (2026-10-26)
 
