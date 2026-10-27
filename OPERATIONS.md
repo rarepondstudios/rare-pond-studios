@@ -676,9 +676,9 @@ copy of the site, so a tier is a different way of drawing the SAME page and anyt
   bubble animation always runs at its 24 fps. A struggling device first gets a lower resolution (down
   to 55%, still 24 fps), then the lite tier (rims hold one still frame). Nothing may lower the
   animation rate; the ?perf=1 report flags it ("CHOPPY") if anything ever does.
-- A bubble that changes shape (the carousel card's circle-to-card morph) and misses three frames in a
-  row gets a CSS ring for the rest of the move instead of a stretched stale picture; two such moves and
-  the page rings every move.
+- A bubble that changes shape (the carousel card's circle-to-card morph) is drawn every frame, first,
+  outside the frame budget. The CSS ring stand-in is used only in lite (since 20261027p: in full it
+  made the inner bands snap in after each move on the iPad).
 - Only PROJECT bubbles animate (the grid's film bubbles and the carousel's film cards, Jack
   2026-10-27). Everything else is `still: true`: one fixed frame, redrawn only when its look or size
   changes (About rim, "More to come", team photos, rentals logo splash, gear cards and popup). The
@@ -690,7 +690,8 @@ copy of the site, so a tier is a different way of drawing the SAME page and anyt
   "Asset versions").
 - Bubble rim canvases have SQUARE corners (since 20261027o): the shader draws the bubble's corners. A
   canvas inheriting the card's elliptical radius lost the rim's right and bottom on Jack's Windows PC
-  (Firefox), confirmed by the ?perf=1 screen check. Do not put border-radius on a bubble canvas.
+  (Firefox), confirmed by the ?perf=1 screen check (report #28: as shipped 100% on screen, rounded
+  canvas corners right / bottom 0%). Do not put border-radius on a bubble canvas.
 - A bubble's own canvas NEVER SHRINKS (since 20261027n): its backing store is sized to the full-quality
   size of the largest shape it has had and only grows; lower resolutions are rendered smaller and
   stretched into it. Resizing it on resolution changes is the likely cause of the featured card being

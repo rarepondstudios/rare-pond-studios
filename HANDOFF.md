@@ -39,6 +39,22 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-138 CUT-OFF PROVEN FIXED ON JACK'S PC; NO MOVE RING IN FULL (iPAD SNAP) (2026-10-27)
+
+- Report #28 (Jack's Windows PC, Firefox 158, code 20261027o, screen check): the featured card's rim on
+  screen 100% on all four sides at load, rest, every move and the resize test. The on-screen A/B:
+  as shipped 100/100/100/100; "rounded corners on the rim canvas (the old way)" top 100, RIGHT 0,
+  BOTTOM 0, left 100; own layer / no bob / no paint containment all 100. So the cause was the rim
+  canvas inheriting the card's elliptical border-radius, in Firefox on Windows. Fixed and proven.
+- iPad (report #27, iPadOS Safari 27.2, screen check worked there too, rim 100% on screen): Jack saw the
+  rim's inner two bands snap in about a second after every carousel move. The report showed two
+  "starved" moves had made the page learn the CSS move ring for every move: the canvas was hidden for
+  the move and only faded back in after the shape settled. Code 20261027p: no CSS ring in the full
+  tier at all (lite keeps it); a rim changing shape is drawn every frame, first, outside the frame
+  budget. Reproduced on the mini with simulated slow copies (9 ms each, WebKit): old code rang every
+  move with the rim up to 1.7 s stale; new code redrew it every frame (at most 10 ms old), no ring.
+- Waiting on: Jack checks the iPad (and any other device) by eye or with ?perf=1.
+
 ### 0.0.-137 SCREEN CHECK CONFIRMED THE CUT-OFF ON JACK'S PC; RIM CANVASES GET SQUARE CORNERS (2026-10-27)
 
 - Reports #25 / #26 (Jack's Windows PC, Firefox 158, with the screen check): on his actual screen the
