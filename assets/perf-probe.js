@@ -33,7 +33,7 @@
    Keep the mouse still and the tab in front while it runs. */
 (function () {
   "use strict";
-  var PROBE_VER = 9;
+  var PROBE_VER = 10;
   var KEY = "sb_publishable_VFAFJq23B8hJAGViL2nDiA_uTAVxe05";   /* public by design (also in rentals/assets/app.js) */
   var SEND = "https://gnifidmyahtzydwvaegj.supabase.co/rest/v1/rpc/submit_perf_report";
   var T0 = performance.now();
@@ -72,7 +72,7 @@
   addEventListener("pointermove", function () { ptrMoves++; }, { passive: true });
   /* every 0.5 s: the page's frame cadence (median ms per frame), bubble resolution / fps / tier; a cadence
      that jumps (a browser switching to 30 fps, say) is logged in events with the step that was running */
-  var curStep = "start", lastCad = 0;
+  var curStep = "start", lastCad = 0, lastQ = null;
   R.timelineCols = ["t", "cadenceMs", "scale", "fps", "tier", "moveRing"];
   var tl = setInterval(function () {
     var B = window.RPBubble, q = B && B.quality, ti = B && B.tier && B.tier(), now = performance.now();
@@ -80,6 +80,12 @@
     var cad = g.length ? Math.round(g[g.length >> 1] * 10) / 10 : null;
     if (cad && lastCad && (cad > lastCad * 1.4 || cad < lastCad / 1.4)) ev("cadence " + lastCad + " -> " + cad + " ms per frame, during: " + curStep);
     if (cad) lastCad = cad;
+    /* every change of the bubbles' quality, with the step that was running: resolution, tier, and the
+       animation rate (which must stay 24: since 20261027m a struggling device gets a lower resolution or
+       still rims, never a choppier animation; anything else is flagged) */
+    var qs = q ? [Math.round(q.scale * 100) / 100, q.fps, ti ? ti.tier : null].join(" / ") : null;
+    if (qs && qs !== lastQ) { ev("quality: resolution " + qs.replace(" / ", ", animation ").replace(" / ", " fps, tier ") + (lastQ ? "" : " (start)") + ", during: " + curStep); lastQ = qs; }
+    if (q && q.fps < 24 && !R.choppy) { R.choppy = "the bubble animation rate fell to " + q.fps + " fps during " + curStep; ev("CHOPPY: " + R.choppy); }
     if (R.timeline.length < 200) R.timeline.push([Math.round(now), cad, q ? Math.round(q.scale * 100) / 100 : null, q ? q.fps : null, ti ? ti.tier : null, ti ? ti.moveRing : null]);
   }, 500);
 
@@ -231,7 +237,7 @@
     var st = {}; for (var k in S) st[k] = typeof S[k] === "number" ? rnd(S[k], 1) : S[k];
     var kinds = {}; (d && d.items || []).forEach(function (x) { kinds[x.kind] = (kinds[x.kind] || 0) + 1; });
     return { stats: st, tier: ti, debug: d, check: B.debug ? B.debug({ check: true, items: false }).check : null, kinds: kinds,
-      _line: "tier " + (ti ? ti.tier + " (" + ti.why + ")" : "?") + ", shaders " + S.compileMs + " ms (background " + (S.parallel ? "yes" : "NO") + "), calib " + S.calib + ", self-check " + S.selfcheck };
+      _line: "tier " + (ti ? ti.tier + " (" + ti.why + ")" : "?") + ", animation " + (B.quality ? B.quality.fps : "?") + " fps at " + (B.quality ? Math.round(B.quality.scale * 100) : "?") + "% resolution, shaders " + S.compileMs + " ms (background " + (S.parallel ? "yes" : "NO") + "), calib " + S.calib + ", self-check " + S.selfcheck };
   }
 
   /* ---------- 3 the featured carousel card ---------- */
@@ -529,6 +535,7 @@
       Object.keys(R.steps).forEach(function (k) { var d = R.steps[k] && R.steps[k].data; (function strip(x) { if (!x || typeof x !== "object") return; for (var p in x) { if (p === "thumb") x[p] = "dropped"; else strip(x[p]); } })(d); });
       body = JSON.stringify(R);
     }
+    if (R.choppy) say("NOTE: " + R.choppy);
     say("sending the report (" + Math.round(body.length / 1024) + " KB)...");
     return fetch(SEND, { method: "POST", headers: { "Content-Type": "application/json", apikey: KEY, Authorization: "Bearer " + KEY }, body: JSON.stringify({ r: R }) })
       .then(function (r) { return r.text().then(function (t) { if (!r.ok) throw new Error(r.status + " " + t.slice(0, 160)); return t; }); })

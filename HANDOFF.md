@@ -63,6 +63,10 @@
   to fit the largest bubble drawn (12% headroom, never shrinks); a growth is followed by a throwaway
   copy, a redraw of that frame's bubbles and a copy self-check (`RPBubble.stats.atlasGrow`). Probe step
   7 runs two moves at the old size on the visitor's machine for comparison.
+- Jack, same day: "would rather cut animations than have them look choppy". The old 15 fps step is gone
+  (code 20261027m): a struggling device gets lower resolution at 24 fps, then still rims (lite); never
+  a lower animation rate. The probe (v10) logs every quality change with the step running and flags
+  any rate under 24 as CHOPPY.
 - Probe lesson: `getImageData()` on a live bubble canvas makes Chrome move it off the GPU and halved
   the page's frame rate; the probe reads a copy.
 - Still (one fixed frame, `still: true`): About rim, "More to come" (grid and carousel), team photos,

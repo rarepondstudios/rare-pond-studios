@@ -280,7 +280,7 @@
      (Jack, 2026-10-26). Every bubble now gets the same 1.25 device px per CSS px; glow layers, which
      are blurred by CSS anyway, render at half that. */
   var FPS = 24, MAXPX = 1600, DPR_CAP = 1.25;
-  var CODE_VER = "20261027l";
+  var CODE_VER = "20261027m";
 
   /* ===== EFFECT TIERS (2026-10-27, Jack: "safety measures and automatic backup versions of the website
      that it can cleanly fall back to if a computer can't handle it ... when future updates are made, it
@@ -844,7 +844,7 @@
       AT.on = 0; AT.last = now;
       AT.bound = mf < AT.before * 0.75;
       STATS.paceTest = "page " + Math.round(AT.before) + " ms per frame, " + Math.round(mf) + " ms with the bubbles held still: " + (AT.bound ? "the bubbles are the cost" : "a frame-rate cap, not the bubbles");
-      if (!AT.bound) { AT.every = Math.min(300000, AT.every * 2); Q.scale = TIER === "lite" ? 0.75 : 1; Q.fps = FPS; pace.slowWin = 0; }
+      if (!AT.bound) { AT.every = Math.min(300000, AT.every * 2); Q.scale = TIER === "lite" ? 0.75 : 1; pace.slowWin = 0; }
       pace.t0 = now; pace.gaps = [];
       return;
     }
@@ -864,8 +864,12 @@
     if (med >= 24) pace.goodWin = 0;
     var low = med >= 24 && AT.bound;
     var top = TIER === "lite" ? 0.75 : 1;
-    if ((ratio > 0.25 || low) && Q.scale > 0.56) { Q.scale = Math.max(0.55, Q.scale - 0.15); Q.fps = 15; }
-    else if (ratio < 0.05 && !low && !AT.bound && Q.scale < top) { Q.scale = Math.min(top, Q.scale + 0.1); if (Q.scale >= 1) Q.fps = FPS; }
+    /* NEVER CHOPPY (Jack, 2026-10-27: "would rather cut animations than have them look choppy"): a
+       struggling device gets a lower RESOLUTION at the full 24 fps (soft rims, which read as fine), and
+       if that is not enough the lite tier below, where the rims hold one still frame. The animation
+       rate itself is never lowered (it used to drop to 15 fps here, which looked choppy). */
+    if ((ratio > 0.25 || low) && Q.scale > 0.56) Q.scale = Math.max(0.55, Q.scale - 0.15);
+    else if (ratio < 0.05 && !low && !AT.bound && Q.scale < top) Q.scale = Math.min(top, Q.scale + 0.1);
     /* still slow at the lowest resolution, second after second, and shown to be the bubbles' doing (or
        janky frames well beyond the cadence): this device cannot hold the full effects. Lite now
        (remembered), and if even lite stays slow, css from the next visit. */
@@ -877,7 +881,7 @@
   var last = 0, simT = 0, rot = 0;
   /* SCHEDULING (2026-10-26, "running horribly on other people's computers"). Every bubble has its own
      next-draw time instead of all of them being drawn together in one heavy frame:
-       live   the AE band wobble, 24 fps (adaptive Q.fps): the bubbles you look at and click
+       live   the AE band wobble, always 24 fps (only the resolution adapts): the bubbles you look at and click
        glow   the soft halos: colour only, which turns once per ~45 s, so 8 fps is indistinguishable
        still  drawn once, then again only when its look / shape / size actually changes (hover look
               fades, the carousel morph): the bubbles in the background (opts.still, or opts.liveWhen

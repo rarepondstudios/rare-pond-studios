@@ -672,6 +672,10 @@ copy of the site, so a tier is a different way of drawing the SAME page and anyt
   compares. Frames come back -> the bubbles are the cost and quality steps down; they do not -> a cap,
   full quality kept, re-tested later. `RPBubble.stats.paceTest` / `RPBubble.debug().state.pace` say
   which. (Before, a 30 fps cap read as overload: 15 fps choppy rims and a remembered lite tier.)
+- NEVER CHOPPY (Jack, 2026-10-27: he would rather cut animations than have them look choppy). The
+  bubble animation always runs at its 24 fps. A struggling device first gets a lower resolution (down
+  to 55%, still 24 fps), then the lite tier (rims hold one still frame). Nothing may lower the
+  animation rate; the ?perf=1 report flags it ("CHOPPY") if anything ever does.
 - A bubble that changes shape (the carousel card's circle-to-card morph) and misses three frames in a
   row gets a CSS ring for the rest of the move instead of a stretched stale picture; two such moves and
   the page rings every move.
