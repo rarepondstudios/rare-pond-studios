@@ -240,7 +240,7 @@ function card(p,col){
  /* data-cursor="off": the item card keeps its own coloured-glow hover only, the cursor never
     outlines the full card; only the CONTROLS inside it (add / qty / kit / date) hug their own
     hitboxes. */
- return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" data-cursor="off" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+avb+kit
+ return '<div class="card" data-open="'+p._id+'" data-cat="'+esc(p.cat||'')+'" role="button" tabindex="0" data-cursor="off" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'</div><div class="body"><h3>'+esc(p.name)+'</h3>'+avb+kit
  +'<div class="row2">'+priceBlk(p,false)+(rv?'<span class="rv">value '+esc(rv)+'</span>':'')+'</div>'
  +ctl+'</div></div>';}
 function bind(){
@@ -274,7 +274,7 @@ function openDP(id){const p=RENTALS[id];if(!p)return;dpOpen=id;rpEnsureStyles();
    +(inc.length?'<div class="rp-sec" style="--dpc:'+dpc+'">Included in packages</div><div class="rp-mgrid">'+inc.map(function(m){return rpMiniCard(m,'Package');}).join('')+'</div>':'')
    +rpCartsHtml(p,dpc);
  }
- $('dp').innerHTML='<div class="dpc"><button class="dpx" id="dpx" aria-label="Close">&times;</button>'+back+'<div class="dphero">'+hero+'</div><div class="dpbody">'
+ $('dp').innerHTML='<div class="dpc" data-cat="'+esc(p.cat||'')+'"><button class="dpx" id="dpx" aria-label="Close">&times;</button>'+back+'<div class="dphero">'+hero+'</div><div class="dpbody">'
   +eyb+'<h2>'+esc(p.name)+'</h2>'+desc+meta
   +'<div class="dprow">'+ctl+dpDateBtn()+'</div>'+extra+'</div></div>';
  $('dp').classList.add('show');document.body.style.overflow='hidden';
@@ -367,7 +367,7 @@ function rpBoxSvg(){return '<svg viewBox="0 0 24 24" fill="none" stroke="current
 function rpPkgCard(p,col){rpEnsureStyles();var grp=rpMemGroups(p);var nmem=grp.length;var price=rpPkgPrice(p);var rv=rvOf(p);var inC=cart[p._id];var dd=days();
  var thumb=p.img?('<img src="'+p.img+'" alt="" loading="lazy" decoding="async">'):catIcon(p.cat,'ic');
  var ctl=inC?('<div class="qty"><button data-m="'+p._id+'">−</button><span class="qn">'+inC+' in cart'+(capN(p)>1?' / '+capN(p):'')+'</span><button data-pl="'+p._id+'" '+(inC>=p.qty?'disabled':'')+'>+</button></div>'):('<button class="add" data-a="'+p._id+'">Add package</button>');
- return '<div class="card" data-open="'+p._id+'" role="button" tabindex="0" data-cursor="off" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'<span class="rp-badge">Package</span></div><div class="body"><h3>'+esc(p.name)+'</h3>'
+ return '<div class="card" data-open="'+p._id+'" data-cat="'+esc(p.cat||'')+'" role="button" tabindex="0" data-cursor="off" style="--cc:'+col+';--ccg:'+hx(col,0.5)+'"><div class="thumb">'+thumb+'<span class="rp-badge">Package</span></div><div class="body"><h3>'+esc(p.name)+'</h3>'
   +'<div class="rp-incount">'+nmem+' item'+(nmem!==1?'s':'')+' included</div>'
   +'<div class="row2">'+(dd?('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day × '+dd+'d</span></div><div class="tot">'+fmt(price*dd)+'<span style="font-size:.52em;font-weight:600;color:#cfe0f5;margin-left:3px">total</span></div></div>'):('<div class="pcalc"><div class="dr">'+fmt(price)+'<span>/day</span></div></div>'))+'</div>'
   +'<div class="row2"><span class="stat">Bundle price</span>'+(rv?'<span class="rv">value '+esc(rv)+'</span>':'')+'</div>'+ctl+'</div></div>';}

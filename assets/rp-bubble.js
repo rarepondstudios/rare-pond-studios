@@ -64,7 +64,7 @@
     "uniform float uGlow;",
     "uniform vec3 uPal[8];",
     "uniform float uPalN,uRb;",
-    "uniform float uDeep,uDepth,uRad,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol,uSh;",
+    "uniform float uDeep,uDepth,uRad,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol,uSh,uClip,uEll;",
     /* Ashima / Stefan Gustavson 3D simplex noise (MIT) */
     "vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;}",
     "vec4 m289(vec4 x){return x-floor(x*(1./289.))*289.;}",
@@ -83,7 +83,8 @@
     "return 42.*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));}",
     "vec2 wv(vec2 p,float f,float z){return vec2(sn(vec3(p*f,z)),sn(vec3(p*f+vec2(7.3,-3.1),z+11.)));}",
     /* distance-from-centre equivalent for a rounded box: 1.0 on the border, like length(p) on a circle */
-    "float rr(vec2 p){vec2 q=abs(p)-uBox+uRad;return 1.+(length(max(q,0.))+min(max(q.x,q.y),0.)-uRad)/uDepth;}",
+    /* uEll: an ELLIPSE instead (e.g. the rentals logo bubble), same 1.0-on-the-border convention */
+    "float rr(vec2 p){if(uEll>.5)return 1.+(length(p/uBox)-1.)*min(uBox.x,uBox.y)/uDepth;vec2 q=abs(p)-uBox+uRad;return 1.+(length(max(q,0.))+min(max(q.x,q.y),0.)-uRad)/uDepth;}",
     /* one Color Blob: soft ellipse (lens blur) of plates shading light -> deep (Colorama) */
     "vec4 blob(vec2 q,vec2 c,float r,vec3 col,float o,float z){",
     "  float d=length(q-c)/r;",
@@ -169,7 +170,11 @@
     "  float i2=.81-.07*uDeep, i3=.70-.13*uDeep;",
     "  float e2=smoothstep(i2-.005-.022*uSoft,i2+.016*uSoft,r2)*.5;",   // Edge 2 (50%)
     "  float e3=smoothstep(i3-.01-.07*uSoft,i3+.05*uSoft,r3)*.25*uInner;", // Edge 3 (25%)
-    "  float cut=1.-smoothstep(1.-uPx,1.+uPx,r);",                    // Exterior Cutter
+    /* uClip: the bubble sits inside a clipping parent (its photo is clipped to the same shape), so the
+       rim stays fully opaque right up to the edge and the PARENT's clip does the antialiasing. With the
+       rim's own soft edge there, the photo underneath showed through that last pixel and shimmered as
+       the bubble bobbed (Jack, 2026-10-26: "the image behind them is slightly peeking out"). */
+    "  float cut=1.-smoothstep(1.-uPx+2.*uPx*uClip,1.+uPx+2.*uPx*uClip,r);",                    // Exterior Cutter
     "  float al=(1.-(1.-e1)*(1.-e2)*(1.-e3))*cut;",
     "  sa*=cut;",
     "  if(al<.004&&sa<.004){gl_FragColor=vec4(0.);return;}",
@@ -301,7 +306,7 @@
   }
 
   var mkShader = null, progZ = null, UZ = null;
-  var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh"];
+  var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll"];
   function link(fs) {
     var p = gl.createProgram();
     gl.attachShader(p, mkShader(gl.VERTEX_SHADER, VS));
@@ -410,10 +415,19 @@
     return (palCache[str] = { n: out.length, flat: flat });
   }
 
-  function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep, rb, pal) {
-    if (glc.width < W || glc.height < H) { glc.width = Math.max(glc.width, W, 256); glc.height = Math.max(glc.height, H, 256); }
-    gl.useProgram(prog); params(U); gl.uniform1f(U.uSh, glow ? 0 : 1);
-    gl.viewport(0, glc.height - H, W, H);
+  /* GLMAX: the shared canvas never grows past this. And the GPU may give the canvas a SMALLER drawing
+     buffer than asked for (memory limits on some machines): everything here works in drawing-buffer
+     pixels and returns the source size in canvas pixels for the copy. Assuming the two were equal drew
+     only part of a bubble on such machines (Jack, 2026-10-26: rims "only showing on the top left"). */
+  var GLMAX = 2048, renderEll = false;
+  function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep, rb, pal, clip) {
+    var nw = Math.min(GLMAX, Math.max(glc.width, W, 256)), nh = Math.min(GLMAX, Math.max(glc.height, H, 256));
+    if (glc.width < nw || glc.height < nh) { glc.width = nw; glc.height = nh; }
+    var dbw = gl.drawingBufferWidth || glc.width, dbh = gl.drawingBufferHeight || glc.height;
+    var f = Math.min(1, dbw / W, dbh / H);
+    var w = Math.max(1, Math.floor(W * f)), h = Math.max(1, Math.floor(H * f));
+    gl.useProgram(prog); params(U); gl.uniform1f(U.uSh, glow ? 0 : 1); gl.uniform1f(U.uClip, clip ? 1 : 0); gl.uniform1f(U.uEll, renderEll ? 1 : 0);
+    gl.viewport(0, dbh - h, w, h);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3fv(U.uC1, cols[0]); gl.uniform3fv(U.uC2, cols[1]); gl.uniform3fv(U.uC3, cols[2]);
     gl.uniform2f(U.uBox, box[0], box[1]); gl.uniform1f(U.uRad, rad); gl.uniform1f(U.uDepth, depth || 1); gl.uniform1f(U.uDeep, deep || 0);
@@ -421,8 +435,9 @@
     else gl.uniform1f(U.uRb, 0);
     gl.uniform1f(U.uT, t); gl.uniform1f(U.uSeed, seed);
     gl.uniform2f(U.uScale, scale[0], scale[1]); gl.uniform1f(U.uGlow, glow ? 1 : 0);
-    gl.uniform1f(U.uPx, 2.4 / Math.min(W, H));
+    gl.uniform1f(U.uPx, 2.4 / Math.min(w, h));
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    return [w * glc.width / dbw, h * glc.height / dbh];
   }
 
   function draw(it, t) {
@@ -430,19 +445,28 @@
     var w = it.w, h = it.h;
     if (!w || !h) return false;
     w += 2 * it.bleed; h += 2 * it.bleed;   // glow canvases overhang their element so the halo fades out to nothing
-    var dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP) * Q.scale * (it.opts.res || 1);
+    /* while it changes shape (the carousel morph) it renders at 70%: it is moving, and it is the
+       heaviest moment (the card swap stuttered on ordinary machines) */
+    var dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP) * Q.scale * (it.opts.res || 1) * (it.trans ? 0.7 : 1);
     var k = Math.min(1, (it.opts.max || MAXPX) / (Math.max(w, h) * dpr));
     var W = Math.max(16, Math.round(w * dpr * k)), H = Math.max(16, Math.round(h * dpr * k));
-    if (it.cv.width !== W || it.cv.height !== H) { it.cv.width = W; it.cv.height = H; }
+    var cw = it.cv.width, ch = it.cv.height;
+    /* mid-transition the backing store is only reallocated when it is >20% off: CSS scales it meanwhile
+       (re-allocating a canvas on every frame of a morph was a big part of that stutter) */
+    if (it.trans && cw > 16 && Math.abs(W - cw) < cw * 0.2 && Math.abs(H - ch) < ch * 0.2) { W = cw; H = ch; }
+    if (cw !== W || ch !== H) { it.cv.width = W; it.cv.height = H; }
+    var src;
     if (it.ref) {
       var bw = it.rw || w, bh = it.rh || h, sb = Math.min(bw, bh) / 2;
-      render(it.cols, W, H, [bw / 2 / sb, bh / 2 / sb], it.rrad == null ? 1 : it.rrad, t, it.opts.seed, [w / 2 / sb, h / 2 / sb], 1, true, 0, it.rb, it.pal);
+      src = render(it.cols, W, H, [bw / 2 / sb, bh / 2 / sb], it.rrad == null ? 1 : it.rrad, t, it.opts.seed, [w / 2 / sb, h / 2 / sb], 1, true, 0, it.rb, it.pal, false);
     } else {
       var s = Math.min(w, h), inset = it.opts.inset || 1;
-      render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, [w / s / inset, h / s / inset], it.depth, false, it.deep, it.rb, it.pal);
+      renderEll = !!it.opts.ellipse;
+      src = render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, [w / s / inset, h / s / inset], it.depth, false, it.deep, it.rb, it.pal, it.clipped);
+      renderEll = false;
     }
     it.ctx.clearRect(0, 0, W, H);
-    it.ctx.drawImage(glc, 0, 0, W, H, 0, 0, W, H);   // viewport sits in the TOP-left W x H of the shared canvas
+    it.ctx.drawImage(glc, 0, 0, src[0], src[1], 0, 0, W, H);   // the render sits in the TOP-left of the shared canvas
     if (!it.shownOnce) { it.shownOnce = true; it.cv.style.opacity = "1"; }
     it.drawn = true;
     return true;
@@ -456,6 +480,9 @@
   function housekeep(now) {
     if (!items.length || zooming || now - hkAt < 250) return;
     hkAt = now;
+    /* a bubble whose element has been removed from the page (a re-rendered list) is let go of here,
+       so pages that rebuild their markup never pile up dead bubbles */
+    for (var dd = items.length - 1; dd >= 0; dd--) if (!items[dd].el.isConnected) detach(items[dd].el);
     for (var n = 0, seen = 0; n < items.length && seen < 2; n++) {
       rr = (rr + 1) % items.length;
       var it = items[rr];
@@ -479,7 +506,7 @@
     pace.t0 = now; pace.n = 0; pace.slow = 0;
   }
 
-  var last = 0, simT = 0;
+  var last = 0, simT = 0, rot = 0;
   /* SCHEDULING (2026-10-26, "running horribly on other people's computers"). Every bubble has its own
      next-draw time instead of all of them being drawn together in one heavy frame:
        live   the AE band wobble, 24 fps (adaptive Q.fps): the bubbles you look at and click
@@ -510,9 +537,13 @@
     if (!paused && !reduce) simT += Math.min(0.1, gap / 1000) * P.speed;
     var wants = false;
     if (gl && !zooming && !hidden) {
-      var t0 = performance.now();
-      for (var j = 0; j < items.length; j++) {
-        var x = items[j];
+      var t0 = performance.now(), n = items.length;
+      /* FAIR: each frame starts one bubble further along, so when the budget runs out the same bubbles
+         are not always the ones left waiting (on a slow machine only the first few bubbles on the page
+         ever animated) */
+      rot = n ? (rot + 1) % n : 0;
+      for (var c = 0; c < n; c++) {
+        var x = items[(rot + c) % n];
         if (x.onScreen === false || x.shown === false) continue;
         var must = !x.drawn || x.trans || x.dirty;
         var kind = (paused || reduce || swiping) ? "still" : kindOf(x);
@@ -537,6 +568,14 @@
   /* hover / focus can change a bubble's look or make a still bubble live (opts.liveWhen): wake the idle loop */
   ["pointerover", "pointerout", "focusin"].forEach(function (ev) { document.addEventListener(ev, kick, { passive: true }); });
 
+  /* does a parent (or grandparent) clip this bubble to its shape? (overflow / clip-path) */
+  function clipParent(el) {
+    for (var e = el.parentElement, n = 0; e && n < 2; e = e.parentElement, n++) {
+      var cs = getComputedStyle(e);
+      if ((cs.overflow && cs.overflow !== "visible") || (cs.clipPath && cs.clipPath !== "none")) return true;
+    }
+    return false;
+  }
   function attach(el, opts) {
     opts = opts || {};
     if (!el || !initGL()) return null;
@@ -555,10 +594,11 @@
     el.classList.add("rp-bubble-on");
     it = {
       el: el, cv: cv, ctx: cv.getContext("2d", { alpha: true }),
-      opts: { seed: opts.seed != null ? opts.seed : Math.random() * 10, inset: opts.inset, max: opts.max, res: opts.glow ? 0.5 : (opts.res || 1), still: !!opts.still, liveWhen: opts.liveWhen || null },
+      opts: { seed: opts.seed != null ? opts.seed : Math.random() * 10, inset: opts.inset, max: opts.max, res: opts.glow ? 0.5 : (opts.res || 1), still: !!opts.still, liveWhen: opts.liveWhen || null, ellipse: !!opts.ellipse },
       ref: opts.glow ? (opts.ref || el) : null, bleed: bleed,
       vars: opts.look ? null : (opts.vars || ["--gg1", "--gg2", "--gg3"]),
       cols: lookVec(opts.look || { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" }),
+      clipped: opts.glow ? false : (opts.clipped != null ? !!opts.clipped : clipParent(el)),
       onScreen: io ? undefined : true, shown: undefined, drawn: false, styled: false, dirty: 1, trans: 0, rad: 1, depth: 1, w: 0, h: 0
     };
     items.push(it);
@@ -585,9 +625,9 @@
     var key = [look && look.c1, look && look.c2, look && look.c3, px, t].join("|");
     if (spriteCache[key]) return spriteCache[key];
     if (!initGL()) return "";
-    render(lookVec(look), px, px, [1, 1], 1, t, 0.5, [1, 1], 1, false);
+    var src = render(lookVec(look), px, px, [1, 1], 1, t, 0.5, [1, 1], 1, false);
     var c = document.createElement("canvas"); c.width = c.height = px;
-    c.getContext("2d").drawImage(glc, 0, 0, px, px, 0, 0, px, px);
+    c.getContext("2d").drawImage(glc, 0, 0, src[0], src[1], 0, 0, px, px);
     return (spriteCache[key] = c.toDataURL("image/png"));
   }
   /* ===== DEPTH ZOOM: open a film by flying through the bubble (Jack, 2026-10-26) =====
@@ -706,12 +746,17 @@
       if (first && now !== t0) { first = false; t0 = now - 16; }
       var t = Math.min(1, (now - t0) / ms);
       var tt = o.dir === "out" ? 1 - t : t;
+      /* the way back: the bubble's halo starts fading back in while the rim is still landing, so it is
+         there when the flight ends (it used to start only after landing and read as a late pop-in) */
+      if (o.dir === "out" && !z.haloBack && t > 0.7) { z.haloBack = true; hide.forEach(function (h) { h.style.removeProperty("opacity"); }); }
       var e = easeIO(tt), c = cEnd * e;
       hb = hostBox(o.el, hb);
       var S = hb.S, cx = hb.cx, cy = hb.cy, box = hb.box;
       var s = ZD.map(function (d) { return d - c > 0.02 ? d / (d - c) : 1e4; });
-      gl.useProgram(progZ); params(UZ);
-      gl.viewport(0, 0, W, H);
+      gl.useProgram(progZ); params(UZ); gl.uniform1f(UZ.uEll, 0);
+      /* drawing-buffer pixels (can be fewer than the canvas has, see GLMAX) */
+      var bw = gl.drawingBufferWidth || W, bh = gl.drawingBufferHeight || H, kb = bw / vw;
+      gl.viewport(0, 0, bw, bh);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform3fv(UZ.uC1, cols[0]); gl.uniform3fv(UZ.uC2, cols[1]); gl.uniform3fv(UZ.uC3, cols[2]);
       gl.uniform2f(UZ.uBox, box[0], box[1]); gl.uniform1f(UZ.uRad, rad0); gl.uniform1f(UZ.uDepth, depth); gl.uniform1f(UZ.uDeep, deep);
@@ -719,8 +764,8 @@
       else gl.uniform1f(UZ.uRb, 0);
       gl.uniform1f(UZ.uT, tBase + (now - t0) / 1000 * P.speed); gl.uniform1f(UZ.uSeed, seed); gl.uniform1f(UZ.uSh, 1);
       gl.uniform3f(UZ.uS, s[0], s[1], s[2]);
-      gl.uniform2f(UZ.uCen, cx * k, cy * k); gl.uniform2f(UZ.uView, W, H);
-      gl.uniform1f(UZ.uSpx, S * k); gl.uniform1f(UZ.uPxz, 1.2 / (S * k));
+      gl.uniform2f(UZ.uCen, cx * kb, cy * bh / vh); gl.uniform2f(UZ.uView, bw, bh);
+      gl.uniform1f(UZ.uSpx, S * kb); gl.uniform1f(UZ.uPxz, 1.2 / (S * kb));
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       var clip = null;
       if (s[0] < 1e3) {
