@@ -1503,7 +1503,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026v"></script>
+<script src="/assets/rp-bubble.js?v=20261026w"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2834,6 +2834,7 @@ function uZoom(sec,zh,dir,done){
   }
   const look=null;
   const front=zh.front||[];
+  window.__rpZ={dir,host:zh.host?zh.host.className:''};   /* last flight, for the test scripts */
   const ok=RPBubble.zoom({el:zh.el,hide:zh.hide,dir,look,ms:dir==='in'?1500:1150,
     onFrame:f=>{
       const cp=clipOf(f.clip);sec.style.clipPath=cp;sec.style.webkitClipPath=cp;
@@ -2955,6 +2956,7 @@ function closeUniverse(sec){
   if(!sec._fromEl){
     /* the page it closes into has no bubble for this film on screen (another page, or scrolled away):
        a plain cross-fade to the page, like any other page change, instead of a wipe aimed at nothing */
+    window.__rpZ={dir:'fade'};
     sec.classList.add('closing');sec.classList.remove('flash','open');currentOpen=null;
     sec.style.clipPath='none';sec.style.webkitClipPath='none';   /* stay full screen while it fades */
     void sec.offsetWidth;

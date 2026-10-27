@@ -133,8 +133,10 @@
     "vec2 shC(){return vec2(.42,.6)+uBox-vec2(1.);}",
     "float shineA(vec2 p,float z){",
     "  vec2 o=uBox-vec2(1.);",
-    "  float s3=shE(p-(vec2(.3914,.5728)+o)+.035*uWob*wv(p,10.,z+40.),vec2(.3155,.1884),.105)*.20;",
-    "  float s2=shE(p-(vec2(.4459,.5962)+o)+.023*uWob*wv(p,14.,z+47.),vec2(.1895,.1151),.042)*.40;",
+    /* the turbulence is only evaluated where the ellipse can reach (it costs two noise lookups) */
+    "  vec2 c3=p-(vec2(.3914,.5728)+o), c2=p-(vec2(.4459,.5962)+o);",
+    "  float s3=length(c3/vec2(.3155,.1884))>1.9?0.:shE(c3+.035*uWob*wv(p,10.,z+40.),vec2(.3155,.1884),.105)*.20;",
+    "  float s2=length(c2/vec2(.1895,.1151))>1.9?0.:shE(c2+.023*uWob*wv(p,14.,z+47.),vec2(.1895,.1151),.042)*.40;",
     "  float s1=shE(p-(vec2(.3692,.6424)+o),vec2(.0757,.0569),.019)*.40;",
     "  return 1.-(1.-s1)*(1.-s2)*(1.-s3);}",
   ];
@@ -196,16 +198,25 @@
        band, never a gap. Only the foreground rim's exterior cutter ends them. */
     "  if(r1>1.03||(r1<.88&&r2<i2-.12&&r3<i3-.2&&!sh)){gl_FragColor=vec4(0.);return;}",
     "  float z=uSeed*17.+uT*.11;",
-    "  vec2 w2=wv(q2,1.9,z+3.), w3=wv(q3,1.9,z+3.);",
-    "  float d2=rr(q2+uWob*.045*w2), d3=rr(q3+uWob*.065*vec2(w3.y,-w3.x));",
+    /* PERFORMANCE: the band wobble only matters near a band's inner edge (elsewhere its alpha is flat),
+       so the turbulence is only evaluated there; the windows are wider than wobble + edge softness */
+    "  float d2=r2, d3=r3;",
+    "  if(abs(r2-i2)<.2){vec2 w2=wv(q2,1.9,z+3.);d2=rr(q2+uWob*.045*w2);}",
+    "  if(abs(r3-i3)<.26){vec2 w3=wv(q3,1.9,z+3.);d3=rr(q3+uWob*.065*vec2(w3.y,-w3.x));}",
     "  float cut1=1.-smoothstep(1.-uPxz/uS.x,1.+uPxz/uS.x,r1);",
     "  float a1=smoothstep(.917-.012*uSoft,.921+.008*uSoft,r1)*cut1;",
     "  float a2=smoothstep(i2-.005-.022*uSoft,i2+.016*uSoft,d2)*.5*cut1;",
     "  float a3=smoothstep(i3-.01-.07*uSoft,i3+.05*uSoft,d3)*.25*uInner*cut1;",
     "  float sa=sh?shineA(q1,z)*(1.-smoothstep(1.-uPxz/uS.x,1.+uPxz/uS.x,r1)):0.;",
     "  vec4 acc=vec4(0.);",
-    "  if(a3>.003){acc=vec4(colAt(q3)*a3,a3);}",                                              // background plane
-    "  if(a2>.003){acc=vec4(colAt(q2)*a2+acc.rgb*(1.-a2),a2+acc.a*(1.-a2));}",               // mid-ground plane
+    /* the two band planes share ONE colour sample (the nearer plane's; the farther one's where only it
+       shows), and none is taken where the opaque rim covers them: once the bands fill the screen this
+       is a third of the work, with no visible difference (both planes are 50% / 25% washes) */
+    "  if(a1<.995&&(a2>.003||a3>.003)){",
+    "    vec3 cb=colAt(a2>.003?q2:q3);",
+    "    if(a3>.003)acc=vec4(cb*a3,a3);",                                                       // background plane
+    "    if(a2>.003)acc=vec4(cb*a2+acc.rgb*(1.-a2),a2+acc.a*(1.-a2));",                        // mid-ground plane
+    "  }",
     "  if(a1>.003){acc=vec4(colAt(q1)*a1+acc.rgb*(1.-a1),a1+acc.a*(1.-a1));}",               // foreground plane (the rim)
     "  if(sa>.003){acc=vec4(vec3(1.)*sa+acc.rgb*(1.-sa),sa+acc.a*(1.-sa));}",
     "  gl_FragColor=acc;}"
