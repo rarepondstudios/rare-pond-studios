@@ -39,6 +39,27 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-131 FIREFOX ON WINDOWS: RIM ONLY TOP-LEFT, FREEZE AFTER LOAD; LOGISTICS OFF-WHITE (2026-10-27)
+
+- Jack's ?perf=1 panel from his own PC (Windows, Firefox 158, GTX 980, 2560x1440 at 1.5x): frame
+  pacing perfect (238 fps at rest, 226 during carousel moves, bubble draws 0.03 ms), so it is not a
+  speed problem. Two real faults: (1) the featured card's rim showed only along its top and left;
+  (2) Firefox has no KHR_parallel_shader_compile, so the shaders build on the main thread (786 ms bubble,
+  731 ms zoom) and the zoom one, built about a second after load, froze the page, which read as every
+  bubble's gradient snapping to a new point (most visible on Projects).
+- Fix (1), assets/rp-bubble.js: the shared WebGL canvas gets ONE size up front (ATLAS: screen + 256 px
+  at the 1.25 DPR cap, at most 2048) and is never resized while bubbles draw; the depth zoom resizes it
+  for the flight and zoomStop() puts it back. It used to grow as bigger bubbles appeared, and the rim
+  pattern fits a copy taken from it at a stale size. Not reproducible on the mini (Chrome and Firefox
+  both correct), so the probe now also prints "WebGL copy check: after a resize / fixed size" to
+  confirm on the machine itself.
+- Fix (2): without parallel compile the zoom program is built straight after the bubble one, while the
+  page veil is still up (costs those ms on first load in Firefox, no freeze afterwards).
+- Rentals Logistics colour: NocoDB color_looks Id 37 (`white`, now named Off-White) is #e6e8eb, so
+  Logistics shows on white paper (stickers v66) and the site follows. OPERATIONS/HANDOFF lines that say
+  Logistics #FFFFFF predate this.
+- Note: HANDOFF had two 0.0.-128 entries (parallel sessions); the V3 rim QC one is now -129.
+
 ### 0.0.-130 PERFORMANCE ON WINDOWS PCS, FASTER FIRST LOAD, ?perf=1 PROBE, RENTALS WHITE SPLASH (2026-10-27)
 
 - Jack (phone video of two Windows PCs, one very high end): the home carousel stuttered, the bubbles took
