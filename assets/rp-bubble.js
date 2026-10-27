@@ -271,6 +271,10 @@
   var FPS = 24, MAXPX = 1600, DPR_CAP = 1.25;
   var Q = { scale: 1, fps: FPS };
   var items = [], gl = null, glc = null, prog = null, U = {}, raf = 0;
+  var ATLAS = (function () {
+    var d = Math.min(window.devicePixelRatio || 1, 1.25), sw = (window.screen && screen.width) || 0, sh = (window.screen && screen.height) || 0;
+    return [Math.min(2048, Math.ceil((Math.max(sw, window.innerWidth || 0) + 256) * d)), Math.min(2048, Math.ceil((Math.max(sh, window.innerHeight || 0) + 256) * d))];
+  })();
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   var canCheckVis = typeof Element !== "undefined" && "checkVisibility" in Element.prototype;
 
@@ -302,6 +306,7 @@
     if (gl === false) return false;
     try {
       glc = document.createElement("canvas");
+      glc.width = ATLAS[0]; glc.height = ATLAS[1];
       gl = glc.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false, powerPreference: "low-power" });
       if (!gl) { gl = false; return false; }
       /* SHADERS BUILD IN THE BACKGROUND (2026-10-27, Jack: on two Windows PCs, one very high end, the
@@ -372,8 +377,12 @@
     STATS.compileMs = Math.round(performance.now() - STATS.compileStart);
     var cbs = readyCbs; readyCbs = [];
     cbs.forEach(function (f) { try { f(); } catch (e) {} });
-    /* then the depth-zoom program, also in the background */
-    (window.requestIdleCallback || function (f) { return setTimeout(f, 300); })(function () {
+    /* then the depth-zoom program. With parallel compile it builds in the background. WITHOUT it
+       (Firefox, 2026-10-27: 731 ms on Jack's Windows PC) building it froze the page for that long about a
+       second after load, which read as every bubble's gradient snapping to a new point; it is built
+       right away instead, while the page veil is still up. */
+    if (!PAR) { try { ensureZ(); warmZ(); } catch (e) {} }
+    else (window.requestIdleCallback || function (f) { return setTimeout(f, 300); })(function () {
       try { if (gl && !progZ) { STATS.zStart = performance.now(); progZ = startLink(FSZ); kick(); } } catch (e) {}
     });
     return true;
@@ -487,6 +496,11 @@
      buffer than asked for (memory limits on some machines): everything here works in drawing-buffer
      pixels and returns the source size in canvas pixels for the copy. Assuming the two were equal drew
      only part of a bubble on such machines (Jack, 2026-10-26: rims "only showing on the top left"). */
+  /* ATLAS: the shared canvas gets ONE size, up front, big enough for any bubble on this screen, and is
+     never resized while bubbles are drawn (the depth zoom resizes it for the flight and puts it back).
+     Firefox on Windows (2026-10-27, Jack's screenshot) showed the featured card's rim only along its
+     top and left: after the shared canvas had grown, the copy taken from it was a stale, smaller image
+     scaled up. One fixed size avoids every such resize. */
   var GLMAX = 2048, renderEll = false, renderOut = false;
   function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep, rb, pal, clip) {
     var nw = Math.min(GLMAX, Math.max(glc.width, W, 256)), nh = Math.min(GLMAX, Math.max(glc.height, H, 256));
@@ -785,6 +799,7 @@
     var z = Z; Z = null;
     cancelAnimationFrame(z.raf);
     glc.remove(); glc.style.cssText = "";
+    glc.width = ATLAS[0]; glc.height = ATLAS[1];   /* back to the bubbles' fixed size (see ATLAS) */
     zooming = false;
     z.it.cv.style.visibility = "";
     z.hide.forEach(function (h) { h.style.removeProperty("opacity"); });

@@ -74,6 +74,28 @@
     });
   }
 
+  /* correctness: does a copy from a WebGL canvas show what was just drawn, after that canvas was resized
+     (the old rp-bubble behaviour) and without a resize (the current one)? */
+  function snapTest(resize) {
+    try {
+      var g = document.createElement("canvas"); g.width = resize ? 256 : 1024; g.height = resize ? 256 : 600;
+      var gl = g.getContext("webgl", { alpha: true, premultipliedAlpha: true, antialias: false });
+      if (!gl) return "no WebGL";
+      gl.clearColor(0, 1, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+      var c0 = document.createElement("canvas"); c0.width = c0.height = 8; c0.getContext("2d").drawImage(g, 0, 0, 8, 8);
+      if (resize) { g.width = 1024; g.height = 600; }
+      var dbh = gl.drawingBufferHeight;
+      gl.viewport(0, 0, gl.drawingBufferWidth, dbh); gl.clearColor(0, 0, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.enable(gl.SCISSOR_TEST); gl.scissor(0, dbh - 200, 400, 200); gl.clearColor(1, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT); gl.disable(gl.SCISSOR_TEST);
+      var c = document.createElement("canvas"); c.width = 400; c.height = 200; var x = c.getContext("2d");
+      x.drawImage(g, 0, 0, 400, 200, 0, 0, 400, 200);
+      var pts = [[5, 5], [395, 5], [5, 195], [395, 195], [200, 100]], bad = [];
+      pts.forEach(function (q) { var d = x.getImageData(q[0], q[1], 1, 1).data; if (!(d[0] > 200 && d[1] < 60 && d[2] < 60)) bad.push(q.join(",") + "=" + d[0] + "/" + d[1] + "/" + d[2]); });
+      var lose = gl.getExtension("WEBGL_lose_context"); if (lose) lose.loseContext();
+      return bad.length ? "WRONG at " + bad.join(" ") : "ok";
+    } catch (e) { return "error " + e.message; }
+  }
+
   function run() {
     var R = [], S = window.RPBubble && RPBubble.stats;
     var nav = performance.getEntriesByType("navigation")[0] || {};
@@ -83,6 +105,7 @@
     R.push("GPU: " + ((S && S.gpu) || "?"));
     R.push("load: first byte " + Math.round(nav.responseStart || 0) + " ms, page shown " + Math.round(window.__revealedAt || 0) + " ms, all loaded " + Math.round(nav.loadEventEnd || 0) + " ms");
     if (S) R.push("bubble shader build " + S.compileMs + " ms (background: " + (S.parallel ? "yes" : "NO") + "), zoom shader " + S.zCompileMs + " ms");
+    R.push("WebGL copy check: after a resize " + snapTest(true) + ", fixed size " + snapTest(false));
     var t1 = performance.now();
     out(R.join("\n") + "\n\nmeasuring the page at rest (4 s)...");
     var d0 = S ? [S.draws, S.drawMs, S.frames, S.frameMs] : null;
