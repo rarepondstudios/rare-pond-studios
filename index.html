@@ -61,7 +61,7 @@
 <link rel="icon" type="image/png" sizes="48x48" href="/media/site/favicon-48.png">
 <link rel="apple-touch-icon" href="/media/site/apple-touch-icon.png">
 <!-- Production error beacon. Loads FIRST so it is watching before any other script parses. -->
-<script src="/assets/error-beacon.js"></script><script>/* ?perf=1 loads the performance probe (assets/perf-probe.js); nothing for normal visitors */if(/[?&]perf=1\b/.test(location.search)){var __pp=document.createElement("script");__pp.src="/assets/perf-probe.js?v=6";__pp.defer=true;document.head.appendChild(__pp);}</script>
+<script src="/assets/error-beacon.js"></script><script>/* ?perf=1 loads the performance probe (assets/perf-probe.js); nothing for normal visitors */if(/[?&]perf=1\b/.test(location.search)){var __pp=document.createElement("script");__pp.src="/assets/perf-probe.js?v=7";__pp.defer=true;document.head.appendChild(__pp);}</script>
 <!-- Reserves the event banner's space before the first paint, so the page does not jump
      down when the banner arrives. Must stay here, in <head>, with no defer/async. -->
 <script src="/assets/banner-reserve.js"></script>
@@ -312,7 +312,15 @@ html.xw-active{overflow:hidden}
   .citem.rp-glow-special::before,.bubble.rp-glow-special::before{background:var(--rp-glow)}
   /* the "more to come" bubble already has its own rainbow hover treatment - leave it be */
   .bubble.placeholder::before{display:none}
-  .cbub{position:absolute;inset:0;z-index:1;overflow:hidden;border-radius:50%;transition:border-radius .6s;animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;contain:layout paint}
+  /* CARD BODY (2026-10-27). .cbody is the moving, rounded surface of a carousel card: it bobs, it owns
+     the corner radius (and its 50% -> 13%/20% morph) and it holds three layers: .cbub (the picture,
+     clipped to that radius), .cedge (the V3 rim) and the dive-in pill. The rim used to sit INSIDE the
+     clipped .cbub; on Windows Firefox and the iPad its canvas, clipped by a rounded, transformed,
+     animating parent, lost its right and bottom quarter and was stretched stale during moves. Now the
+     rim is not clipped by anything: it draws its own exact edge, 2px outside the picture's, so its
+     solid band always covers the picture's edge (no photo peeking out) without any clipping tricks. */
+  .cbody{position:absolute;inset:0;z-index:1;border-radius:50%;transition:border-radius .6s;animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+  .cbub{position:absolute;inset:0;z-index:1;overflow:hidden;border-radius:inherit;contain:layout paint}
   /* v19 (Jack): NO ring band around RP bubbles/cards for kb selection - the indicator is the
      element's OWN standard glow, mirrored by the .rpc-kbsel rules (::before halo, .cglow,
      scale). The harsh outline remains for buttons/controls (engine hug). Whether a site shows
@@ -394,7 +402,7 @@ html.xw-active{overflow:hidden}
      plain box-shadow is fine here - the carousel's constraints do not apply. */
   /* SHADOWS OFF. Restore by putting the box-shadow back on this rule. */
   .bubble::after{content:"";position:absolute;inset:0;border-radius:50%;z-index:0;pointer-events:none}
-  .citem.feat .cbub{border-radius:13%/20%}
+  .citem.feat .cbody{border-radius:13%/20%}
   .side-view{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;display:block;transition:opacity .45s;z-index:1}
   .side-view.cposter{display:grid;place-items:center;background:radial-gradient(circle at 38% 30%,#2f6bd6,#16306b 70%)}
   .citem.feat .side-view{opacity:0}
@@ -446,7 +454,7 @@ html.xw-active{overflow:hidden}
      stays there (it used to chase the cursor, and some bubbles had it top left). Placeholder until Jack's
      stylised After Effects glare replaces it. */
   .citem.feat .cspec{background:radial-gradient(30% 24% at 82% 16%,rgba(255,255,255,.55),transparent 60%)}
-  .cedge{position:absolute;inset:0;z-index:7;border-radius:inherit;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);opacity:.4;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
+  .cedge{position:absolute;inset:-2px;z-index:7;border-radius:inherit;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);opacity:.4;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
   .citem:hover .cedge{opacity:.9}
   /* "dive in": a small dark pill hugging the words (was a dark band across the whole bottom of the card) */
   .divehint{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:8;padding:8px 18px 7px 21px;border-radius:999px;white-space:nowrap;text-align:center;pointer-events:none;font-weight:800;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#fff;opacity:0;transition:opacity .3s;background:rgba(2,10,28,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-shadow:0 1px 4px rgba(0,10,40,.6)}
@@ -977,7 +985,7 @@ html.xw-active{overflow:hidden}
      resolver in assets/looks.js toggles .u-title-gradient on the title, which then reads
      the look's --title-from / --title-to tokens. No per-film selector. */
   .u-title.u-title-gradient{font-weight:800;font-size:clamp(44px,8vw,104px);background:linear-gradient(180deg,var(--title-from,#ffffff),var(--title-to,#ffffff));-webkit-background-clip:text;background-clip:text;color:transparent}
-  @media (prefers-reduced-motion: reduce){.bubble-inner,.glow,.edge,.cglow,.cbub,.cedge,.citem::before,.bubble::before{animation:none}.universe{transition:clip-path .3s ease,-webkit-clip-path .3s ease}}
+  @media (prefers-reduced-motion: reduce){.bubble-inner,.glow,.edge,.cglow,.cbub,.cbody,.cedge,.citem::before,.bubble::before{animation:none}.universe{transition:clip-path .3s ease,-webkit-clip-path .3s ease}}
   /* Where-to-Watch (left) and Follow (pushed right) share one row on desktop; stacks on mobile. */
   .u-watch{margin:30px 0 0;display:flex;flex-wrap:wrap;align-items:flex-start;gap:18px 40px}
   .u-watch-main{display:flex;flex-direction:column;align-items:flex-start;gap:14px;min-width:0}
@@ -1099,15 +1107,17 @@ html.xw-active{overflow:hidden}
      imperceptible but each was a live compositor layer competing with the featured film's
      decode. Pausing them is the single biggest GPU relief with zero visible change. */
   .citem:not(.feat) .bgb{animation-play-state:paused}
-  /* NO GPU (2026-10-27): rp-bubble.js sets html.rp-soft-gpu when WebGL reports a software renderer
-     (hardware acceleration off, no working graphics driver, remote desktop). Then the browser composites
-     every frame on the CPU, so anything that moves all the time costs the whole screen: the ambient
-     bubbles go, the bobbing stops and the halos lose their blur. With a GPU nothing here applies. */
-  html.rp-soft-gpu .bgb{display:none}
-  html.rp-soft-gpu .glow,html.rp-soft-gpu .cglow{filter:none!important}
-  html.rp-soft-gpu .cbub,html.rp-soft-gpu .cglow,html.rp-soft-gpu .glow,html.rp-soft-gpu .bubble,html.rp-soft-gpu .bubble-inner,html.rp-soft-gpu .m-bubble,html.rp-soft-gpu .orbi{animation-play-state:paused!important}
+  /* EFFECT TIERS (2026-10-27, see assets/rp-bubble.js "EFFECT TIERS"): html gets rp-fx-full, rp-fx-lite
+     or rp-fx-css. In LITE (a device that could not hold the full effects, a software renderer, Save-Data)
+     anything that moves all the time goes: the ambient bubbles, the bobbing, the halos' blur. In CSS
+     (no WebGL, or the self-check failed) the bubbles keep their original CSS rims (no .rp-bubble-on).
+     RULE for new work: an effect that runs continuously gets an html.rp-fx-lite rule here, so the lower
+     tiers stay in step with the full site automatically. */
+  html.rp-fx-lite .bgb{display:none}
+  html.rp-fx-lite .glow,html.rp-fx-lite .cglow{filter:none!important}
+  html.rp-fx-lite .cbub,html.rp-fx-lite .cbody,html.rp-fx-lite .cglow,html.rp-fx-lite .glow,html.rp-fx-lite .bubble,html.rp-fx-lite .bubble-inner,html.rp-fx-lite .m-bubble,html.rp-fx-lite .orbi{animation-play-state:paused!important}
   body.bg-idle .bgb,body.bg-idle .orbi{animation-play-state:paused}
-  body.u-cover .bgb,body.u-cover .orbi,body.u-cover .bubble-inner,body.u-cover .glow,body.u-cover .cbub,body.u-cover .cglow,
+  body.u-cover .bgb,body.u-cover .orbi,body.u-cover .bubble-inner,body.u-cover .glow,body.u-cover .cbub,body.u-cover .cbody,body.u-cover .cglow,
   body.u-cover .citem::before,body.u-cover .bubble::before,body.u-cover .m-bubble{animation-play-state:paused!important}
   /* skip rendering the tall, off-screen contact section until it's scrolled near */
   #contact{content-visibility:auto;contain-intrinsic-size:1px 1200px}
@@ -1256,7 +1266,7 @@ html.xw-active{overflow:hidden}
      rp-bubble.js on the rim canvas, pinned top right (the site's light source). The old CSS speculars
      are switched off wherever that canvas is on; without WebGL they stay exactly as they were. */
   .bubble-inner:has(>.edge.rp-bubble-on) .glass .spec,
-  .cbub:has(>.cedge.rp-bubble-on)>.cspec,
+  .cbody:has(>.cedge.rp-bubble-on) .cspec,
   .m-bubble:has(>.m-edge.rp-bubble-on) .m-spec,
   .about-anim-slot.rp-rim-on::after{display:none}
   .orbi.rp-rim-on::after{background:radial-gradient(120% 100% at 50% 122%,rgba(0,10,34,.34),transparent 52%)}
@@ -1289,7 +1299,7 @@ html.xw-active{overflow:hidden}
 
      The only thing a swipe still does is PAUSE the idle bob/float animations, which is
      invisible - they resume from where they were. */
-  body.swiping .bgb,body.swiping .orbi,body.swiping .cbub,
+  body.swiping .bgb,body.swiping .orbi,body.swiping .cbub,body.swiping .cbody,
   body.swiping .cglow,body.swiping .citem::before{animation-play-state:paused !important}
 
   /* ===== custom pages (Pages CMS → Custom Pages) ===== */
@@ -1523,7 +1533,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261027g"></script>
+<script src="/assets/rp-bubble.js?v=20261027h"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2326,7 +2336,7 @@ const citems=CAROUSEL.map((p,i)=>{
      cast-shadow oval, .cglow = halo): the custom cursor's hug-outline scans border-radius from
      near-full-size children, and these ovals must never drive the outline shape - only the
      visible .cbub surface should (see assets/cursor.js scanShape). */
-  el.innerHTML=`<div class="cdrop" data-cursor="noscan"></div><div class="cglow" data-cursor="noscan"></div><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div><div class="cedge"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
+  el.innerHTML=`<div class="cdrop" data-cursor="noscan"></div><div class="cglow" data-cursor="noscan"></div><div class="cbody"><div class="cbub">${side}${sideVid}${focusHTML(p)}<div class="cshade"></div><div class="crim"></div><div class="cspec"></div></div><div class="cedge" data-cursor="noscan"></div><div class="divehint">dive in ›</div></div><div class="clogo">${logoHTML(p)}</div>`;
   /* only the FEATURED card (or one under the pointer / keyboard) animates; the side cards hold a still
      frame of the same bubble and only redraw when their look or shape changes (performance, 2026-10-26) */
   const _cLive=()=>el.matches('.feat,:hover,.rpc-kbsel');

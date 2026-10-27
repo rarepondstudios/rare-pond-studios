@@ -280,6 +280,52 @@
      (Jack, 2026-10-26). Every bubble now gets the same 1.25 device px per CSS px; glow layers, which
      are blurred by CSS anyway, render at half that. */
   var FPS = 24, MAXPX = 1600, DPR_CAP = 1.25;
+  var CODE_VER = "20261027h";
+
+  /* ===== EFFECT TIERS (2026-10-27, Jack: "safety measures and automatic backup versions of the website
+     that it can cleanly fall back to if a computer can't handle it ... when future updates are made, it
+     will automatically update any elements for lower res versions") =====
+     There are no separate copies of the site. Every bubble on every page goes through THIS file, so a
+     tier is a way of drawing, applied to all of them, and anything added later with RPBubble.attach()
+     gets every tier for free. html gets rp-fx-full / rp-fx-lite / rp-fx-css so page CSS can drop its
+     own continuous effects in lite (see index.html "EFFECT TIERS").
+       full  the V3 bubble as designed: live wobbling rims, depth-zoom film openings.
+       lite  every rim drawn once and redrawn only when its look or shape settles, 75% resolution, a
+             CSS ring while a bubble changes shape, no ambient bubbles, no blurred halos (page CSS).
+       css   no WebGL at all: the site's original CSS rims (pages already fall back when
+             RPBubble.supported() is false), plain page transitions instead of the depth zoom.
+     How a tier is chosen: ?fx=full|lite|css (kept for the tab) for testing; else a decision this
+     device made before WITH THIS VERSION of the code (so every update re-tests every device and
+     nothing stays stuck on a fallback the new code may not need); else Save-Data / a very small
+     device -> lite. Then it can only go DOWN while the page runs: a software renderer -> lite; the
+     WebGL copy self-check failing -> css (reloads once, behind the page veil); frames staying slow
+     at the lowest resolution -> lite now, css from the next visit. */
+  var TIER = "full", TIER_WHY = "default";
+  function fxSave(t, why) { try { localStorage.setItem("rp-fx", JSON.stringify({ t: t, why: why, v: CODE_VER, at: Date.now() })); } catch (e) {} }
+  (function pickTier() {
+    var q = (location.search.match(/[?&]fx=(full|lite|css)\b/) || [])[1];
+    try { if (q) sessionStorage.setItem("rp-fx-force", q); else q = sessionStorage.getItem("rp-fx-force"); } catch (e) {}
+    if (q) { TIER = q; TIER_WHY = "forced (?fx=" + q + ")"; return; }
+    var sv = null; try { sv = JSON.parse(localStorage.getItem("rp-fx") || "null"); } catch (e) {}
+    if (sv && sv.v === CODE_VER && Date.now() - sv.at < 14 * 864e5 && (sv.t === "lite" || sv.t === "css")) { TIER = sv.t; TIER_WHY = "remembered on this device: " + sv.why; return; }
+    var cn = navigator.connection, mem = navigator.deviceMemory, cores = navigator.hardwareConcurrency;
+    if (cn && cn.saveData) { TIER = "lite"; TIER_WHY = "Save-Data"; }
+    else if ((mem && mem <= 2) || (cores && cores <= 2)) { TIER = "lite"; TIER_WHY = "small device"; }
+  })();
+  try { document.documentElement.classList.add("rp-fx-" + TIER); } catch (e) {}
+  /* t: the new tier; save: remember it on this device (this code version); reload: apply it by reloading
+     the page once (only used for css, which cannot be switched to while bubbles already exist) */
+  function setTier(t, why, save, reload) {
+    if (save) fxSave(t, why);
+    if (t === TIER) return;
+    if (reload) {
+      try { if (sessionStorage.getItem("rp-fx-reloaded")) return; sessionStorage.setItem("rp-fx-reloaded", "1"); } catch (e) { return; }
+      location.reload(); return;
+    }
+    var de = document.documentElement;
+    de.classList.remove("rp-fx-" + TIER); TIER = t; TIER_WHY = why; de.classList.add("rp-fx-" + t);
+    if (t === "lite") { Q.scale = Math.min(Q.scale, 0.75); items.forEach(function (x) { x.drawn = false; }); kick(); }
+  }
   var Q = { scale: 1, fps: FPS };
   var items = [], gl = null, glc = null, prog = null, U = {}, raf = 0;
   var ATLAS = (function () {
@@ -315,6 +361,7 @@
   function initGL() {
     if (gl) return true;
     if (gl === false) return false;
+    if (TIER === "css") { gl = false; return false; }
     try {
       glc = document.createElement("canvas");
       glc.width = ATLAS[0]; glc.height = ATLAS[1];
@@ -341,7 +388,7 @@
          page animation. The bubbles then draw once and redraw only when they change, at lower
          resolution, and html.rp-soft-gpu lets the page drop its continuous effects (index.html). */
       SOFT = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(STATS.gpu);
-      if (SOFT) { STATS.soft = true; Q.scale = 0.75; document.documentElement.classList.add("rp-soft-gpu"); }
+      if (SOFT) { STATS.soft = true; setTier("lite", "software renderer (no GPU)", false); }
       glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
       if (!PAR && !ready(true)) return false;   /* no extension: build now, as before */
       return true;
@@ -407,8 +454,29 @@
         } else STATS.calib = "out of range " + [rx, ry].join(" ");
       } else STATS.calib = "unreadable";
     } catch (e) { STATS.calib = "error " + e.message; }
+    selfCheck();
   }
-  var STATS = { ver: "20261027g", compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
+  /* SELF-CHECK (safety): one test bubble, a wide rounded rectangle like the featured carousel card,
+     drawn and copied exactly the way every bubble is, then read back: its rim must be there on all four
+     sides and its middle must be clear. If not, this browser cannot show the bubbles correctly, the
+     page switches to the css tier (one reload while the veil is still up) and remembers it for this
+     version of the code. */
+  function selfCheck() {
+    try {
+      var W = 300, H = 170, s0 = Math.min(W, H);
+      var src = render(lookVec(null), W, H, [W / s0, H / s0], [0.3, 0.45], 0, 0.5, [W / s0, H / s0], 1, false, 0, 0, null, false);
+      var c = document.createElement("canvas"); c.width = W; c.height = H;
+      var x = c.getContext("2d", { willReadFrequently: true });
+      copyOut(x, src, W, H);
+      var d = x.getImageData(0, 0, W, H).data;
+      var A = function (px, py) { return d[(py * W + px) * 4 + 3]; };
+      var edges = [A(W >> 1, 3), A(W >> 1, H - 4), A(3, H >> 1), A(W - 4, H >> 1)], mid = A(W >> 1, H >> 1);
+      var ok = edges.every(function (a) { return a > 90; }) && mid < 40;
+      STATS.selfcheck = (ok ? "ok" : "FAILED") + " (edges " + edges.join("/") + ", middle " + mid + ")";
+      if (!ok) setTier("css", "the WebGL copy self-check failed", true, true);
+    } catch (e) { STATS.selfcheck = "error " + e.message; }
+  }
+  var STATS = { ver: CODE_VER, compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
   var progZ = null, UZ = null;
   var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut"];
   /* compile + link WITHOUT asking for the result (asking blocks until the driver is done) */
@@ -512,6 +580,11 @@
       if (t === it.el || t.contains(it.el) || (it.ref && (t === it.ref || t.contains(it.ref)))) {
         if (live) { it.trans++; it.transAt = performance.now(); } else it.trans = Math.max(0, it.trans - 1);
         it.dirty = Math.max(it.dirty, 2);
+        /* a SHAPE change (size, corner radius) as opposed to a colour / depth one: see MOVE RING */
+        if (/width|height|radius|padding|^inset|^top|^left|^right|^bottom/.test(e.propertyName || "")) {
+          if (live) { it.shapeT = (it.shapeT || 0) + 1; it.shapeAt = performance.now(); }
+          else it.shapeT = Math.max(0, (it.shapeT || 0) - 1);
+        }
       }
     }
     kick();
@@ -649,9 +722,48 @@
     copyOut(it.ctx, src, W, H);   // the render sits in the TOP-left of the shared canvas
     if (!it.shownOnce) { it.shownOnce = true; it.cv.style.opacity = "1"; }
     it.drawn = true;
-    var dS = performance.now() - tS;
+    it.lastDraw = performance.now();
+    var dS = it.lastDraw - tS;
     STATS.draws++; STATS.drawMs += dS; if (dS > STATS.drawMax) STATS.drawMax = dS;
     return true;
+  }
+
+  /* ===== MOVE RING (2026-10-27, Jack's iPad recording) =====
+     While a bubble changes SHAPE (the carousel card growing from a circle into the featured
+     rectangle and back) its canvas has to be redrawn every frame, or CSS stretches the last picture:
+     the old circle's rim became an oval inside the new rectangle, with its dark middle showing as
+     black edges. Where the page is too busy to redraw in time (or in the lite tier, always), the
+     canvas is hidden for the move and the element shows a CSS ring instead, three inset shadows in
+     the bubble's colours and tier widths (solid rim, 50%, 25%) that follow the border-radius exactly
+     because they ARE the element's own edge. When the shape settles the canvas is redrawn at the
+     final size, fades back in, and the ring fades out under it. Generic: any bubble, any page. */
+  var MOVE_RING = false, staleMoves = 0;
+  (function () {
+    try {
+      var st = document.createElement("style");
+      st.textContent = ".rpb-moving>.rp-bubble-cv{opacity:0!important;transition:opacity .1s ease!important}" +
+        ".rpb-moving,.rpb-ringout{box-shadow:inset 0 0 0 var(--rpb-t1) var(--rpb-r1),inset 0 0 var(--rpb-b2) var(--rpb-s2) var(--rpb-r2),inset 0 0 var(--rpb-b3) var(--rpb-s3) var(--rpb-r3)!important}" +
+        ".rpb-ringout>.rp-bubble-cv{transition:opacity .22s ease!important}";
+      (document.head || document.documentElement).appendChild(st);
+    } catch (e) {}
+  })();
+  function rgba(c, a) { return "rgba(" + Math.round(c[0] * 255) + "," + Math.round(c[1] * 255) + "," + Math.round(c[2] * 255) + "," + a + ")"; }
+  function ringOn(it, why) {
+    if (it.ring) return;
+    it.ring = why || true;
+    var hs = Math.min(it.w || 0, it.h || 0) / 2 * (it.depth || 1);
+    var t1 = Math.max(1.5, 0.083 * hs), t2 = 0.107 * hs, t3 = 0.11 * hs, st = it.el.style, c = it.cols;
+    st.setProperty("--rpb-t1", t1.toFixed(1) + "px"); st.setProperty("--rpb-r1", rgba(c[0], 1));
+    st.setProperty("--rpb-b2", (t2 * 0.8).toFixed(1) + "px"); st.setProperty("--rpb-s2", (t1 + t2 * 0.6).toFixed(1) + "px"); st.setProperty("--rpb-r2", rgba(c[1], 0.5));
+    st.setProperty("--rpb-b3", (t3 * 1.6).toFixed(1) + "px"); st.setProperty("--rpb-s3", (t1 + t2 + t3 * 0.4).toFixed(1) + "px"); st.setProperty("--rpb-r3", rgba(c[2], 0.25));
+    it.el.classList.add("rpb-moving");
+  }
+  function ringOff(it) {
+    if (!it.ring) return;
+    it.ring = false;
+    it.el.classList.remove("rpb-moving"); it.el.classList.add("rpb-ringout");
+    clearTimeout(it.ringT);
+    it.ringT = setTimeout(function () { it.el.classList.remove("rpb-ringout"); }, 260);
   }
 
   /* round-robin housekeeping: real visibility + a slow style refresh. checkVisibility() forces a style
@@ -672,6 +784,7 @@
       seen++;
       if (canCheckVis) it.shown = it.el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
       if (it.trans && now - (it.transAt || 0) > 3000) it.trans = 0;   // a transition whose end event never came
+      if (it.shapeT && now - (it.shapeAt || 0) > 3000) it.shapeT = 0;
       if (now - (it.styledAt || 0) > 2000 && it.onScreen) { it.dirty = Math.max(it.dirty, 1); it.styledAt = now; }
     }
   }
@@ -684,7 +797,12 @@
     if (now - pace.t0 < 1000) return;
     var ratio = pace.slow / Math.max(1, pace.n);
     if (ratio > 0.25 && Q.scale > 0.56) { Q.scale = Math.max(0.55, Q.scale - 0.15); Q.fps = 15; }
-    else if (ratio < 0.05 && Q.scale < (SOFT ? 0.75 : 1)) { Q.scale = Math.min(SOFT ? 0.75 : 1, Q.scale + 0.1); if (Q.scale >= 1) Q.fps = FPS; }
+    else if (ratio < 0.05 && Q.scale < (TIER === "lite" ? 0.75 : 1)) { Q.scale = Math.min(TIER === "lite" ? 0.75 : 1, Q.scale + 0.1); if (Q.scale >= 1) Q.fps = FPS; }
+    /* still slow at the lowest resolution, second after second: this device cannot hold the full
+       effects. Lite now (remembered), and if even lite stays slow, css from the next visit. */
+    pace.slowWin = ratio > 0.3 ? (pace.slowWin || 0) + 1 : 0;
+    if (TIER === "full" && Q.scale <= 0.56 && pace.slowWin >= 3) { setTier("lite", "frames stayed slow at the lowest resolution", true); pace.slowWin = 0; }
+    else if (TIER === "lite" && pace.slowWin >= 6) { fxSave("css", "frames stayed slow even in lite"); pace.slowWin = 0; }
     pace.t0 = now; pace.n = 0; pace.slow = 0;
   }
 
@@ -700,7 +818,7 @@
      the page keeps its own frame rate on a weak GPU instead of stalling. */
   var GLOW_FPS = 8, BUDGET = 8;
   function kindOf(x) {
-    if (x.opts.still || SOFT) return "still";
+    if (x.opts.still || TIER === "lite") return "still";
     if (x.opts.liveWhen) { try { if (!x.opts.liveWhen(x.el)) return "still"; } catch (e) {} }
     return x.ref ? "glow" : "live";
   }
@@ -728,9 +846,22 @@
          are not always the ones left waiting (on a slow machine only the first few bubbles on the page
          ever animated) */
       rot = n ? (rot + 1) % n : 0;
+      for (c = 0; c < n; c++) {
+        x = items[c];
+        if (x.ref || x.opts.splash) continue;   /* halos and splashes have no edge to ring */
+        if (x.shapeT > 0) {
+          /* in lite always; in full once this device has shown it cannot keep a moving bubble drawn, or
+             when THIS one has not been redrawn for 3 frames' time */
+          if (!x.ring && (TIER === "lite" || MOVE_RING || (x.drawn && now - Math.max(x.lastDraw || 0, x.shapeAt || 0) > 50))) {
+            if (TIER === "full" && !MOVE_RING && ++staleMoves >= 2) MOVE_RING = true;
+            ringOn(x, TIER === "lite" ? "lite" : (MOVE_RING ? "learned" : "stale"));
+          }
+        } else if (x.ring && !x.ringDraw) { x.ringDraw = 1; x.dirty = Math.max(x.dirty, 1); }   /* settled: redraw first, then show */
+      }
       for (var c = 0; c < n; c++) {
         var x = items[(rot + c) % n];
         if (x.onScreen === false || x.shown === false) continue;
+        if (x.ring && x.shapeT > 0) continue;   /* hidden behind its CSS ring while it moves */
         var must = !x.drawn || x.trans || x.dirty;
         var kind = (paused || reduce || swiping) ? "still" : kindOf(x);
         if (!must && kind === "still") continue;
@@ -761,7 +892,10 @@
         nDrawn++;
         var iv = 1000 / (todo[c][1] === "glow" ? GLOW_FPS : Q.fps);
         x.next = x.drawn ? now + iv : now + iv * Math.random();   /* first draw: random phase, so they spread out */
-        if (draw(x, simT + x.opts.seed * 3.7, true)) x.sig = sigOf(x);
+        if (draw(x, simT + x.opts.seed * 3.7, true)) {
+          x.sig = sigOf(x);
+          if (x.ringDraw) { x.ringDraw = 0; ringOff(x); }
+        }
       }
       if (todo.length) { var fm = performance.now() - t0; STATS.frames++; STATS.frameMs += fm; if (fm > STATS.frameMax) STATS.frameMax = fm; }
     }
@@ -1038,6 +1172,8 @@
     attach: attach, setLook: setLook, detach: detach, sprite: sprite, params: P, setParam: setParam, quality: Q,
     redraw: function () { items.forEach(function (x) { x.drawn = false; }); kick(); },
     supported: function () { return initGL(); },
+    tier: function () { return { tier: TIER, why: TIER_WHY, moveRing: MOVE_RING }; },
+    setTier: function (t) { if (t === "css") setTier(t, "set by the page", true, true); else setTier(t, "set by the page", true); },
     /* run f once the shaders are built (at once if they already are) */
     ready: function (f) { if (!initGL()) return; if (progReady) f(); else { readyCbs.push(f); kick(); } },
     stats: STATS
