@@ -39,6 +39,38 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-139 ENTERING THE WATER (LOAD COVER), THREE-BAND SIDEWAYS SWEEP, POP-IN AUDIT + STANDARD (2026-10-27)
+
+- Jack: check the whole site for pop-in; carry the lessons to future work and other sites even with a
+  different look; replace the Studio / Rentals / Media sideways transition's motion lines with the
+  three-tier look; replace the radial-gradient load fade with "entering the water".
+- `assets/rp-water.js` (SHARED master `bts-automation/rp_water.js`, published to both sites by
+  social_ui_sync.py), plain 2D canvas so it runs before any shader exists and on every tier:
+  - `RPWater.veil`: the load cover starts as the page's header colour (white on Studio / Rentals, dark blue
+    on Media and the legal pages), holds while loading (a slow load shows the waterline coming up at the
+    bottom after 450 ms), then the waterline (solid / 50% / 25% bands, wobbling edges, the veil colour
+    look) rises over the screen with the page beneath it. Also used for the SPA fallback fade
+    (`__pageFade`) and the outgoing cross-page fade (now to white).
+  - `RPWater.sweep` (xwipe.js): the 25% band leads, the 50% band follows, the solid band covers (with
+    parallax), the next page carries the motion on; motion lines removed. Fully covered it equals the
+    #xwipe CSS gradient (now `left:0;width:100vw`, no mask), so the hand-over stays seamless.
+  - `RPWater.page({sky, ready, style})`: one-call cover for simple pages (legal); `RPWater.settled()`
+    waits for a still layout. Pages set `window.__revealedAt` when they start to show.
+- Pop-in audit: `node ~/bts-automation/site_popin_audit.mjs <urls> [--mobile] [--engine=webkit|firefox]`
+  (generic, any site). Found and fixed: /privacy and /terms had no cover on either site (now covered);
+  Rentals re-drew its first screen when the live catalog arrived after the cover lifted (cover now waits
+  for `window.__rpLive` and a still layout); the seasonal logo hat popped onto the logo (hat.js now fades
+  it in); on phones the About logo's animation canvas swapped in about a second after the reveal and
+  replaced the finished logo with the bare palette in view (it now waits until the logo is well in view or
+  off screen); the cookie banner could appear instead of sliding in (shared contact.js forces its start
+  position first). After: every page clean in Chrome desktop and mobile, WebKit desktop and mobile,
+  Firefox; jackcarlsen.com home, portfolio and film pages were already clean.
+- The stamper is now `tools/stamp-assets.py` (shared master `bts-automation/stamp_assets.py`, also on
+  jackcarlsen.com, whose zone has the same 4 h cache). social_ui_sync.py now treats a copy that differs
+  from its master only by `?v=` stamps as equal: the stamped contact.js had made it re-copy and commit
+  every run (the empty "chore(shared)" commits since this morning).
+- The standard for every site: `AI_System_Context/procedures/website-quality.md` (listed in START-HERE).
+
 ### 0.0.-138 CUT-OFF PROVEN FIXED ON JACK'S PC; NO MOVE RING IN FULL (iPAD SNAP) (2026-10-27)
 
 - Report #28 (Jack's Windows PC, Firefox 158, code 20261027o, screen check): the featured card's rim on

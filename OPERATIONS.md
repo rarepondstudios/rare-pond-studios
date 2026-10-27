@@ -702,12 +702,29 @@ copy of the site, so a tier is a different way of drawing the SAME page and anyt
 - Carousel card layers: `.citem > .cbody` (bobs, owns the corner radius and its morph) > `.cbub` (the
   picture, clipped) + `.cedge` (the rim, NOT clipped, 2 px outside the picture) + `.divehint`.
 
+## Load cover and page transitions (since 2026-10-27)
+
+Standard for every site: `AI_System_Context/procedures/website-quality.md`. Engine: `assets/rp-water.js`
+(shared master `bts-automation/rp_water.js`; edit the master, social_ui_sync.py publishes it).
+
+- Every page paints its cover (`#pageveil`, the page's header colour) from the first frame and lifts it
+  only when its first screen is ready: Studio = fonts (max 1.2 s) + `__markContentReady` from `__main`;
+  Rentals = fonts + load + the live catalog redraw (`window.__rpLive`, max 1.6 s) + a still layout; Media
+  = fonts + load; legal = text drawn + logo decoded (`RPWater.page`). Caps 3 to 4 s.
+- The lift is "entering the water" (`RPWater.veil`): the waterline rises over the screen in three bands.
+  Its colours = Pages CMS "Page-load fade" colour look (data/site.json `veil.colorLook`); "enabled: off"
+  shows the page with no cover.
+- Studio / Rentals / Media hops: `assets/xwipe.js` + `RPWater.sweep` (three bands with parallax across
+  the page load). In-page view changes use View Transitions (fallback: the water entry).
+- New page: copy the legal pages' pattern (cover CSS + div + `RPWater.page`). Check with
+  `node ~/bts-automation/site_popin_audit.mjs <url> --mobile` (and `--engine=webkit|firefox`).
+
 ## Asset versions (every page, automatic, since 2026-10-27)
 
 Cloudflare's zone setting makes browsers keep `.js` / `.css` for 4 hours (it overrides the
 `max-age=0` that Pages sends, so `_headers` cannot change it; HTML and `/data/*.json` do revalidate
 every load). So every reference to a local script or stylesheet in every tracked page carries
-`?v=<first 10 hex of its SHA-1>`, set by `tools/stamp-assets.py` from the global pre-commit
+`?v=<first 10 hex of its SHA-1>`, set by `tools/stamp-assets.py` (shared master `bts-automation/stamp_assets.py`) from the global pre-commit
 hook (`bts-automation/hooks/pre-commit`) on any commit that stages an `.html`, `.js` or `.css` file.
 A changed file gets a new URL on the next page load everywhere; unchanged files stay cached. Never
 edit `?v=` by hand. Fonts (`/assets/fonts/`, immutable) are skipped; scripts that load another asset
