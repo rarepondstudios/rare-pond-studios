@@ -1209,9 +1209,11 @@ html.xw-active{overflow:hidden}
   .glow.rp-bubble-on,.cglow.rp-bubble-on{background:none!important;-webkit-mask:none!important;mask:none!important}
   .bubble.rp-glow-on::before,.citem.rp-glow-on::before{display:none}
   .glow.rp-bubble-on>.rp-bubble-cv,.cglow.rp-bubble-on>.rp-bubble-cv{border-radius:0}
-  /* touch devices: no CSS blur over the live halo canvas. The shader's halo is already soft, and a
-     filter over a canvas that changes every frame re-blurs it every frame, a real cost on phones. */
-  @media (hover:none){.glow.rp-bubble-on,.cglow.rp-bubble-on{filter:none!important}}
+  /* No CSS blur over the live halo canvases, on any device. The shader draws the halo already soft (and
+     at half resolution), while a filter over a canvas that changes re-blurs a large layer again and
+     again: profiled 2026-10-26 as the single biggest cost on the home page on an ordinary GPU (the
+     featured card's halo). */
+  .glow.rp-bubble-on,.cglow.rp-bubble-on,.bubble:hover .glow.rp-bubble-on,.bubble.rpc-kbsel .glow.rp-bubble-on{filter:none!important}
   /* the wide featured card would otherwise get bands sized to its HEIGHT (far thicker than on the
      round side bubbles); --rpb-depth thins them and eases with the card's .6s shape morph */
   @property --rpb-depth{syntax:"<number>";inherits:true;initial-value:1}
@@ -1503,7 +1505,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026w"></script>
+<script src="/assets/rp-bubble.js?v=20261026x"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([

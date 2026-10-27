@@ -680,9 +680,24 @@
     var ms = o.ms || 1400, t0 = performance.now(), tBase = simT + seed * 3.7;
     Z = { o: o, it: it, hide: hide, raf: 0 };
     var z = Z;
-    var first = true;
+    var first = true, lastNow = 0, gAcc = 0, gN = 0, kMin = 0.3;
     function step(now) {
       if (Z !== z) return;
+      /* IN-FLIGHT ADAPTATION: if this machine cannot hold the frame rate, the flight drops its own
+         resolution by 30% steps (down to kMin). It starts sharp, and by the time it could step down the
+         rim is already big and soft, so a fast machine never sees a difference and a slow one stays fluid. */
+      if (lastNow && !first) {
+        gAcc += now - lastNow; gN++;
+        if (gN >= 5) {
+          if (gAcc / gN > 22 && k > kMin) {
+            k = Math.max(kMin, k * 0.7);
+            W = Math.max(16, Math.round(vw * k)); H = Math.max(16, Math.round(vh * k));
+            glc.width = W; glc.height = H;
+          }
+          gAcc = 0; gN = 0;
+        }
+      }
+      lastNow = now;
       /* the clock starts on the first real frame: opening a film builds its page in the same task, and a
          slow first frame should hold the opening pose, not make the flight jump ahead */
       if (first && now !== t0) { first = false; t0 = now - 16; }
