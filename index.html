@@ -3746,6 +3746,9 @@ if(window.RP_reapplyLooks)RP_reapplyLooks();
   const onScreen=el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth;};
   const imgs=[...document.querySelectorAll('img')].filter(i=>!(i.complete&&i.naturalWidth)&&onScreen(i));
   const dec=imgs.map(i=>(i.decode?i.decode():new Promise(r=>{i.addEventListener('load',r,{once:true});i.addEventListener('error',r,{once:true});})).catch(()=>{}));
+  /* the featured card's still is a CSS background (.focus-bg), not an <img>: wait for it too, so the
+     carousel is complete when the veil lifts (2026-10-27) */
+  document.querySelectorAll('.focus-bg').forEach(el=>{if(!onScreen(el))return;const m=/url\(["']?([^"')]+)/.exec(getComputedStyle(el).backgroundImage||'');if(!m)return;const im=new Image();im.src=m[1];dec.push((im.decode?im.decode():new Promise(r=>{im.onload=im.onerror=r;})).catch(()=>{}));});
   Promise.race([Promise.all(dec),new Promise(r=>setTimeout(r,1500))]).then(()=>{
     requestAnimationFrame(()=>requestAnimationFrame(()=>{if(window.__markContentReady)window.__markContentReady();}));
   });
