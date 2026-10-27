@@ -601,6 +601,9 @@
       clipped: opts.glow ? false : (opts.clipped != null ? !!opts.clipped : clipParent(el)),
       onScreen: io ? undefined : true, shown: undefined, drawn: false, styled: false, dirty: 1, trans: 0, rad: 1, depth: 1, w: 0, h: 0
     };
+    /* inside a clipping parent the PARENT's rounded clip is the only edge: a canvas with its own
+       border-radius antialiased a second time, letting a hairline of the photo show around the rim */
+    if (it.clipped) cv.style.borderRadius = "0";
     items.push(it);
     if (io) io.observe(el);
     if (ro) ro.observe(el);
