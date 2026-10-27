@@ -338,7 +338,66 @@
   }
 
   var SOFT = false, PAR = null, progReady = false, zReady = false, readyCbs = [];
-  var STATS = { compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
+  /* COPY CALIBRATION (2026-10-27, Jack's Windows PC, Firefox: the featured card's rim was missing its
+     right and bottom quarter). Each bubble is drawn into the top-left corner of the shared WebGL canvas
+     and copied out with drawImage(source rectangle). On that machine the copy came back scaled, so the
+     bubble was magnified and its right and bottom edges fell outside its canvas; on the mini (Chrome,
+     Firefox, Safari) it is exact, so the cause could not be reproduced. Instead the copy measures
+     itself once, when the shaders are ready: a 32 x 16 grid of known colours is drawn where a bubble
+     would be, copied the same way into a small canvas, and the colours read back give where the copy
+     actually sampled. copyOut() then asks for the rectangle that lands where it should. Where the copy
+     is already exact (every machine tested so far) the correction is 1 and 0 and nothing changes. */
+  var CAL = { rx: 1, ox: 0, ry: 1, oy: 0 };
+  function copyOut(ctx, src, W, H) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(glc, -CAL.ox / CAL.rx, -CAL.oy / CAL.ry, src[0] / CAL.rx, src[1] / CAL.ry, 0, 0, W, H);
+  }
+  function calibrate() {
+    try {
+      var GW = 512, GH = 256, NX = 32, NY = 16, DW = 256, DH = 128;
+      var dbw = gl.drawingBufferWidth || glc.width, dbh = gl.drawingBufferHeight || glc.height;
+      if (dbw < GW || dbh < GH) return;
+      gl.viewport(0, 0, dbw, dbh); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.enable(gl.SCISSOR_TEST);
+      for (var i = 0; i < NY; i++) for (var j = 0; j < NX; j++) {
+        gl.scissor(j * (GW / NX), dbh - (i + 1) * (GH / NY), GW / NX, GH / NY);
+        gl.clearColor((j * 8 + 4) / 255, (i * 16 + 8) / 255, 0.5, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+      }
+      gl.disable(gl.SCISSOR_TEST);
+      var sx = glc.width / dbw, sy = glc.height / dbh, src = [GW * sx, GH * sy];
+      var c = document.createElement("canvas"); c.width = DW; c.height = DH;
+      var x = c.getContext("2d", { willReadFrequently: true });
+      x.drawImage(glc, 0, 0, src[0], src[1], 0, 0, DW, DH);
+      var d = x.getImageData(0, 0, DW, DH).data;
+      /* source position of every colour boundary along the middle row / column, fitted with a line */
+      function fit(along) {
+        var pts = [], prev = null, n = along === "x" ? DW : DH;
+        for (var k = 0; k < n; k++) {
+          var o = along === "x" ? ((DH >> 1) * DW + k) * 4 : (k * DW + (DW >> 1)) * 4;
+          var v = along === "x" ? Math.round((d[o] - 4) / 8) : Math.round((d[o + 1] - 8) / 16);
+          if (prev !== null && v === prev + 1) pts.push([k, v * (along === "x" ? (GW / NX) * sx : (GH / NY) * sy)]);
+          prev = v;
+        }
+        if (pts.length < 6) return null;
+        var mx = 0, my = 0; pts.forEach(function (q) { mx += q[0]; my += q[1]; }); mx /= pts.length; my /= pts.length;
+        var sxy = 0, sxx = 0; pts.forEach(function (q) { sxy += (q[0] - mx) * (q[1] - my); sxx += (q[0] - mx) * (q[0] - mx); });
+        var a = sxy / sxx; return { a: a, b: my - a * mx };
+      }
+      var fx = fit("x"), fy = fit("y");
+      if (fx && fy) {
+        /* a boundary k sits where the copy sampled source position a*k + b; asked for (src / D) * k */
+        var rx = fx.a / (src[0] / DW), ry = fy.a / (src[1] / DH), ox = fx.b, oy = fy.b;
+        /* the boundary pixel itself is half a destination pixel past the edge */
+        ox -= 0.5 * fx.a; oy -= 0.5 * fy.a;
+        if (rx > 0.5 && rx < 2 && ry > 0.5 && ry < 2) {
+          var off = Math.abs(rx - 1) > 0.015 || Math.abs(ry - 1) > 0.015 || Math.abs(ox) > 3 || Math.abs(oy) > 3;
+          if (off) CAL = { rx: rx, ox: ox, ry: ry, oy: oy };
+          STATS.calib = [rx, ox, ry, oy].map(function (v) { return Math.round(v * 1000) / 1000; }).join(" / ") + (off ? " (corrected)" : " (exact)");
+        } else STATS.calib = "out of range " + [rx, ry].join(" ");
+      } else STATS.calib = "unreadable";
+    } catch (e) { STATS.calib = "error " + e.message; }
+  }
+  var STATS = { ver: "20261027d", compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
   var progZ = null, UZ = null;
   var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut"];
   /* compile + link WITHOUT asking for the result (asking blocks until the driver is done) */
@@ -374,6 +433,7 @@
     U = locs(prog, []);
     gl.useProgram(prog);
     progReady = true;
+    calibrate();
     STATS.compileMs = Math.round(performance.now() - STATS.compileStart);
     var cbs = readyCbs; readyCbs = [];
     cbs.forEach(function (f) { try { f(); } catch (e) {} });
@@ -571,7 +631,7 @@
       renderEll = false;
     }
     it.ctx.clearRect(0, 0, W, H);
-    it.ctx.drawImage(glc, 0, 0, src[0], src[1], 0, 0, W, H);   // the render sits in the TOP-left of the shared canvas
+    copyOut(it.ctx, src, W, H);   // the render sits in the TOP-left of the shared canvas
     if (!it.shownOnce) { it.shownOnce = true; it.cv.style.opacity = "1"; }
     it.drawn = true;
     var dS = performance.now() - tS;
@@ -780,7 +840,7 @@
     if (!initGL() || !ready(true)) return "";
     var src = render(lookVec(look), px, px, [1, 1], 1, t, 0.5, [1, 1], 1, false);
     var c = document.createElement("canvas"); c.width = c.height = px;
-    c.getContext("2d").drawImage(glc, 0, 0, src[0], src[1], 0, 0, px, px);
+    copyOut(c.getContext("2d"), src, px, px);
     return (spriteCache[key] = c.toDataURL("image/png"));
   }
   /* ===== DEPTH ZOOM: open a film by flying through the bubble (Jack, 2026-10-26) =====

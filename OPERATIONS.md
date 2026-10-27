@@ -276,7 +276,7 @@ Camera CAM, Lighting LGT, Grip & Electric G&E, Sound SND, Effects EFX, DIT DIT, 
 - **No gaps, with one exception (2026-10-26):** each department's gear numbers run without gaps (checked by
   `rentals_id_audit.py` and `rentals_print_ready_test.py`). An item ticked **Fixed number** (`items.fixed_number`,
   `migrations/20261026d`) keeps a number chosen on purpose and is left out of that check: today only 7999
-  Emotional Support Ducky (Logistics). New gear still takes the lowest free number (next Logistics gear: 7102).
+  Bonus Support Ducky (Logistics; Complimentary Emotional Support Ducky until 2026-10-27). New gear still takes the lowest free number (next Logistics gear: 7102).
 - **Free gear:** a $0 day rate is allowed on purpose and the site shows **Free** (package lines still say Included);
   a $0 replacement value is not shown. An empty day rate or value is still flagged.
 - **Call names:** a container is called by its department code (`dept_blocks.call_prefix`, listed above)
@@ -360,7 +360,7 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
 - `make.py status` / `refill` / `full` / `codes <code...>` / `printed <batch>` / `demo`. A batch is a folder
   `~/Desktop/RarePond_Rental_Labels/Print_<date>_<mode>/` (Cricut Print Then Cut sheets, vinyl case
   numbers as SVG, manifest.csv, README.txt); the demo sheet lives in `.../Demo/`.
-- Per-item settings in NocoDB (items view): `sticker_size` (S / M / L), `sticker_addon`, `cable_tie`,
+- Per-item settings in NocoDB (items view): `sticker_size` (S / M / L), `sticker_details` (the logo + item-name piece; `sticker_addon` until 2026-10-27), `cable_tie`,
   `cable_wrap` (short / long). Prefilled by rule 2026-10-23; containers are always L.
 - Every sticker made is a row in `public.sticker_prints`; `printed <batch>` stamps it once the batch is on
   the gear, and `refill` makes only what has no stamped sticker for its current code.
