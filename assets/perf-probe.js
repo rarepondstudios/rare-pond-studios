@@ -564,9 +564,13 @@
       };
     });
   }
-  var MK = [["tl", [255, 0, 255]], ["tr", [0, 255, 0]], ["bl", [0, 255, 255]], ["br", [255, 255, 0]]];
+  /* the colours rotate between corners on every grab, so a recording that has not caught up yet (still
+     showing the previous grab's squares) can never be mistaken for the current one */
+  var COLS = [[255, 0, 255], [0, 255, 0], [0, 255, 255], [255, 255, 0]], MK = [];
   function markers(on) {
     if (!on) { (markers.els || []).forEach(function (e) { e.remove(); }); markers.els = []; return; }
+    var k = SC.grabs.length + (markers.n = (markers.n || 0) + 1);
+    MK = ["tl", "tr", "bl", "br"].map(function (pos, i) { return [pos, COLS[(i + k) % 4]]; });
     markers.els = MK.map(function (m) {
       var e = document.createElement("div"), c = m[1];
       e.style.cssText = "position:fixed;z-index:2147483647;width:18px;height:18px;pointer-events:none;box-sizing:border-box;border:3px solid #000;background:rgb(" + c.join(",") + ");" + (m[0][0] === "t" ? "top:4px;" : "bottom:4px;") + (m[0][1] === "l" ? "left:4px" : "right:4px");
@@ -615,12 +619,13 @@
         /* the rim canvas, read through a copy */
         var W = cv.width, H = cv.height, tc = document.createElement("canvas"); tc.width = W; tc.height = H;
         var tx = tc.getContext("2d", { willReadFrequently: true }); tx.drawImage(cv, 0, 0); var C = tx.getImageData(0, 0, W, H).data;
-        var r = cv.getBoundingClientRect(), item = el.querySelector(".cbody") || el;   /* covered = anything outside the card body: the film logo, a cookie banner */
+        var r = cv.getBoundingClientRect(), item = el.querySelector(".cbody") || el, lg = el.querySelector(".clogo"), logo = lg ? lg.getBoundingClientRect() : null;   /* covered = anything outside the card body: the film logo, a cookie banner */
         function side(name, pt) {
           var ok = 0, n = 0, covered = 0, bad = [];
           for (var i = 0; i < 24; i++) {
             var f = 0.2 + 0.6 * i / 23, p = pt(f), px = p[0], py = p[1];
             var top = document.elementFromPoint(px, py); if (top && !item.contains(top)) { covered++; continue; }
+            if (logo && px >= logo.left && px <= logo.right && py >= logo.top && py <= logo.bottom) { covered++; continue; }
             var cx = Math.min(W - 1, Math.max(0, Math.floor((px - r.left) / r.width * W))), cy = Math.min(H - 1, Math.max(0, Math.floor((py - r.top) / r.height * H)));
             var co = (cy * W + cx) * 4; if (C[co + 3] < 240) continue;
             var fxp = Math.round(ax * px + bx), fyp = Math.round(ay * py + by); if (fxp < 1 || fyp < 1 || fxp >= VW - 1 || fyp >= VH - 1) continue;
