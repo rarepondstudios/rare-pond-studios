@@ -39,7 +39,55 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
-### 0.0.-128 V3 RIM QC: CAROUSEL, EDGE HAIRLINE, HALO, RENTALS (2026-10-26)
+### 0.0.-130 PERFORMANCE ON WINDOWS PCS, FASTER FIRST LOAD, ?perf=1 PROBE, RENTALS WHITE SPLASH (2026-10-27)
+
+- Jack (phone video of two Windows PCs, one very high end): the home carousel stuttered, the bubbles took
+  a long time to appear, and pages were slow to load. Everything was smooth on the mini, and none of the
+  Windows machines can be tested from here, so this pass fixed what could be measured on the mini and
+  added a probe to measure the rest on the machines that stutter.
+- Shaders build in the background (`assets/rp-bubble.js`): on Windows, Chrome turns WebGL into Direct3D
+  and a shader this size can take a long time to compile; asking for the result straight away froze the
+  page until it finished. Now `KHR_parallel_shader_compile` builds it off the main thread, `frame()` polls
+  `ready()`, the bubbles fade in when it is done, and the depth-zoom program follows the same way
+  (`ensureZ()` waits only if a film is opened before it is built). `RPBubble.ready(fn)` runs code once the
+  shaders exist (index.html uses it for the ambient bubble ring sprite).
+- Bubble frames read before they write: `frame()` runs `prep()` (computed style, sizes, clipping parent)
+  for every bubble it will draw, then draws them all. Interleaving reads with canvas resizes made the
+  browser recalculate styles once per bubble per frame.
+- Popup scroll lock (`assets/chrome.css`): the `html:has(...)` selectors searched the whole page and were
+  re-run on most style updates, the biggest single style cost of a carousel move. They now look only at
+  `<body>`'s direct children (`html:has(> body > #dp.show)`); keep any new popup lock in that form.
+  Same fix for `.cbub:has(>.cedge.rp-bubble-on)>.cspec` in index.html.
+- No-GPU safety mode: if WebGL reports a software renderer (SwiftShader, llvmpipe, Microsoft Basic Render
+  Driver: hardware acceleration off, no working driver, remote desktop), rp-bubble.js sets
+  `html.rp-soft-gpu`, draws every bubble once (redrawn only when it changes) at 75% resolution, and
+  index.html hides the ambient bubbles, stops the bobbing and drops the halo blur. In that mode Chrome
+  also reads every WebGL frame back to the CPU ("GPU stall due to ReadPixels"). Measured in software
+  mode: home at rest 42 to 60 fps.
+- First load: the page veil now lifts when the first screen is ready (fonts capped at 1.2 s, on-screen
+  images and the featured card's background still decoded, capped at 1.5 s, safety cap 3 s) instead of
+  waiting for the window `load` event, which waited for every image on the page. The 94 About-logo
+  animation frames (2.8 MB) load only after the veil has lifted, six at a time, at low priority (they
+  used to load with the first screen). Measured at 12 Mbit/s: page shown at 2.0 s (was 3.9 s), featured
+  image at 2.1 s (was 3.8 s).
+- `?perf=1` (assets/perf-probe.js, loaded only with that query): open https://rarepond.com/?perf=1 on a
+  machine that stutters, keep the mouse still for about 25 s, photograph the panel. It shows the GPU
+  string, shader build time, load timing, frame pacing at rest and during four carousel moves, the CPU
+  time of each bubble draw, and three ways of putting WebGL frames on the page (2D copy, which the site
+  uses; ImageBitmap with and without resizing). It also beacons the numbers to /api/client-error as kind
+  "perf". On the mini: draws 0.04 ms each, the copy path 0.2 ms per frame, ImageBitmap with resizing
+  8 ms per frame (so it is NOT a drop-in replacement unless a PC shows the copy path stalling).
+- Rentals Home logo: a WHITE SPLASH instead of the coloured rim (Jack: "just white, but working in the
+  opposite direction"): solid white under the logo, then a blurred 50% ring outside it, then a softer 25%
+  ring outside that, edges wobbling. `RPBubble.attach(el, {splash: true, ellipse: true})` (shader `uOut`
+  mode, canvas overhangs by 64 px, ring widths in --rpb-depth units, even width round an ellipse);
+  `rentals/assets/v3.js`, CSS `.home .logowrap.v3-splash` (overflow visible, a plain white ellipse under
+  the canvas so nothing pops while it fades in).
+- Still open: what the Windows probe shows. If its copy path is slow, give rp-bubble.js an ImageBitmap
+  path with fixed-size surfaces (bitmap-fixed was the cheapest of all on the mini); if the GPU string is a
+  software renderer, the safety mode above is the fix.
+
+### 0.0.-129 V3 RIM QC: CAROUSEL, EDGE HAIRLINE, HALO, RENTALS (2026-10-26)
 
 - Jack (someone else opened the site): animated rims only showed on the top-left bubbles, the carousel swap
   stuttered, a thin line of the photo peeked out around bubble edges as they bobbed, the halo popped in a
