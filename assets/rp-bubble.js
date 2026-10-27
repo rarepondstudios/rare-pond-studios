@@ -317,7 +317,13 @@
   function find(el) { for (var i = 0; i < items.length; i++) if (items[i].el === el) return items[i]; return null; }
 
   var io = "IntersectionObserver" in window ? new IntersectionObserver(function (es) {
-    es.forEach(function (e) { var it = find(e.target); if (it) it.onScreen = e.isIntersecting; });
+    es.forEach(function (e) {
+      var it = find(e.target); if (!it) return;
+      it.onScreen = e.isIntersecting;
+      /* coming on screen (scrolled in, or its view just switched on): check real visibility now, so it
+         never waits for the slow round-robin */
+      if (e.isIntersecting && canCheckVis) it.shown = it.el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
+    });
     kick();
   }, { rootMargin: "80px" }) : null;
   var ro = "ResizeObserver" in window ? new ResizeObserver(function (es) {
@@ -426,13 +432,19 @@
     return true;
   }
 
-  /* round-robin housekeeping, a couple of bubbles per frame: real visibility + a slow style refresh */
-  var rr = 0;
+  /* round-robin housekeeping: real visibility + a slow style refresh. checkVisibility() forces a style
+     recalc, and done for two bubbles EVERY frame it was the single biggest main-thread cost on phones
+     (profiled 2026-10-26: ~250 ms per film open/close at 4x CPU throttle). Now: two ON-SCREEN bubbles
+     every 250 ms, nothing at all during the depth zoom. */
+  var rr = 0, hkAt = 0;
   function housekeep(now) {
-    if (!items.length) return;
-    for (var n = 0; n < 2; n++) {
+    if (!items.length || zooming || now - hkAt < 250) return;
+    hkAt = now;
+    for (var n = 0, seen = 0; n < items.length && seen < 2; n++) {
       rr = (rr + 1) % items.length;
       var it = items[rr];
+      if (it.onScreen === false) continue;
+      seen++;
       if (canCheckVis) it.shown = it.el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
       if (it.trans && now - (it.transAt || 0) > 3000) it.trans = 0;   // a transition whose end event never came
       if (now - (it.styledAt || 0) > 2000 && it.onScreen) { it.dirty = Math.max(it.dirty, 1); it.styledAt = now; }
@@ -451,7 +463,8 @@
     pace.t0 = now; pace.n = 0; pace.slow = 0;
   }
 
-  var last = 0, lastDraw = 0, simT = 0;
+  var last = 0, lastDraw = 0, simT = 0, drawN = 0;
+  var COARSE = !!(window.matchMedia && matchMedia("(hover: none)").matches);
   function frame(now) {
     raf = 0;
     var gap = last ? now - last : 16; last = now;
@@ -474,8 +487,12 @@
     if ((due || pending) && !paused && gl && !zooming) {
       var dt = Math.min(0.1, (now - (lastDraw || now)) / 1000); lastDraw = now;
       if (!reduce) simT += dt * P.speed;
+      drawN++;
       for (var j = 0; j < items.length; j++) {
         var x = items[j];
+        /* phones / tablets: the soft halos behind the bubbles update at half rate (their colour drift
+           is far too slow to see the difference); the rims keep the full 24 fps */
+        if (x.ref && COARSE && (drawN & 1) && x.drawn && !x.trans) continue;
         if (x.onScreen === false || x.shown === false) continue;
         if ((reduce || swiping) && x.drawn && !x.trans && !x.dirty) continue;
         draw(x, simT + x.opts.seed * 3.7);

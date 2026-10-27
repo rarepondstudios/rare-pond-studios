@@ -1205,6 +1205,9 @@ html.xw-active{overflow:hidden}
   .glow.rp-bubble-on,.cglow.rp-bubble-on{background:none!important;-webkit-mask:none!important;mask:none!important}
   .bubble.rp-glow-on::before,.citem.rp-glow-on::before{display:none}
   .glow.rp-bubble-on>.rp-bubble-cv,.cglow.rp-bubble-on>.rp-bubble-cv{border-radius:0}
+  /* touch devices: no CSS blur over the live halo canvas. The shader's halo is already soft, and a
+     filter over a canvas that changes every frame re-blurs it every frame, a real cost on phones. */
+  @media (hover:none){.glow.rp-bubble-on,.cglow.rp-bubble-on{filter:none!important}}
   /* the wide featured card would otherwise get bands sized to its HEIGHT (far thicker than on the
      round side bubbles); --rpb-depth thins them and eases with the card's .6s shape morph */
   @property --rpb-depth{syntax:"<number>";inherits:true;initial-value:1}
@@ -1495,7 +1498,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026m"></script>
+<script src="/assets/rp-bubble.js?v=20261026n"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2822,10 +2825,13 @@ function openUniverse(key){
   sec.style.transition='';
 
   const zh=sec._fromEl?null:zoomHost(key);
+  let zoomed=false;
   if(zh&&uZoom(sec,zh,'in',()=>{
     /* landed: hand the page back to its normal open state (nothing moves after this point) */
     sec.style.transition='none';uZoomClear(sec);void sec.offsetWidth;sec.style.transition='';
+    if(currentOpen===sec)startPreview(sec.querySelector('.u-vid'));
   })){
+    zoomed=true;
     sec.classList.add('open');
   }else{
     sec.classList.add('flash');
@@ -2836,7 +2842,9 @@ function openUniverse(key){
   /* Play the expanded-page background reel through the SAME hardened engine as the carousel
      side cards / grid bubbles (lazy src, reveal-when-ready, retry-once play, single active,
      reduced-motion / Save-Data gate). No reel -> no .u-vid -> the still simply stays. */
-  startPreview(sec.querySelector('.u-vid'));
+  /* after a depth zoom the reel starts once the flight has landed: starting a video decode mid-flight
+     cost frames on phones, and the still backdrop is what the flight shows anyway */
+  if(!zoomed)startPreview(sec.querySelector('.u-vid'));
 }
 function closeUniverse(sec){
   if(!sec)return;
