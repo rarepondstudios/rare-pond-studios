@@ -39,6 +39,29 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-134 CAROUSEL CARD REBUILT, EFFECT TIERS WITH AUTOMATIC FALLBACK (2026-10-27)
+
+- Jack: the carousel card still broke on Windows and the iPad (rim missing its right/bottom, black edges
+  while swapping, lag); asked for a real fix plus safety fallbacks that stay in step with future updates.
+- The card's rim lived INSIDE the picture's clipped, rounded, transformed, animating container; that is
+  the one place the round bubbles never put a full-size opaque canvas, and the combination browsers
+  get wrong. Rebuilt: `.citem > .cbody` (bobs, owns the radius and its morph) holds `.cbub` (picture,
+  clipped, radius inherited), `.cedge` (the rim, NOT clipped, inset -2px so its solid band covers the
+  picture's edge) and `.divehint`. No clip detection, no media clip-paths, no uClip on the card.
+- Black edges on swaps = the old circle's rim picture stretched by CSS while not redrawn (its dark
+  middle). Now: changing-shape bubbles drawn first, at least one per frame, and any that still misses
+  three frames in a row shows a CSS ring (three inset shadows in its colours) until it settles, then
+  the canvas fades back. Lite always rings during moves.
+- Effect tiers full / lite / css in rp-bubble.js, chosen per device, re-tested on every code version,
+  with a load-time self-check (test card drawn, copied, read back; failure -> css, one reload behind
+  the veil) and automatic downgrade on sustained slow frames. Full write-up: OPERATIONS.md "Bubble
+  effects and the safety tiers". `html.rp-soft-gpu` became `html.rp-fx-lite`.
+- Verified on the mini: Chrome and WebKit morph frames (slowed 10x) follow the card shape at every
+  step; lite shows the ring during moves; css shows the original rims; a simulated broken copy
+  (blank) falls back to css and remembers it; Chrome GPU carousel 60 fps (was 46), software 43
+  (old 41); all depth-zoom edge cases pass; QC desktop/phone clean.
+- Code version 20261027i.
+
 ### 0.0.-133 WHY THE ROUND BUBBLES WORKED AND THE CAROUSEL CARD DID NOT (2026-10-27)
 
 - Jack: on the iPad and on Windows the round bubbles are fine, the rounded-rectangle featured carousel

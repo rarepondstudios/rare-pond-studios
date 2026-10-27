@@ -635,6 +635,35 @@ To cover a different page later, add a row to `COVERABLE` in the middleware (whi
 file holds the switch, which key, and an id) and a matching entry in `PAGES` in
 `maintenance.html` (so it shows that page's header and wording). No other code changes.
 
+## Bubble effects and the safety tiers (since 2026-10-27)
+
+Every V3 bubble (rims, halos, the depth zoom, the rentals splash) is drawn by `assets/rp-bubble.js`,
+on the studio site and on Rentals. It has three tiers and picks one per device; there is no second
+copy of the site, so a tier is a different way of drawing the SAME page and anything new built with
+`RPBubble.attach()` works in all three automatically.
+
+| Tier | When | What changes |
+|---|---|---|
+| full | default | the V3 bubble as designed: live rims, depth-zoom film openings |
+| lite | slow device, software renderer, Save-Data, `?fx=lite` | rims drawn once (redrawn when their look or shape settles), 75% resolution, a CSS ring while a bubble changes shape; page CSS (`html.rp-fx-lite`) drops the ambient bubbles, the bobbing and halo blur |
+| css | no WebGL, the self-check failed, `?fx=css` | no WebGL: the original CSS rims, plain page transitions |
+
+- Choosing: `?fx=` (kept for the browser tab) for testing; else what this device decided before with
+  the SAME code version (`CODE_VER` in rp-bubble.js; a new version re-tests every device, so nobody
+  stays on a fallback the new code may not need); else Save-Data / 2 GB / 2 cores -> lite.
+- Safety, while the page runs: a software renderer -> lite; the WebGL copy self-check (a test card
+  drawn, copied and read back at load) failing -> css, one reload behind the page veil; frames still
+  slow at the lowest resolution for 3 s -> lite (remembered), still slow in lite -> css next visit.
+- A bubble that changes shape (the carousel card's circle-to-card morph) and misses three frames in a
+  row gets a CSS ring for the rest of the move instead of a stretched stale picture; two such moves and
+  the page rings every move.
+- `rarepond.com/?perf=1` shows the tier and why, the self-check and the copy calibration.
+- RULES for new work: put a new bubble effect through `RPBubble.attach()`; give anything that animates
+  continuously an `html.rp-fx-lite` rule (index.html "EFFECT TIERS"); bump `CODE_VER` (with the
+  `?v=` on the script tags) whenever rp-bubble.js changes so every device re-tests.
+- Carousel card layers: `.citem > .cbody` (bobs, owns the corner radius and its morph) > `.cbub` (the
+  picture, clipped) + `.cedge` (the rim, NOT clipped, 2 px outside the picture) + `.divehint`.
+
 ## Things that have bitten us (don't re-learn these)
 
 - **A root `404.html` HIJACKS the SPA `/*` catch-all on Cloudflare Pages.** Dropping a
