@@ -163,8 +163,12 @@ a.xchip:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
    page that loads chrome.css: any script that locks <body> the old way, plus each popup's own open state (stacked
    popups stay locked until the last one closes). On the studio page the project universe and news article are their
    own scrollers, so they are held still under a contact form or date picker as well. */
+/* PERFORMANCE (2026-10-27): every selector below looks only at <body>'s direct children (all these popups
+   are appended to <body>). The first version searched the WHOLE page for them (html:has(.x)), and the
+   browser re-ran that search on most style updates: profiled as the biggest single style cost of a home
+   carousel move. Keep any new popup lock in this child-only form. */
 html:has(> body[style*="overflow: hidden"]),
-html:has(#dp.show),html:has(#dpop.show),html:has(#reqpop.show),html:has(#ovl.show),
-html:has(.rpd-show),html:has(.rpc-show),html.rpc-open{overflow:hidden!important;overscroll-behavior:none}
-html:has(.rpd-show) .universe,html:has(.rpc-show) .universe,html.rpc-open .universe,
-html:has(.rpd-show) .news-art,html:has(.rpc-show) .news-art,html.rpc-open .news-art{overflow:hidden!important;overscroll-behavior:none}
+html:has(> body > #dp.show),html:has(> body > #dpop.show),html:has(> body > #reqpop.show),html:has(> body > #ovl.show),
+html:has(> body > .rpd-show),html:has(> body > .rpc-show),html.rpc-open{overflow:hidden!important;overscroll-behavior:none}
+html:has(> body > .rpd-show) .universe,html:has(> body > .rpc-show) .universe,html.rpc-open .universe,
+html:has(> body > .rpd-show) .news-art,html:has(> body > .rpc-show) .news-art,html.rpc-open .news-art{overflow:hidden!important;overscroll-behavior:none}

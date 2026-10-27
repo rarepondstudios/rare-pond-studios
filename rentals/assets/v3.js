@@ -2,7 +2,9 @@
    (Jack, 2026-10-26: "bring the 3 tier look to rentals as well, at the same efficiency").
 
    Where it appears, and how it stays cheap:
-   - the logo bubble on the rentals Home: one rim, an ellipse, Signature look, animated.
+   - the logo bubble on the rentals Home: a WHITE SPLASH behind the logo, the three tiers inside out
+     (Jack, 2026-10-27): solid white under the logo, then a blurred 50% ring outside it, then a softer
+     25% ring outside that. Animated (the edges wobble), drawn by rp-bubble.js (opts.splash).
    - a gear card under the pointer or the keyboard selection: a rim in that department's colour look,
      made when the card is entered and LET GO of shortly after it is left, so a page of 100 cards never
      holds more than a couple of live rims. It replaces the card's thin hover outline (the glow stays).
@@ -89,7 +91,9 @@
   function scan() {
     var lw = document.querySelector(".home .logowrap");
     if (lw && !lw.querySelector(".v3rim")) {
-      RPBubble.attach(rimIn(lw, "v3logo"), { look: sig(), seed: 3.3, ellipse: true });
+      var sp = rimIn(lw, "v3splash");
+      if (RPBubble.attach(sp, { look: { c1: "#ffffff", c2: "#ffffff", c3: "#ffffff" }, seed: 3.3, ellipse: true, splash: true })) lw.classList.add("v3-splash");
+      else sp.remove();
     }
     var dpc = document.querySelector("#dp.show .dpc");
     if (dpc && !dpc.querySelector(".v3rim")) {

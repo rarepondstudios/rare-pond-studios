@@ -64,7 +64,7 @@
     "uniform float uGlow;",
     "uniform vec3 uPal[8];",
     "uniform float uPalN,uRb;",
-    "uniform float uDeep,uDepth,uRad,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol,uSh,uClip,uEll;",
+    "uniform float uDeep,uDepth,uRad,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol,uSh,uClip,uEll,uOut;",
     /* Ashima / Stefan Gustavson 3D simplex noise (MIT) */
     "vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;}",
     "vec4 m289(vec4 x){return x-floor(x*(1./289.))*289.;}",
@@ -85,6 +85,10 @@
     /* distance-from-centre equivalent for a rounded box: 1.0 on the border, like length(p) on a circle */
     /* uEll: an ELLIPSE instead (e.g. the rentals logo bubble), same 1.0-on-the-border convention */
     "float rr(vec2 p){if(uEll>.5)return 1.+(length(p/uBox)-1.)*min(uBox.x,uBox.y)/uDepth;vec2 q=abs(p)-uBox+uRad;return 1.+(length(max(q,0.))+min(max(q.x,q.y),0.)-uRad)/uDepth;}",
+    /* outward distance for the splash: on an ellipse rr() grows faster along the long axis (its level
+       sets are scaled ellipses), which made the outer rings twice as wide at the sides; this divides by
+       the gradient, so the rings keep an even width all the way round */
+    "float ro(vec2 p){if(uEll<.5)return rr(p);float k=length(p/uBox);vec2 g=p/(uBox*uBox)/max(k,1e-4);return 1.+(k-1.)/max(length(g),1e-4)/uDepth;}",
     /* one Color Blob: soft ellipse (lens blur) of plates shading light -> deep (Colorama) */
     "vec4 blob(vec2 q,vec2 c,float r,vec3 col,float o,float z){",
     "  float d=length(q-c)/r;",
@@ -152,6 +156,21 @@
     "    float ag=smoothstep(.55,.92,r)*(1.-smoothstep(.96,min(1.2,min(uScale.x,uScale.y)-.02),r));",
     "    if(ag<.004){gl_FragColor=vec4(0.);return;}",
     "    gl_FragColor=vec4(colAt(p)*ag,ag);return;",
+    "  }",
+    /* SPLASH mode (opts.splash, 2026-10-27, Jack: the rentals logo bubble "just white, but working in the
+       opposite direction"): the three tiers turned inside out. A solid splash fills the shape, then
+       OUTSIDE it a 50% ring and beyond that a 25% ring, each edge wobbling on the same turbulence as
+       the rim and each softer than the one inside it. Plain colour (uC1), no colour field, no shine.
+       Ring widths are in units of --rpb-depth (half the shape's short side at 1). */
+    "  if(uOut>.5){",
+    "    float zo=uSeed*17.+uT*.11;",
+    "    vec2 wo=wv(p,1.9,zo+3.);",
+    "    float o1=ro(p+uWob*.02*wo), o2=ro(p+uWob*.05*wo), o3=ro(p+uWob*.075*vec2(wo.y,-wo.x));",
+    "    float a1=1.-smoothstep(1.-uPx-.004*uSoft,1.+uPx+.004*uSoft,o1);",
+    "    float a2=(1.-smoothstep(1.22-.03-.035*uSoft,1.22+.035*uSoft,o2))*.5;",
+    "    float a3=(1.-smoothstep(1.5-.07-.1*uSoft,1.5+.1*uSoft,o3))*.25*uInner;",
+    "    float ao=1.-(1.-a1)*(1.-a2)*(1.-a3);",
+    "    gl_FragColor=vec4(uC1*ao,ao);return;",
     "  }",
     "  if(r>1.03){gl_FragColor=vec4(0.);return;}",
     "  float z=uSeed*17.+uT*.11;",
@@ -285,42 +304,83 @@
       glc = document.createElement("canvas");
       gl = glc.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false, powerPreference: "low-power" });
       if (!gl) { gl = false; return false; }
-      var sh = function (type, src) {
-        var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
-        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
-        return s;
-      };
-      mkShader = sh;
-      prog = link(FS);
-      U = locs(prog, []);
+      /* SHADERS BUILD IN THE BACKGROUND (2026-10-27, Jack: on two Windows PCs, one very high end, the
+         bubbles took "a long while to pop in" and the carousel stuttered). On Windows the browser turns
+         WebGL into Direct3D and compiling a shader this size can take a long time; asking whether it
+         compiled (as this did straight away) froze the page until it had. KHR_parallel_shader_compile
+         lets it compile off the main thread: frame() polls until it is done, the page keeps running,
+         and the bubbles fade in the moment it is ready. The depth-zoom program follows the same way,
+         after the bubble one, so it can never freeze a carousel move either. */
+      PAR = gl.getExtension("KHR_parallel_shader_compile");
+      STATS.compileStart = performance.now();
+      prog = startLink(FS);
       var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       gl.enableVertexAttribArray(0);
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-      gl.useProgram(prog);
-      /* the depth-zoom program is compiled when the browser is idle, so the first click never waits for it */
-      (window.requestIdleCallback || function (f) { return setTimeout(f, 1500); })(function () { try { ensureZ(); warmZ(); } catch (e) {} });
+      try { var dri = gl.getExtension("WEBGL_debug_renderer_info"); STATS.gpu = dri ? String(gl.getParameter(dri.UNMASKED_RENDERER_WEBGL)) : ""; } catch (e) {}
+      STATS.parallel = !!PAR;
       glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
+      if (!PAR && !ready(true)) return false;   /* no extension: build now, as before */
       return true;
     } catch (e) { gl = false; if (window.console) console.warn("RPBubble", e); return false; }
   }
 
-  var mkShader = null, progZ = null, UZ = null;
-  var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll"];
-  function link(fs) {
-    var p = gl.createProgram();
-    gl.attachShader(p, mkShader(gl.VERTEX_SHADER, VS));
-    gl.attachShader(p, mkShader(gl.FRAGMENT_SHADER, fs));
+  var PAR = null, progReady = false, zReady = false, readyCbs = [];
+  var STATS = { compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
+  var progZ = null, UZ = null;
+  var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut"];
+  /* compile + link WITHOUT asking for the result (asking blocks until the driver is done) */
+  function startLink(fs) {
+    var p = gl.createProgram(), sh = [];
+    [[gl.VERTEX_SHADER, VS], [gl.FRAGMENT_SHADER, fs]].forEach(function (d) {
+      var x = gl.createShader(d[0]); gl.shaderSource(x, d[1]); gl.compileShader(x); gl.attachShader(p, x); sh.push(x);
+    });
     gl.bindAttribLocation(p, 0, "a");
     gl.linkProgram(p);
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    p.__sh = sh;
     return p;
+  }
+  function linkDone(p) { return !PAR || !!gl.getProgramParameter(p, PAR.COMPLETION_STATUS_KHR); }
+  function finishLink(p) {
+    if (gl.getProgramParameter(p, gl.LINK_STATUS)) return;
+    var log = gl.getProgramInfoLog(p) || "";
+    (p.__sh || []).forEach(function (x) { if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) log += " " + gl.getShaderInfoLog(x); });
+    throw new Error(log);
+  }
+  /* is the bubble program built? force: wait for it (only when something cannot go on without it) */
+  function ready(force) {
+    if (progReady) return true;
+    if (!gl || !prog) return false;
+    if (!force && !linkDone(prog)) return false;
+    try { finishLink(prog); }
+    catch (e) {
+      if (window.console) console.warn("RPBubble", e);
+      gl = false;
+      items.slice().forEach(function (x) { detach(x.el); });
+      return false;
+    }
+    U = locs(prog, []);
+    gl.useProgram(prog);
+    progReady = true;
+    STATS.compileMs = Math.round(performance.now() - STATS.compileStart);
+    var cbs = readyCbs; readyCbs = [];
+    cbs.forEach(function (f) { try { f(); } catch (e) {} });
+    /* then the depth-zoom program, also in the background */
+    (window.requestIdleCallback || function (f) { return setTimeout(f, 300); })(function () {
+      try { if (gl && !progZ) { STATS.zStart = performance.now(); progZ = startLink(FSZ); kick(); } } catch (e) {}
+    });
+    return true;
   }
   function locs(p, extra) { var o = {}; NAMES.concat(extra).forEach(function (n) { o[n] = gl.getUniformLocation(p, n); }); return o; }
   function ensureZ() {
-    if (progZ || !gl) return !!progZ;
-    progZ = link(FSZ);
+    if (zReady) return true;
+    if (!gl || !ready(true)) return false;
+    if (!progZ) { STATS.zStart = performance.now(); progZ = startLink(FSZ); }
+    finishLink(progZ);   /* waits only if a film is opened before the background build finished */
     UZ = locs(progZ, ["uS", "uCen", "uView", "uSpx", "uPxz"]);
+    zReady = true;
+    STATS.zCompileMs = Math.round(performance.now() - (STATS.zStart || performance.now()));
     return true;
   }
   /* one throwaway 1 px draw: GPU drivers (ANGLE on Metal in particular) finish building a program on
@@ -393,7 +453,8 @@
       if (a) it.cols = [a, b || a, c || a];
     }
     it.rad = radiusOf(cs, it.w, it.h);
-    if (it.host) edgeMedia(it, cs.borderRadius);
+    it.br = cs.borderRadius;
+    if (it.host && it.clipped) edgeMedia(it, it.br);
     it.depth = parseFloat(cs.getPropertyValue("--rpb-depth")) || 1;
     it.deep = parseFloat(cs.getPropertyValue("--rpb-deep")) || 0;
     it.rb = parseFloat(cs.getPropertyValue("--rpb-rainbow")) || 0;
@@ -420,14 +481,14 @@
      buffer than asked for (memory limits on some machines): everything here works in drawing-buffer
      pixels and returns the source size in canvas pixels for the copy. Assuming the two were equal drew
      only part of a bubble on such machines (Jack, 2026-10-26: rims "only showing on the top left"). */
-  var GLMAX = 2048, renderEll = false;
+  var GLMAX = 2048, renderEll = false, renderOut = false;
   function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep, rb, pal, clip) {
     var nw = Math.min(GLMAX, Math.max(glc.width, W, 256)), nh = Math.min(GLMAX, Math.max(glc.height, H, 256));
     if (glc.width < nw || glc.height < nh) { glc.width = nw; glc.height = nh; }
     var dbw = gl.drawingBufferWidth || glc.width, dbh = gl.drawingBufferHeight || glc.height;
     var f = Math.min(1, dbw / W, dbh / H);
     var w = Math.max(1, Math.floor(W * f)), h = Math.max(1, Math.floor(H * f));
-    gl.useProgram(prog); params(U); gl.uniform1f(U.uSh, glow ? 0 : 1); gl.uniform1f(U.uClip, clip ? 1 : 0); gl.uniform1f(U.uEll, renderEll ? 1 : 0);
+    gl.useProgram(prog); params(U); gl.uniform1f(U.uSh, glow ? 0 : 1); gl.uniform1f(U.uClip, clip ? 1 : 0); gl.uniform1f(U.uEll, renderEll ? 1 : 0); gl.uniform1f(U.uOut, renderOut ? 1 : 0);
     gl.viewport(0, dbh - h, w, h);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3fv(U.uC1, cols[0]); gl.uniform3fv(U.uC2, cols[1]); gl.uniform3fv(U.uC3, cols[2]);
@@ -441,8 +502,17 @@
     return [w * glc.width / dbw, h * glc.height / dbh];
   }
 
-  function draw(it, t) {
+  /* everything draw() needs to READ from the page (computed style, sizes, the clipping parent).
+     frame() runs this for all the bubbles it is about to draw BEFORE drawing any of them: reads and
+     writes (canvas sizes) interleaved forced the browser to recalculate the page's styles once per
+     bubble, every frame (2026-10-27 profile: the largest main-thread cost of a carousel move). */
+  function prep(it) {
     if (it.dirty || it.trans || !it.styled) { readStyle(it); if (it.dirty) it.dirty--; }
+    if (it.clipped == null && it.w && it.h) it.host = clipParent(it.el);
+  }
+  function draw(it, t, prepped) {
+    if (!prepped) prep(it);
+    var tS = performance.now();
     /* inside a clipping parent the PARENT's rounded clip is the only edge: a canvas with its own
        border-radius antialiased a second time, letting a hairline of the photo show around the rim.
        Decided here, not in attach(): a bubble is often built before it is put in the page, when its
@@ -450,8 +520,8 @@
     var w = it.w, h = it.h;
     if (!w || !h) return false;
     if (it.clipped == null) {
-      it.host = clipParent(it.el); it.clipped = !!it.host;
-      if (it.clipped) { it.cv.style.borderRadius = "0"; edgeMedia(it, getComputedStyle(it.el).borderRadius); }
+      it.clipped = !!it.host;
+      if (it.clipped) { it.cv.style.borderRadius = "0"; edgeMedia(it, it.br || getComputedStyle(it.el).borderRadius); }
     }
     w += 2 * it.bleed; h += 2 * it.bleed;   // glow canvases overhang their element so the halo fades out to nothing
     /* while it changes shape (the carousel morph) it renders at 70%: it is moving, and it is the
@@ -468,6 +538,12 @@
     if (it.ref) {
       var bw = it.rw || w, bh = it.rh || h, sb = Math.min(bw, bh) / 2;
       src = render(it.cols, W, H, [bw / 2 / sb, bh / 2 / sb], it.rrad == null ? 1 : it.rrad, t, it.opts.seed, [w / 2 / sb, h / 2 / sb], 1, true, 0, it.rb, it.pal, false);
+    } else if (it.opts.splash) {
+      /* the shape is the ELEMENT's box; the canvas overhangs it by the bleed, where the outer rings live */
+      var sE = Math.min(it.w, it.h) / 2;
+      renderEll = !!it.opts.ellipse; renderOut = true;
+      src = render(it.cols, W, H, [it.w / 2 / sE, it.h / 2 / sE], it.rad, t, it.opts.seed, [w / 2 / sE, h / 2 / sE], it.depth, false, 0, 0, null, false);
+      renderEll = false; renderOut = false;
     } else {
       var s = Math.min(w, h), inset = it.opts.inset || 1;
       renderEll = !!it.opts.ellipse;
@@ -478,6 +554,8 @@
     it.ctx.drawImage(glc, 0, 0, src[0], src[1], 0, 0, W, H);   // the render sits in the TOP-left of the shared canvas
     if (!it.shownOnce) { it.shownOnce = true; it.cv.style.opacity = "1"; }
     it.drawn = true;
+    var dS = performance.now() - tS;
+    STATS.draws++; STATS.drawMs += dS; if (dS > STATS.drawMax) STATS.drawMax = dS;
     return true;
   }
 
@@ -545,8 +623,12 @@
     housekeep(now);
     if (!paused && !reduce) simT += Math.min(0.1, gap / 1000) * P.speed;
     var wants = false;
+    if (gl && !progReady) {   /* shaders still building in the background: check again next frame */
+      if (!ready(false)) { if (gl) raf = requestAnimationFrame(frame); return; }
+    }
+    if (progZ && !zReady && gl && !zooming && linkDone(progZ)) { try { ensureZ(); warmZ(); } catch (e) {} }
     if (gl && !zooming && !hidden) {
-      var t0 = performance.now(), n = items.length;
+      var t0 = performance.now(), n = items.length, todo = [];
       /* FAIR: each frame starts one bubble further along, so when the budget runs out the same bubbles
          are not always the ones left waiting (on a slow machine only the first few bubbles on the page
          ever animated) */
@@ -559,18 +641,26 @@
         if (!must && kind === "still") continue;
         wants = true;
         if (!must && now < (x.next || 0)) continue;
-        if (x.drawn && performance.now() - t0 > BUDGET) continue;   /* over budget: next frame */
         /* a periodic style refresh of a still bubble only redraws if something actually changed */
         if (must && x.drawn && !x.trans && kind === "still") {
           readStyle(x); x.dirty = Math.max(0, x.dirty - 1);
           if (sigOf(x) === x.sig) continue;
         }
-        var iv = 1000 / (kind === "glow" ? GLOW_FPS : Q.fps);
-        x.next = x.drawn ? now + iv : now + iv * Math.random();   /* first draw: random phase, so they spread out */
-        if (draw(x, simT + x.opts.seed * 3.7)) x.sig = sigOf(x);
+        todo.push([x, kind]);
       }
+      /* READ phase: every style / size this frame needs, while the page's styles are still clean */
+      for (c = 0; c < todo.length; c++) prep(todo[c][0]);
+      /* WRITE phase: draw until the frame budget is spent; the rest waits for the next frame */
+      for (c = 0; c < todo.length; c++) {
+        x = todo[c][0];
+        if (x.drawn && performance.now() - t0 > BUDGET) continue;   /* over budget: next frame */
+        var iv = 1000 / (todo[c][1] === "glow" ? GLOW_FPS : Q.fps);
+        x.next = x.drawn ? now + iv : now + iv * Math.random();   /* first draw: random phase, so they spread out */
+        if (draw(x, simT + x.opts.seed * 3.7, true)) x.sig = sigOf(x);
+      }
+      if (todo.length) { var fm = performance.now() - t0; STATS.frames++; STATS.frameMs += fm; if (fm > STATS.frameMax) STATS.frameMax = fm; }
     }
-    if (wants) raf = requestAnimationFrame(frame);
+    if (wants || (progZ && !zReady && gl)) raf = requestAnimationFrame(frame);
   }
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
   document.addEventListener("visibilitychange", kick);
@@ -624,19 +714,20 @@
     cv.setAttribute("aria-hidden", "true");
     cv.setAttribute("data-cursor", "noscan");
     cv.width = cv.height = 16;
-    var bleed = opts.glow ? (opts.bleed != null ? opts.bleed : 24) : 0;
+    var bleed = (opts.glow || opts.splash) ? (opts.bleed != null ? opts.bleed : (opts.splash ? 64 : 24)) : 0;
     /* starts transparent and fades in on its first frame (no rim popping in when a page loads or a view
        switches) */
     cv.style.cssText = "position:absolute;inset:" + (-bleed) + "px;width:calc(100% + " + 2 * bleed + "px);height:calc(100% + " + 2 * bleed + "px);display:block;pointer-events:none;border-radius:inherit;opacity:0;transition:opacity .45s ease";
+    if (opts.splash) cv.style.borderRadius = "0";   /* the outer rings must not be cut by a rounded canvas */
     el.appendChild(cv);
     el.classList.add("rp-bubble-on");
     it = {
       el: el, cv: cv, ctx: cv.getContext("2d", { alpha: true }),
-      opts: { seed: opts.seed != null ? opts.seed : Math.random() * 10, inset: opts.inset, max: opts.max, res: opts.glow ? 0.5 : (opts.res || 1), still: !!opts.still, liveWhen: opts.liveWhen || null, ellipse: !!opts.ellipse },
+      opts: { seed: opts.seed != null ? opts.seed : Math.random() * 10, inset: opts.inset, max: opts.max, res: opts.glow ? 0.5 : (opts.res || 1), still: !!opts.still, liveWhen: opts.liveWhen || null, ellipse: !!opts.ellipse, splash: !!opts.splash },
       ref: opts.glow ? (opts.ref || el) : null, bleed: bleed,
       vars: opts.look ? null : (opts.vars || ["--gg1", "--gg2", "--gg3"]),
       cols: lookVec(opts.look || { c1: "#3f6bff", c2: "#9b5cff", c3: "#56c8ff" }),
-      clipped: opts.glow ? false : (opts.clipped != null ? !!opts.clipped : null),   /* null: decided on the first draw, once it is in the page */
+      clipped: (opts.glow || opts.splash) ? false : (opts.clipped != null ? !!opts.clipped : null),   /* null: decided on the first draw, once it is in the page */
       onScreen: io ? undefined : true, shown: undefined, drawn: false, styled: false, dirty: 1, trans: 0, rad: 1, depth: 1, w: 0, h: 0
     };
     /* inside a clipping parent the PARENT's rounded clip is the only edge: a canvas with its own
@@ -666,7 +757,7 @@
     px = px || 256; t = t || 0;
     var key = [look && look.c1, look && look.c2, look && look.c3, px, t].join("|");
     if (spriteCache[key]) return spriteCache[key];
-    if (!initGL()) return "";
+    if (!initGL() || !ready(true)) return "";
     var src = render(lookVec(look), px, px, [1, 1], 1, t, 0.5, [1, 1], 1, false);
     var c = document.createElement("canvas"); c.width = c.height = px;
     c.getContext("2d").drawImage(glc, 0, 0, src[0], src[1], 0, 0, px, px);
@@ -718,7 +809,7 @@
   function zoom(o) {
     o = o || {};
     zoomStop(true);
-    if (reduce || !o.el || !initGL()) return false;
+    if (reduce || !o.el || !initGL() || !ready(true)) return false;
     try { if (!ensureZ()) return false; } catch (e) { return false; }
     var it = find(o.el); if (!it) return false;
     var hb = hostBox(o.el, null);
@@ -795,7 +886,7 @@
       hb = hostBox(o.el, hb);
       var S = hb.S, cx = hb.cx, cy = hb.cy, box = hb.box;
       var s = ZD.map(function (d) { return d - c > 0.02 ? d / (d - c) : 1e4; });
-      gl.useProgram(progZ); params(UZ); gl.uniform1f(UZ.uEll, 0);
+      gl.useProgram(progZ); params(UZ); gl.uniform1f(UZ.uEll, 0); gl.uniform1f(UZ.uOut, 0);
       /* drawing-buffer pixels (can be fewer than the canvas has, see GLMAX) */
       var bw = gl.drawingBufferWidth || W, bh = gl.drawingBufferHeight || H, kb = bw / vw;
       gl.viewport(0, 0, bw, bh);
@@ -840,6 +931,9 @@
     zoom: zoom, zoomStop: function (finish) { zoomStop(!!finish); },
     attach: attach, setLook: setLook, detach: detach, sprite: sprite, params: P, setParam: setParam, quality: Q,
     redraw: function () { items.forEach(function (x) { x.drawn = false; }); kick(); },
-    supported: function () { return initGL(); }
+    supported: function () { return initGL(); },
+    /* run f once the shaders are built (at once if they already are) */
+    ready: function (f) { if (!initGL()) return; if (progReady) f(); else { readyCbs.push(f); kick(); } },
+    stats: STATS
   };
 })();

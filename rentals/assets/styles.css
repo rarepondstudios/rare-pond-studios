@@ -352,3 +352,13 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 html.rp-v3 .card:hover,html.rp-v3 .card.rpc-kbsel{box-shadow:0 18px 48px -8px var(--ccg),0 0 30px var(--ccg)}
 /* the logo bubble becomes a true ellipse so the rim follows its edge exactly */
 html.rp-v3 .home .logowrap{border-radius:50%}
+/* Rentals Home logo: the WHITE SPLASH (rentals/assets/v3.js, 2026-10-27). The logo sits on solid white
+   with a blurred 50% ring and a softer 25% ring outside it, drawn by rp-bubble.js, so the bubble's own
+   background, shadow and highlight step aside and nothing may clip the rings. Without WebGL the class is
+   never added and the original bubble stays. */
+.v3splash{--rpb-depth:1}
+/* the white under the logo is there at once (a hair inside the splash's wobbling edge, so it never shows
+   past it); the splash canvas fades in over it and only the rings appear to arrive */
+.home .logowrap.v3-splash{overflow:visible;background:radial-gradient(closest-side,#fff 95.5%,rgba(255,255,255,0) 100%);box-shadow:none;isolation:isolate}
+.home .logowrap.v3-splash::before{display:none}
+.home .logowrap.v3-splash>.v3splash{z-index:-1}

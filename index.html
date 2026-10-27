@@ -61,7 +61,7 @@
 <link rel="icon" type="image/png" sizes="48x48" href="/media/site/favicon-48.png">
 <link rel="apple-touch-icon" href="/media/site/apple-touch-icon.png">
 <!-- Production error beacon. Loads FIRST so it is watching before any other script parses. -->
-<script src="/assets/error-beacon.js"></script>
+<script src="/assets/error-beacon.js"></script><script>/* ?perf=1 loads the performance probe (assets/perf-probe.js); nothing for normal visitors */if(/[?&]perf=1\b/.test(location.search)){var __pp=document.createElement("script");__pp.src="/assets/perf-probe.js?v=1";__pp.defer=true;document.head.appendChild(__pp);}</script>
 <!-- Reserves the event banner's space before the first paint, so the page does not jump
      down when the banner arrives. Must stay here, in <head>, with no defer/async. -->
 <script src="/assets/banner-reserve.js"></script>
@@ -1249,7 +1249,7 @@ html.xw-active{overflow:hidden}
      rp-bubble.js on the rim canvas, pinned top right (the site's light source). The old CSS speculars
      are switched off wherever that canvas is on; without WebGL they stay exactly as they were. */
   .bubble-inner:has(>.edge.rp-bubble-on) .glass .spec,
-  .citem:has(.cedge.rp-bubble-on) .cspec,
+  .cbub:has(>.cedge.rp-bubble-on)>.cspec,
   .m-bubble:has(>.m-edge.rp-bubble-on) .m-spec,
   .about-anim-slot.rp-rim-on::after{display:none}
   .orbi.rp-rim-on::after{background:radial-gradient(120% 100% at 50% 122%,rgba(0,10,34,.34),transparent 52%)}
@@ -1352,7 +1352,6 @@ html.xw-active{overflow:hidden}
     window.__revealPage=hide;
     window.__revealedAt=0;
     var fonts=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
-    var loaded=new Promise(function(r){document.readyState==='complete'?r():addEventListener('load',r,{once:true});});
     /* CONTENT READY (2026-10-26, Jack: on a reload everything visibly snapped in). The window 'load'
        event fires before the page is even built (the content comes from JSON and is drawn after it),
        so the veil now also waits for __main to say the first screen is really there: its images
@@ -1360,8 +1359,12 @@ html.xw-active{overflow:hidden}
        (see the image fade-in and the bubble canvases in rp-bubble.js). */
     var crRes=null;window.__contentReady=new Promise(function(r){crRes=r;});
     window.__markContentReady=function(){if(crRes)crRes();};
-    Promise.all([fonts,loaded,window.__contentReady]).then(function(){requestAnimationFrame(function(){requestAnimationFrame(hide);});});
-    setTimeout(hide,4000);                 /* absolute safety cap */
+    /* 2026-10-27 (Jack: pages slow to load): the veil no longer waits for the window 'load' event,
+       which also waits for every image on the page, most of them nowhere near the first screen. The
+       first screen being ready (above) is what counts; fonts get at most 1.2 s. */
+    var fontsCapped=Promise.race([fonts,new Promise(function(r){setTimeout(r,1200);})]);
+    Promise.all([fontsCapped,window.__contentReady]).then(function(){requestAnimationFrame(function(){requestAnimationFrame(hide);});});
+    setTimeout(hide,3000);                 /* absolute safety cap */
     addEventListener('error',function(){setTimeout(hide,60);},{once:true});  /* never mask on a script error */
     /* colour: resolve the chosen colour-look into a muted gradient (Golden-Rule-safe - colours come from the looks) */
     (function(){try{
@@ -1513,7 +1516,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026y5"></script>
+<script src="/assets/rp-bubble.js?v=20261027a"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -1944,7 +1947,7 @@ function makeGridBubble(p,i){
 }
 PROJECTS.forEach((p,i)=>grid.appendChild(makeGridBubble(p,i)));
 /* ambient bubbles wear one still frame of the V3 bubble in the signature look (see html.rp-bgb-ring CSS) */
-(function(){if(!window.RPBubble||!RPBubble.supported())return;const sg=LOOKS_BY_KEY.signature||{c1:'#3f6bff',c2:'#9b5cff',c3:'#56c8ff'};const url=RPBubble.sprite(sg,256,2.4);if(!url)return;document.documentElement.style.setProperty('--bgb-ring','url('+url+')');document.documentElement.classList.add('rp-bgb-ring');})();
+(function(){if(!window.RPBubble||!RPBubble.supported())return;RPBubble.ready(()=>{const sg=LOOKS_BY_KEY.signature||{c1:'#3f6bff',c2:'#9b5cff',c3:'#56c8ff'};const url=RPBubble.sprite(sg,256,2.4);if(!url)return;document.documentElement.style.setProperty('--bgb-ring','url('+url+')');document.documentElement.classList.add('rp-bgb-ring');});})();   /* ready(): once the shaders are built (they build in the background) */
 /* AMBIENT BUBBLE DENSITY scales with the screen (Jack, 2026-10-26: right on desktop, far too dense
    on a phone). The CMS count (home.bgBubbleCount) is the count for a 1440x900 desktop; smaller screens
    get proportionally fewer (by screen area, at least 30%) and smaller (by width, at least half size)
@@ -2198,14 +2201,19 @@ const ORB_SPEC=[
       // than pinning a bitmap array. The canvas is revealed only once all frames are decoded, so the
       // bubble never flashes empty.
       function loadFrame(k){ return new Promise(function(res){
-        var im=new Image(); im.decoding='async';
+        var im=new Image(); im.decoding='async'; im.fetchPriority='low';
         im.src=m.pattern.replace('%02d',('0'+(k+1)).slice(-2))+(m.rev?('?h='+m.rev):'');  // ?h=<rev> busts the week-long /media cache when frames change
         var ok=function(){imgs[k]=im;res();};
         if(im.decode){ im.decode().then(ok, function(){ im.onload=ok; im.onerror=res; }); }
         else { im.onload=ok; im.onerror=res; }
       }); }
-      function start(){ var ps=[],k; for(k=0;k<N;k++)ps.push(loadFrame(k));
-        Promise.all(ps).then(function(){ ready=true; bubble.classList.add('anim-on');
+      /* six at a time, low priority (2026-10-27): all 94 at once took the bandwidth and the image
+         decoders the first screen needed, on every first visit */
+      function loadAll(){ return new Promise(function(res){ var nx=0, act=0, left=N;
+        function pump(){ while(act<6&&nx<N){ act++; loadFrame(nx++).then(function(){ act--; if(--left===0)res(); else pump(); }); } }
+        pump(); }); }
+      function start(){
+        loadAll().then(function(){ ready=true; bubble.classList.add('anim-on');
           // Seed by initial visibility: already comfortably in view at load (tall / 4K monitor
           // with #about above the fold, or a deep link) -> PLAY the intro forward once so it is
           // actually seen (Save-Data snaps to the finished logo; reduced-motion kept the static
@@ -2223,7 +2231,8 @@ const ORB_SPEC=[
       // ~2.6 MB over 94 files; on a phone the section sits well below the fold, and a visitor who
       // never scrolls there used to pay for all of it on every visit. Save-Data keeps the static logo.
       var started=false;
-      function startOnce(){ if(started)return; started=true; if('requestIdleCallback'in window) requestIdleCallback(start,{timeout:2500}); else setTimeout(start,800); }
+      /* ...and (2026-10-27) never before the first screen is up: the page veil lifts first */
+      function startOnce(){ if(started)return; started=true; Promise.resolve(window.__contentReady).then(function(){ if('requestIdleCallback'in window) requestIdleCallback(start,{timeout:1500}); else setTimeout(start,400); }); }
       if(navigator.connection&&navigator.connection.saveData){ if(ABOUT_SET_ORBITS)ABOUT_SET_ORBITS(1); }
       else if('IntersectionObserver'in window){
         var io=new IntersectionObserver(function(es){ if(es.some(function(e){return e.isIntersecting;})){ io.disconnect(); startOnce(); } },{rootMargin:'150% 0px 150% 0px'});
@@ -3731,13 +3740,13 @@ __routeBooted=true;
 if(window.RP_reapplyLooks)RP_reapplyLooks();
 
 /* FIRST SCREEN READY -> lift the load veil. Waits for every image that is on screen right now to be
-   decoded (capped at 2.5 s, a slow image never holds the page), then two frames so the bubble rims
+   decoded (capped at 1.5 s, a slow image never holds the page; it fades in when it arrives), then two frames so the bubble rims
    have drawn, then tells the veil (see __markContentReady in the veil controller). */
 (function firstScreenReady(){
   const onScreen=el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth;};
   const imgs=[...document.querySelectorAll('img')].filter(i=>!(i.complete&&i.naturalWidth)&&onScreen(i));
   const dec=imgs.map(i=>(i.decode?i.decode():new Promise(r=>{i.addEventListener('load',r,{once:true});i.addEventListener('error',r,{once:true});})).catch(()=>{}));
-  Promise.race([Promise.all(dec),new Promise(r=>setTimeout(r,2500))]).then(()=>{
+  Promise.race([Promise.all(dec),new Promise(r=>setTimeout(r,1500))]).then(()=>{
     requestAnimationFrame(()=>requestAnimationFrame(()=>{if(window.__markContentReady)window.__markContentReady();}));
   });
 })();
