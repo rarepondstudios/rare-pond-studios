@@ -148,8 +148,10 @@
       var A = Math.max(6, 0.012 * W), w2, w3, eS, e50, e25;
       x.clearRect(0, 0, W, H);
       /* positions along the direction of travel, as if moving right to left ("L"); "R" is drawn mirrored */
-      var g = hgrad(x, W, L);
       x.save(); if (dir === "R") { x.translate(W, 0); x.scale(-1, 1); }
+      /* the colours stay in SCREEN space (c1 left, c3 right) in both directions: mirrored drawing would
+         flip them and the next page's covered frame (CSS, unmirrored) would not match */
+      var g = x.createLinearGradient(dir === "R" ? W : 0, 0, dir === "R" ? 0 : W, 0); g.addColorStop(0, L.c1); g.addColorStop(0.5, L.c2); g.addColorStop(1, L.c3);
       if (phase === "in") {
         /* PARALLAX: the leading 25% and 50% bands are slower than the solid one, so it catches up and
            they compress as it covers */
