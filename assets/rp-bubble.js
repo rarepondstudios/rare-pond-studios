@@ -738,7 +738,11 @@
     var W = Math.max(16, Math.round(FW * q)), H = Math.max(16, Math.round(FH * q));
     var cw = it.cv.width, ch = it.cv.height;
     if (!it.hold && (cw < FW || ch < FH)) {
-      cw = Math.max(cw, Math.ceil(FW / 64) * 64); ch = Math.max(ch, Math.ceil(FH / 64) * 64);
+      var gw = Math.ceil(FW / 64) * 64, gh = Math.ceil(FH / 64) * 64;
+      /* growing WHILE its shape changes (a side card becoming the featured one): straight to the size of
+         the largest bubble canvas on the page, so the move costs one resize instead of one per 64 px */
+      if (it.shapeT > 0) for (var mi = 0; mi < items.length; mi++) if (!items[mi].ref && !items[mi].opts.splash) { gw = Math.max(gw, items[mi].cv.width); gh = Math.max(gh, items[mi].cv.height); }
+      cw = Math.max(cw, Math.min(gw, MAXPX + 64)); ch = Math.max(ch, Math.min(gh, MAXPX + 64));
       it.cv.width = cw; it.cv.height = ch; it.resizes = (it.resizes || 0) + 1;
     }
     var src;
