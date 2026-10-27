@@ -39,6 +39,36 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-122 DEPTH ZOOM POLISH + PHONE PERFORMANCE + AMBIENT BUBBLE DENSITY (2026-10-26)
+
+- Jack (screen recording from his iPhone): laggy on mobile, the look was off (the bubble turned into a black
+  ball), the logo popped in front of / behind the flight, the edge of the reveal was visible, and after a close
+  the bubble image snapped back into place under the rim. Same snaps on desktop. Ambient bubbles far too dense
+  on a phone.
+- Flight (`RPBubble.zoom`, rp-bubble.js):
+  - follows the LIVE bubble every frame (`hostBox()`), so bob, hover scale and the scroll-lock shift can no
+    longer leave the rim off the bubble when it lands.
+  - the opening the film shows through is cut along the MIDDLE of the solid rim (`lip` 0.042), so its edge
+    is always under the opaque foreground layer.
+  - draws straight into the shared WebGL canvas, which is put on the page as the overlay for the flight (no
+    per-frame drawImage copy, a GPU readback on iOS); the page's bubbles hold their last frame meanwhile.
+  - `o.look`: the close lands in the colours the bubble will actually show (the opening look if the mouse
+    will be resting on it, its resting colours otherwise, always resting on touch).
+  - returns `{look}`; index.html keeps it on the film as `sec._zlook`.
+- index.html: the bubble's logo / dive-in pill (`zh.front`) crossfades with the film (exactly complementary
+  opacities, `uFront()`); the film's dark scrim waits until the layers have passed (`--usc`), so the opening
+  shows the film's own world, not a dark disc; the backdrop push-in and its settle were removed (nothing moves
+  after landing); the film's reel starts after landing; `body.u-cover` pauses the page's ambient motion
+  (bgb drift, bob, rim shader) from click until the film has closed again.
+- Phone performance: `checkVisibility()` was the top main-thread cost (two forced style recalcs EVERY frame).
+  Now two on-screen bubbles every 250 ms, none during a flight, plus an immediate check when a bubble comes on
+  screen. On touch devices the halo canvases update at half rate and lose their CSS blur.
+- Ambient bubbles (`bgbPlan()`, `bgbFill()`): the CMS count is for a 1440x900 desktop; smaller screens get
+  fewer (by area, min 30%) and smaller (by width, min 50%); a resize / rotation that changes the plan rebuilds.
+- Measured on the mini (Playwright): desktop Chrome real GPU, mobile emulation at 4x CPU throttle, and WebKit
+  (iPhone 15 Pro Max profile). Stress script `~/claude_perf/stress.mjs` (every film open/close, Back
+  mid-flight, reopen mid-close, resize mid-flight, rapid fire) checks no state is left behind.
+
 ### 0.0.-121 AE SHINE ON EVERY BUBBLE; DEPTH-ZOOM INTO A FILM THROUGH THE THREE TIERS; THREE-TIER CURSOR (2026-10-26)
 
 - Jack: try his AE shine ("RP_V3_Bubble_Shine_PRE-COMP", folder "Bubble Shine PRE-COMP" in RP Anim 1) across the
