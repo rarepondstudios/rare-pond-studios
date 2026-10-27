@@ -175,7 +175,7 @@
        rim's own soft edge there, the photo underneath showed through that last pixel and shimmered as
        the bubble bobbed (Jack, 2026-10-26: "the image behind them is slightly peeking out"). */
     "  float cut=1.-smoothstep(1.-uPx+2.*uPx*uClip,1.+uPx+2.*uPx*uClip,r);",                    // Exterior Cutter
-    "  float al=(1.-(1.-e1)*(1.-e2)*(1.-e3))*cut;",
+    "  float al=(1.-(1.-e1)*(1.-e2)*(1.-e3))*max(cut,uClip);",   /* clipped: the parent's clip IS the edge (same box, same radius), so no cut of our own */
     "  sa*=cut;",
     "  if(al<.004&&sa<.004){gl_FragColor=vec4(0.);return;}",
     "  vec3 pc=al>.004?colAt(p)*al:vec3(0.);",
@@ -573,11 +573,20 @@
   /* hover / focus can change a bubble's look or make a still bubble live (opts.liveWhen): wake the idle loop */
   ["pointerover", "pointerout", "focusin"].forEach(function (ev) { document.addEventListener(ev, kick, { passive: true }); });
 
-  /* does a parent (or grandparent) clip this bubble to its shape? (overflow / clip-path) */
+  /* is this bubble clipped by a parent (or grandparent) of EXACTLY its own shape (same box, same
+     border-radius)? Then that clip is its edge: the rim paints opaque right up to it and the canvas
+     has no rounding of its own, so not a hairline of the photo underneath can show (it shimmered as
+     the bubbles bobbed; Jack, 2026-10-26). The CSS corner can be elliptical (the featured card's
+     13% / 20%) where the shader's is circular, which is why the shader does not cut there itself. */
   function clipParent(el) {
+    var r = el.getBoundingClientRect(), br = getComputedStyle(el).borderRadius;
     for (var e = el.parentElement, n = 0; e && n < 2; e = e.parentElement, n++) {
       var cs = getComputedStyle(e);
-      if ((cs.overflow && cs.overflow !== "visible") || (cs.clipPath && cs.clipPath !== "none")) return true;
+      if ((cs.overflow && cs.overflow !== "visible") || (cs.clipPath && cs.clipPath !== "none")) {
+        var q = e.getBoundingClientRect();
+        return cs.clipPath === "none" && cs.borderRadius === br && Math.abs(q.left - r.left) < 1 && Math.abs(q.top - r.top) < 1 &&
+          Math.abs(q.width - r.width) < 1 && Math.abs(q.height - r.height) < 1;
+      }
     }
     return false;
   }
