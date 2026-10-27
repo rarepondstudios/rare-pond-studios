@@ -566,7 +566,8 @@
   }
   /* the colours rotate between corners on every grab, so a recording that has not caught up yet (still
      showing the previous grab's squares) can never be mistaken for the current one */
-  var COLS = [[255, 0, 255], [0, 255, 0], [0, 255, 255], [255, 255, 0]], MK = [];
+  /* pure colours the site never uses (yellow matched the duck logo, cyan the background bubbles) */
+  var COLS = [[255, 0, 255], [0, 255, 0], [255, 0, 0], [0, 0, 255]], MK = [];
   function markers(on) {
     if (!on) { (markers.els || []).forEach(function (e) { e.remove(); }); markers.els = []; return; }
     var k = SC.grabs.length + (markers.n = (markers.n || 0) + 1);
@@ -589,7 +590,7 @@
     function find(which) {
       return MK.filter(function (m, i) { return which == null || i === which; }).map(function (m) {
         var c = m[1], x0 = m[0][1] === "l" ? 0 : VW >> 1, y0 = m[0][0] === "t" ? 0 : VH >> 1, sx = 0, sy = 0, n = 0;
-        for (var y = y0; y < y0 + (VH >> 1); y++) for (var x = x0; x < x0 + (VW >> 1); x++) { var o = (y * VW + x) * 4; if (Math.abs(F[o] - c[0]) + Math.abs(F[o + 1] - c[1]) + Math.abs(F[o + 2] - c[2]) < 80) { sx += x; sy += y; n++; } }
+        for (var y = y0; y < y0 + (VH >> 1); y++) for (var x = x0; x < x0 + (VW >> 1); x++) { var o = (y * VW + x) * 4; if (Math.abs(F[o] - c[0]) + Math.abs(F[o + 1] - c[1]) + Math.abs(F[o + 2] - c[2]) < 60) { sx += x; sy += y; n++; } }
         return n >= 12 ? [sx / n, sy / n, n] : null;
       });
     }
@@ -600,7 +601,7 @@
       if (!fc || fc.width !== VW || fc.height !== VH) { fc = document.createElement("canvas"); fc.width = VW; fc.height = VH; fx = fc.getContext("2d", { willReadFrequently: true }); }
       fx.drawImage(v, 0, 0, VW, VH); F = fx.getImageData(0, 0, VW, VH).data;
       if (find(0)[0]) return Promise.resolve(true);
-      return ++tries < 10 ? wait(160).then(frame) : Promise.resolve(false);
+      return ++tries < 16 ? wait(160).then(frame) : Promise.resolve(false);
     }
     return raf2().then(function () { return wait(120); }).then(function () {
       mpos = markers.els.map(function (e) { var r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
@@ -613,6 +614,9 @@
         found = find(null);
         g.frame = [VW, VH]; g.markers = found.map(function (f) { return f ? f.map(function (q) { return Math.round(q); }) : null; });
         if (!found[0] || !found[1] || !found[2]) { g.error = "page not found in the recording (pick this window or the whole screen)"; return g; }
+        /* the three squares must sit on a rectangle with the window's proportions, or something else matched */
+        var wx = found[1][0] - found[0][0], hy = found[2][1] - found[0][1], ex = mpos[1][0] - mpos[0][0], ey = mpos[2][1] - mpos[0][1];
+        if (wx <= 0 || hy <= 0 || Math.abs(found[1][1] - found[0][1]) > 0.03 * hy || Math.abs(found[2][0] - found[0][0]) > 0.03 * wx || Math.abs((wx / hy) / (ex / ey) - 1) > 0.06) { g.error = "corner squares did not line up (something on screen matched their colour)"; return g; }
         var ax = (found[1][0] - found[0][0]) / (mpos[1][0] - mpos[0][0]), bx = found[0][0] - ax * mpos[0][0];
         var ay = (found[2][1] - found[0][1]) / (mpos[2][1] - mpos[0][1]), by = found[0][1] - ay * mpos[0][1];
         g.map = [ax, bx, ay, by].map(function (q) { return Math.round(q * 1000) / 1000; });
