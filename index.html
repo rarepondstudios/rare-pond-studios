@@ -1500,7 +1500,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026p"></script>
+<script src="/assets/rp-bubble.js?v=20261026q"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2760,6 +2760,8 @@ function uZoomClear(sec){
   sec.style.removeProperty('clip-path');sec.style.removeProperty('-webkit-clip-path');
   sec.style.removeProperty('opacity');sec.style.removeProperty('--usc');
   sec.classList.remove('rp-zoom');
+  /* a flight cut short (Back mid-flight) never ran its own cleanup: restore any faded logo */
+  uFront([...document.querySelectorAll('.bubble-logo,.clogo,.divehint')].filter(e=>e.style.scale),null);
 }
 function uFront(els,op){
   els.forEach(el=>{
