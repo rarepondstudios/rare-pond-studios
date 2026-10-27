@@ -408,7 +408,7 @@
       } else STATS.calib = "unreadable";
     } catch (e) { STATS.calib = "error " + e.message; }
   }
-  var STATS = { ver: "20261027f", compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
+  var STATS = { ver: "20261027g", compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
   var progZ = null, UZ = null;
   var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut"];
   /* compile + link WITHOUT asking for the result (asking blocks until the driver is done) */
@@ -743,12 +743,22 @@
         }
         todo.push([x, kind]);
       }
+      /* bubbles that are changing shape (the carousel morph) first: they look wrong when late */
+      todo.sort(function (a, b) { return (b[0].trans ? 1 : 0) - (a[0].trans ? 1 : 0); });
       /* READ phase: every style / size this frame needs, while the page's styles are still clean */
       for (c = 0; c < todo.length; c++) prep(todo[c][0]);
-      /* WRITE phase: draw until the frame budget is spent; the rest waits for the next frame */
+      /* WRITE phase: draw until the frame budget is spent; the rest waits for the next frame.
+         The budget counts DRAWING only, and every frame draws at least one bubble. (2026-10-27, Jack's
+         iPad video: the read phase above forces the page's style update, which during the carousel morph
+         took longer than the whole budget on the iPad, so NO bubble was redrawn for the length of the
+         move and the card showed its old picture stretched: the round side bubble's rim as an oval inside
+         the new rectangle, the old rectangle squashed into the new circle. Round bubbles hid this because
+         a stale circle stretched is still a circle.) */
+      var tD = performance.now(), nDrawn = 0;
       for (c = 0; c < todo.length; c++) {
         x = todo[c][0];
-        if (x.drawn && performance.now() - t0 > BUDGET) continue;   /* over budget: next frame */
+        if (x.drawn && nDrawn > 0 && performance.now() - tD > BUDGET) continue;   /* over budget: next frame */
+        nDrawn++;
         var iv = 1000 / (todo[c][1] === "glow" ? GLOW_FPS : Q.fps);
         x.next = x.drawn ? now + iv : now + iv * Math.random();   /* first draw: random phase, so they spread out */
         if (draw(x, simT + x.opts.seed * 3.7, true)) x.sig = sigOf(x);
