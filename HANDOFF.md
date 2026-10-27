@@ -39,6 +39,26 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-132 BUBBLE COPIES CALIBRATE THEMSELVES; sticker_details; BONUS SUPPORT DUCKY (2026-10-27)
+
+- Jack (new video, Firefox on his Windows PC): after the fixed-size canvas (-131) the carousel rims still
+  lost their right and bottom quarter. The rim canvas content is magnified: the copy out of the shared
+  WebGL canvas samples a smaller rectangle than asked on that machine (Chrome, Firefox and Safari on the
+  mini copy exactly, so it cannot be reproduced here).
+- assets/rp-bubble.js `calibrate()` (runs once when the shaders are ready): draws a 32 x 16 grid of
+  known colours where a bubble would sit, copies it out the same way into a 256 x 128 canvas, reads the
+  colour boundaries back and fits where the copy really sampled (scale + offset per axis). `copyOut()`
+  then requests the rectangle that lands correctly. Exact machines measure 1 / 0 / 1 / 0 and nothing
+  changes. Verified by simulating the fault in Chrome (copies shrunk to 80%): calibration reads
+  0.8 / 0 / 0.8 / 0 and the rim is whole again. `RPBubble.stats.ver` / `.calib` show the code version
+  and the result; the ?perf=1 panel prints both ("old: please reload" if a cached script is running).
+- Rentals database (Jack): `items.sticker_addon` renamed `sticker_details` (bts-automation
+  migrations/20261027a; NocoDB column meta renamed in place, same column id, so the Sticker check view
+  keeps it; make.py, SPEC, noco_sticker_view.py updated). Lesson: NocoDB's column PATCH on this external
+  Postgres source changed only the title, not the database column; rename in Postgres, then set
+  nc_columns_v2.column_name in ~/nocodb-data/noco.db (backup first) and restart the nocodb container.
+- Item 7999 renamed "Bonus Support Ducky" (was Complimentary Emotional Support Ducky).
+
 ### 0.0.-131 FIREFOX ON WINDOWS: RIM ONLY TOP-LEFT, FREEZE AFTER LOAD; LOGISTICS OFF-WHITE (2026-10-27)
 
 - Jack's ?perf=1 panel from his own PC (Windows, Firefox 158, GTX 980, 2560x1440 at 1.5x): frame
