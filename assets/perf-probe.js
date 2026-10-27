@@ -553,6 +553,9 @@
         var opts = { video: { frameRate: 30 }, audio: false, preferCurrentTab: true, selfBrowserSurface: "include", surfaceSwitching: "exclude", monitorTypeSurfaces: "include" };
         navigator.mediaDevices.getDisplayMedia(opts).then(function (st) {
           scStream = st; var v = document.createElement("video"); v.muted = true; v.playsInline = true; v.srcObject = st;
+          /* in the page (a 2 px dot), or the browser may stop updating a video nobody can see */
+          v.style.cssText = "position:fixed;left:50%;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none;z-index:2147483646";
+          document.documentElement.appendChild(v);
           var tr = st.getVideoTracks()[0]; try { var se = tr.getSettings(); SC.surface = se.displaySurface || null; SC.size = [se.width, se.height]; } catch (e) {}
           SC.label = tr.label;
           tr.addEventListener("ended", function () { ev("screen recording ended"); scVideo = null; });
@@ -575,21 +578,33 @@
     var el = featured(), edge = el && el.querySelector(".cedge"), cv = edge && window.RPBubble && RPBubble.canvasOf ? RPBubble.canvasOf(edge) : null;
     if (!cv) return Promise.resolve(null);
     markers(true); var vis = box.style.visibility; box.style.visibility = "hidden";
-    return raf2().then(function () { return wait(320); }).then(function () {
-      var g = { tag: tag, t: Math.round(performance.now()), during: curStep };
+    var mpos = null, fc = null, fx = null, F = null, VW = 0, VH = 0, found = null, tries = 0, g = { tag: tag, t: Math.round(performance.now()), during: curStep };
+    /* each marker: centroid of its pure colour, searched in its own quarter of the recording */
+    function find(which) {
+      return MK.filter(function (m, i) { return which == null || i === which; }).map(function (m) {
+        var c = m[1], x0 = m[0][1] === "l" ? 0 : VW >> 1, y0 = m[0][0] === "t" ? 0 : VH >> 1, sx = 0, sy = 0, n = 0;
+        for (var y = y0; y < y0 + (VH >> 1); y++) for (var x = x0; x < x0 + (VW >> 1); x++) { var o = (y * VW + x) * 4; if (Math.abs(F[o] - c[0]) + Math.abs(F[o + 1] - c[1]) + Math.abs(F[o + 2] - c[2]) < 80) { sx += x; sy += y; n++; } }
+        return n >= 12 ? [sx / n, sy / n, n] : null;
+      });
+    }
+    /* the recording lags the page a little: take frames until the markers show (at most ~1.6 s) */
+    function frame() {
+      var v = scVideo; if (!v || !v.videoWidth) return Promise.resolve(false);
+      VW = v.videoWidth; VH = v.videoHeight;
+      if (!fc || fc.width !== VW || fc.height !== VH) { fc = document.createElement("canvas"); fc.width = VW; fc.height = VH; fx = fc.getContext("2d", { willReadFrequently: true }); }
+      fx.drawImage(v, 0, 0, VW, VH); F = fx.getImageData(0, 0, VW, VH).data;
+      if (find(0)[0]) return Promise.resolve(true);
+      return ++tries < 10 ? wait(160).then(frame) : Promise.resolve(false);
+    }
+    return raf2().then(function () { return wait(120); }).then(function () {
+      mpos = markers.els.map(function (e) { var r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+      return frame();
+    }).then(function () {
+      markers(false); box.style.visibility = vis;
+      g.tries = tries + 1;
       try {
-        var mpos = markers.els.map(function (e) { var r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
-        var v = scVideo, VW = v.videoWidth, VH = v.videoHeight;
-        var fc = document.createElement("canvas"); fc.width = VW; fc.height = VH;
-        var fx = fc.getContext("2d", { willReadFrequently: true }); fx.drawImage(v, 0, 0, VW, VH);
-        markers(false); box.style.visibility = vis;
-        var F = fx.getImageData(0, 0, VW, VH).data;
-        /* each marker: centroid of its pure colour, searched in its own quarter of the recording */
-        var found = MK.map(function (m, i) {
-          var c = m[1], x0 = m[0][1] === "l" ? 0 : VW >> 1, y0 = m[0][0] === "t" ? 0 : VH >> 1, sx = 0, sy = 0, n = 0;
-          for (var y = y0; y < y0 + (VH >> 1); y++) for (var x = x0; x < x0 + (VW >> 1); x++) { var o = (y * VW + x) * 4; if (Math.abs(F[o] - c[0]) + Math.abs(F[o + 1] - c[1]) + Math.abs(F[o + 2] - c[2]) < 80) { sx += x; sy += y; n++; } }
-          return n >= 12 ? [sx / n, sy / n, n] : null;
-        });
+        if (!F) { g.error = "no frame from the recording"; return g; }
+        found = find(null);
         g.frame = [VW, VH]; g.markers = found.map(function (f) { return f ? f.map(function (q) { return Math.round(q); }) : null; });
         if (!found[0] || !found[1] || !found[2]) { g.error = "page not found in the recording (pick this window or the whole screen)"; return g; }
         var ax = (found[1][0] - found[0][0]) / (mpos[1][0] - mpos[0][0]), bx = found[0][0] - ax * mpos[0][0];
