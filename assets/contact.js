@@ -170,7 +170,8 @@
     b.innerHTML='<span class="rpc-consent-t">We use cookies from HubSpot to run our contact form and understand site usage. See our <a href="/privacy/">Privacy Policy</a>.</span>'
       +'<span class="rpc-consent-btns"><button type="button" class="rpc-consent-no">Decline</button><button type="button" class="rpc-consent-yes">Accept</button></span>';
     document.body.appendChild(b);
-    requestAnimationFrame(function(){ b.classList.add('rpc-consent-in'); });
+    /* force the start position to be computed first, or the slide-in can be skipped and the banner just appears (pop-in audit, 2026-10-27) */
+    void b.offsetWidth; requestAnimationFrame(function(){ void b.offsetWidth; b.classList.add('rpc-consent-in'); });
     function done(v){ consentSet(v); b.classList.remove('rpc-consent-in'); setTimeout(function(){ if(b.parentNode)b.parentNode.removeChild(b); },300); if(v==='accepted')warm(); }
     b.querySelector('.rpc-consent-yes').addEventListener('click',function(){ done('accepted'); });
     b.querySelector('.rpc-consent-no').addEventListener('click',function(){ done('declined'); });
