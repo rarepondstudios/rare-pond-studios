@@ -39,6 +39,15 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-127 RENTALS: 3131 -> 3119 (NO GAP IN GRIP & ELECTRIC), PACKAGES TEST FINGER (2026-10-26)
+
+- Jack: the last Grip & Electric number takes the free 3119. 4-Socket Extension Reel (50ft) 3131 -> 3119, its part
+  3131.001 -> 3119.001 and both unit codes followed (direct item_no update; nothing printed, nothing retired).
+  `~/Desktop/RarePond_Rental_Labels/Renumber_2026-10-26.csv` rows updated to the final numbers.
+- All departments checked with `rentals_id_audit.py`: no gaps, duplicates, wrong department digits, part or unit code
+  mismatches anywhere. `rentals_print_ready_test.py` 37/37.
+- `tools/test-rentals-packages.mjs` looks for "Finger with Round Camera Plate" (the renamed KUPO finger): ALL PASS.
+
 ### 0.0.-126 RENTALS: PARTS COUNT PER COPY OF THEIR KIT (2026-10-26)
 
 - Jack: "if there are 3 C-Stands with sub-item Base, there are 3 bases." Before, a part's qty was its total with no
@@ -55,8 +64,7 @@
 - Scan app: checklist asks for Per copy pieces; a pooled part shows missing on a copy only when spares cannot cover it
   (`/u/3115-A`: Turtle Base checkbox, Gobo head 2 pieces). Website `app.js` contents use `per_copy`.
 - Checked through NocoDB's own API: Per copy 2 -> 3 -> 2 on 3116.006 made and removed 3 copies; qty 7 refused with the
-  reason. Unrelated failures seen and left: `rentals_print_ready_test.py` "next free number (3119)" (3119 is a gap since
-  the ladder moved) and `test-rentals-packages` "KUPO finger" (that crate item was renamed); both fail without this change.
+  reason. The two unrelated test failures seen then were fixed in 0.0.-127.
 
 ### 0.0.-125 PAGE LOAD: NOTHING SNAPS IN (2026-10-26)
 

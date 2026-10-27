@@ -41,20 +41,20 @@ try {
     cards: [...document.querySelectorAll('.card h3')].map(h => h.textContent),
     cartsub: document.querySelector('.rp-cartsub')?.textContent || '', pkgbox: !!document.querySelector('#rppkgbox') }));
   ok(grip.first.includes('rpcrate-feat') && /Grip Crate/.test(grip.feat || ''), 'Grip opens with the build-your-own card: ' + grip.feat);
-  ok(!grip.cards.some(n => /Duckbill|Matthellini|Track Wedge|KUPO/.test(n)), 'crate-only gear is not listed on its own');
+  ok(!grip.cards.some(n => /Duckbill|Matthellini|Track Wedge|Finger with Round Camera Plate/.test(n)), 'crate-only gear is not listed on its own');
   ok(/Carts for Grip & Electric/.test(grip.cartsub) && grip.cards.includes('Folding Hand Truck'), 'the hand truck sits under "Carts for Grip & Electric"');
   ok(grip.pkgbox && grip.cards.includes('Site Test Package'), 'a two-department package shows in Grip');
   await tap('.tab[data-c="Lighting"]'); await page.waitForTimeout(300);
   const lightCards = await page.$$eval('.card h3', hs => hs.map(h => h.textContent));
   ok(lightCards.includes('Site Test Package') && lightCards.includes('Folding Hand Truck'), 'it shows in Lighting too, with the cart');
-  // builder popup: layered art, KUPO finger, glow grows
+  // builder popup: layered art, finger (Finger with Round Camera Plate, was KUPO finger), glow grows
   await tap('.tab[data-c="Grip & Electric"]'); await page.waitForTimeout(300);
   await tap('[data-builder]'); await page.waitForTimeout(400);
   const b1 = await page.evaluate(() => ({ back: document.querySelector('#rpbArt .rpb-back')?.getAttribute('src'), front: document.querySelector('#rpbArt .rpb-front')?.getAttribute('src'),
     loaded: [...document.querySelectorAll('#rpbArt img')].every(i => i.complete && i.naturalWidth > 0), g: getComputedStyle(document.getElementById('rpbArt')).getPropertyValue('--g'),
     rows: [...document.querySelectorAll('.rpcrate-rn')].map(x => x.textContent) }));
   ok(/grip-crate-back/.test(b1.back || '') && /grip-crate-front/.test(b1.front || '') && b1.loaded, 'layered crate art loads (back + front)');
-  ok(b1.rows.some(n => /KUPO/.test(n)) && b1.rows.length === 11, 'the 11 crate items incl. the KUPO finger: ' + b1.rows.length);
+  ok(b1.rows.some(n => /Finger with Round Camera Plate/.test(n)) && b1.rows.length === 11, 'the 11 crate items incl. the finger: ' + b1.rows.length);
   await tap('[data-crq-a]'); await page.waitForTimeout(150); await tap('[data-crq-a]'); await page.waitForTimeout(150);
   const g2 = await page.evaluate(() => parseFloat(getComputedStyle(document.getElementById('rpbArt')).getPropertyValue('--g')));
   ok(g2 > parseFloat(b1.g || '0'), 'the glow grows as items go in (' + b1.g + ' -> ' + g2 + ')');
