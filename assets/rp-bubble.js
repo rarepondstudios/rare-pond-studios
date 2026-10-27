@@ -443,6 +443,7 @@
     }
     it.ctx.clearRect(0, 0, W, H);
     it.ctx.drawImage(glc, 0, 0, W, H, 0, 0, W, H);   // viewport sits in the TOP-left W x H of the shared canvas
+    if (!it.shownOnce) { it.shownOnce = true; it.cv.style.opacity = "1"; }
     it.drawn = true;
     return true;
   }
@@ -547,7 +548,9 @@
     cv.setAttribute("data-cursor", "noscan");
     cv.width = cv.height = 16;
     var bleed = opts.glow ? (opts.bleed != null ? opts.bleed : 24) : 0;
-    cv.style.cssText = "position:absolute;inset:" + (-bleed) + "px;width:calc(100% + " + 2 * bleed + "px);height:calc(100% + " + 2 * bleed + "px);display:block;pointer-events:none;border-radius:inherit";
+    /* starts transparent and fades in on its first frame (no rim popping in when a page loads or a view
+       switches) */
+    cv.style.cssText = "position:absolute;inset:" + (-bleed) + "px;width:calc(100% + " + 2 * bleed + "px);height:calc(100% + " + 2 * bleed + "px);display:block;pointer-events:none;border-radius:inherit;opacity:0;transition:opacity .45s ease";
     el.appendChild(cv);
     el.classList.add("rp-bubble-on");
     it = {

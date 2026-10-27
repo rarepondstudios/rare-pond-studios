@@ -1344,16 +1344,24 @@ html.xw-active{overflow:hidden}
     var done=false;
     function gone(){v.classList.add('pv-gone');}
     function rise(){ try{var vs=document.querySelectorAll('.view');for(var i=0;i<vs.length;i++){if(getComputedStyle(vs[i]).display!=='none')vs[i].classList.add('pv-rise');}}catch(e){} }
-    function hide(){ if(done)return; done=true; rise(); v.classList.add('pv-hide');
+    function hide(){ if(done)return; done=true; window.__revealedAt=performance.now(); rise(); v.classList.add('pv-hide');
       if(window.__resetThemeColor)window.__resetThemeColor(0);   // veil lifting -> chrome back to dark
       var t=setTimeout(gone,900);
       v.addEventListener('transitionend',function(){clearTimeout(t);gone();},{once:true});
     }
     window.__revealPage=hide;
+    window.__revealedAt=0;
     var fonts=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
     var loaded=new Promise(function(r){document.readyState==='complete'?r():addEventListener('load',r,{once:true});});
-    Promise.all([fonts,loaded]).then(function(){requestAnimationFrame(function(){requestAnimationFrame(hide);});});
-    setTimeout(hide,3500);                 /* absolute safety cap */
+    /* CONTENT READY (2026-10-26, Jack: on a reload everything visibly snapped in). The window 'load'
+       event fires before the page is even built (the content comes from JSON and is drawn after it),
+       so the veil now also waits for __main to say the first screen is really there: its images
+       decoded and the bubbles drawn (window.__markContentReady). Anything arriving later fades in
+       (see the image fade-in and the bubble canvases in rp-bubble.js). */
+    var crRes=null;window.__contentReady=new Promise(function(r){crRes=r;});
+    window.__markContentReady=function(){if(crRes)crRes();};
+    Promise.all([fonts,loaded,window.__contentReady]).then(function(){requestAnimationFrame(function(){requestAnimationFrame(hide);});});
+    setTimeout(hide,4000);                 /* absolute safety cap */
     addEventListener('error',function(){setTimeout(hide,60);},{once:true});  /* never mask on a script error */
     /* colour: resolve the chosen colour-look into a muted gradient (Golden-Rule-safe - colours come from the looks) */
     (function(){try{
@@ -1505,7 +1513,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026x"></script>
+<script src="/assets/rp-bubble.js?v=20261026y"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -3721,6 +3729,34 @@ __routeBooted=true;
 /* The colour looks (assets/looks.js) may have been applied before the bubbles above existed:
    re-apply now that they do (no-op if the looks have not arrived yet). See RP_reapplyLooks. */
 if(window.RP_reapplyLooks)RP_reapplyLooks();
+
+/* FIRST SCREEN READY -> lift the load veil. Waits for every image that is on screen right now to be
+   decoded (capped at 2.5 s, a slow image never holds the page), then two frames so the bubble rims
+   have drawn, then tells the veil (see __markContentReady in the veil controller). */
+(function firstScreenReady(){
+  const onScreen=el=>{const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth;};
+  const imgs=[...document.querySelectorAll('img')].filter(i=>!(i.complete&&i.naturalWidth)&&onScreen(i));
+  const dec=imgs.map(i=>(i.decode?i.decode():new Promise(r=>{i.addEventListener('load',r,{once:true});i.addEventListener('error',r,{once:true});})).catch(()=>{}));
+  Promise.race([Promise.all(dec),new Promise(r=>setTimeout(r,2500))]).then(()=>{
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{if(window.__markContentReady)window.__markContentReady();}));
+  });
+})();
+/* LATE IMAGES FADE IN. An image that finishes loading in the first seconds after the veil has lifted
+   (a slow one, or one below the first screen) fades in from transparent instead of popping. Animates
+   to the image's own opacity (single-keyframe Web Animation), once per image, and only in that early
+   window so images re-created later (carousel moves) never flicker. */
+(function lateImagesFade(){
+  const seen=new WeakSet();
+  document.addEventListener('load',e=>{
+    const im=e.target;
+    if(!im||im.tagName!=='IMG'||seen.has(im)||!im.animate)return;
+    seen.add(im);
+    const t=window.__revealedAt;
+    if(!t||performance.now()-t>8000)return;
+    if(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+    try{im.animate([{opacity:0}],{duration:450,easing:'ease-out'});}catch(_){}
+  },true);
+})();
 
 /* Second half of the reload-jump fix (first half is history.scrollRestoration in <head>).
    Even with restoration off, late layout growth - webfonts swapping in, lazy images landing - can nudge the scroll position after we've rendered. So re-assert the top as things settle.
