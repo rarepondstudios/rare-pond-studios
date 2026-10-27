@@ -1099,6 +1099,13 @@ html.xw-active{overflow:hidden}
      imperceptible but each was a live compositor layer competing with the featured film's
      decode. Pausing them is the single biggest GPU relief with zero visible change. */
   .citem:not(.feat) .bgb{animation-play-state:paused}
+  /* NO GPU (2026-10-27): rp-bubble.js sets html.rp-soft-gpu when WebGL reports a software renderer
+     (hardware acceleration off, no working graphics driver, remote desktop). Then the browser composites
+     every frame on the CPU, so anything that moves all the time costs the whole screen: the ambient
+     bubbles go, the bobbing stops and the halos lose their blur. With a GPU nothing here applies. */
+  html.rp-soft-gpu .bgb{display:none}
+  html.rp-soft-gpu .glow,html.rp-soft-gpu .cglow{filter:none!important}
+  html.rp-soft-gpu .cbub,html.rp-soft-gpu .cglow,html.rp-soft-gpu .glow,html.rp-soft-gpu .bubble,html.rp-soft-gpu .bubble-inner,html.rp-soft-gpu .m-bubble,html.rp-soft-gpu .orbi{animation-play-state:paused!important}
   body.bg-idle .bgb,body.bg-idle .orbi{animation-play-state:paused}
   body.u-cover .bgb,body.u-cover .orbi,body.u-cover .bubble-inner,body.u-cover .glow,body.u-cover .cbub,body.u-cover .cglow,
   body.u-cover .citem::before,body.u-cover .bubble::before,body.u-cover .m-bubble{animation-play-state:paused!important}
@@ -1516,7 +1523,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261027a"></script>
+<script src="/assets/rp-bubble.js?v=20261027b"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([

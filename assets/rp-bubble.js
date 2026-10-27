@@ -320,13 +320,19 @@
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       try { var dri = gl.getExtension("WEBGL_debug_renderer_info"); STATS.gpu = dri ? String(gl.getParameter(dri.UNMASKED_RENDERER_WEBGL)) : ""; } catch (e) {}
       STATS.parallel = !!PAR;
+      /* SOFTWARE RENDERING: when the browser has no GPU to use (hardware acceleration switched off,
+         a broken or missing graphics driver, a remote desktop) WebGL runs on the CPU and so does every
+         page animation. The bubbles then draw once and redraw only when they change, at lower
+         resolution, and html.rp-soft-gpu lets the page drop its continuous effects (index.html). */
+      SOFT = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(STATS.gpu);
+      if (SOFT) { STATS.soft = true; Q.scale = 0.75; document.documentElement.classList.add("rp-soft-gpu"); }
       glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
       if (!PAR && !ready(true)) return false;   /* no extension: build now, as before */
       return true;
     } catch (e) { gl = false; if (window.console) console.warn("RPBubble", e); return false; }
   }
 
-  var PAR = null, progReady = false, zReady = false, readyCbs = [];
+  var SOFT = false, PAR = null, progReady = false, zReady = false, readyCbs = [];
   var STATS = { compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
   var progZ = null, UZ = null;
   var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut"];
@@ -589,7 +595,7 @@
     if (now - pace.t0 < 1000) return;
     var ratio = pace.slow / Math.max(1, pace.n);
     if (ratio > 0.25 && Q.scale > 0.56) { Q.scale = Math.max(0.55, Q.scale - 0.15); Q.fps = 15; }
-    else if (ratio < 0.05 && Q.scale < 1) { Q.scale = Math.min(1, Q.scale + 0.1); if (Q.scale >= 1) Q.fps = FPS; }
+    else if (ratio < 0.05 && Q.scale < (SOFT ? 0.75 : 1)) { Q.scale = Math.min(SOFT ? 0.75 : 1, Q.scale + 0.1); if (Q.scale >= 1) Q.fps = FPS; }
     pace.t0 = now; pace.n = 0; pace.slow = 0;
   }
 
@@ -605,7 +611,7 @@
      the page keeps its own frame rate on a weak GPU instead of stalling. */
   var GLOW_FPS = 8, BUDGET = 8;
   function kindOf(x) {
-    if (x.opts.still) return "still";
+    if (x.opts.still || SOFT) return "still";
     if (x.opts.liveWhen) { try { if (!x.opts.liveWhen(x.el)) return "still"; } catch (e) {} }
     return x.ref ? "glow" : "live";
   }
