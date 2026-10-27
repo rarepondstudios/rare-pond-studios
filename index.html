@@ -1500,7 +1500,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026q"></script>
+<script src="/assets/rp-bubble.js?v=20261026r"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2814,6 +2814,9 @@ addEventListener('pointermove',e=>{if(e.pointerType==='mouse')__uPtr={x:e.client
 function uCover(on){document.body.classList.toggle('u-cover',!!on);if(!on&&window.RPBubble)RPBubble.redraw();}
 function openUniverse(key){
   if(!SECTIONS[key])return;
+  /* a close still flying (this film or another): FINISH it (hide that film, clean up) before starting,
+     or a film interrupted mid-close was left on screen in its closing state */
+  if(window.RPBubble&&RPBubble.zoomStop)RPBubble.zoomStop(true);
   uCover(true);
   const first=!built[key];
   const sec=built[key]||(built[key]=buildUniverse(key));
@@ -2834,7 +2837,6 @@ function openUniverse(key){
      circle drags the whole circle sideways. So we cut the transition, plant the closed
      circle at the new origin, force the browser to commit that (offsetWidth), and only then
      hand the transition back - the standard "snap to the start, then animate" move. */
-  if(window.RPBubble&&RPBubble.zoomStop)RPBubble.zoomStop();   // a close still flying: drop it, start clean
   uZoomClear(sec);
   sec.style.transition='none';
   sec.classList.remove('open','closing','flash','flash-out');

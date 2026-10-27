@@ -677,7 +677,7 @@
     return { look: { cols: cols, rb: rb, pal: pal, deep: deep } };
   }
   window.RPBubble = {
-    zoom: zoom, zoomStop: function () { zoomStop(false); },
+    zoom: zoom, zoomStop: function (finish) { zoomStop(!!finish); },
     attach: attach, setLook: setLook, detach: detach, sprite: sprite, params: P, setParam: setParam, quality: Q,
     redraw: function () { items.forEach(function (x) { x.drawn = false; }); kick(); },
     supported: function () { return initGL(); }
