@@ -600,6 +600,10 @@
     readStyle(it);
     var vw = window.innerWidth, vh = window.innerHeight;
     var depth = it.depth || 1, deep = it.deep || 0;
+    /* o.look: fly with a given look (the close reuses the look the film was opened with, when the
+       bubble will be under the pointer again as it lands) */
+    var lk = o.look || null;
+    if (lk) deep = lk.deep;
     /* how far the camera must travel: until the BACKDROP band's inner edge has left the screen */
     function farOf(b) { return Math.max(Math.hypot(b.cx, b.cy), Math.hypot(vw - b.cx, b.cy), Math.hypot(b.cx, vh - b.cy), Math.hypot(vw - b.cx, vh - b.cy)); }
     var far = farOf(hb);
@@ -625,7 +629,7 @@
     zooming = true;
     /* the look is SNAPSHOTTED: once the film covers the bubble its hover look starts fading back to
        the resting colours, and the flight must keep the colours the viewer clicked on */
-    var cols = it.cols.slice(), rb = it.rb, pal = it.pal, rad0 = it.rad, seed = it.opts.seed;
+    var cols = lk ? lk.cols : it.cols.slice(), rb = lk ? lk.rb : it.rb, pal = lk ? lk.pal : it.pal, rad0 = it.rad, seed = it.opts.seed;
     var hide = (o.hide || []).filter(Boolean);
     it.cv.style.visibility = "hidden";
     hide.forEach(function (h) { h.style.setProperty("opacity", "0", "important"); });   /* the halo fades on its own opacity transition */
@@ -670,7 +674,7 @@
       z.raf = requestAnimationFrame(step);
     }
     step(t0);
-    return true;
+    return { look: { cols: cols, rb: rb, pal: pal, deep: deep } };
   }
   window.RPBubble = {
     zoom: zoom, zoomStop: function () { zoomStop(false); },

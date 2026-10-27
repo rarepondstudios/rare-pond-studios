@@ -1500,7 +1500,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026o"></script>
+<script src="/assets/rp-bubble.js?v=20261026p"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2779,7 +2779,14 @@ function uZoom(sec,zh,dir,done){
   };
   sec.style.transition='none';
   sec.classList.add('rp-zoom');
-  const ok=RPBubble.zoom({el:zh.el,hide:zh.hide,dir,ms:dir==='in'?1500:1150,
+  /* the way back lands in the colours the bubble will actually show: its hover look (the one the film
+     was opened with) if the pointer will be resting on it, its resting colours otherwise */
+  let look=null;
+  if(dir==='out'&&sec._zlook&&__uPtr&&!matchMedia('(hover:none)').matches){
+    const r=zh.el.getBoundingClientRect();
+    if(__uPtr.x>=r.left&&__uPtr.x<=r.right&&__uPtr.y>=r.top&&__uPtr.y<=r.bottom)look=sec._zlook;
+  }
+  const ok=RPBubble.zoom({el:zh.el,hide:zh.hide,dir,look,ms:dir==='in'?1500:1150,
     onFrame:f=>{
       const cp=clipOf(f.clip);sec.style.clipPath=cp;sec.style.webkitClipPath=cp;
       /* in: the film fades up over the first moments so the bubble's preview hands over softly;
@@ -2793,8 +2800,11 @@ function uZoom(sec,zh,dir,done){
     },
     onDone:()=>{uFront(zh.front||[],null);done&&done();}});
   if(!ok){sec.classList.remove('rp-zoom');sec.style.transition='';}
-  return ok;
+  else if(dir==='in')sec._zlook=ok.look;
+  return !!ok;
 }
+var __uPtr=null;
+addEventListener('pointermove',e=>{if(e.pointerType==='mouse')__uPtr={x:e.clientX,y:e.clientY};},{passive:true});
 /* while a film covers the page (from the click until it has closed again) the page's ambient motion
    underneath is paused: the drifting bubbles, the bob, the rim shader. Nobody can see it, and on a
    phone it was GPU time stolen from the film and its transitions. Paused, not stopped, so nothing
