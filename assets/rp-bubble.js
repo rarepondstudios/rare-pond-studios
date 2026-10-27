@@ -469,7 +469,8 @@
     raf = 0;
     var gap = last ? now - last : 16; last = now;
     var body = document.body;
-    var paused = document.hidden || (body && body.classList.contains("bg-idle"));
+    /* u-cover: a film page covers everything (index.html uCover) */
+    var paused = document.hidden || (body && (body.classList.contains("bg-idle") || body.classList.contains("u-cover")));
     /* carousel drag / slide change: the cards are moving, so only the ones changing shape are
        redrawn, at half rate; everything else holds its last frame */
     var swiping = !!(body && body.classList.contains("swiping"));

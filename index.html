@@ -1098,6 +1098,8 @@ html.xw-active{overflow:hidden}
      decode. Pausing them is the single biggest GPU relief with zero visible change. */
   .citem:not(.feat) .bgb{animation-play-state:paused}
   body.bg-idle .bgb,body.bg-idle .orbi{animation-play-state:paused}
+  body.u-cover .bgb,body.u-cover .orbi,body.u-cover .bubble-inner,body.u-cover .glow,body.u-cover .cbub,body.u-cover .cglow,
+  body.u-cover .citem::before,body.u-cover .bubble::before,body.u-cover .m-bubble{animation-play-state:paused!important}
   /* skip rendering the tall, off-screen contact section until it's scrolled near */
   #contact{content-visibility:auto;contain-intrinsic-size:1px 1200px}
   /* ===== 'More to come' hover reveal of RP mark ===== */
@@ -1498,7 +1500,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261026n"></script>
+<script src="/assets/rp-bubble.js?v=20261026o"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2793,8 +2795,14 @@ function uZoom(sec,zh,dir,done){
   if(!ok){sec.classList.remove('rp-zoom');sec.style.transition='';}
   return ok;
 }
+/* while a film covers the page (from the click until it has closed again) the page's ambient motion
+   underneath is paused: the drifting bubbles, the bob, the rim shader. Nobody can see it, and on a
+   phone it was GPU time stolen from the film and its transitions. Paused, not stopped, so nothing
+   jumps when it resumes. */
+function uCover(on){document.body.classList.toggle('u-cover',!!on);if(!on&&window.RPBubble)RPBubble.redraw();}
 function openUniverse(key){
   if(!SECTIONS[key])return;
+  uCover(true);
   const first=!built[key];
   const sec=built[key]||(built[key]=buildUniverse(key));
   if(first&&window.RP_reapplyLooks)RP_reapplyLooks();   /* a freshly built film page gets its look-driven title style etc. */
@@ -2869,7 +2877,7 @@ function closeUniverse(sec){
      rim lands on the bubble, the film shrinking back into its opening */
   const zh=sec._fromEl?null:zoomHost(sec.dataset.key);
   if(zh&&uZoom(sec,zh,'out',()=>{
-    sec.style.visibility='hidden';uZoomClear(sec);sec.classList.remove('closing','flash','flash-out');
+    sec.style.visibility='hidden';uCover(false);uZoomClear(sec);sec.classList.remove('closing','flash','flash-out');
     sec.style.transition='none';void sec.offsetWidth;sec.style.transition='';
   })){
     sec.classList.add('closing');sec.classList.remove('flash','open');currentOpen=null;
@@ -2879,8 +2887,8 @@ function closeUniverse(sec){
   }
   sec.style.transition='';
   sec.classList.add('closing','flash-out');sec.classList.remove('flash','open');currentOpen=null;
-  const done=(e)=>{if(e.target!==sec||(e.propertyName!=='clip-path'&&e.propertyName!=='-webkit-clip-path'))return;sec.style.visibility='hidden';sec.classList.remove('closing','flash','flash-out');sec.removeEventListener('transitionend',done);};
-  sec.addEventListener('transitionend',done);setTimeout(()=>{if(sec.style.visibility!=='hidden'){sec.style.visibility='hidden';sec.classList.remove('closing','flash','flash-out');}},800);
+  const done=(e)=>{if(e.target!==sec||(e.propertyName!=='clip-path'&&e.propertyName!=='-webkit-clip-path'))return;sec.style.visibility='hidden';uCover(false);sec.classList.remove('closing','flash','flash-out');sec.removeEventListener('transitionend',done);};
+  sec.addEventListener('transitionend',done);setTimeout(()=>{if(sec.style.visibility!=='hidden'){sec.style.visibility='hidden';uCover(false);sec.classList.remove('closing','flash','flash-out');}},800);
   stopSideVid(sec.querySelector('.u-vid'));   // PAUSE the background reel (keep currentTime) - stops decoding once the film is closed
   syncFocusVideo();     // back on the carousel - the featured card picks up where it left off
 }
