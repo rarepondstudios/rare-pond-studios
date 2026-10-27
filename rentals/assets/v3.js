@@ -4,10 +4,11 @@
    Where it appears, and how it stays cheap:
    - the logo bubble on the rentals Home: a WHITE SPLASH behind the logo, the three tiers inside out
      (Jack, 2026-10-27): solid white under the logo, then a blurred 50% ring outside it, then a softer
-     25% ring outside that. Animated (the edges wobble), drawn by rp-bubble.js (opts.splash).
-   - a gear card under the pointer or the keyboard selection: a rim in that department's colour look,
-     made when the card is entered and LET GO of shortly after it is left, so a page of 100 cards never
-     holds more than a couple of live rims. It replaces the card's thin hover outline (the glow stays).
+     25% ring outside that, drawn by rp-bubble.js (opts.splash). STILL since 2026-10-27 (Jack: only the
+     main site's project bubbles keep the wave / colour animation, everything else holds one frame).
+   - a gear card under the pointer or the keyboard selection: a rim in that department's colour look
+     (one still frame), made when the card is entered and LET GO of shortly after it is left, so a page
+     of 100 cards never holds more than a couple of rims. It replaces the card's thin hover outline (the glow stays).
    - the open gear popup: a still rim (drawn once, redrawn only if its size changes) in the department
      look, around the whole panel.
    No WebGL (or reduced data paths that fail) = nothing changes: the old CSS outlines stay. */
@@ -41,15 +42,15 @@
     return r;
   }
 
-  /* ---- gear cards: a live rim while hovered / keyboard-selected, released after ---- */
+  /* ---- gear cards: a rim (one still frame) while hovered / keyboard-selected, released after ---- */
   var live = [];   /* {card, rim, t} */
   function cardOn(card) {
     for (var i = 0; i < live.length; i++) if (live[i].card === card) {
       clearTimeout(live[i].t); live[i].rim.classList.add("on"); return;
     }
     var rim = rimIn(card, "v3card");
-    var ok = RPBubble.attach(rim, { look: lookOfEl(card), seed: Math.random() * 10,
-      liveWhen: function () { return card.matches(":hover,.rpc-kbsel,:focus-visible"); } });
+    /* still: only the main site's project bubbles keep the wave / colour animation (Jack, 2026-10-27) */
+    var ok = RPBubble.attach(rim, { look: lookOfEl(card), seed: Math.random() * 10, still: true });
     if (!ok) { rim.remove(); return; }
     requestAnimationFrame(function () { rim.classList.add("on"); });
     live.push({ card: card, rim: rim, t: 0 });
@@ -92,7 +93,7 @@
     var lw = document.querySelector(".home .logowrap");
     if (lw && !lw.querySelector(".v3rim")) {
       var sp = rimIn(lw, "v3splash");
-      if (RPBubble.attach(sp, { look: { c1: "#ffffff", c2: "#ffffff", c3: "#ffffff" }, seed: 3.3, ellipse: true, splash: true })) lw.classList.add("v3-splash");
+      if (RPBubble.attach(sp, { look: { c1: "#ffffff", c2: "#ffffff", c3: "#ffffff" }, seed: 3.3, ellipse: true, splash: true, still: true })) lw.classList.add("v3-splash");
       else sp.remove();
     }
     var dpc = document.querySelector("#dp.show .dpc");

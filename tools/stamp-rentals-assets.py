@@ -1,46 +1,102 @@
 #!/usr/bin/env python3
-"""Give the rentals page's own scripts and stylesheet a version that changes whenever the file changes (2026-10-25).
+"""Give every page's own scripts and stylesheets a version that changes whenever the file changes.
 
-rentals/index.html loads assets/app.js?v=..., availability.js?v=... and styles.css?v=.... Cloudflare tells browsers
-to keep those for 4 hours (zone Browser Cache TTL), so after a deploy a returning visitor kept the OLD script until the
-?v= changed by hand (new tab icons "missing", 2026-10-25). This sets v= to the first 10 characters of the file's
-SHA-1, so every change gets a fresh URL and an unchanged file stays cached.
+(2026-10-25, rentals only; 2026-10-27 every page and every shared asset. The file name is kept because the
+global pre-commit hook calls it by this name.)
 
-Run by the pre-commit hook (bts-automation/hooks/pre-commit, global core.hooksPath) on every commit, by people and by the scheduled
-jobs alike, using the STAGED copy of each file; also safe to run by hand: python3 tools/stamp-rentals-assets.py
+WHY: Cloudflare tells browsers to keep .js and .css for 4 hours (the rarepond.com zone's Browser Cache TTL
+overrides the max-age=0 Cloudflare Pages sends, so _headers cannot fix it). After a deploy a returning visitor
+kept the OLD script until its ?v= changed: new tab icons "missing" (2026-10-25), and on 2026-10-27 Jack could not
+be sure his other computers were running the latest bubble code. Every reference like
+    "/assets/chrome.css"   "/assets/rp-bubble.js?v=..."   "assets/app.js?v=..." (relative to the page)
+in a tracked .html page (and in a tracked .js file that loads another asset, e.g. contact.js -> contact.css)
+gets ?v=<first 10 characters of the file's SHA-1>. Every change gets a fresh URL, an unchanged file stays cached.
+JS files are stamped first, so a page picks up the new hash of a script whose own reference just changed.
+Fonts (/assets/fonts/, cached as immutable under their own file names) and a file's reference to itself are skipped.
+
+Run by the pre-commit hook (bts-automation/hooks/pre-commit, global core.hooksPath) on every commit that stages an
+.html, .js or .css file, by people and by the scheduled jobs alike, using the STAGED copy of each file; also safe to
+run by hand: python3 tools/stamp-rentals-assets.py   Nobody edits v= by hand any more.
 Exit 0 always; prints what it changed."""
-import hashlib, os, re, subprocess, sys
+import hashlib, os, posixpath, re, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PAGE = os.path.join(ROOT, "rentals", "index.html")
-ASSETS = ["app.js", "availability.js", "styles.css"]
+STAGED = bool(os.environ.get("RP_STAMP_STAGED"))
+REF = re.compile(r"""(?P<q>["'])(?P<path>(?:/|\.\./|\./)?(?:[A-Za-z0-9_\-]+/)*assets/[A-Za-z0-9_.\-/]+\.(?:js|css))(?:\?v=[0-9A-Za-z]+)?(?=(?P=q))""")
 
-def staged(rel):
+
+def git(*a, **k):
+    return subprocess.run(["git", "-C", ROOT] + list(a), capture_output=True, **k)
+
+
+def tracked():
+    out = git("ls-files", "-z").stdout.decode("utf-8", "replace").split("\0")
+    return set(p for p in out if p)
+
+
+def content(rel):
     """The staged copy when called from the hook (what is being committed), else the working file."""
-    if os.environ.get("RP_STAMP_STAGED"):
-        r = subprocess.run(["git", "-C", ROOT, "show", ":" + rel], capture_output=True)
-        if r.returncode == 0: return r.stdout
-    return open(os.path.join(ROOT, rel), "rb").read()
+    if STAGED:
+        r = git("show", ":" + rel)
+        if r.returncode == 0:
+            return r.stdout
+    p = os.path.join(ROOT, rel)
+    return open(p, "rb").read() if os.path.exists(p) else None
 
-def stamp(text, vers):
-    for a, v in vers.items():
-        text = re.sub(r'(assets/%s\?v=)[0-9A-Za-z]+' % re.escape(a), r"\g<1>" + v, text)
-    return text
+
+def resolve(page, ref):
+    if ref.startswith("/"):
+        return ref[1:]
+    return posixpath.normpath(posixpath.join(posixpath.dirname(page), ref))
+
+
+def stamp_text(page, text, files, cache):
+    def sub(m):
+        target = resolve(page, m.group("path"))
+        if target == page or target.startswith("assets/fonts/") or target not in files:
+            return m.group(0)
+        if target not in cache:
+            data = content(target)
+            cache[target] = hashlib.sha1(data).hexdigest()[:10] if data is not None else None
+        if not cache[target]:
+            return m.group(0)
+        return m.group("q") + m.group("path") + "?v=" + cache[target]
+    return REF.sub(sub, text)
+
+
+def write_staged(rel, new):
+    h = git("hash-object", "-w", "--stdin", input=new.encode("utf-8")).stdout.decode().strip()
+    mode = git("ls-files", "-s", rel, text=True).stdout.split()[0]
+    subprocess.run(["git", "-C", ROOT, "update-index", "--cacheinfo", "%s,%s,%s" % (mode, h, rel)], check=True)
+
 
 def main():
-    vers = {a: hashlib.sha1(staged("rentals/assets/" + a)).hexdigest()[:10] for a in ASSETS}
-    # the working file
-    html = open(PAGE, encoding="utf-8").read(); out = stamp(html, vers)
-    if out != html:
-        open(PAGE, "w", encoding="utf-8").write(out); print("stamped rentals/index.html")
-    # from the hook: stamp the STAGED page only (never stage other unstaged edits to it)
-    if os.environ.get("RP_STAMP_STAGED"):
-        cur = staged("rentals/index.html").decode("utf-8"); new = stamp(cur, vers)
-        if new != cur:
-            h = subprocess.run(["git", "-C", ROOT, "hash-object", "-w", "--stdin"], input=new.encode("utf-8"), capture_output=True).stdout.decode().strip()
-            mode = subprocess.run(["git", "-C", ROOT, "ls-files", "-s", "rentals/index.html"], capture_output=True, text=True).stdout.split()[0]
-            subprocess.run(["git", "-C", ROOT, "update-index", "--cacheinfo", "%s,%s,rentals/index.html" % (mode, h)], check=True)
-            print("stamped the staged rentals/index.html")
+    files = tracked()
+    js = sorted(p for p in files if p.endswith(".js") and "/assets/" in "/" + p and not p.startswith("node_modules/"))
+    html = sorted(p for p in files if p.endswith(".html"))
+    cache = {}
+    for page in js + html:   # scripts first: their hashes change when their own references are stamped
+        # the working file
+        wp = os.path.join(ROOT, page)
+        if os.path.exists(wp):
+            cur = open(wp, encoding="utf-8").read()
+            out = stamp_text(page, cur, files, cache)
+            if out != cur:
+                open(wp, "w", encoding="utf-8").write(out); print("stamped " + page)
+        # from the hook: stamp the STAGED copy only (never stage other unstaged edits to it)
+        if STAGED:
+            r = git("show", ":" + page)
+            if r.returncode != 0:
+                continue
+            cur = r.stdout.decode("utf-8")
+            new = stamp_text(page, cur, files, cache)
+            if new != cur:
+                write_staged(page, new); print("stamped the staged " + page)
+        cache.pop(page, None)   # a stamped script's own hash is recomputed when a page references it
     return 0
 
+
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except Exception as e:   # never block a commit
+        print("stamp-rentals-assets: " + str(e)); sys.exit(0)

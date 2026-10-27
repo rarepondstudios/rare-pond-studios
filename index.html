@@ -61,12 +61,12 @@
 <link rel="icon" type="image/png" sizes="48x48" href="/media/site/favicon-48.png">
 <link rel="apple-touch-icon" href="/media/site/apple-touch-icon.png">
 <!-- Production error beacon. Loads FIRST so it is watching before any other script parses. -->
-<script src="/assets/error-beacon.js"></script><script>/* ?perf=1 loads the performance probe (assets/perf-probe.js); nothing for normal visitors */if(/[?&]perf=1\b/.test(location.search)){var __pp=document.createElement("script");__pp.src="/assets/perf-probe.js?v=7";__pp.defer=true;document.head.appendChild(__pp);}</script>
+<script src="/assets/error-beacon.js?v=1e27fe5588"></script><script>/* ?perf=1 loads the performance probe (assets/perf-probe.js); nothing for normal visitors */if(/[?&]perf=1\b/.test(location.search)){var __pp=document.createElement("script");__pp.src="/assets/perf-probe.js?v=4d2a52fe46";__pp.defer=true;document.head.appendChild(__pp);}</script>
 <!-- Reserves the event banner's space before the first paint, so the page does not jump
      down when the banner arrives. Must stay here, in <head>, with no defer/async. -->
-<script src="/assets/banner-reserve.js"></script>
+<script src="/assets/banner-reserve.js?v=c666a94c98"></script>
 <!-- Social icon artwork + the shared footer builder. Must load before the page script. -->
-<script src="/assets/socials.js"></script><script src="/assets/hat.js" defer></script>
+<script src="/assets/socials.js?v=691174df7f"></script><script src="/assets/hat.js?v=9676a66ba0" defer></script>
 <script>
 /* Reload-jump fix. This page builds itself AFTER fetching data/*.json, so at the moment the
    browser tries to restore your previous scroll offset the document is still short. It then
@@ -94,9 +94,9 @@ html.xw-active{overflow:hidden}
 <script>/* pre-paint: covered arrival for a handed-off cross-site wipe (#rpt=x|y|c1|c2|c3) - paint the same gradient before first paint; shared social_ui.js retracts it to the carried click point */(function(){try{var m=/[#&]rpt=([^&]+)/.exec(location.hash||"");if(!m)return;var ok=function(c){return(/^#[0-9a-f]{3,8}$/i.test(c)||/^rgba?\([\d ,.%]+\)$/i.test(c))?c:"";};var p=m[1].split("|"),x=parseFloat(p[0]),y=parseFloat(p[1]);if(!(x>=0&&x<=100))x=50;if(!(y>=0&&y<=100))y=50;var c1=ok(decodeURIComponent(p[2]||""))||"#3f6bff",c2=ok(decodeURIComponent(p[3]||""))||c1,c3=ok(decodeURIComponent(p[4]||""))||c2;var d=document.createElement("div");d.style.cssText="position:fixed;inset:0;height:100vh;height:100lvh;z-index:2147483001;pointer-events:none;background:radial-gradient(circle at "+x+"% "+y+"%,"+c1+","+c2+" 52%,"+c3+" 100%)";document.documentElement.appendChild(d);window.__RPT={el:d,x:x,y:y};if(window.__setThemeColor)window.__setThemeColor(c1);}catch(e){}})();</script>
 <!-- Social icons + footer: one shared stylesheet, so the studio, rentals and the
      maintenance cover cannot drift apart. See assets/chrome.css. -->
-<link rel="stylesheet" href="/assets/chrome.css">
-<link rel="stylesheet" href="/assets/date-picker.css">
-<link rel="stylesheet" href="/assets/crew-form.css">
+<link rel="stylesheet" href="/assets/chrome.css?v=4be183eb31">
+<link rel="stylesheet" href="/assets/date-picker.css?v=1b8e62883c">
+<link rel="stylesheet" href="/assets/crew-form.css?v=aa043d129e">
 <style>
   :root{
     --yellow:#ffd21f; --ink:#0b2c55;
@@ -1532,8 +1532,8 @@ html.xw-active{overflow:hidden}
     <button class="lb-nav lb-next" type="button" data-kb-dir="1" aria-label="Next article">›</button>
   </div>
 
-<!-- ?v= forces browsers to fetch a new rp-bubble.js after a change: bump it with every edit -->
-<script src="/assets/rp-bubble.js?v=20261027i"></script>
+<!-- ?v= is the file's content hash, set automatically on every commit (tools/stamp-rentals-assets.py): never edit it by hand -->
+<script src="/assets/rp-bubble.js?v=629509dc3b"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -1939,10 +1939,14 @@ function makeGridBubble(p,i){
   const gridVid=(!p.placeholder&&!p.poster&&p.focusVideo)
     ?`<video class="bubble-vid" data-src="${psrc(p.focusVideo)}" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>`:'';
   bubble.innerHTML=`<div class="glow"></div><div class="bubble-inner">${mediaHTML}${gridVid}<div class="glass"><div class="shade"></div><div class="rim"></div><div class="spec"></div><div class="spec small"></div></div><div class="edge"></div></div><div class="bubble-logo">${logoHTML(p)}</div><div class="caption"><div class="t">${p.title}</div><div class="s">${fillVars(GRID_CAPTION_TPL,VARS[p.key])}</div></div>`;
-  /* V3 bubble rim (rp-bubble.js), on every grid bubble including "More to come" (its rainbow hover is fed through --gg*) */
-  if(window.RPBubble&&RPBubble.attach(bubble.querySelector('.edge'),{seed:1+i*1.7})){
+  /* V3 bubble rim (rp-bubble.js), on every grid bubble including "More to come" (its rainbow hover is fed through --gg*).
+     STILL BUBBLES (Jack, 2026-10-27: only the project bubbles keep the wave / colour animation, everything
+     else holds one frame for performance; bobbing and drifting stay): "More to come" is not a project, so
+     its rim and halo are drawn once (and again only when its hover look changes). */
+  const _still=!!p.placeholder;
+  if(window.RPBubble&&RPBubble.attach(bubble.querySelector('.edge'),{seed:1+i*1.7,still:_still})){
     /* the halo outside the bubble draws the SAME colour field (same seed + clock) so it turns with the rim */
-    if(RPBubble.attach(bubble.querySelector('.glow'),{glow:true,ref:bubble.querySelector('.bubble-inner'),seed:1+i*1.7}))bubble.classList.add('rp-glow-on');
+    if(RPBubble.attach(bubble.querySelector('.glow'),{glow:true,ref:bubble.querySelector('.bubble-inner'),seed:1+i*1.7,still:_still}))bubble.classList.add('rp-glow-on');
   }
   bubble.addEventListener('pointermove',e=>{if(!INTERACTIVE)return;const r=bubble.getBoundingClientRect();const px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;const tm=7;bubble.style.setProperty('--tilty',((px-.5)*tm*2).toFixed(2)+'deg');bubble.style.setProperty('--tiltx',((.5-py)*tm*2).toFixed(2)+'deg');});
   bubble.addEventListener('pointerleave',()=>{if(INTERACTIVE){bubble.style.setProperty('--mx','73%');bubble.style.setProperty('--my','26%');bubble.style.setProperty('--tiltx','0deg');bubble.style.setProperty('--tilty','0deg');}});
@@ -2139,7 +2143,7 @@ const ORB_SPEC=[
   /* V3 bubble rim (rp-bubble.js) replaces the CSS conic ring and the old box-shadow glow; the light
      interior stays (it keeps the colour logo readable). */
   if(window.RPBubble){var rim=document.createElement('div');rim.className='about-rim';slot.insertBefore(rim,slot.firstChild);
-    if(RPBubble.attach(rim,{vars:['--bub-c1','--bub-c2','--bub-c3'],seed:0.7}))slot.classList.add('rp-rim-on');
+    if(RPBubble.attach(rim,{vars:['--bub-c1','--bub-c2','--bub-c3'],seed:0.7,still:true}))slot.classList.add('rp-rim-on');   /* still: not a project bubble (2026-10-27) */
     else rim.remove();}
 })();
 
@@ -2340,8 +2344,9 @@ const citems=CAROUSEL.map((p,i)=>{
   /* only the FEATURED card (or one under the pointer / keyboard) animates; the side cards hold a still
      frame of the same bubble and only redraw when their look or shape changes (performance, 2026-10-26) */
   const _cLive=()=>el.matches('.feat,:hover,.rpc-kbsel');
-  if(window.RPBubble&&RPBubble.attach(el.querySelector('.cedge'),{seed:2+i*2.3,liveWhen:_cLive})){   /* V3 bubble rim; follows the featured card's rounded-rect morph */
-    if(RPBubble.attach(el.querySelector('.cglow'),{glow:true,ref:el.querySelector('.cbub'),seed:2+i*2.3,liveWhen:_cLive}))el.classList.add('rp-glow-on');   /* halo in sync with the rim */
+  const _cStill=!!p.placeholder;   /* a placeholder card is not a project: one still frame (2026-10-27) */
+  if(window.RPBubble&&RPBubble.attach(el.querySelector('.cedge'),{seed:2+i*2.3,liveWhen:_cLive,still:_cStill})){   /* V3 bubble rim; follows the featured card's rounded-rect morph */
+    if(RPBubble.attach(el.querySelector('.cglow'),{glow:true,ref:el.querySelector('.cbub'),seed:2+i*2.3,liveWhen:_cLive,still:_cStill}))el.classList.add('rp-glow-on');   /* halo in sync with the rim */
   }
   el.addEventListener('mouseenter',()=>{
     if(el.classList.contains('feat'))return;   /* featured card uses its own .focus-vid reel */
@@ -2549,7 +2554,7 @@ if(teamList){TEAM.forEach((m,i)=>{
     .join('');
   const _linksHTML=_links?`<div class="m-links rp-soc">${_links}</div>`:'';
   row.innerHTML=`<div class="m-photo"><div class="m-bubble">${ph}<div class="m-rim"></div><div class="m-spec"></div><div class="m-edge"></div></div></div><div class="m-copy"><h3>${m.name}</h3><div class="m-role">${m.role}</div><p class="m-desc">${m.desc}</p>${_linksHTML}</div>`;
-  if(window.RPBubble){const mb=row.querySelector('.m-bubble');RPBubble.attach(row.querySelector('.m-edge'),{vars:['--g1','--g2','--g3'],liveWhen:()=>mb.matches(':hover')});}   /* team photos: a still rim unless hovered */
+  if(window.RPBubble){RPBubble.attach(row.querySelector('.m-edge'),{vars:['--g1','--g2','--g3'],still:true});}   /* team photos: a still rim, hovered or not (only project bubbles animate, 2026-10-27) */
   teamList.appendChild(row);
 });}
 const universes=document.getElementById('universes');
@@ -3805,10 +3810,10 @@ if(window.RP_reapplyLooks)RP_reapplyLooks();
 
 }
 __main().catch(e=>console.error("init error",e));</script>
-<script src="/assets/form-config.js" defer></script>
-<script src="/assets/date-picker.js" defer></script>
-<script src="/assets/crew-form.js" defer></script>
-<script src="/assets/looks.js"></script>
+<script src="/assets/form-config.js?v=ba8071a726" defer></script>
+<script src="/assets/date-picker.js?v=964dfc164d" defer></script>
+<script src="/assets/crew-form.js?v=a946ed95bd" defer></script>
+<script src="/assets/looks.js?v=03cb68a5b5"></script>
 <script>
 /* Mobile hamburger menu: nav + socials, opened from the header button (right of Rentals).
    Socials are cloned from #socialsHost on each open (so it works no matter when they render).
@@ -3872,9 +3877,9 @@ __main().catch(e=>console.error("init error",e));</script>
 </script>
 <!-- Shared across rarepond.com + jackcarlsen.com (single source: bts-automation/social_ui.js,
      published by social_ui_sync.py). Contact-bubble hover-glow + social-link transport wipe. -->
-<script src="/assets/social_ui.js" defer></script><script src="/assets/cursor.js?v=20261026l" defer></script>
-<script src="/assets/xwipe.js" defer></script>
-<script src="/assets/xnav.js" defer></script>
-<script src="/assets/contact.js" defer></script>
+<script src="/assets/social_ui.js?v=1da69add3f" defer></script><script src="/assets/cursor.js?v=9a7b77bd62" defer></script>
+<script src="/assets/xwipe.js?v=44ab7d1289" defer></script>
+<script src="/assets/xnav.js?v=af1a5e39de" defer></script>
+<script src="/assets/contact.js?v=1b38fb002d" defer></script>
 </body>
 </html>

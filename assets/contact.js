@@ -12,8 +12,8 @@
   function safeUrl(u){return /^https?:\/\//i.test(String(u||''))?String(u):'#';}
   var backdrop,modal,hsLoaded=false,cfg=null,lastFocus=null,cfgReady=false;
 
-  if(!document.querySelector('link[href="/assets/contact.css"]')){
-    var l=document.createElement('link'); l.rel='stylesheet'; l.href='/assets/contact.css'; document.head.appendChild(l);
+  if(!document.querySelector('link[href="/assets/contact.css?v=3ddb8f15c2"]')){
+    var l=document.createElement('link'); l.rel='stylesheet'; l.href='/assets/contact.css?v=3ddb8f15c2'; document.head.appendChild(l);
   }
 
   function lum(hex){var h=String(hex||'').replace('#','');if(h.length===3)h=h.replace(/(.)/g,'$1$1');var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);return isNaN(r)?0:(0.2126*r+0.7152*g+0.0722*b);}

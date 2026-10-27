@@ -280,7 +280,7 @@
      (Jack, 2026-10-26). Every bubble now gets the same 1.25 device px per CSS px; glow layers, which
      are blurred by CSS anyway, render at half that. */
   var FPS = 24, MAXPX = 1600, DPR_CAP = 1.25;
-  var CODE_VER = "20261027i";
+  var CODE_VER = "20261027j";
 
   /* ===== EFFECT TIERS (2026-10-27, Jack: "safety measures and automatic backup versions of the website
      that it can cleanly fall back to if a computer can't handle it ... when future updates are made, it
@@ -327,6 +327,8 @@
     if (t === "lite") { Q.scale = Math.min(Q.scale, 0.75); items.forEach(function (x) { x.drawn = false; }); kick(); }
   }
   var Q = { scale: 1, fps: FPS };
+  /* set only by RPBubble.debug() (the ?perf=1 probe): freeze = draw nothing, scale = pin the resolution */
+  var DBG = { freeze: false, scale: 0 };
   var items = [], gl = null, glc = null, prog = null, U = {}, raf = 0;
   var ATLAS = (function () {
     var d = Math.min(window.devicePixelRatio || 1, 1.25), sw = (window.screen && screen.width) || 0, sh = (window.screen && screen.height) || 0;
@@ -461,7 +463,7 @@
      sides and its middle must be clear. If not, this browser cannot show the bubbles correctly, the
      page switches to the css tier (one reload while the veil is still up) and remembers it for this
      version of the code. */
-  function selfCheck() {
+  function selfCheck(probe) {
     try {
       var W = 300, H = 170, s0 = Math.min(W, H);
       var src = render(lookVec(null), W, H, [W / s0, H / s0], [0.3, 0.45], 0, 0.5, [W / s0, H / s0], 1, false, 0, 0, null, false);
@@ -472,9 +474,11 @@
       var A = function (px, py) { return d[(py * W + px) * 4 + 3]; };
       var edges = [A(W >> 1, 3), A(W >> 1, H - 4), A(3, H >> 1), A(W - 4, H >> 1)], mid = A(W >> 1, H >> 1);
       var ok = edges.every(function (a) { return a > 90; }) && mid < 40;
-      STATS.selfcheck = (ok ? "ok" : "FAILED") + " (edges " + edges.join("/") + ", middle " + mid + ")";
+      var res = (ok ? "ok" : "FAILED") + " (edges " + edges.join("/") + ", middle " + mid + ")";
+      if (probe) return res;
+      STATS.selfcheck = res;
       if (!ok) setTier("css", "the WebGL copy self-check failed", true, true);
-    } catch (e) { STATS.selfcheck = "error " + e.message; }
+    } catch (e) { if (probe) return "error " + e.message; STATS.selfcheck = "error " + e.message; }
   }
   var STATS = { ver: CODE_VER, compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
   var progZ = null, UZ = null;
@@ -719,7 +723,8 @@
       renderEll = false;
     }
     it.ctx.clearRect(0, 0, W, H);
-    copyOut(it.ctx, src, W, H);   // the render sits in the TOP-left of the shared canvas
+    copyOut(it.ctx, src, W, H);
+    it.lastSrc = src; it.lastWH = [W, H];   // the render sits in the TOP-left of the shared canvas
     if (!it.shownOnce) { it.shownOnce = true; it.cv.style.opacity = "1"; }
     it.drawn = true;
     it.lastDraw = performance.now();
@@ -792,6 +797,7 @@
   /* adaptive quality from the page's own frame pacing */
   var pace = { t0: 0, n: 0, slow: 0 };
   function adapt(now, gap) {
+    if (DBG.scale) return;
     if (!pace.t0) pace.t0 = now;
     pace.n++; if (gap > 24) pace.slow++;
     if (now - pace.t0 < 1000) return;
@@ -830,6 +836,7 @@
     var hidden = document.hidden;
     /* u-cover: a film page covers everything (index.html uCover) */
     var paused = hidden || !!(body && (body.classList.contains("bg-idle") || body.classList.contains("u-cover")));
+    if (DBG.freeze) { if (gl) raf = requestAnimationFrame(frame); return; }
     /* carousel drag / slide change: only bubbles that are changing shape or look are redrawn */
     var swiping = !!(body && body.classList.contains("swiping"));
     if (!paused && !swiping) adapt(now, gap);
@@ -889,7 +896,7 @@
         nDrawn++;
         var iv = 1000 / (todo[c][1] === "glow" ? GLOW_FPS : Q.fps);
         x.next = x.drawn ? now + iv : now + iv * Math.random();   /* first draw: random phase, so they spread out */
-        if (draw(x, simT + x.opts.seed * 3.7, true)) {
+        if (draw(x, x.opts.still ? x.opts.seed * 3.7 : simT + x.opts.seed * 3.7, true)) {
           x.sig = sigOf(x); x.drawnF = FR;
           if (x.ringDraw) { x.ringDraw = 0; ringOff(x); }
         }
@@ -1030,7 +1037,7 @@
     z.hide.forEach(function (h) { h.style.removeProperty("opacity"); });
     /* repaint the bubble NOW, in the colours the flight landed in, before anything else changes: its
        canvas otherwise showed a stale frame (from before the film opened) for one frame */
-    try { if (gl) { readStyle(z.it); draw(z.it, simT + z.it.opts.seed * 3.7); } } catch (e) {}
+    try { if (gl) { readStyle(z.it); draw(z.it, z.it.opts.still ? z.it.opts.seed * 3.7 : simT + z.it.opts.seed * 3.7); } } catch (e) {}
     z.it.drawn = false; kick();
     if (run && z.o.onDone) z.o.onDone();
   }
@@ -1173,6 +1180,53 @@
     step(t0);
     return { look: { cols: cols, rb: rb, pal: pal, deep: deep } };
   }
+  /* ===== DEBUG (2026-10-27, for the ?perf=1 probe, assets/perf-probe.js) =====
+     RPBubble.debug() returns the engine's state and every bubble's (where it is, what size its canvas
+     is, what was last copied into it, whether it is live, ringed, waiting...). Options, for the
+     probe's A/B tests only: {el: element} reports only that bubble, {freeze: true/false} stops / restarts all drawing, {scale: 0.5 / 0}
+     pins / releases the resolution, {atlas: [w, h]} resizes the shared WebGL canvas and re-runs the
+     copy self-check on it, {check: true} re-runs the self-check. Nothing calls it on a normal visit. */
+  function hexOf(c) { return c ? "#" + c.map(function (v) { return ("0" + Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16)).slice(-2); }).join("") : null; }
+  function selOf(e) {
+    if (!e || !e.tagName) return null;
+    var c = typeof e.className === "string" ? e.className.trim().split(/\s+/).filter(Boolean).slice(0, 4) : [];
+    return e.tagName.toLowerCase() + (e.id ? "#" + e.id : "") + (c.length ? "." + c.join(".") : "");
+  }
+  function r1(v) { return Math.round(v * 10) / 10; }
+  function debug(o) {
+    o = o || {};
+    var out = {};
+    if ("freeze" in o) { DBG.freeze = !!o.freeze; if (!DBG.freeze) { items.forEach(function (x) { x.drawn = false; }); } kick(); }
+    if ("scale" in o) { DBG.scale = o.scale || 0; if (DBG.scale) Q.scale = DBG.scale; items.forEach(function (x) { x.drawn = false; }); kick(); }
+    if (o.atlas && gl && glc && !zooming) {
+      ATLAS = [o.atlas[0], o.atlas[1]]; glc.width = ATLAS[0]; glc.height = ATLAS[1];
+      out.atlasCheck = progReady ? selfCheck(true) : "not ready";
+      items.forEach(function (x) { x.drawn = false; }); kick();
+    }
+    if (o.check && gl && progReady) out.check = selfCheck(true);
+    var now = performance.now(), lost = null, maxTex = null;
+    try { if (gl) { lost = gl.isContextLost(); maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE); } } catch (e) {}
+    out.state = {
+      ver: CODE_VER, tier: TIER, why: TIER_WHY, moveRing: MOVE_RING, staleMoves: staleMoves, q: { scale: r1(Q.scale * 10) / 10, fps: Q.fps }, dbg: { freeze: DBG.freeze, scale: DBG.scale },
+      atlas: ATLAS.slice(), glc: glc ? [glc.width, glc.height] : null, dbuf: gl ? [gl.drawingBufferWidth, gl.drawingBufferHeight] : null,
+      cal: CAL, gl: gl === false ? "off" : gl ? "on" : "not started", progReady: progReady, zReady: zReady, par: !!PAR, soft: SOFT, reduce: !!reduce,
+      zooming: zooming, frame: FR, simT: r1(simT), loopRunning: !!raf, items: items.length, contextLost: lost, maxTex: maxTex, dpr: window.devicePixelRatio || 1
+    };
+    if (o.items !== false) out.items = items.map(function (x, i) {
+      if (o.el && x.el !== o.el) return null;   /* {el}: only that bubble (cheap enough to call mid-move) */
+      var r = x.el.getBoundingClientRect(), cr = x.cv.getBoundingClientRect(), cs = getComputedStyle(x.cv), pe = x.el.parentElement;
+      return {
+        i: i, el: selOf(x.el), parent: selOf(pe), gp: selOf(pe && pe.parentElement), kind: kindOf(x), still: x.opts.still, glow: !!x.ref, splash: x.opts.splash,
+        seed: r1(x.opts.seed), rect: [r.left, r.top, r.width, r.height].map(Math.round), cvRect: [cr.left, cr.top, cr.width, cr.height].map(r1),
+        cv: [x.cv.width, x.cv.height], lastWH: x.lastWH || null, lastSrc: x.lastSrc ? x.lastSrc.map(r1) : null, wh: [r1(x.w), r1(x.h)], bleed: x.bleed,
+        clipped: x.clipped, host: selOf(x.host), rad: x.rad ? x.rad.map(function (v) { return Math.round(v * 1000) / 1000; }) : null, br: x.br, depth: x.depth, deep: x.deep, rb: x.rb,
+        onScreen: x.onScreen, shown: x.shown, drawn: x.drawn, shownOnce: !!x.shownOnce, dirty: x.dirty, trans: x.trans, shapeT: x.shapeT || 0, ring: x.ring || false, moveMiss: x.moveMiss || 0,
+        lastDrawAgo: x.lastDraw ? Math.round(now - x.lastDraw) : null, drawnF: x.drawnF || null, cols: x.cols.map(hexOf),
+        cvCss: { opacity: cs.opacity, visibility: cs.visibility, display: cs.display, radius: cs.borderRadius, transform: cs.transform, inset: [cs.top, cs.right, cs.bottom, cs.left].join(" "), w: cs.width, h: cs.height }
+      };
+    }).filter(Boolean);
+    return out;
+  }
   window.RPBubble = {
     zoom: zoom, zoomStop: function (finish) { zoomStop(!!finish); },
     attach: attach, setLook: setLook, detach: detach, sprite: sprite, params: P, setParam: setParam, quality: Q,
@@ -1182,6 +1236,9 @@
     setTier: function (t) { if (t === "css") setTier(t, "set by the page", true, true); else setTier(t, "set by the page", true); },
     /* run f once the shaders are built (at once if they already are) */
     ready: function (f) { if (!initGL()) return; if (progReady) f(); else { readyCbs.push(f); kick(); } },
-    stats: STATS
+    stats: STATS,
+    debug: debug,
+    /* the internal canvas of a bubble element (the probe reads its pixels) */
+    canvasOf: function (el) { var it = find(el); return it ? it.cv : null; }
   };
 })();
