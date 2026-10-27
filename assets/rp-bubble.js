@@ -387,8 +387,8 @@
       if (fx && fy) {
         /* a boundary k sits where the copy sampled source position a*k + b; asked for (src / D) * k */
         var rx = fx.a / (src[0] / DW), ry = fy.a / (src[1] / DH), ox = fx.b, oy = fy.b;
-        /* the boundary pixel itself is half a destination pixel past the edge */
-        ox -= 0.5 * fx.a; oy -= 0.5 * fy.a;
+        /* (a 2:1 reduction averages pixel pairs, so a boundary lands exactly on a destination pixel: no
+           half-pixel term; measured 0 on every exact machine) */
         if (rx > 0.5 && rx < 2 && ry > 0.5 && ry < 2) {
           var off = Math.abs(rx - 1) > 0.015 || Math.abs(ry - 1) > 0.015 || Math.abs(ox) > 3 || Math.abs(oy) > 3;
           if (off) CAL = { rx: rx, ox: ox, ry: ry, oy: oy };
@@ -397,7 +397,7 @@
       } else STATS.calib = "unreadable";
     } catch (e) { STATS.calib = "error " + e.message; }
   }
-  var STATS = { ver: "20261027d", compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
+  var STATS = { ver: "20261027e", compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
   var progZ = null, UZ = null;
   var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut"];
   /* compile + link WITHOUT asking for the result (asking blocks until the driver is done) */

@@ -106,7 +106,7 @@
     R.push("load: first byte " + Math.round(nav.responseStart || 0) + " ms, page shown " + Math.round(window.__revealedAt || 0) + " ms, all loaded " + Math.round(nav.loadEventEnd || 0) + " ms");
     if (S) R.push("bubble shader build " + S.compileMs + " ms (background: " + (S.parallel ? "yes" : "NO") + "), zoom shader " + S.zCompileMs + " ms");
     R.push("WebGL copy check: after a resize " + snapTest(true) + ", fixed size " + snapTest(false));
-    if (S) R.push("bubble code version " + (S.ver || "old (before 20261027d): please reload") + ", copy calibration " + (S.calib || "not run"));
+    if (S) R.push("bubble code version " + (S.ver || "old (before 20261027e): please reload") + ", copy calibration " + (S.calib || "not run"));
     var t1 = performance.now();
     out(R.join("\n") + "\n\nmeasuring the page at rest (4 s)...");
     var d0 = S ? [S.draws, S.drawMs, S.frames, S.frameMs] : null;
