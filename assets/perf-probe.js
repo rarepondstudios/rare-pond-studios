@@ -22,7 +22,8 @@
      5  A/B (3 s each): normal / bubbles frozen / CSS animations paused / both / bubbles at half resolution,
         which separates WebGL cost from the page's own CSS animation cost
      6  four carousel moves: frame pacing per move, the featured card checked mid-move and after
-     7  the same with a smaller shared WebGL canvas (and its copy self-check), then put back
+     7  two more moves with the shared WebGL canvas at its old screen size (and its copy self-check),
+        then put back: the cost of the canvas size on this machine
      8  scrolling the home page down and back
      9  the projects page (3 s at rest)
      10 opening the featured film (the depth zoom) and closing it again
@@ -32,7 +33,7 @@
    Keep the mouse still and the tab in front while it runs. */
 (function () {
   "use strict";
-  var PROBE_VER = 8;
+  var PROBE_VER = 9;
   var KEY = "sb_publishable_VFAFJq23B8hJAGViL2nDiA_uTAVxe05";   /* public by design (also in rentals/assets/app.js) */
   var SEND = "https://gnifidmyahtzydwvaegj.supabase.co/rest/v1/rpc/submit_perf_report";
   var T0 = performance.now();
@@ -327,19 +328,19 @@
     });
     return p.then(function () { return { moves: res, _line: "done" }; });
   }
-  function smallAtlas() {
+  /* A/B of the shared WebGL canvas size: since 20261027l it is only as big as the largest bubble; before,
+     it was screen-sized, which made every copy expensive in Firefox and Safari. Two moves at the old size. */
+  function atlasAB() {
     var B = window.RPBubble; if (!B || !B.debug) return Promise.resolve({ _line: "no debug API" });
-    var d = B.debug(), orig = d.state.atlas, need = [256, 256];
-    (d.items || []).forEach(function (x) { var w = (x.lastWH || x.cv)[0], h = (x.lastWH || x.cv)[1]; need[0] = Math.max(need[0], w); need[1] = Math.max(need[1], h); });
-    var small = [Math.min(orig[0], Math.ceil(need[0] / 0.7) + 16), Math.min(orig[1], Math.ceil(need[1] / 0.7) + 16)];
-    var o = { atlas: orig, needed: need, tried: small };
-    if (small[0] >= orig[0] && small[1] >= orig[1]) { o._line = "the shared canvas is already as small as it can be (" + orig.join("x") + ")"; return Promise.resolve(o); }
-    o.checkSmall = B.debug({ atlas: small, items: false }).atlasCheck;
-    say("    shared canvas " + orig.join("x") + " -> " + small.join("x") + ", copy self-check " + o.checkSmall);
-    return wait(500).then(function () { return moves(2, "small canvas"); }).then(function (m) {
+    var st = B.debug({ items: false }).state, cur = st.atlas, big = st.atlasMax || cur;
+    var o = { atlas: cur, atlasMax: big, grow: st.atlasGrow };
+    if (big[0] <= cur[0] && big[1] <= cur[1]) { o._line = "the shared canvas is already at its largest (" + cur.join("x") + ")"; return Promise.resolve(o); }
+    o.checkBig = B.debug({ atlas: big, items: false }).atlasCheck;
+    say("    shared canvas " + cur.join("x") + " -> old size " + big.join("x") + ", copy self-check " + o.checkBig);
+    return wait(500).then(function () { return moves(2, "old-size canvas"); }).then(function (m) {
       o.moves = m.moves;
-      o.checkBack = B.debug({ atlas: orig, items: false }).atlasCheck;
-      o._line = "copy self-check small " + o.checkSmall + ", back to " + orig.join("x") + " " + o.checkBack;
+      o.checkBack = B.debug({ atlas: cur, items: false }).atlasCheck;
+      o._line = "copy self-check at the old size " + o.checkBig + ", back to " + cur.join("x") + " " + o.checkBack;
       return wait(600).then(function () { return o; });
     });
   }
@@ -459,7 +460,7 @@
   function benches() {
     var d = window.RPBubble && RPBubble.debug ? RPBubble.debug({ items: false }).state : null, atlas = d ? d.atlas : [2048, 1024];
     var o = { snapAfterResize: snapTest(true), snapFixed: snapTest(false), runs: [] };
-    var list = [["copy", atlas], ["copy", [1280, 720]], ["bitmap-resize"], ["bitmap-fixed"]];
+    var list = [["copy", atlas], ["copy", (d && d.atlasMax) || [2048, 1445]], ["bitmap-resize"], ["bitmap-fixed"]];
     return list.reduce(function (p, m) { return p.then(function () { return bench(m[0], m[1]).then(function (r) { o.runs.push(r); say("    " + r.mode + ": " + (r.error || (r.mainMsPerFrame + " ms/frame on the main thread, " + (r.frames.fps || "?") + " fps"))); }); }); }, wait(200))
       .then(function () { o._line = "copy check " + o.snapAfterResize + " / " + o.snapFixed; return o; });
   }
@@ -548,7 +549,7 @@
       .then(function () { return step(4, "at rest (5 s)", function () { return measure("rest", 5000).then(function (m) { m._line = fmt(m); return m; }); }); })
       .then(function () { return step(5, "A/B: what costs the frames", ab); })
       .then(function () { return step(6, "carousel, 4 moves", function () { return moves(4, ""); }); })
-      .then(function () { return step(7, "carousel with a smaller WebGL canvas", smallAtlas); })
+      .then(function () { return step(7, "carousel with the old screen-sized WebGL canvas", atlasAB); })
       .then(function () { return step(8, "scrolling", scrolling); })
       .then(function () { return step(9, "projects page", projects); })
       .then(function () { return step(10, "open and close a film", film); })

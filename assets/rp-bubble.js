@@ -280,7 +280,7 @@
      (Jack, 2026-10-26). Every bubble now gets the same 1.25 device px per CSS px; glow layers, which
      are blurred by CSS anyway, render at half that. */
   var FPS = 24, MAXPX = 1600, DPR_CAP = 1.25;
-  var CODE_VER = "20261027k";
+  var CODE_VER = "20261027l";
 
   /* ===== EFFECT TIERS (2026-10-27, Jack: "safety measures and automatic backup versions of the website
      that it can cleanly fall back to if a computer can't handle it ... when future updates are made, it
@@ -330,10 +330,13 @@
   /* set only by RPBubble.debug() (the ?perf=1 probe): freeze = draw nothing, scale = pin the resolution */
   var DBG = { freeze: false, scale: 0 };
   var items = [], gl = null, glc = null, prog = null, U = {}, raf = 0;
-  var ATLAS = (function () {
+  /* ATLAS_MAX: the most the shared canvas may ever need on this screen. ATLAS: its size right now. It starts
+     small and grows (never shrinks) to fit the largest bubble actually drawn, see "COPY COST" at render(). */
+  var ATLAS_MAX = (function () {
     var d = Math.min(window.devicePixelRatio || 1, 1.25), sw = (window.screen && screen.width) || 0, sh = (window.screen && screen.height) || 0;
     return [Math.min(2048, Math.ceil((Math.max(sw, window.innerWidth || 0) + 256) * d)), Math.min(2048, Math.ceil((Math.max(sh, window.innerHeight || 0) + 256) * d))];
   })();
+  var ATLAS = [Math.min(ATLAS_MAX[0], 768), Math.min(ATLAS_MAX[1], 512)];
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   var canCheckVis = typeof Element !== "undefined" && "checkVisibility" in Element.prototype;
 
@@ -644,19 +647,38 @@
     return (palCache[str] = { n: out.length, flat: flat });
   }
 
-  /* GLMAX: the shared canvas never grows past this. And the GPU may give the canvas a SMALLER drawing
-     buffer than asked for (memory limits on some machines): everything here works in drawing-buffer
-     pixels and returns the source size in canvas pixels for the copy. Assuming the two were equal drew
-     only part of a bubble on such machines (Jack, 2026-10-26: rims "only showing on the top left"). */
-  /* ATLAS: the shared canvas gets ONE size, up front, big enough for any bubble on this screen, and is
-     never resized while bubbles are drawn (the depth zoom resizes it for the flight and puts it back).
-     Firefox on Windows (2026-10-27, Jack's screenshot) showed the featured card's rim only along its
-     top and left: after the shared canvas had grown, the copy taken from it was a stale, smaller image
-     scaled up. One fixed size avoids every such resize. */
-  var GLMAX = 2048, renderEll = false, renderOut = false;
+  /* The GPU may give the canvas a SMALLER drawing buffer than asked for (memory limits on some machines):
+     everything here works in drawing-buffer pixels and returns the source size in canvas pixels for the
+     copy. Assuming the two were equal drew only part of a bubble on such machines (Jack, 2026-10-26: rims
+     "only showing on the top left"). */
+  /* ATLAS history: Firefox on Windows (2026-10-27, Jack's screenshot) showed the featured card's rim only
+     along its top and left, read then as a stale copy after the shared canvas had grown, so the canvas
+     was given one screen-sized size up front (20261027a-k). That made every copy expensive in Firefox and
+     Safari (below), and Jack still saw the partial rim with it, so it was not the whole story; the ?perf=1
+     report from that machine (rim pixels on all four sides, the copy self-check) is what will settle it. */
+  /* COPY COST (2026-10-27, ?perf=1 reports #4 and #5): Firefox and Safari copy the WHOLE shared canvas for
+     every drawImage, whatever part of it is asked for. With the canvas sized for the whole screen
+     (2048 x 1445 on a 1440 x 900 window at 1.5x) one bubble copy cost Firefox ~4 ms and the page dropped
+     to 36-69 fps, 119 fps with the bubbles held still; at 1280 x 768 it costs ~1.5 ms. So the canvas
+     starts small and GROWS to fit the largest bubble actually drawn (12% headroom, 64 px steps, at most
+     ATLAS_MAX), which on a normal page happens once or twice, never shrinking. Growing was what showed a
+     stale, scaled copy on Jack's Windows Firefox before (see ATLAS above), so a growth is followed by a
+     throwaway copy, every bubble drawn in that frame is drawn again in the next one, and the copy
+     self-check is re-run (RPBubble.stats.atlasGrow, shown by ?perf=1). */
+  var renderEll = false, renderOut = false, grewF = -1, flushCv = null;
+  function grow(W, H) {
+    var nw = Math.min(ATLAS_MAX[0], Math.max(glc.width, Math.ceil(W * 1.12 / 64) * 64)), nh = Math.min(ATLAS_MAX[1], Math.max(glc.height, Math.ceil(H * 1.12 / 64) * 64));
+    if (nw <= glc.width && nh <= glc.height) return;
+    glc.width = nw; glc.height = nh; ATLAS = [nw, nh]; grewF = FR;
+    try {
+      if (!flushCv) { flushCv = document.createElement("canvas"); flushCv.width = flushCv.height = 1; }
+      gl.viewport(0, 0, 1, 1); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+      flushCv.getContext("2d").drawImage(glc, 0, 0, 1, 1, 0, 0, 1, 1);
+    } catch (e) {}
+    STATS.atlasGrows = (STATS.atlasGrows || 0) + 1;
+  }
   function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep, rb, pal, clip) {
-    var nw = Math.min(GLMAX, Math.max(glc.width, W, 256)), nh = Math.min(GLMAX, Math.max(glc.height, H, 256));
-    if (glc.width < nw || glc.height < nh) { glc.width = nw; glc.height = nh; }
+    if ((glc.width < W || glc.height < H) && !zooming) grow(W, H);
     var dbw = gl.drawingBufferWidth || glc.width, dbh = gl.drawingBufferHeight || glc.height;
     var f = Math.min(1, dbw / W, dbh / H);
     var w = Math.max(1, Math.floor(W * f)), h = Math.max(1, Math.floor(H * f));
@@ -952,6 +974,11 @@
         if (!(x.shapeT > 0) || x.ring || !x.drawn || x.ref || x.opts.splash || x.onScreen === false || x.shown === false) continue;
         if (x.drawnF === FR) x.moveMiss = 0;
         else if (++x.moveMiss >= 3) { x.moveMiss = 0; ringOn(x, "starved"); if (TIER === "full" && ++staleMoves >= 2) MOVE_RING = true; }
+      }
+      if (grewF === FR) {   /* the shared canvas grew this frame: draw these again next frame, and re-check the copy */
+        for (c = 0; c < todo.length; c++) if (todo[c][0].drawnF === FR) todo[c][0].dirty = Math.max(todo[c][0].dirty, 1);
+        STATS.atlasGrow = ATLAS.join("x") + " " + selfCheck(true);
+        wants = true;
       }
       if (todo.length) { var fm = performance.now() - t0; STATS.frames++; STATS.frameMs += fm; if (fm > STATS.frameMax) STATS.frameMax = fm; }
     }
@@ -1251,7 +1278,7 @@
     try { if (gl) { lost = gl.isContextLost(); maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE); } } catch (e) {}
     out.state = {
       ver: CODE_VER, tier: TIER, why: TIER_WHY, moveRing: MOVE_RING, staleMoves: staleMoves, q: { scale: r1(Q.scale * 10) / 10, fps: Q.fps }, dbg: { freeze: DBG.freeze, scale: DBG.scale },
-      atlas: ATLAS.slice(), glc: glc ? [glc.width, glc.height] : null, dbuf: gl ? [gl.drawingBufferWidth, gl.drawingBufferHeight] : null,
+      atlas: ATLAS.slice(), atlasMax: ATLAS_MAX.slice(), atlasGrow: STATS.atlasGrow || null, glc: glc ? [glc.width, glc.height] : null, dbuf: gl ? [gl.drawingBufferWidth, gl.drawingBufferHeight] : null,
       cal: CAL, gl: gl === false ? "off" : gl ? "on" : "not started", progReady: progReady, zReady: zReady, par: !!PAR, soft: SOFT, reduce: !!reduce,
       pace: { cadence: STATS.cadence || null, test: STATS.paceTest || null, bubblesAreTheCost: AT.bound, testing: !!AT.on, retestEvery: AT.every },
       zooming: zooming, frame: FR, simT: r1(simT), loopRunning: !!raf, items: items.length, contextLost: lost, maxTex: maxTex, dpr: window.devicePixelRatio || 1
