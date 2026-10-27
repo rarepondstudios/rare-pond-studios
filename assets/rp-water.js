@@ -176,6 +176,26 @@
     return { stop: function () { done = true; if (loop) cancelAnimationFrame(loop); var c = el.querySelector("canvas.rpw"); if (c) c.remove(); el.style.background = ""; el.style.transform = ""; } };
   }
 
+  /* ===== LAYOUT SETTLED: resolves once el (default: the page) has kept the same position and size, and the
+     page the same height, for `quiet` ms (default 250), or after `cap` ms (default 2500) at the latest.
+     A cover should lift only then: content that is drawn in time but then MOVES (a list re-rendered when
+     live data arrives, a banner pushing things down) is pop-in just the same (Rentals, 2026-10-27). */
+  function settled(el, quiet, cap) {
+    quiet = quiet || 250; cap = cap || 2500;
+    return new Promise(function (res) {
+      var t0 = now(), since = t0, last = null, fin = false;
+      function end() { if (!fin) { fin = true; res(); } }
+      setTimeout(end, cap);
+      (function poll() {
+        if (fin) return;
+        var e = el || document.body; if (!e) { requestAnimationFrame(poll); return; }
+        var r = e.getBoundingClientRect(), k = [Math.round(r.top), Math.round(r.left), Math.round(r.width), Math.round(r.height), document.documentElement.scrollHeight].join();
+        if (k !== last) { last = k; since = now(); }
+        if (now() - since >= quiet) end(); else requestAnimationFrame(poll);
+      })();
+    });
+  }
+
   /* ===== 3. A WHOLE PAGE'S LOAD COVER IN ONE CALL (for simple pages and future sites) =====
      RPWater.page({sky, look, ready, cap}): needs <div id="pageveil"> as the first thing in <body> and, in
      <head>, CSS painting it the sky colour from the first frame:
@@ -201,11 +221,11 @@
     var ready = o.ready;
     if (typeof ready === "function") { var fn = ready; ready = new Promise(function (r) { (function poll() { var ok = false; try { ok = fn(); } catch (e) {} if (ok) r(); else requestAnimationFrame(poll); })(); }); }
     if (!ready) ready = new Promise(function (r) { document.readyState === "complete" ? r() : addEventListener("load", r, { once: true }); });
-    Promise.all([fontsCapped, ready]).then(function () { requestAnimationFrame(function () { requestAnimationFrame(hide); }); });
+    Promise.all([fontsCapped, ready]).then(function () { return settled(o.settle || document.body, 200, 1500); }).then(function () { requestAnimationFrame(function () { requestAnimationFrame(hide); }); });
     setTimeout(hide, o.cap || 3500);
     addEventListener("error", function () { setTimeout(hide, 60); }, { once: true });
     return { hide: hide, ctl: ctl };
   }
 
-  window.RPWater = { ok: OK, veil: veil, sweep: sweep, page: page, look: look, SIG: SIG };
+  window.RPWater = { ok: OK, veil: veil, sweep: sweep, page: page, settled: settled, look: look, SIG: SIG };
 })();
