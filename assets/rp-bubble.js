@@ -280,7 +280,7 @@
      (Jack, 2026-10-26). Every bubble now gets the same 1.25 device px per CSS px; glow layers, which
      are blurred by CSS anyway, render at half that. */
   var FPS = 24, MAXPX = 1600, DPR_CAP = 1.25;
-  var CODE_VER = "20261027h";
+  var CODE_VER = "20261027i";
 
   /* ===== EFFECT TIERS (2026-10-27, Jack: "safety measures and automatic backup versions of the website
      that it can cleanly fall back to if a computer can't handle it ... when future updates are made, it
@@ -737,7 +737,7 @@
      the bubble's colours and tier widths (solid rim, 50%, 25%) that follow the border-radius exactly
      because they ARE the element's own edge. When the shape settles the canvas is redrawn at the
      final size, fades back in, and the ring fades out under it. Generic: any bubble, any page. */
-  var MOVE_RING = false, staleMoves = 0;
+  var MOVE_RING = false, staleMoves = 0, FR = 0;
   (function () {
     try {
       var st = document.createElement("style");
@@ -824,7 +824,7 @@
   }
   function sigOf(x) { return [x.cols && x.cols.join(), x.rad, x.depth, x.deep, x.rb, x.w, x.h, x.rw, x.rh, x.rrad].join("|"); }
   function frame(now) {
-    raf = 0;
+    raf = 0; FR++;
     var gap = last ? now - last : 16; last = now;
     var body = document.body;
     var hidden = document.hidden;
@@ -850,12 +850,9 @@
         x = items[c];
         if (x.ref || x.opts.splash) continue;   /* halos and splashes have no edge to ring */
         if (x.shapeT > 0) {
-          /* in lite always; in full once this device has shown it cannot keep a moving bubble drawn, or
-             when THIS one has not been redrawn for 3 frames' time */
-          if (!x.ring && (TIER === "lite" || MOVE_RING || (x.drawn && now - Math.max(x.lastDraw || 0, x.shapeAt || 0) > 50))) {
-            if (TIER === "full" && !MOVE_RING && ++staleMoves >= 2) MOVE_RING = true;
-            ringOn(x, TIER === "lite" ? "lite" : (MOVE_RING ? "learned" : "stale"));
-          }
+          /* in lite always; in full once this device has shown it cannot keep a moving bubble drawn
+             (starvation is detected after the draws below) */
+          if (!x.ring && (TIER === "lite" || MOVE_RING)) ringOn(x, TIER === "lite" ? "lite" : "learned");
         } else if (x.ring && !x.ringDraw) { x.ringDraw = 1; x.dirty = Math.max(x.dirty, 1); }   /* settled: redraw first, then show */
       }
       for (var c = 0; c < n; c++) {
@@ -893,9 +890,18 @@
         var iv = 1000 / (todo[c][1] === "glow" ? GLOW_FPS : Q.fps);
         x.next = x.drawn ? now + iv : now + iv * Math.random();   /* first draw: random phase, so they spread out */
         if (draw(x, simT + x.opts.seed * 3.7, true)) {
-          x.sig = sigOf(x);
+          x.sig = sigOf(x); x.drawnF = FR;
           if (x.ringDraw) { x.ringDraw = 0; ringOff(x); }
         }
+      }
+      /* STARVED: a bubble changing shape that went three frames in a row without a redraw is being
+         stretched stale by CSS: ring it for the rest of the move; two such moves and this page rings
+         every move */
+      for (c = 0; c < n; c++) {
+        x = items[c];
+        if (!(x.shapeT > 0) || x.ring || !x.drawn || x.ref || x.opts.splash || x.onScreen === false || x.shown === false) continue;
+        if (x.drawnF === FR) x.moveMiss = 0;
+        else if (++x.moveMiss >= 3) { x.moveMiss = 0; ringOn(x, "starved"); if (TIER === "full" && ++staleMoves >= 2) MOVE_RING = true; }
       }
       if (todo.length) { var fm = performance.now() - t0; STATS.frames++; STATS.frameMs += fm; if (fm > STATS.frameMax) STATS.frameMax = fm; }
     }
