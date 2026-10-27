@@ -280,7 +280,7 @@
      (Jack, 2026-10-26). Every bubble now gets the same 1.25 device px per CSS px; glow layers, which
      are blurred by CSS anyway, render at half that. */
   var FPS = 24, MAXPX = 1600, DPR_CAP = 1.25;
-  var CODE_VER = "20261027o";
+  var CODE_VER = "20261027p";
 
   /* ===== EFFECT TIERS (2026-10-27, Jack: "safety measures and automatic backup versions of the website
      that it can cleanly fall back to if a computer can't handle it ... when future updates are made, it
@@ -776,7 +776,7 @@
      While a bubble changes SHAPE (the carousel card growing from a circle into the featured
      rectangle and back) its canvas has to be redrawn every frame, or CSS stretches the last picture:
      the old circle's rim became an oval inside the new rectangle, with its dark middle showing as
-     black edges. Where the page is too busy to redraw in time (or in the lite tier, always), the
+     black edges. In the lite tier (since 2026-10-27 only there, see frame()), the
      canvas is hidden for the move and the element shows a CSS ring instead, three inset shadows in
      the bubble's colours and tier widths (solid rim, 50%, 25%) that follow the border-radius exactly
      because they ARE the element's own edge. When the shape settles the canvas is redrawn at the
@@ -943,9 +943,12 @@
         x = items[c];
         if (x.ref || x.opts.splash) continue;   /* halos and splashes have no edge to ring */
         if (x.shapeT > 0) {
-          /* in lite always; in full once this device has shown it cannot keep a moving bubble drawn
-             (starvation is detected after the draws below) */
-          if (!x.ring && (TIER === "lite" || MOVE_RING)) ringOn(x, TIER === "lite" ? "lite" : "learned");
+          /* the CSS ring stands in for the rim during a move ONLY in lite (where rims are still frames).
+             In full it is never used any more (2026-10-27, Jack's iPad, report #27: two starved moves made
+             the page "learn" the ring for every move, and the real rim's inner two bands then snapped in
+             about a second after each move, when the ring handed over). Instead a rim that is changing
+             shape is drawn EVERY frame, first, outside the frame budget (below). */
+          if (!x.ring && TIER === "lite") ringOn(x, "lite");
         } else if (x.ring && !x.ringDraw) { x.ringDraw = 1; x.dirty = Math.max(x.dirty, 1); }   /* settled: redraw first, then show */
       }
       for (var c = 0; c < n; c++) {
@@ -965,7 +968,10 @@
         todo.push([x, kind]);
       }
       /* bubbles that are changing shape (the carousel morph) first: they look wrong when late */
-      todo.sort(function (a, b) { return (b[0].trans ? 1 : 0) - (a[0].trans ? 1 : 0); });
+      /* order: rims changing shape (largest first: the featured card), then anything else mid-transition,
+         then the rest */
+      function pri(x) { return (x.shapeT > 0 && !x.ref && !x.opts.splash) ? 2 : (x.trans ? 1 : 0); }
+      todo.sort(function (a, b) { return (pri(b[0]) - pri(a[0])) || (pri(a[0]) === 2 ? (b[0].w * b[0].h - a[0].w * a[0].h) : 0); });
       /* READ phase: every style / size this frame needs, while the page's styles are still clean */
       for (c = 0; c < todo.length; c++) prep(todo[c][0]);
       /* WRITE phase: draw until the frame budget is spent; the rest waits for the next frame.
@@ -978,7 +984,7 @@
       var tD = performance.now(), nDrawn = 0;
       for (c = 0; c < todo.length; c++) {
         x = todo[c][0];
-        if (x.drawn && nDrawn > 0 && performance.now() - tD > BUDGET) continue;   /* over budget: next frame */
+        if (x.drawn && nDrawn > 0 && pri(x) < 2 && performance.now() - tD > BUDGET) continue;   /* over budget: next frame (never a rim changing shape) */
         nDrawn++;
         var iv = 1000 / (todo[c][1] === "glow" ? GLOW_FPS : Q.fps);
         x.next = x.drawn ? now + iv : now + iv * Math.random();   /* first draw: random phase, so they spread out */
@@ -994,7 +1000,7 @@
         x = items[c];
         if (!(x.shapeT > 0) || x.ring || !x.drawn || x.ref || x.opts.splash || x.onScreen === false || x.shown === false) continue;
         if (x.drawnF === FR) x.moveMiss = 0;
-        else if (++x.moveMiss >= 3) { x.moveMiss = 0; ringOn(x, "starved"); if (TIER === "full" && ++staleMoves >= 2) MOVE_RING = true; }
+        else if (++x.moveMiss >= 3) { x.moveMiss = 0; staleMoves++; STATS.starved = staleMoves; }   /* counted for ?perf=1 only: no ring in full */
       }
       if (grewF === FR) {   /* the shared canvas grew this frame: draw these again next frame, and re-check the copy */
         for (c = 0; c < todo.length; c++) if (todo[c][0].drawnF === FR) todo[c][0].dirty = Math.max(todo[c][0].dirty, 1);
