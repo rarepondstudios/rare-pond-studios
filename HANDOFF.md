@@ -39,6 +39,27 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-133 WHY THE ROUND BUBBLES WORKED AND THE CAROUSEL CARD DID NOT (2026-10-27)
+
+- Jack: on the iPad and on Windows the round bubbles are fine, the rounded-rectangle featured carousel
+  card glitches. His iPad screen recording (real pixels) showed, mid carousel move, the incoming card
+  as a rectangle with an orange OVAL rim inside it, and the outgoing card's old rectangle picture
+  squashed into the new circle: the rim canvases were not being redrawn during the move, CSS was just
+  stretching their last picture. Two causes, both specific to the rectangle:
+  1. Frame budget starvation (the main one). Since -130 frame() reads every bubble's style first
+     (prep) and then draws; the 8 ms budget clock started BEFORE that read, and during the morph the
+     read forces the page's style update, which on the iPad took the whole budget, so no bubble was
+     drawn for the length of the move. A stale circle stretched is still a circle, which is why the
+     round bubbles looked right; the card's shape changes, so it showed the wrong one. Now the budget
+     counts drawing only, every frame draws at least one bubble, and bubbles that are changing shape
+     are drawn first. Measured in Chrome at 8x CPU slow-down during one move: 160 redraws (was 74).
+  2. Corner shape. The shader had ONE circular corner radius (min of the two). CSS gives the card
+     elliptical corners (13% / 20%) and, while it morphs to and from a circle, every value between,
+     so the rim followed a different shape from the card under it. `uRad` is now a vec2 (x and y
+     radii, scaled down together as CSS does) and rr() draws elliptical corners; a circle is the
+     special case where both are equal, which is why only the round bubbles always matched.
+- Code version 20261027g (`RPBubble.stats.ver`, shown on the ?perf=1 panel).
+
 ### 0.0.-132 BUBBLE COPIES CALIBRATE THEMSELVES; sticker_details; BONUS SUPPORT DUCKY (2026-10-27)
 
 - Jack (new video, Firefox on his Windows PC): after the fixed-size canvas (-131) the carousel rims still
