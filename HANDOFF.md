@@ -39,6 +39,26 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-137 SCREEN CHECK CONFIRMED THE CUT-OFF ON JACK'S PC; RIM CANVASES GET SQUARE CORNERS (2026-10-27)
+
+- Reports #25 / #26 (Jack's Windows PC, Firefox 158, with the screen check): on his actual screen the
+  featured card's rim was present along the top and left (100% of test points) and MISSING along the
+  right and bottom (0%), at load, at rest, after every move, and before / after a forced canvas resize.
+  The canvas itself read back complete. The resize test changed nothing, so -136's resize theory was
+  not the cause (the never-shrink change stays: it is cheaper and harmless).
+- What differs between the card and the round bubbles that never broke there: the card's rim canvas
+  inherited the card's ELLIPTICAL corner radius (13% / 20%); round bubbles' canvases are square (their
+  clipping parent is the edge). The shader already draws the corners (transparent outside the shape,
+  measured), so the CSS corner was redundant. Code 20261027o: every rim canvas has square corners.
+  Corners checked identical before / after in Chrome and Firefox on the mini.
+- Probe v12: step 7c is an on-screen A/B (as shipped / old rounded canvas corners / canvas on its own
+  layer / card not bobbing / picture without paint containment), so the next report from that PC says
+  which one breaks or fixes it. Also: the page is located from the two LEFT corner squares only (on his
+  PC something red near the window's top-right was mistaken for a square, skewing the map 0.6%); every
+  step times out after 60 s; a large "Test finished, report #N sent" notice at the end (Jack thought
+  the run had stalled at step 10, but both runs had sent).
+- Waiting on: Jack reruns ?perf=1 on the PC with the screen check.
+
 ### 0.0.-136 FEATURED CARD CUT OFF ON JACK'S WINDOWS PC: THE DRAWING IS RIGHT, THE SCREEN IS NOT; CANVASES NEVER SHRINK; PROBE SEES THE SCREEN (2026-10-27)
 
 - Report #10 (Jack's PC: Windows, Firefox 158, GTX 980, 2560 x 1440 at 1.5x): performance fine (240 fps

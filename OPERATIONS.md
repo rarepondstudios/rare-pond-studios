@@ -688,6 +688,9 @@ copy of the site, so a tier is a different way of drawing the SAME page and anyt
   continuously an `html.rp-fx-lite` rule (index.html "EFFECT TIERS"); bump `CODE_VER` whenever
   rp-bubble.js changes so every device re-tests (the `?v=` on script tags is automatic now, see
   "Asset versions").
+- Bubble rim canvases have SQUARE corners (since 20261027o): the shader draws the bubble's corners. A
+  canvas inheriting the card's elliptical radius lost the rim's right and bottom on Jack's Windows PC
+  (Firefox), confirmed by the ?perf=1 screen check. Do not put border-radius on a bubble canvas.
 - A bubble's own canvas NEVER SHRINKS (since 20261027n): its backing store is sized to the full-quality
   size of the largest shape it has had and only grows; lower resolutions are rendered smaller and
   stretched into it. Resizing it on resolution changes is the likely cause of the featured card being
