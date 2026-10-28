@@ -24,7 +24,8 @@
   var SIG = { c1: "#56c8ff", c2: "#3f6bff", c3: "#9b5cff" };
   /* the water entry's default colours: the Studio page's own blues (its background gradient), no purple
      (Jack, 2026-10-27: "more like it's diving into the water that matches the main page background") */
-  var WATER = { c1: "#6fabe1", c2: "#3d7bbc", c3: "#2a64a6" };
+  /* (2026-10-28, Jack: "a bit too dark of a blue") the lighter blues of the top of the Studio background */
+  var WATER = { c1: "#8bc0ea", c2: "#68a4dc", c3: "#a3d3f3" };
   function canvasOk() { try { return !!document.createElement("canvas").getContext("2d"); } catch (e) { return false; } }
   var OK = !RM && canvasOk();
   function now() { return performance.now(); }
@@ -135,13 +136,18 @@
     var A = Math.max(5, 0.011 * H), P = Math.round(0.9 * W);
     /* the layers' edges, in px from the top of the screen while loading */
     var yM = 0.5 * H, yB = yM - 0.055 * H, yF = yM + 0.05 * H, tF = 0.07 * H, yFB = yF + tF;
+    /* the page's HEADER (opts.header, default the body's own <header>s) does not ride up with the water: the
+       page's blue comes up first, straight out of the water, and the header (white on most pages) comes in
+       after (2026-10-28, Jack: "it should lead directly into the blue BG of the website, then the header can
+       come in afterwards") */
+    var heads = [], headIn = [];
     /* what rides up with the water: every top-level element of the page except the covers themselves
        and the custom cursor (opt out anything else with data-no-dive) */
     function divers() {
       var out = [], kids = document.body ? document.body.children : [], i;
       for (i = 0; i < kids.length; i++) {
         var n = kids[i];
-        if (n === el || n.id === "xwipe" || n.id === "rp-cursor" || /^(SCRIPT|STYLE|LINK|NOSCRIPT|TEMPLATE)$/.test(n.tagName) || n.hasAttribute("data-no-dive")) continue;
+        if (n === el || n.id === "xwipe" || n.id === "rp-cursor" || /^(SCRIPT|STYLE|LINK|NOSCRIPT|TEMPLATE)$/.test(n.tagName) || n.hasAttribute("data-no-dive") || heads.indexOf(n) >= 0) continue;
         if (/(^|\s)rpc-/.test(n.className || "")) continue;
         out.push(n);
       }
@@ -149,7 +155,7 @@
     }
     /* one drifting layer: the water below a wavy top edge (and above a wavy or straight bottom edge),
        blurred by `blur` px, alpha `al`, drifting P px every `sec` seconds (negative = to the right) */
-    function layer(top, bot, phT, phB, al, blur, sec) {
+    function layer(top, bot, phT, phB, al, blur, sec, fill) {
       var k = res(), pad = Math.ceil(3 * blur + 2 * A + 4), w = W + P + 2 * pad, h = (bot - top) + 2 * pad;
       var c = document.createElement("canvas"); c.className = "rpw"; c.setAttribute("aria-hidden", "true");
       c.width = Math.max(2, Math.round(w * k)); c.height = Math.max(2, Math.round(h * k));
@@ -157,7 +163,7 @@
       var x = c.getContext("2d"); x.setTransform(k, 0, 0, k, 0, 0);
       if (CF && blur > 0.3) x.filter = "blur(" + (blur * k).toFixed(2) + "px)";
       var step = Math.max(8, W / 120), i, ox = pad;   /* local x = screen x + pad (at drift 0) */
-      x.globalAlpha = al; x.fillStyle = cgrad(x, w, P, L); x.beginPath();
+      x.globalAlpha = al; x.fillStyle = fill || cgrad(x, w, P, L); x.beginPath();
       for (i = -pad - 20; i <= w + 20; i += step) { var y = pad + (phT == null ? 0 : pw(i - ox, P, A, phT)); i === -pad - 20 ? x.moveTo(i, y) : x.lineTo(i, y); }
       for (i = w + 20; i >= -pad - 20; i -= step) x.lineTo(i, h - pad + (phB == null ? pad + 20 : pw(i - ox, P, A, phB)));
       x.closePath(); x.fill();
@@ -184,16 +190,29 @@
         var im = new Image(); im.alt = ""; im.setAttribute("aria-hidden", "true"); im.decoding = "async";
         im.style.cssText = "display:block;width:100%;height:100%;object-fit:contain";
         duckBox.appendChild(im); rig.appendChild(duckBox);
-        var bob = duckBox.animate([{ transform: "translate3d(0," + (-0.005 * H).toFixed(1) + "px,0) rotate(-2.2deg)" }, { transform: "translate3d(0," + (0.006 * H).toFixed(1) + "px,0) rotate(1.8deg)" }], { duration: 1900, iterations: Infinity, direction: "alternate", easing: "ease-in-out" });
+        /* it bobs and rocks back and forth with the waves (Jack, 2026-10-28) */
+        var sx = Math.min(12, 0.009 * W).toFixed(1), by = (0.006 * H).toFixed(1), bu = (-0.005 * H).toFixed(1);
+        var bob = duckBox.animate([
+          { transform: "translate3d(" + (-sx) + "px," + bu + "px,0) rotate(-3deg)" },
+          { transform: "translate3d(0," + by + "px,0) rotate(1deg)", offset: 0.25 },
+          { transform: "translate3d(" + sx + "px," + bu + "px,0) rotate(3deg)", offset: 0.5 },
+          { transform: "translate3d(0," + by + "px,0) rotate(-1deg)", offset: 0.75 },
+          { transform: "translate3d(" + (-sx) + "px," + bu + "px,0) rotate(-3deg)" }
+        ], { duration: 4200, iterations: Infinity, easing: "ease-in-out" });
         loops.push(bob);
         im.src = o.duck;
         (im.decode ? im.decode() : new Promise(function (r) { im.onload = r; })).then(function () {
           if (duckBox && !done) duckBox.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, fill: "forwards", easing: "ease-out" });
         }, function () {});
       }
-      var fr = layer(yF, yFB, 0, 3.1, 1, 0.0065 * H, 6.5);            /* front: solid, medium blur, drifts left */
+      /* front: solid, medium blur, drifts left. Its colour is the page's own background at its top (opts.join),
+         so when the page rises in right under it, the water runs straight into the page's blue (2026-10-28,
+         Jack: "the blue of the waves has to stay directly connected to the blue of the top of the background") */
+      var fr = layer(yF, yFB, 0, 3.1, 1, 0.0065 * H, 6.5, o.join || null);
       deep = document.createElement("div");
-      deep.style.cssText = "position:absolute;left:0;right:0;top:" + (yF + tF / 2) + "px;height:" + (H - yF + 0.1 * H) + "px;will-change:opacity;background:linear-gradient(180deg," + L.c2 + "," + L.c3 + ")";
+      /* the deep water = the page's own background (opts.deep, a CSS background whose top is the page's top),
+         so clearing it on reveal only brings in the page's content, never a change of colour */
+      deep.style.cssText = "position:absolute;left:0;right:0;top:" + (yF + tF / 2) + "px;height:" + (H - yF + 0.1 * H) + "px;will-change:opacity;background:" + (o.deep || ("linear-gradient(180deg," + (o.join || L.c2) + "," + L.c3 + ")")) + ";background-position:0 " + (tF / 2).toFixed(1) + "px;background-repeat:no-repeat;background-color:" + (o.join || L.c2);
       rig.insertBefore(deep, fr);
       el.appendChild(rig);
       /* the water fades in over the white (never just there: no "spawn") */
@@ -207,6 +226,9 @@
       el.classList.add("pv-gone");
       if (rig) { rig.remove(); rig = null; }
       el.style.background = "";
+      /* the header comes in: a short fade and drop into place */
+      headIn.forEach(function (h) { try { h.animate([{ opacity: 0, transform: "translate3d(0,-14px,0)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: "cubic-bezier(.2,.7,.2,1)" }); } catch (e) {} });
+      headIn = [];
       if (o.signal !== false) mark("gone");
       if (fin) { var f = fin; fin = null; try { f(); } catch (e) {} }
     }
@@ -224,6 +246,8 @@
       anims.push(rig.animate(frames(ry), opts));
       /* the deep water clears as it starts to rise, so the page is there under the surface */
       if (deep) anims.push(deep.animate([{ opacity: 1 }, { opacity: 0, offset: 0.3 }, { opacity: 0 }], opts));
+      try { heads = [].slice.call(document.querySelectorAll(o.header || "body > header")); } catch (e) {}
+      if (o.dive !== false) heads.forEach(function (h) { try { anims.push(h.animate([{ opacity: 0 }, { opacity: 0 }], opts)); headIn.push(h); } catch (e) {} });
       if (o.dive !== false) {
         var pf = frames(pageY);
         divers().forEach(function (n) {

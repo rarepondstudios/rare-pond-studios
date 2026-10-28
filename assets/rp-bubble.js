@@ -66,6 +66,7 @@
     "uniform float uPalN,uRb;",
     "uniform vec2 uRad;",
     "uniform float uDeep,uDepth,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol,uSh,uClip,uEll,uOut,uWf;",
+    "uniform vec2 uRg;",
     /* Ashima / Stefan Gustavson 3D simplex noise (MIT) */
     "vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;}",
     "vec4 m289(vec4 x){return x-floor(x*(1./289.))*289.;}",
@@ -178,8 +179,9 @@
     "    vec2 wo=wv(p,1.9,zo+3.);",
     "    float o1=ro(p+uWob*.02*wo), o2=ro(p+uWob*.05*wo), o3=ro(p+uWob*.075*vec2(wo.y,-wo.x));",
     "    float a1=1.-smoothstep(1.-uPx-.004*uSoft,1.+uPx+.004*uSoft,o1);",
-    "    float a2=(1.-smoothstep(1.22-.03-.035*uSoft,1.22+.035*uSoft,o2))*.5;",
-    "    float a3=(1.-smoothstep(1.5-.07-.1*uSoft,1.5+.1*uSoft,o3))*.25*uInner;",
+    /* uRg: where the 50% and the 25% ring end (1.22 / 1.5 by default; --rpb-ring2 / --rpb-ring3) */
+    "    float a2=(1.-smoothstep(uRg.x-.03-.035*uSoft,uRg.x+.035*uSoft,o2))*.5;",
+    "    float a3=(1.-smoothstep(uRg.y-.07-.1*uSoft,uRg.y+.1*uSoft,o3))*.25*uInner;",
     "    float ao=1.-(1.-a1)*(1.-a2)*(1.-a3);",
     "    gl_FragColor=vec4(uC1*ao,ao);return;",
     "  }",
@@ -490,7 +492,7 @@
   }
   var STATS = { ver: CODE_VER, compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
   var progZ = null, UZ = null;
-  var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut", "uWf"];
+  var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut", "uWf", "uRg"];
   /* compile + link WITHOUT asking for the result (asking blocks until the driver is done) */
   function startLink(fs) {
     var p = gl.createProgram(), sh = [];
@@ -635,6 +637,9 @@
        would otherwise get bands as wide as a quarter of its short side, or hairlines at a tiny depth) */
     var bp = parseFloat(cs.getPropertyValue("--rpb-band"));
     if (bp > 0) it.depth = Math.max(0.02, Math.min(1, bp / (0.3 * Math.min(it.w, it.h) / 2)));
+    var r2 = parseFloat(cs.getPropertyValue("--rpb-ring2")), r3 = parseFloat(cs.getPropertyValue("--rpb-ring3")), wk = parseFloat(cs.getPropertyValue("--rpb-wobble"));
+    it.rg = (r2 > 1 || r3 > 1) ? [r2 > 1 ? r2 : 1.22, r3 > 1 ? r3 : 1.5] : null;
+    it.wobK = isNaN(wk) ? 1 : Math.max(0, wk);
     it.deep = parseFloat(cs.getPropertyValue("--rpb-deep")) || 0;
     it.rb = parseFloat(cs.getPropertyValue("--rpb-rainbow")) || 0;
     /* the shine (the white glare at the top right) can be faded per bubble: --rpb-shine 1 -> 0 (the
@@ -679,6 +684,9 @@
      throwaway copy, every bubble drawn in that frame is drawn again in the next one, and the copy
      self-check is re-run (RPBubble.stats.atlasGrow, shown by ?perf=1). */
   var renderEll = false, renderOut = false, grewF = -1, flushCv = null;
+  /* per-element extras for render(), set by draw() around the call: the splash rings' ends and a wobble
+     strength multiplier (--rpb-ring2 / --rpb-ring3 / --rpb-wobble, 2026-10-28) */
+  var renderRg = [1.22, 1.5], renderWobK = 1;
   function grow(W, H) {
     var nw = Math.min(ATLAS_MAX[0], Math.max(glc.width, Math.ceil(W * 1.12 / 64) * 64)), nh = Math.min(ATLAS_MAX[1], Math.max(glc.height, Math.ceil(H * 1.12 / 64) * 64));
     if (nw <= glc.width && nh <= glc.height) return;
@@ -704,7 +712,7 @@
     var dbw = gl.drawingBufferWidth || glc.width, dbh = gl.drawingBufferHeight || glc.height;
     var f = Math.min(1, dbw / W, dbh / H);
     var w = Math.max(1, Math.floor(W * f)), h = Math.max(1, Math.floor(H * f));
-    gl.useProgram(prog); params(U); gl.uniform1f(U.uSh, glow ? 0 : (shine == null ? 1 : shine)); gl.uniform1f(U.uWf, renderOut ? 1 : wfOf(box, rad)); gl.uniform1f(U.uClip, clip ? 1 : 0); gl.uniform1f(U.uEll, renderEll ? 1 : 0); gl.uniform1f(U.uOut, renderOut ? 1 : 0);
+    gl.useProgram(prog); params(U); gl.uniform1f(U.uWob, P.wobble * renderWobK); gl.uniform2f(U.uRg, renderRg[0], renderRg[1]); gl.uniform1f(U.uSh, glow ? 0 : (shine == null ? 1 : shine)); gl.uniform1f(U.uWf, renderOut ? 1 : wfOf(box, rad)); gl.uniform1f(U.uClip, clip ? 1 : 0); gl.uniform1f(U.uEll, renderEll ? 1 : 0); gl.uniform1f(U.uOut, renderOut ? 1 : 0);
     gl.viewport(0, dbh - h, w, h);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3fv(U.uC1, cols[0]); gl.uniform3fv(U.uC2, cols[1]); gl.uniform3fv(U.uC3, cols[2]);
@@ -774,14 +782,14 @@
     } else if (it.opts.splash) {
       /* the shape is the ELEMENT's box; the canvas overhangs it by the bleed, where the outer rings live */
       var sE = Math.min(it.w, it.h) / 2;
-      renderEll = !!it.opts.ellipse; renderOut = true;
+      renderEll = !!it.opts.ellipse; renderOut = true; renderRg = it.rg || [1.22, 1.5]; renderWobK = it.wobK == null ? 1 : it.wobK;
       src = render(it.cols, W, H, [it.w / 2 / sE, it.h / 2 / sE], it.rad, t, it.opts.seed, [w / 2 / sE, h / 2 / sE], it.depth, false, 0, 0, null, false, it.shine);
-      renderEll = false; renderOut = false;
+      renderEll = false; renderOut = false; renderRg = [1.22, 1.5]; renderWobK = 1;
     } else {
       var s = Math.min(w, h), inset = it.opts.inset || 1;
-      renderEll = !!it.opts.ellipse;
+      renderEll = !!it.opts.ellipse; renderWobK = it.wobK == null ? 1 : it.wobK;
       src = render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, [w / s / inset, h / s / inset], it.depth, false, it.deep, it.rb, it.pal, it.clipped, it.shine);
-      renderEll = false;
+      renderEll = false; renderWobK = 1;
     }
     it.ctx.clearRect(0, 0, cw, ch);
     copyOut(it.ctx, src, cw, ch);   /* rendered at W x H, stretched over the whole canvas */
@@ -933,7 +941,7 @@
     if (x.opts.liveWhen) { try { if (!x.opts.liveWhen(x.el)) return "still"; } catch (e) {} }
     return x.ref ? "glow" : "live";
   }
-  function sigOf(x) { return [x.cols && x.cols.join(), x.rad, x.depth, x.deep, x.rb, x.shine, x.w, x.h, x.rw, x.rrad].join("|"); }
+  function sigOf(x) { return [x.cols && x.cols.join(), x.rad, x.depth, x.deep, x.rb, x.shine, x.rg, x.wobK, x.w, x.h, x.rw, x.rrad].join("|"); }
   function frame(now) {
     raf = 0; FR++;
     var gap = last ? now - last : 16; last = now;

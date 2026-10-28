@@ -19,10 +19,10 @@
 <link rel="preload" href="/assets/fonts/KaushanScript-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <link rel="preload" as="image" href="/media/logos/duck-painted.webp" fetchpriority="high">
-<script src="/assets/rp-water.js?v=55c6ff8e6b"></script>
+<script src="/assets/rp-water.js?v=2fb7b58364"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="/media/site/favicon-32.png">
 <link rel="apple-touch-icon" href="/media/site/apple-touch-icon.png">
-<link rel="stylesheet" href="/assets/chrome.css?v=7d6be1fe01">
+<link rel="stylesheet" href="/assets/chrome.css?v=934e5beba6">
 <script src="/assets/socials.js?v=691174df7f"></script>
 <!-- Reserve the event-banner's height before first paint (shared with studio + rentals). MUST be in <head>, no defer. -->
 <script src="/assets/banner-reserve.js?v=c666a94c98"></script>
@@ -405,7 +405,7 @@ html.xw-active{overflow:hidden}
 /* page-load veil: masks first-load image pop-in; self-removing, never blocks interaction */
 (function(){var v=document.getElementById('pageveil');if(!v)return;var done=false;
   /* ENTERING THE WATER (assets/rp-water.js, 2026-10-27): this page's sky is its dark-blue header */
-  var W=window.RPWater,ctl=(W&&W.ok)?W.veil(v,{sky:'#0b2545',duck:'/media/logos/duck-painted.webp'}):null;
+  var W=window.RPWater,ctl=(W&&W.ok)?W.veil(v,{sky:'#0b2545',duck:'/media/logos/duck-painted.webp',join:'#2a3348',deep:'linear-gradient(180deg,#2a3348 0px,#1e1d31 450px,#06122b 900px)'}):null;
   var peekT=setTimeout(function(){if(ctl&&!done)ctl.peek();},450);
   function gone(){v.classList.add('pv-gone');}
   function hide(){if(done)return;done=true;clearTimeout(peekT);if(ctl){ctl.reveal();return;}v.classList.add('pv-hide');var t=setTimeout(gone,900);v.addEventListener('transitionend',function(){clearTimeout(t);gone();},{once:true});}

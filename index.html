@@ -85,7 +85,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <!-- the duck floating on the load cover (assets/rp-water.js) -->
 <link rel="preload" as="image" href="/media/logos/duck-painted.webp" fetchpriority="high">
-<script src="/assets/rp-water.js?v=55c6ff8e6b"></script>
+<script src="/assets/rp-water.js?v=2fb7b58364"></script>
 <!-- Start the page's data downloads with the HTML (2026-10-27): the page builds itself from these and used to
      request them only once the whole document and its scripts had been read, 150 to 300 ms later. -->
 <link rel="preload" href="/data/site.json" as="fetch" crossorigin="anonymous">
@@ -121,7 +121,7 @@ html.xw-active{overflow:hidden}
 <script>/* pre-paint: covered arrival for a handed-off cross-site wipe (#rpt=x|y|c1|c2|c3) - paint the same gradient before first paint; shared social_ui.js retracts it to the carried click point */(function(){try{var m=/[#&]rpt=([^&]+)/.exec(location.hash||"");if(!m)return;var ok=function(c){return(/^#[0-9a-f]{3,8}$/i.test(c)||/^rgba?\([\d ,.%]+\)$/i.test(c))?c:"";};var p=m[1].split("|"),x=parseFloat(p[0]),y=parseFloat(p[1]);if(!(x>=0&&x<=100))x=50;if(!(y>=0&&y<=100))y=50;var c1=ok(decodeURIComponent(p[2]||""))||"#3f6bff",c2=ok(decodeURIComponent(p[3]||""))||c1,c3=ok(decodeURIComponent(p[4]||""))||c2;var d=document.createElement("div");d.style.cssText="position:fixed;inset:0;height:100vh;height:100lvh;z-index:2147483001;pointer-events:none;background:radial-gradient(circle at "+x+"% "+y+"%,"+c1+","+c2+" 52%,"+c3+" 100%)";document.documentElement.appendChild(d);window.__RPT={el:d,x:x,y:y};if(window.__setThemeColor)window.__setThemeColor(c1);}catch(e){}})();</script>
 <!-- Social icons + footer: one shared stylesheet, so the studio, rentals and the
      maintenance cover cannot drift apart. See assets/chrome.css. -->
-<link rel="stylesheet" href="/assets/chrome.css?v=7d6be1fe01">
+<link rel="stylesheet" href="/assets/chrome.css?v=934e5beba6">
 <link rel="stylesheet" href="/assets/date-picker.css?v=1b8e62883c">
 <link rel="stylesheet" href="/assets/crew-form.css?v=aa043d129e">
 <style>
@@ -1400,7 +1400,7 @@ html.xw-active{overflow:hidden}
     /* ENTERING THE WATER (assets/rp-water.js): white holds while the page loads; when it is ready we dive
        in: the waterline rises from below the screen and the page rides up with it (2026-10-27). Without
        canvas / with reduced motion: the old plain fade. */
-    var W=window.RPWater, ctl=(W&&W.ok)?W.veil(v,{sky:'#ffffff',duck:'/media/logos/duck-painted.webp'}):null;
+    var W=window.RPWater, ctl=(W&&W.ok)?W.veil(v,{sky:'#ffffff',duck:'/media/logos/duck-painted.webp',join:'#e0f0fe',deep:'linear-gradient(180deg,#e0f0fe 0px,#b3ddf7 100px,#8bc0ea 200px,#68a4dc 300px,#4784c3 450px,#2f6aa8 650px,#1d4f87 1000px)'}):null;
     window.__veilCtl=ctl;
     if(window.__setThemeColor)window.__setThemeColor('#ffffff');
     function gone(){v.classList.add('pv-gone');if(window.RPWater&&RPWater.markGone)RPWater.markGone();}
@@ -1579,7 +1579,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= is the file's content hash, set automatically on every commit (tools/stamp-assets.py): never edit it by hand -->
-<script src="/assets/rp-bubble.js?v=e61e28f408"></script>
+<script src="/assets/rp-bubble.js?v=f11cb3acb4"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -3756,7 +3756,7 @@ function __pageFade(swap){
       if(started)return;started=true;
       try{__instTop();}catch(e){}                                  // re-assert top: nothing may have scrolled under the cover
       /* the same dive into the water as the page load, a little quicker */
-      if(window.RPWater&&RPWater.ok){if(window.__resetThemeColor)window.__resetThemeColor(0);RPWater.veil(v,{sky:'#ffffff',look:window.__veilLook,signal:false,duck:'/media/logos/duck-painted.webp'}).reveal(function(){v.style.transition='';v.style.opacity='';},1300);return;}
+      if(window.RPWater&&RPWater.ok){if(window.__resetThemeColor)window.__resetThemeColor(0);RPWater.veil(v,{sky:'#ffffff',look:window.__veilLook,signal:false,duck:'/media/logos/duck-painted.webp',join:'#e0f0fe',deep:'linear-gradient(180deg,#e0f0fe 0px,#b3ddf7 100px,#8bc0ea 200px,#68a4dc 300px,#4784c3 450px,#2f6aa8 650px,#1d4f87 1000px)'}).reveal(function(){v.style.transition='';v.style.opacity='';},1300);return;}
       v.style.transition='opacity .34s ease';v.style.opacity='0';
       if(window.__resetThemeColor)window.__resetThemeColor(340);   // restore chrome as the veil fades out
       var fin=function(){v.classList.add('pv-gone');v.style.transition='';v.style.opacity='';};

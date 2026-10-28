@@ -124,8 +124,10 @@ a.xchip:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
 a.soc3{position:relative;isolation:isolate;overflow:visible;background:transparent!important;border-color:transparent!important;color:#fff!important;box-shadow:none!important}
 a.soc3>.soc3-face{position:absolute;inset:0;border-radius:50%;z-index:-1;pointer-events:none;
   background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 52%,var(--s3) 100%)}
-a.soc3>.soc3-ring{position:absolute;inset:0;border-radius:50%;z-index:-2;pointer-events:none;--rpb-depth:.8;
-  box-shadow:0 0 4px 3px var(--sr50),0 0 11px 7px var(--sr25)}
+/* rings (2026-10-28, Jack: the 50% ring was barely visible, the 25% ring too far out, too much wiggle): the
+   50% ring wider (to 1.34), the 25% ring just beyond it (to 1.52), the wobble at 45% */
+a.soc3>.soc3-ring{position:absolute;inset:0;border-radius:50%;z-index:-2;pointer-events:none;--rpb-depth:.9;--rpb-ring2:1.34;--rpb-ring3:1.52;--rpb-wobble:.45;
+  box-shadow:0 0 3px 4px var(--sr50),0 0 7px 7px var(--sr25)}
 a.soc3.soc3-gl>.soc3-ring{box-shadow:none}
 a.soc3 svg,a.soc3 .soc-ico{position:relative;z-index:1;fill:#fff}
 .rp-soc a.soc3,.rp-footer .fsoc a.soc3{transition:transform .18s ease}
