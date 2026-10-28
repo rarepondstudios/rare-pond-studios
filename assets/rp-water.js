@@ -278,10 +278,17 @@
       try { heads = [].slice.call(document.querySelectorAll(o.header || "body > header")); } catch (e) {}
       if (o.dive !== false) heads.forEach(function (h) { try { anims.push(h.animate([{ opacity: 0 }, { opacity: 0 }], opts)); headIn.push(h); } catch (e) {} });
       if (o.dive !== false) {
-        var pf = frames(pageY);
+        var pf = frames(pageY), pfT = null;
+        /* an element that has a transform of its own (an off-canvas panel parked at translateX(100%): the
+           Rentals cart, the phone menu) rides on the separate `translate` property instead, which ADDS to its
+           transform; replacing it showed those hidden panels during the rise (2026-10-28 cross-page test) */
+        var TR = !!(window.CSS && CSS.supports && CSS.supports("translate", "0px 1px"));
         divers().forEach(function (n) {
-          n.__rpwWC = n.style.willChange; n.style.willChange = "transform"; moved.push(n);
-          try { anims.push(n.animate(pf, opts)); } catch (e) {}
+          var own = false; try { own = getComputedStyle(n).transform !== "none"; } catch (e) {}
+          if (own && !TR) return;   /* cannot compose: leave it where it is */
+          if (own && !pfT) pfT = pf.map(function (f) { return { offset: f.offset, translate: "0px " + /,([-\d.]+)px,0\)/.exec(f.transform)[1] + "px" }; });
+          n.__rpwWC = n.style.willChange; n.style.willChange = own ? "translate" : "transform"; moved.push(n);
+          try { anims.push(n.animate(own ? pfT : pf, opts)); } catch (e) {}
         });
       }
       el.style.background = "transparent";

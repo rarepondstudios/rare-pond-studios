@@ -85,7 +85,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <!-- the duck floating on the load cover (assets/rp-water.js) -->
 <link rel="preload" as="image" href="/media/logos/duck-painted.webp" fetchpriority="high">
-<script src="/assets/rp-water.js?v=86b0bfe717"></script>
+<script src="/assets/rp-water.js?v=557d5b2d82"></script>
 <!-- Start the page's data downloads with the HTML (2026-10-27): the page builds itself from these and used to
      request them only once the whole document and its scripts had been read, 150 to 300 ms later. -->
 <link rel="preload" href="/data/site.json" as="fetch" crossorigin="anonymous">
@@ -3002,7 +3002,7 @@ function openUniverse(key){
   sec.style.transition='';
 
   /* no flight when another film is already covering the page (its bubbles are hidden under it) */
-  const zh=(sec._fromEl||(currentOpen&&currentOpen!==sec))?null:zoomHost(key);
+  const zh=(window.__bootOpen||sec._fromEl||(currentOpen&&currentOpen!==sec))?null:zoomHost(key);
   let zoomed=false;
   if(zh&&uZoom(sec,zh,'in',()=>{
     /* landed: hand the page back to its normal open state (nothing moves after this point) */
@@ -3817,7 +3817,7 @@ addEventListener('popstate',()=>{
 function routeHash(){const h=(location.hash||'').replace('#','');if(!h)return;if((h==='team'||h==='projects'||h==='news')&&routeClosed('/'+h)){location.replace('/'+h);return;}if(currentOpen)closeUniverse(currentOpen);if(h==='team'){try{history.replaceState({},'','/team');}catch(e){}showView('team');}else if(h==='projects'){try{history.replaceState({},'','/projects');}catch(e){}showView('projects');}else if(h==='news'){try{history.replaceState({},'','/news');}catch(e){}showView('news');}else if(h==='contact'){if(window.RP_openContact)RP_openContact();}else if(h==='about')showView('home','#about');}
 addEventListener('hashchange',routeHash);
 /* initial route */
-(function initRoute(){const __l=cpLegacySlug();if(__l&&PAGE_BY_SLUG[__l])history.replaceState({},'',cpUrl(__l));const __s=cpSlugFromUrl();if(__s){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='news'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');const nm0=/^news\/([^\/]+)$/.exec(seg);if(nm0&&NEWS_BY_KEY[newsKey(nm0[1])]){history.replaceState({},'','/news');showView('news');history.pushState({},'',p);openNews(newsKey(nm0[1]));}else if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);openUniverse(SLUG2KEY[seg]);}else renderPath(p);})();
+(function initRoute(){const __l=cpLegacySlug();if(__l&&PAGE_BY_SLUG[__l])history.replaceState({},'',cpUrl(__l));const __s=cpSlugFromUrl();if(__s){openCustomPage(__s);return;}const h=(location.hash||'').replace('#','');if(h==='team'||h==='projects'||h==='news'||h==='contact'||h==='about'){routeHash();return;}const p=(location.pathname||'/').replace(/\/+$/,'')||'/';const seg=p.replace(/^\//,'');const nm0=/^news\/([^\/]+)$/.exec(seg);if(nm0&&NEWS_BY_KEY[newsKey(nm0[1])]){history.replaceState({},'','/news');showView('news');history.pushState({},'',p);openNews(newsKey(nm0[1]));}else if(SLUG2KEY[seg]){history.replaceState({},'','/projects');showView('projects');history.pushState({},'',p);/* a film's own link opens the film straight away, under the load cover (no flight from its bubble: the visitor never saw the projects page, 2026-10-28 cross-page test) */window.__bootOpen=true;try{openUniverse(SLUG2KEY[seg]);}finally{window.__bootOpen=false;}}else renderPath(p);})();
 __routeBooted=true;
 
 /* The colour looks (assets/looks.js) may have been applied before the bubbles above existed:
