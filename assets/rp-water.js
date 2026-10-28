@@ -155,6 +155,19 @@
         var n = kids[i];
         if (n === el || n.id === "xwipe" || n.id === "rp-cursor" || /^(SCRIPT|STYLE|LINK|NOSCRIPT|TEMPLATE)$/.test(n.tagName) || n.hasAttribute("data-no-dive") || heads.indexOf(n) >= 0) continue;
         if (/(^|\s)rpc-/.test(n.className || "")) continue;
+        /* a container that sits off the screen (e.g. the Studio's #universes at the end of the page) can
+           still hold FIXED overlays that are on the screen (a film opened from its own link): moving the
+           container would carry those overlays off with it (a transform makes it their frame), so the
+           overlays ride by themselves instead (2026-10-28 cross-page test: /geriaction showed the projects
+           page during the rise, the film only after it) */
+        var r = n.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > 1.5 * (innerHeight || H)) {
+          for (var j = 0; j < n.children.length; j++) {
+            var c = n.children[j], cs = getComputedStyle(c);
+            if (cs.position === "fixed" && cs.display !== "none" && cs.visibility !== "hidden") out.push(c);
+          }
+          continue;
+        }
         out.push(n);
       }
       return out;
