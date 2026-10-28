@@ -171,7 +171,10 @@
       +'<span class="rpc-consent-btns"><button type="button" class="rpc-consent-no">Decline</button><button type="button" class="rpc-consent-yes">Accept</button></span>';
     document.body.appendChild(b);
     /* force the start position to be computed first, or the slide-in can be skipped and the banner just appears (pop-in audit, 2026-10-27) */
-    void b.offsetWidth; requestAnimationFrame(function(){ void b.offsetWidth; b.classList.add('rpc-consent-in'); });
+    function slideIn(){ void b.offsetWidth; requestAnimationFrame(function(){ void b.offsetWidth; b.classList.add('rpc-consent-in'); }); }
+    /* ...and not while the page's load cover is still moving (2026-10-27: it sat at the bottom of the screen
+       while the page dived in underneath it): after the cover has gone, at most 6 s */
+    if(window.RPWater&&RPWater.whenGone){ var sT=setTimeout(slideIn,6000); RPWater.whenGone(function(){ clearTimeout(sT); setTimeout(slideIn,250); }); } else slideIn();
     function done(v){ consentSet(v); b.classList.remove('rpc-consent-in'); setTimeout(function(){ if(b.parentNode)b.parentNode.removeChild(b); },300); if(v==='accepted')warm(); }
     b.querySelector('.rpc-consent-yes').addEventListener('click',function(){ done('accepted'); });
     b.querySelector('.rpc-consent-no').addEventListener('click',function(){ done('declined'); });
