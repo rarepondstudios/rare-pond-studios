@@ -328,11 +328,12 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
  .rpfrow{flex-direction:column;gap:6px}
  .rpflab{flex:none;padding-top:0}
  .rpfclear{margin-left:0}
- .home .logowrap{padding:10px 26px 12px!important}
+ .home .logowrap{padding:18px 40px 20px!important}
  .home .logowrap img.hlogo{width:min(220px,50vw)!important}
 }
 /* Home: compact hero (brand kit logo, name beside the duck) and the search results right under the bar */
-.home .logowrap{padding:14px 38px 16px!important;margin:4px 0 12px!important}
+/* (2026-10-28, Jack) a roomier white backdrop, so its oval does not cut close to the logo's corners */
+.home .logowrap{padding:26px 62px 28px!important;margin:4px 0 12px!important}
 .home .logowrap img.hlogo{width:min(300px,62vw)!important;height:auto;display:block;margin:0}
 .hsearch{width:100%;max-width:min(100%,960px);margin:14px auto 4px;text-align:left;align-self:stretch}
 #hres{width:100%}

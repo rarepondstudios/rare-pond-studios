@@ -178,7 +178,8 @@ main{position:relative;z-index:2}
 #xwipe{position:fixed;top:0;bottom:0;left:0;width:100vw;z-index:2147483600;background:linear-gradient(90deg,#56c8ff 0%,#3f6bff 50%,#9b5cff 100%);pointer-events:none;display:none}
 html.xw-cover #xwipe,html.xw-active #xwipe{display:block}
 html.xw-active{overflow:hidden}
-#pageveil{position:fixed;inset:0;z-index:2147483000;background:#0b2545;pointer-events:none;opacity:1}
+/* the load cover starts WHITE like the other pages (2026-10-28, Jack); the water is this page's own navy */
+#pageveil{position:fixed;inset:0;z-index:2147483000;background:#ffffff;pointer-events:none;opacity:1}
 #pageveil.pv-hide{opacity:0;transition:opacity .55s ease}
 #pageveil.pv-gone{display:none}
 @media (prefers-reduced-motion:reduce){#xwipe{display:none!important}#pageveil.pv-hide{transition:none}}
@@ -404,8 +405,9 @@ html.xw-active{overflow:hidden}
 <script>
 /* page-load veil: masks first-load image pop-in; self-removing, never blocks interaction */
 (function(){var v=document.getElementById('pageveil');if(!v)return;var done=false;
-  /* ENTERING THE WATER (assets/rp-water.js, 2026-10-27): this page's sky is its dark-blue header */
-  var W=window.RPWater,ctl=(W&&W.ok)?W.veil(v,{sky:'#0b2545',duck:'/media/logos/duck-painted.webp',join:'#2a3348',deep:'linear-gradient(180deg,#2a3348 0px,#1e1d31 450px,#06122b 900px)'}):null;
+  /* THE LOAD COVER (assets/rp-water.js): white sky like every page, the water in this page's own navy
+     blues, running into the page's background (2026-10-28) */
+  var W=window.RPWater,ctl=(W&&W.ok)?W.veil(v,{sky:'#ffffff',duck:'/media/logos/duck-painted.webp',look:{c1:'#2c5d96',c2:'#173d6e',c3:'#3a6fae'},join:'#0b2545',deep:'linear-gradient(180deg,#0b2545 0px,#081a3a 500px,#06122b 900px)'}):null;
   var peekT=setTimeout(function(){if(ctl&&!done)ctl.peek();},450);
   function gone(){v.classList.add('pv-gone');}
   function hide(){if(done)return;done=true;clearTimeout(peekT);if(ctl){ctl.reveal();return;}v.classList.add('pv-hide');var t=setTimeout(gone,900);v.addEventListener('transitionend',function(){clearTimeout(t);gone();},{once:true});}
