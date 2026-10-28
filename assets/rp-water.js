@@ -236,12 +236,11 @@
       /* the surface (and the duck) rises until the front layer's bottom edge is off the top */
       var S = yFB + 3 * A + 0.02 * H;
       function ry(e) { return -S * e; }
-      /* the page: its top rides just under the front layer, then eases into place (a smooth "max(y, 0)"
-         so it decelerates instead of stopping dead) while the surface carries on over the top */
-      var from = yFB, to = yFB - S, c = 0.22 * H;
-      function F(y) { return (y + Math.sqrt(y * y + c * c)) / 2; }
-      var F0 = F(to), sc = from / (F(from) - F0);
-      function pageY(e) { return (F(yFB + ry(e)) - F0) * sc; }
+      /* the page: its top rides exactly on the front layer's bottom edge, so there is never a gap between the
+         water and the page (a lag let the page's dark backdrop show through as a hard line, 2026-10-28), and
+         it stops at its place; by then the rise is nearly done, so the stop is all but motionless */
+      /* (tucked a wave's height under the edge, which wobbles: the page's top is the edge's own colour) */
+      function pageY(e) { return Math.max(0, yFB - 1.2 * A - 2 + ry(e)); }
       var opts = { duration: ms, easing: "linear", fill: "both" };
       anims.push(rig.animate(frames(ry), opts));
       /* the deep water clears as it starts to rise, so the page is there under the surface */
