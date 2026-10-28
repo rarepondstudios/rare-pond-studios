@@ -39,6 +39,16 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-147 MEDIA COVER STARTS WHITE, RENTALS LOGO BACKDROP ROOMIER (2026-10-28)
+
+- Media (media/index.html): the load cover starts white like every page (`#pageveil` CSS and `sky:'#ffffff'`;
+  it was the dark header blue), and the water is the page's own navy (`look` #2c5d96 / #173d6e / #3a6fae,
+  `join` #0b2545, `deep` #0b2545 -> #081a3a -> #06122b), so it runs into the page. Checked with
+  coversuite (desktop, iPhone) and the pop-in audit.
+- Rentals (rentals/assets/styles.css): the white backdrop around the logo is a bigger oval (padding 26 / 62 /
+  28 px, phones 18 / 40 / 20) so it no longer cuts close to the logo's corners, with a little more room
+  above it (margin-top 18 px) so its outer ring clears the category tabs.
+
 ### 0.0.-146 LOADER EASES IN, CROSS-PAGE / CROSS-DEVICE FIXES, WHITE LOGO BUBBLE, CLEAN RENTALS POPUP (2026-10-28)
 
 - Jack: the page's arrival ended abruptly; ease the header in; test the transition on every page it
