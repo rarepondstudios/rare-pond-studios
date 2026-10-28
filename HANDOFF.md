@@ -39,6 +39,24 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-143 THE WATER JOINS THE PAGE'S BLUE, HEADER AFTER, DUCK ROCKS, ICON RINGS (2026-10-28)
+
+- Jack: the rising water must lead straight into the page's own blue background, the white header coming
+  in afterwards (there was a too-dark wave, then the white header, and a harsh line behind it); the duck
+  should rock back and forth with the waves; the social icons' 50% ring was barely visible and the 25% ring
+  too far out, too much wiggle.
+- rp-water.js `veil`: new options `join` (the front water layer's colour = the page's background colour at
+  its top) and `deep` (a CSS background copying the page's own background, top aligned to the page's top),
+  sampled per page: Studio #e0f0fe -> #1d4f87, Rentals #2e71b7 -> #0e2a50, Media #2a3348 -> #06122b,
+  legal #193f66 -> #0b213e (set in each page's veil / RPWater.page call). Default water blues lighter
+  (`WATER` #8bc0ea / #68a4dc / #a3d3f3). The page rides exactly on the front layer's edge (tucked a wave
+  under it), so the dark page backdrop never shows; `opts.header` (default `body > header`) is held back
+  during the rise and fades / drops in after it. The duck sways sideways and rocks as it bobs (4.2 s loop).
+- rp-bubble.js: `--rpb-ring2` / `--rpb-ring3` (splash ring ends, default 1.22 / 1.5) and `--rpb-wobble`
+  (wobble strength, any bubble). Social icons: depth .9, rings 1.34 / 1.52, wobble .45.
+- Verified: recordings of the Studio load and rise (no dark line, header after), icon screenshots at rest
+  and hovered, pop-in audit clean on the six main pages in Chrome desktop, mobile and WebKit.
+
 ### 0.0.-142 DUCK LOADER, V3 SOCIAL ICONS, RIM WAVES FOLLOW THE SHAPE, FASTER FIRST SCREENS (2026-10-28)
 
 - Load cover (rp-water.js `veil`, master `bts-automation/rp_water.js`): while loading, the sky over the top

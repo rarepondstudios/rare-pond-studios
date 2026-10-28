@@ -718,7 +718,9 @@ Standard for every site: `AI_System_Context/procedures/website-quality.md`. Engi
   layout; Media = fonts + load; legal = text drawn + logo decoded (`RPWater.page`). Caps 3 to 4 s.
 - The cover (`RPWater.veil`): while loading, mid-screen water in three depth layers with the painted duck
   floating (`opts.duck`); when ready the duck and water rise (2 s) and every top-level element of the page
-  rides up under them (`data-no-dive` opts an element out). Readiness helper for new pages:
+  rides up under them (`data-no-dive` opts an element out). Each page passes `join` (its background colour
+  at the top) and `deep` (its own background as CSS) so the water runs straight into the page's blue; the
+  header (`opts.header`, default `body > header`) comes in after the rise. Readiness helper for new pages:
   `RPWater.firstScreen(cap)` (on-screen images and video, never the window load event). Colours:
   data/site.json `veil.colorLook`, "water" = the Studio background blues (default), or a colour look's
   name; "enabled: off" shows the page with no cover.
