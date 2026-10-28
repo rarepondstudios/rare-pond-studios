@@ -39,6 +39,32 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-146 LOADER EASES IN, CROSS-PAGE / CROSS-DEVICE FIXES, WHITE LOGO BUBBLE, CLEAN RENTALS POPUP (2026-10-28)
+
+- Jack: the page's arrival ended abruptly; ease the header in; test the transition on every page it
+  applies to, across devices; the home page's logo-animation bubble white inside with a subtle blue
+  vignette; no three-tier rim on the Rentals gear popup.
+- rp-water.js: the page slows smoothly into place (u^2/2c over the last 13% of the screen, running just
+  ahead of the water's edge under a thicker 11% solid front layer, so nothing ever shows between them); the
+  header fades and drops in over 0.72 s on a gentler curve.
+- Cross-page / cross-device test (`~/claude_perf/coversuite.mjs <base> <devices>`: holds the cover's
+  animations at 0 / 20 / 40 / 60 / 80 / 95% of the rise on /, /team, /projects, /news, /geriaction,
+  /rentals, /media, /privacy/, /terms/ on desktop Chrome, phone Chrome, iPad and iPhone WebKit, Firefox;
+  contact sheets in ~/claude_ae_stage/cs). Found and fixed:
+  1. Rentals: the hidden cart panel (parked off-canvas by its own transform) showed during the rise. Elements
+     with their own transform now ride on the separate `translate` property, which adds to it.
+  2. A film's own link (/geriaction): the projects page rose, then the film zoomed in. The film now opens
+     straight away under the cover (`window.__bootOpen` skips the flight), and fixed overlays inside an
+     off-screen container (#universes) ride by themselves (moving the container carried them off-screen).
+  3. Safari / WebKit: the water had hard edges. WebKit accepts `ctx.filter` but ignores it, so canvas blur is
+     now tested by drawing, and without it the layer is drawn small and scaled up (soft edges).
+  /submit-a-screenplay is not public (maintenance page), so it has no cover.
+- index.html: `.about-anim-slot` inside is white with a blue vignette at the edge (the brand kit's
+  RP_BG-Vignette_WHITE colours: #ffffff to #d2e7f8), rim and glow unchanged.
+- rentals/assets/v3.js: the gear popup no longer gets a rim (cards keep theirs).
+- Verified: pop-in audit clean on 7 pages in Chrome desktop, mobile, WebKit and Firefox (one cold-start "no
+  cover" on the first page of one run did not repeat in two reruns).
+
 ### 0.0.-145 LOADER: LAST FAINT LINE GONE, DUCK ON THE LOWER THIRD (2026-10-28)
 
 - Jack: still a super faint line; the duck should start on the lower third, not the middle.
