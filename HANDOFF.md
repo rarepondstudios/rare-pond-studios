@@ -39,6 +39,18 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-145 LOADER: LAST FAINT LINE GONE, DUCK ON THE LOWER THIRD (2026-10-28)
+
+- Jack: still a super faint line; the duck should start on the lower third, not the middle.
+- Found on paused frames of the rise (animations held at fixed times, layer rects logged): the BACK water
+  layer (most blur) filled down to its canvas edge, so its soft bottom edge sat inside the front layer's
+  fade and showed as a faint line; and the front layer's body and its fade were two separately blurred
+  pieces meeting at a seam. Now the back and middle layers end (blur included) inside the front layer's
+  solid part (`yF + 0.42 * tF`), and the front layer is drawn as one shape with the fade cut out of it
+  afterwards, unblurred. Row-by-row brightness profiles of the frames show no step anywhere in the
+  transition (largest second difference 2 levels, quantisation).
+- Waterline at 66% of the screen height (was 50%).
+
 ### 0.0.-144 LOADER: WATER FADES INTO THE PAGE, SHORTER (2026-10-28)
 
 - Jack: still a faint harsh line between the wave and the page background during the opening transition;
