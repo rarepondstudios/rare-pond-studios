@@ -179,7 +179,7 @@
       /* with a tail the shape runs on down to the canvas bottom, in one piece (two blurred pieces meeting at
          the edge left a faint seam where both blurs thinned out); the fade is then cut out of it afterwards,
          unblurred */
-      for (i = w + 20; i >= -pad - 20; i -= step) x.lineTo(i, tail ? h + 20 : yb + (phB == null ? pad + 20 : pw(i - ox, P, A, phB)));
+      for (i = w + 20; i >= -pad - 20; i -= step) x.lineTo(i, tail ? h + 20 : yb + (phB == null ? 0 : pw(i - ox, P, A, phB)));
       x.closePath(); x.fill();
       if (tail) {
         x.filter = "none"; x.globalAlpha = 1; x.globalCompositeOperation = "destination-out";
@@ -201,10 +201,13 @@
       scene = rig;
       /* the sky, behind the translucent layers, down into the front layer */
       var s = document.createElement("div");
-      s.style.cssText = "position:absolute;left:0;right:0;top:" + (-H) + "px;height:" + (H + yF + tF / 2) + "px;background:" + sky;
+      s.style.cssText = "position:absolute;left:0;right:0;top:" + (-H) + "px;height:" + (H + yF + 0.42 * tF) + "px;background:" + sky;
       rig.appendChild(s);
-      layer(yB, yF + tF / 2, 2.2, null, 0.25, 0.013 * H, 11);         /* back: 25%, most blur, drifts left */
-      layer(yM, yF + tF / 2, 1.3, null, 1 / 3, 0.6, -8.5);            /* middle: 25% + 1/3 = 50%, sharp, drifts right */
+      /* the back and middle layers end (blur included) well inside the front layer's solid part: the back
+         layer's soft bottom edge used to reach past it into the front layer's fade and showed there as a
+         faint line (2026-10-28) */
+      layer(yB, yF + 0.42 * tF, 2.2, null, 0.25, 0.013 * H, 11);     /* back: 25%, most blur, drifts left */
+      layer(yM, yF + 0.42 * tF, 1.3, null, 1 / 3, 0.6, -8.5);        /* middle: 25% + 1/3 = 50%, sharp, drifts right */
       if (o.duck) {
         duckBox = document.createElement("div");
         var dh = Math.max(64, Math.min(0.17 * H, 200, 0.3 * W)), dw = dh * 1.32;
