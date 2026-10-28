@@ -363,6 +363,8 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
 - Per-item settings in NocoDB (items view): `sticker_size` (S / M / L), `sticker_details` (the logo + item-name piece; `sticker_addon` until 2026-10-27), `cable_tie`,
   `cable_wrap` (short / long / longer; longer = long + 1 in of band, only 3117 Sandbag). Prefilled by rule 2026-10-23; containers are always L.
 - `make.py dept "Grip & Electric"` makes every sticker of one department (containers, items, sub-items by their root's department).
+- Sheets are packed tight (`rentals_stickers/packing.py`: MaxRects, stickers may turn 90 degrees, each sheet filled as full as
+  possible so only the last is partial). `make.py repack <batch>` redoes an existing batch's sheets (same stickers, no new records).
 - Every sticker made is a row in `public.sticker_prints`; `printed <batch>` stamps it once the batch is on
   the gear, and `refill` makes only what has no stamped sticker for its current code.
 - Before drawing anything `make.py` checks the batch and stops with a list if a department has no color,

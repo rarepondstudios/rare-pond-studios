@@ -46,7 +46,9 @@
   Only 3117 Sandbag (25lb) uses it; every other item keeps its wrap. Design v67: `CABLE["longer"] = long + 1.0 in` (2.6 in wrap,
   item cable tie 4.09 in flat vs 3.09 long), band thickness as long.
 - `make.py dept <department>`: one department's stickers. First run: `~/Desktop/RarePond_Rental_Labels/Print_2026-10-27_Grip_Electric`
-  (6 Cricut sheets, 3 case-number SVGs; recorded in sticker_prints, not yet marked printed).
+  (3 case-number SVGs; recorded in sticker_prints, not yet marked printed). Repacked the same day with the new tight packer
+  (`rentals_stickers/packing.py`, `make.py repack <batch>`): 6 sheets -> 5 (four full, the fifth a 2.53 in strip of pills).
+  Brand sheets (`make.py brand`) keep the old shelf packer (`pack_shelf`). Shelf-packed copy in ~/.Trash.
 
 ### 0.0.-141 DIVING IN, COVERS ON THE COMPOSITOR, SWEEP WAITS FOR THE PAGE (2026-10-27)
 
