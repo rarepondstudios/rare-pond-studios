@@ -182,9 +182,18 @@
       var k = res(), pad = Math.ceil(3 * blur + 2 * A + 4), w = W + P + 2 * pad, h = (bot - top) + 2 * pad + tail;
       var c = document.createElement("canvas"); c.className = "rpw"; c.setAttribute("aria-hidden", "true");
       c.width = Math.max(2, Math.round(w * k)); c.height = Math.max(2, Math.round(h * k));
-      c.style.cssText = "position:absolute;left:" + (-pad) + "px;top:" + (top - pad) + "px;width:" + w + "px;height:" + h + "px;display:block;pointer-events:none;will-change:transform" + (!CF && blur > 1.5 ? ";filter:blur(" + blur.toFixed(1) + "px)" : "");
-      var x = c.getContext("2d"); x.setTransform(k, 0, 0, k, 0, 0);
-      if (CF && blur > 0.3) x.filter = "blur(" + (blur * k).toFixed(2) + "px)";
+      c.style.cssText = "position:absolute;left:" + (-pad) + "px;top:" + (top - pad) + "px;width:" + w + "px;height:" + h + "px;display:block;pointer-events:none;will-change:transform";
+      var x0 = c.getContext("2d"), x = x0, sm = null, f = 1;
+      x0.setTransform(k, 0, 0, k, 0, 0);
+      if (CF && blur > 0.3) x0.filter = "blur(" + (blur * k).toFixed(2) + "px)";
+      else if (blur > 1.5) {
+        /* no canvas filter (Safari): draw the shape small and scale it up smoothly, which softens its
+           edges by about as much (the old fallback, a CSS blur on the moving canvas, did not show in WebKit,
+           2026-10-28 cross-device test) */
+        f = Math.max(1, blur * k * 0.9);
+        sm = document.createElement("canvas"); sm.width = Math.max(2, Math.ceil(c.width / f)); sm.height = Math.max(2, Math.ceil(c.height / f));
+        x = sm.getContext("2d"); x.setTransform(k / f, 0, 0, k / f, 0, 0);
+      }
       var step = Math.max(8, W / 120), i, ox = pad;   /* local x = screen x + pad (at drift 0) */
       x.globalAlpha = al; x.fillStyle = fill || cgrad(x, w, P, L); x.beginPath();
       for (i = -pad - 20; i <= w + 20; i += step) { var y = pad + (phT == null ? 0 : pw(i - ox, P, A, phT)); i === -pad - 20 ? x.moveTo(i, y) : x.lineTo(i, y); }
@@ -194,6 +203,8 @@
          unblurred */
       for (i = w + 20; i >= -pad - 20; i -= step) x.lineTo(i, tail ? h + 20 : yb + (phB == null ? 0 : pw(i - ox, P, A, phB)));
       x.closePath(); x.fill();
+      if (sm) { x0.setTransform(1, 0, 0, 1, 0, 0); x0.imageSmoothingEnabled = true; try { x0.imageSmoothingQuality = "high"; } catch (e) {} x0.drawImage(sm, 0, 0, sm.width * f, sm.height * f); x0.setTransform(k, 0, 0, k, 0, 0); }
+      x = x0;
       if (tail) {
         x.filter = "none"; x.globalAlpha = 1; x.globalCompositeOperation = "destination-out";
         var tg = x.createLinearGradient(0, yb, 0, yb + tail);
