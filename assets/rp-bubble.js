@@ -65,7 +65,7 @@
     "uniform vec3 uPal[8];",
     "uniform float uPalN,uRb;",
     "uniform vec2 uRad;",
-    "uniform float uDeep,uDepth,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol,uSh,uClip,uEll,uOut;",
+    "uniform float uDeep,uDepth,uT,uSeed,uPx,uWob,uSoft,uSpin,uInner,uCol,uSh,uClip,uEll,uOut,uWf;",
     /* Ashima / Stefan Gustavson 3D simplex noise (MIT) */
     "vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;}",
     "vec4 m289(vec4 x){return x-floor(x*(1./289.))*289.;}",
@@ -192,9 +192,14 @@
     /* ---- ALPHA (Alpha_Shape + Alpha_Effects pre-comps) ----
        ONE turbulence field drives both wobbling bands (Edge 2 and Edge 3 sample it with different
        amounts and swizzles), and the 4px Minor Edge Distortion is too small to see at web sizes. */
-    "  vec2 w=wv(p,1.9,z+3.);",
-    "  float r2=rr(p+uWob*.045*w);",                                 // Edge 2 turbulent displace
-    "  float r3=rr(p+uWob*.065*vec2(w.y,-w.x));",                     // Edge 3 turbulent displace
+    /* WAVE COUNT AND SIZE ON OTHER SHAPES (2026-10-28, Jack: the featured card and the rentals cards had
+       "too many waves" next to the round bubbles): uWf (< 1 on anything longer than a circle) stretches
+       the wobble so a shape's whole outline carries as many waves as a round bubble's does, and the
+       wobble's size follows the bands' own thickness (uDepth), so thinner bands keep the bubble's three
+       tiers instead of breaking up into blobs. A round bubble (uWf 1, depth 1) is exactly as before. */
+    "  vec2 w=wv(p*uWf,1.9,z+3.);",
+    "  float r2=rr(p+uWob*.045*uDepth*w);",                          // Edge 2 turbulent displace
+    "  float r3=rr(p+uWob*.065*uDepth*vec2(w.y,-w.x));",              // Edge 3 turbulent displace
     "  float e1=smoothstep(.917-.012*uSoft,.921+.008*uSoft,r);",      // Edge 1 (solid rim; stroke 80 since 2026-10-26, was 105)
     /* uDeep (hover, 0..1): the 50% and 25% bands grow inward so the bubble opens up ("peer deeper") */
     "  float i2=.81-.07*uDeep, i3=.70-.13*uDeep;",
@@ -236,8 +241,8 @@
     /* PERFORMANCE: the band wobble only matters near a band's inner edge (elsewhere its alpha is flat),
        so the turbulence is only evaluated there; the windows are wider than wobble + edge softness */
     "  float d2=r2, d3=r3;",
-    "  if(abs(r2-i2)<.2){vec2 w2=wv(q2,1.9,z+3.);d2=rr(q2+uWob*.045*w2);}",
-    "  if(abs(r3-i3)<.26){vec2 w3=wv(q3,1.9,z+3.);d3=rr(q3+uWob*.065*vec2(w3.y,-w3.x));}",
+    "  if(abs(r2-i2)<.2){vec2 w2=wv(q2*uWf,1.9,z+3.);d2=rr(q2+uWob*.045*uDepth*w2);}",
+    "  if(abs(r3-i3)<.26){vec2 w3=wv(q3*uWf,1.9,z+3.);d3=rr(q3+uWob*.065*uDepth*vec2(w3.y,-w3.x));}",
     "  float cut1=1.-smoothstep(1.-uPxz/uS.x,1.+uPxz/uS.x,r1);",
     "  float a1=smoothstep(.917-.012*uSoft,.921+.008*uSoft,r1)*cut1;",
     "  float a2=smoothstep(i2-.005-.022*uSoft,i2+.016*uSoft,d2)*.5*cut1;",
@@ -485,7 +490,7 @@
   }
   var STATS = { ver: CODE_VER, compileMs: 0, zCompileMs: 0, draws: 0, drawMs: 0, drawMax: 0, frames: 0, frameMs: 0, frameMax: 0, gpu: "", parallel: false };
   var progZ = null, UZ = null;
-  var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut"];
+  var NAMES = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut", "uWf"];
   /* compile + link WITHOUT asking for the result (asking blocks until the driver is done) */
   function startLink(fs) {
     var p = gl.createProgram(), sh = [];
@@ -626,6 +631,10 @@
     it.br = cs.borderRadius;
     if (it.host && it.clipped) edgeMedia(it, it.br);
     it.depth = parseFloat(cs.getPropertyValue("--rpb-depth")) || 1;
+    /* --rpb-band: the three tiers' width in CSS px, whatever the element's size (a big card or a popup
+       would otherwise get bands as wide as a quarter of its short side, or hairlines at a tiny depth) */
+    var bp = parseFloat(cs.getPropertyValue("--rpb-band"));
+    if (bp > 0) it.depth = Math.max(0.02, Math.min(1, bp / (0.3 * Math.min(it.w, it.h) / 2)));
     it.deep = parseFloat(cs.getPropertyValue("--rpb-deep")) || 0;
     it.rb = parseFloat(cs.getPropertyValue("--rpb-rainbow")) || 0;
     /* the shine (the white glare at the top right) can be faded per bubble: --rpb-shine 1 -> 0 (the
@@ -681,12 +690,21 @@
     } catch (e) {}
     STATS.atlasGrows = (STATS.atlasGrows || 0) + 1;
   }
+  /* how many times longer a shape's outline is than a circle's of the same short side (box = half-extents,
+     rad = corner radii, both in half-short-side units): straight sides plus the corners' ellipse
+     (Ramanujan). uWf = its inverse, so every shape carries a round bubble's number of waves. */
+  function wfOf(box, rad) {
+    var bx = box[0], by = box[1], rx = Math.min(bx, rad ? rad[0] : 1), ry = Math.min(by, rad ? rad[1] : 1);
+    var h = Math.pow(rx - ry, 2) / Math.max(1e-6, Math.pow(rx + ry, 2));
+    var per = 4 * (bx - rx) + 4 * (by - ry) + Math.PI * (rx + ry) * (1 + 3 * h / (10 + Math.sqrt(4 - 3 * h)));
+    return Math.max(0.3, Math.min(1, 2 * Math.PI / Math.max(1e-6, per)));
+  }
   function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep, rb, pal, clip, shine) {
     if ((glc.width < W || glc.height < H) && !zooming) grow(W, H);
     var dbw = gl.drawingBufferWidth || glc.width, dbh = gl.drawingBufferHeight || glc.height;
     var f = Math.min(1, dbw / W, dbh / H);
     var w = Math.max(1, Math.floor(W * f)), h = Math.max(1, Math.floor(H * f));
-    gl.useProgram(prog); params(U); gl.uniform1f(U.uSh, glow ? 0 : (shine == null ? 1 : shine)); gl.uniform1f(U.uClip, clip ? 1 : 0); gl.uniform1f(U.uEll, renderEll ? 1 : 0); gl.uniform1f(U.uOut, renderOut ? 1 : 0);
+    gl.useProgram(prog); params(U); gl.uniform1f(U.uSh, glow ? 0 : (shine == null ? 1 : shine)); gl.uniform1f(U.uWf, renderOut ? 1 : wfOf(box, rad)); gl.uniform1f(U.uClip, clip ? 1 : 0); gl.uniform1f(U.uEll, renderEll ? 1 : 0); gl.uniform1f(U.uOut, renderOut ? 1 : 0);
     gl.viewport(0, dbh - h, w, h);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3fv(U.uC1, cols[0]); gl.uniform3fv(U.uC2, cols[1]); gl.uniform3fv(U.uC3, cols[2]);
@@ -1253,7 +1271,7 @@
       gl.viewport(0, 0, bw, bh);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform3fv(UZ.uC1, cols[0]); gl.uniform3fv(UZ.uC2, cols[1]); gl.uniform3fv(UZ.uC3, cols[2]);
-      gl.uniform2f(UZ.uBox, box[0], box[1]); gl.uniform2f(UZ.uRad, rad0[0], rad0[1]); gl.uniform1f(UZ.uDepth, depth); gl.uniform1f(UZ.uDeep, deep);
+      gl.uniform2f(UZ.uBox, box[0], box[1]); gl.uniform2f(UZ.uRad, rad0[0], rad0[1]); gl.uniform1f(UZ.uWf, wfOf(box, rad0)); gl.uniform1f(UZ.uDepth, depth); gl.uniform1f(UZ.uDeep, deep);
       if (rb && pal && pal.n > 1) { gl.uniform1f(UZ.uRb, rb); gl.uniform1f(UZ.uPalN, pal.n); gl.uniform3fv(UZ.uPal, pal.flat); }
       else gl.uniform1f(UZ.uRb, 0);
       gl.uniform1f(UZ.uT, tBase + (now - t0) / 1000 * P.speed); gl.uniform1f(UZ.uSeed, seed); gl.uniform1f(UZ.uSh, 1);

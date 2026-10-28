@@ -117,6 +117,19 @@ a.xchip:hover{background:#fff;box-shadow:0 3px 12px rgba(10,30,70,.16)}
 .rp-soc a[data-net="tiktok"]:hover,.rp-footer .fsoc a[data-net="tiktok"]:hover{background:linear-gradient(135deg,#25f4ee,#000 45%,#fe2c55);color:#fff}
 .rp-soc a[data-net="web"]:hover,.rp-footer .fsoc a[data-net="web"]:hover{background:linear-gradient(135deg,#2ba7a0,#127e8c);color:#fff}
 
+/* ---------- RARE POND SOCIAL ICONS, V3 (assets/soc-bubbles.js, 2026-10-28) ----------
+   A solid disc in the network's colour look (light top left -> deep bottom right), the white glyph, and
+   outside it the bubble's inverted tiers: a 50% and a 25% ring (rp-bubble.js splash; a soft CSS glow
+   without WebGL). Header, footer and phone menu; jackcarlsen.com keeps its own icons. */
+a.soc3{position:relative;isolation:isolate;overflow:visible;background:transparent!important;border-color:transparent!important;color:#fff!important;box-shadow:none!important}
+a.soc3>.soc3-face{position:absolute;inset:0;border-radius:50%;z-index:-1;pointer-events:none;
+  background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 52%,var(--s3) 100%)}
+a.soc3>.soc3-ring{position:absolute;inset:0;border-radius:50%;z-index:-2;pointer-events:none;--rpb-depth:.8;
+  box-shadow:0 0 4px 3px var(--sr50),0 0 11px 7px var(--sr25)}
+a.soc3.soc3-gl>.soc3-ring{box-shadow:none}
+a.soc3 svg,a.soc3 .soc-ico{position:relative;z-index:1;fill:#fff}
+.rp-soc a.soc3,.rp-footer .fsoc a.soc3{transition:transform .18s ease}
+
 /* ---------- the footer's contents ---------- */
 .rp-footer .footer-logo img{width:150px;height:auto;margin:0 auto 6px;
   filter:drop-shadow(0 0 18px rgba(255,255,255,.3)) drop-shadow(0 8px 20px rgba(0,0,0,.5))}

@@ -8,11 +8,21 @@
 <meta name="description" content="Rare Pond Media brings narrative-film craft to corporate and commissioned video, telling your business's story in cinematic quality.">
 <!-- theme-color controller (shared pattern): lets the wipe tint the mobile browser chrome -->
 <script>(function(){var BASE="#06122b";function meta(){var m=document.querySelector('meta[name="theme-color"]');if(!m){m=document.createElement('meta');m.setAttribute('name','theme-color');document.head.appendChild(m);}return m;}meta().setAttribute('content',BASE);var t=null;window.__setThemeColor=function(c){try{clearTimeout(t);t=null;meta().setAttribute('content',c||BASE);}catch(e){}};window.__resetThemeColor=function(d){try{clearTimeout(t);t=setTimeout(function(){meta().setAttribute('content',BASE);t=null;},d||0);}catch(e){}};})();</script>
+<!-- the fonts the first screen uses, requested with the HTML (2026-10-28) -->
+<link rel="preload" href="/assets/fonts/Inter-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/Inter-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/Inter-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/Inter-800-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/Heebo-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/Heebo-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/Heebo-800-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/KaushanScript-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
-<script src="/assets/rp-water.js?v=428b317eab"></script>
+<link rel="preload" as="image" href="/media/logos/duck-painted.webp" fetchpriority="high">
+<script src="/assets/rp-water.js?v=55c6ff8e6b"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="/media/site/favicon-32.png">
 <link rel="apple-touch-icon" href="/media/site/apple-touch-icon.png">
-<link rel="stylesheet" href="/assets/chrome.css?v=4be183eb31">
+<link rel="stylesheet" href="/assets/chrome.css?v=7d6be1fe01">
 <script src="/assets/socials.js?v=691174df7f"></script>
 <!-- Reserve the event-banner's height before first paint (shared with studio + rentals). MUST be in <head>, no defer. -->
 <script src="/assets/banner-reserve.js?v=c666a94c98"></script>
@@ -340,6 +350,7 @@ html.xw-active{overflow:hidden}
   }).catch(function(){});
 })();
 </script>
+<script src="/assets/soc-bubbles.js?v=68c1b762e9" defer></script>
 <script src="/assets/xwipe.js?v=e671f19fe3" defer></script>
 <script src="/assets/xnav.js?v=af1a5e39de" defer></script>
 <script src="/assets/contact.js?v=b2b66923bf" defer></script>
@@ -394,12 +405,14 @@ html.xw-active{overflow:hidden}
 /* page-load veil: masks first-load image pop-in; self-removing, never blocks interaction */
 (function(){var v=document.getElementById('pageveil');if(!v)return;var done=false;
   /* ENTERING THE WATER (assets/rp-water.js, 2026-10-27): this page's sky is its dark-blue header */
-  var W=window.RPWater,ctl=(W&&W.ok)?W.veil(v,{sky:'#0b2545'}):null;
+  var W=window.RPWater,ctl=(W&&W.ok)?W.veil(v,{sky:'#0b2545',duck:'/media/logos/duck-painted.webp'}):null;
   var peekT=setTimeout(function(){if(ctl&&!done)ctl.peek();},450);
   function gone(){v.classList.add('pv-gone');}
   function hide(){if(done)return;done=true;clearTimeout(peekT);if(ctl){ctl.reveal();return;}v.classList.add('pv-hide');var t=setTimeout(gone,900);v.addEventListener('transitionend',function(){clearTimeout(t);gone();},{once:true});}
   var fonts=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
-  var loaded=new Promise(function(r){document.readyState==='complete'?r():addEventListener('load',r,{once:true});});
+  /* 2026-10-28 (load times): the first screen's images and video, not every image on the page; fonts at most 1.2 s */
+  var loaded=(W&&W.firstScreen)?W.firstScreen(1500):new Promise(function(r){document.readyState==='complete'?r():addEventListener('load',r,{once:true});});
+  fonts=Promise.race([fonts,new Promise(function(r){setTimeout(r,1200);})]);
   Promise.all([fonts,loaded]).then(function(){requestAnimationFrame(function(){requestAnimationFrame(hide);});});
   setTimeout(hide,3500);addEventListener('error',function(){setTimeout(hide,60);},{once:true});
 })();

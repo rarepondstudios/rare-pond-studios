@@ -97,19 +97,44 @@
   function when(n, fn) { if (sigAt[n]) { try { fn(); } catch (e) {} } else sig[n].push(fn); }
   function mark(n) { if (sigAt[n]) return; sigAt[n] = now(); sig[n].splice(0).forEach(function (f) { try { f(); } catch (e) {} }); }
 
-  /* ===== 1. ENTERING THE WATER (diving in) =====
-     2026-10-27, Jack: "if as the wave came up from the bottom of the screen, the page elements followed
-     with it, so it appears that the user is diving into the water, rather than a white curtain rising up
-     to reveal the page". The waterline rises from below the screen (never sitting at the bottom first:
-     no "spawn"), slowly enough to be seen, and the page rides up WITH it: the top of the page is right
-     under the waterline, the sky (the page's header colour) above, as if the camera dives in. The page
-     glides into its place as the surface passes over the top of the screen. The water is the Studio
-     page's own blues by default (no purple). */
+  /* ===== 1. THE LOAD COVER: A DUCK FLOATING ON THE WATER, THEN DIVING IN =====
+     2026-10-28, Jack: "have the water effect be in the middle of the frame, and have the waves moving
+     slightly. While it loads, add a ducky to the middle ... where the user can see it floating ... have
+     the middle layer be the sharpest. That way the duck is in between the foreground and background
+     layers. Foreground is second blur level, middle is low blur level, bg is largest blur level. Once
+     the page is done loading, then the duck and wave move up, and with it the rest of the website rises."
+     (2026-10-27 before that: the page rides up with the water, "diving in"; no waterline spawning at the
+     bottom; the page's own blues, no purple.)
+
+     While the page loads: the sky (the page's header colour) over the top half, the water across the
+     middle in three layers in perspective, top to bottom: the BACK layer (25%, the most blur), the
+     MIDDLE layer (50%, sharp: the waterline the duck floats on, behind the duck), the FRONT layer (solid,
+     a medium blur, in front of the duck's underside), and under it the deep water, opaque, so nothing
+     of the page shows. Each layer drifts sideways on its own (the waves moving slightly) and the duck
+     bobs. When the page is ready (reveal), the deep water clears, and the whole surface, the duck with
+     it, rises off the top of the screen while the page rides up directly under the front layer.
+
+     Everything that moves is a pre-drawn layer moved by Web Animations on the compositor (see SAMPLED
+     KEYFRAMES), so the water keeps moving smoothly while the page is busy loading under it. The blur is
+     drawn into the layers once (canvas filter; a CSS blur where a browser lacks that). opts.duck: the
+     floating image (Rare Pond pages pass /media/logos/duck-painted.webp); no duck = just the water. */
+  var CF = (function () { try { var x = document.createElement("canvas").getContext("2d"); x.filter = "blur(2px)"; return x.filter === "blur(2px)"; } catch (e) { return false; } })();
+  /* a wave that repeats every P px (so a layer can drift sideways forever without a seam): the bubble
+     rim's two-sine wobble, at P/2 and P/4 */
+  function pw(x, P, A, ph) { return A * (0.62 * Math.sin(x / P * 12.566 + ph) + 0.38 * Math.sin(x / P * 25.133 + ph * 1.7)); }
+  /* the look's colours repeating every P px along x, for the same reason */
+  function cgrad(x, w, P, L) {
+    var g = x.createLinearGradient(0, 0, w, 0), cs = [L.c1, L.c2, L.c3], i, n = Math.ceil(w / (P / 3)) + 1;
+    for (i = 0; i <= n; i++) { var px = i * P / 3; if (px > w) { g.addColorStop(1, cs[i % 3]); break; } g.addColorStop(px / w, cs[i % 3]); }
+    return g;
+  }
   function veil(el, o) {
     o = o || {};
-    var L = look(o.look || WATER), sky = o.sky || "#ffffff", done = false, fin = null, anims = [], stopW = null, layer = null, moved = [];
-    /* thickness of the three bands and the wobble, in viewport heights: the 25% band widest */
-    function dims(H) { return { t1: 0.04 * H, t2: 0.08 * H, t3: 0.2 * H, A: Math.max(5, 0.011 * H) }; }
+    var L = look(o.look || WATER), sky = o.sky || "#ffffff", done = false, fin = null, anims = [], loops = [], moved = [], rig = null, scene = null, shown = null;
+    var W = el.clientWidth || innerWidth, H = el.clientHeight || innerHeight;
+    var A = Math.max(5, 0.011 * H), P = Math.round(0.9 * W);
+    /* the layers' edges, in px from the top of the screen while loading */
+    var yM = 0.5 * H, yB = yM - 0.055 * H, yF = yM + 0.05 * H, tF = 0.07 * H, yFB = yF + tF;
     /* what rides up with the water: every top-level element of the page except the covers themselves
        and the custom cursor (opt out anything else with data-no-dive) */
     function divers() {
@@ -122,21 +147,99 @@
       }
       return out;
     }
+    /* one drifting layer: the water below a wavy top edge (and above a wavy or straight bottom edge),
+       blurred by `blur` px, alpha `al`, drifting P px every `sec` seconds (negative = to the right) */
+    function layer(top, bot, phT, phB, al, blur, sec) {
+      var k = res(), pad = Math.ceil(3 * blur + 2 * A + 4), w = W + P + 2 * pad, h = (bot - top) + 2 * pad;
+      var c = document.createElement("canvas"); c.className = "rpw"; c.setAttribute("aria-hidden", "true");
+      c.width = Math.max(2, Math.round(w * k)); c.height = Math.max(2, Math.round(h * k));
+      c.style.cssText = "position:absolute;left:" + (-pad) + "px;top:" + (top - pad) + "px;width:" + w + "px;height:" + h + "px;display:block;pointer-events:none;will-change:transform" + (!CF && blur > 1.5 ? ";filter:blur(" + blur.toFixed(1) + "px)" : "");
+      var x = c.getContext("2d"); x.setTransform(k, 0, 0, k, 0, 0);
+      if (CF && blur > 0.3) x.filter = "blur(" + (blur * k).toFixed(2) + "px)";
+      var step = Math.max(8, W / 120), i, ox = pad;   /* local x = screen x + pad (at drift 0) */
+      x.globalAlpha = al; x.fillStyle = cgrad(x, w, P, L); x.beginPath();
+      for (i = -pad - 20; i <= w + 20; i += step) { var y = pad + (phT == null ? 0 : pw(i - ox, P, A, phT)); i === -pad - 20 ? x.moveTo(i, y) : x.lineTo(i, y); }
+      for (i = w + 20; i >= -pad - 20; i -= step) x.lineTo(i, h - pad + (phB == null ? pad + 20 : pw(i - ox, P, A, phB)));
+      x.closePath(); x.fill();
+      scene.appendChild(c);
+      if (sec) loops.push(c.animate([{ transform: "translate3d(" + (sec > 0 ? 0 : -P) + "px,0,0)" }, { transform: "translate3d(" + (sec > 0 ? -P : 0) + "px,0,0)" }], { duration: Math.abs(sec) * 1000, iterations: Infinity, easing: "linear" }));
+      return c;
+    }
+    var deep = null, duckBox = null;
+    function build() {
+      if (!OK || !el.animate || rig) return;
+      rig = document.createElement("div"); rig.className = "rpw";
+      rig.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;will-change:transform,opacity;opacity:0";
+      scene = rig;
+      /* the sky, behind the translucent layers, down into the front layer */
+      var s = document.createElement("div");
+      s.style.cssText = "position:absolute;left:0;right:0;top:" + (-H) + "px;height:" + (H + yF + tF / 2) + "px;background:" + sky;
+      rig.appendChild(s);
+      layer(yB, yF + tF / 2, 2.2, null, 0.25, 0.013 * H, 11);         /* back: 25%, most blur, drifts left */
+      layer(yM, yF + tF / 2, 1.3, null, 1 / 3, 0.6, -8.5);            /* middle: 25% + 1/3 = 50%, sharp, drifts right */
+      if (o.duck) {
+        duckBox = document.createElement("div");
+        var dh = Math.max(64, Math.min(0.17 * H, 200, 0.3 * W)), dw = dh * 1.32;
+        duckBox.style.cssText = "position:absolute;left:" + ((W - dw) / 2).toFixed(1) + "px;top:" + (yF + 0.022 * H - dh).toFixed(1) + "px;width:" + dw.toFixed(1) + "px;height:" + dh.toFixed(1) + "px;opacity:0;will-change:transform,opacity";
+        var im = new Image(); im.alt = ""; im.setAttribute("aria-hidden", "true"); im.decoding = "async";
+        im.style.cssText = "display:block;width:100%;height:100%;object-fit:contain";
+        duckBox.appendChild(im); rig.appendChild(duckBox);
+        var bob = duckBox.animate([{ transform: "translate3d(0," + (-0.005 * H).toFixed(1) + "px,0) rotate(-2.2deg)" }, { transform: "translate3d(0," + (0.006 * H).toFixed(1) + "px,0) rotate(1.8deg)" }], { duration: 1900, iterations: Infinity, direction: "alternate", easing: "ease-in-out" });
+        loops.push(bob);
+        im.src = o.duck;
+        (im.decode ? im.decode() : new Promise(function (r) { im.onload = r; })).then(function () {
+          if (duckBox && !done) duckBox.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, fill: "forwards", easing: "ease-out" });
+        }, function () {});
+      }
+      var fr = layer(yF, yFB, 0, 3.1, 1, 0.0065 * H, 6.5);            /* front: solid, medium blur, drifts left */
+      deep = document.createElement("div");
+      deep.style.cssText = "position:absolute;left:0;right:0;top:" + (yF + tF / 2) + "px;height:" + (H - yF + 0.1 * H) + "px;will-change:opacity;background:linear-gradient(180deg," + L.c2 + "," + L.c3 + ")";
+      rig.insertBefore(deep, fr);
+      el.appendChild(rig);
+      /* the water fades in over the white (never just there: no "spawn") */
+      shown = rig.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380, fill: "forwards", easing: "ease-out" });
+      shown.finished.then(function () { if (!done) el.style.background = "transparent"; }, function () {});
+    }
     function finish() {
       if (done) return; done = true;
-      if (stopW) stopW(); stopW = null;
-      anims.forEach(function (a) { try { a.cancel(); } catch (e) {} }); anims = [];
+      anims.concat(loops).forEach(function (a) { try { a.cancel(); } catch (e) {} }); anims = []; loops = [];
       moved.forEach(function (n) { n.style.willChange = n.__rpwWC || ""; }); moved = [];
       el.classList.add("pv-gone");
-      if (layer) { layer.remove(); layer = null; }
+      if (rig) { rig.remove(); rig = null; }
       el.style.background = "";
       if (o.signal !== false) mark("gone");
       if (fin) { var f = fin; fin = null; try { f(); } catch (e) {} }
     }
+    function rise(ms) {
+      /* the surface (and the duck) rises until the front layer's bottom edge is off the top */
+      var S = yFB + 3 * A + 0.02 * H;
+      function ry(e) { return -S * e; }
+      /* the page: its top rides just under the front layer, then eases into place (a smooth "max(y, 0)"
+         so it decelerates instead of stopping dead) while the surface carries on over the top */
+      var from = yFB, to = yFB - S, c = 0.22 * H;
+      function F(y) { return (y + Math.sqrt(y * y + c * c)) / 2; }
+      var F0 = F(to), sc = from / (F(from) - F0);
+      function pageY(e) { return (F(yFB + ry(e)) - F0) * sc; }
+      var opts = { duration: ms, easing: "linear", fill: "both" };
+      anims.push(rig.animate(frames(ry), opts));
+      /* the deep water clears as it starts to rise, so the page is there under the surface */
+      if (deep) anims.push(deep.animate([{ opacity: 1 }, { opacity: 0, offset: 0.3 }, { opacity: 0 }], opts));
+      if (o.dive !== false) {
+        var pf = frames(pageY);
+        divers().forEach(function (n) {
+          n.__rpwWC = n.style.willChange; n.style.willChange = "transform"; moved.push(n);
+          try { anims.push(n.animate(pf, opts)); } catch (e) {}
+        });
+      }
+      el.style.background = "transparent";
+      anims[0].finished.then(finish, function () {});
+      /* a background tab never runs the animation: finish anyway */
+      setTimeout(function () { if (!done && document.hidden) finish(); }, ms + 300);
+      setTimeout(finish, ms + 2500);
+    }
+    build();
     var ctl = {
-      /* (the "waterline peeks in while loading" step is gone: Jack saw it as the waves spawning at the
-         bottom. Kept as a no-op so older pages calling it keep working.) */
-      peek: function () {},
+      peek: function () {},   /* (the old "waterline peeks in while loading" step: kept as a no-op) */
       reveal: function (cb, ms) {
         fin = cb || null;
         if (done) return;
@@ -144,47 +247,15 @@
         mark("ready");
         /* already hidden (a sideways sweep is this page's cover), or no canvas: nothing to animate */
         if (el.classList.contains("pv-gone")) { o.signal = false; finish(); return; }   /* the sweep signals "gone" itself */
-        if (!OK || !el.animate) { finish(); return; }
+        if (!rig) { finish(); return; }
         ms = ms || 2000;
-        var W = el.clientWidth || innerWidth, H = el.clientHeight || innerHeight, d = dims(H), all = d.t1 + d.t2 + d.t3 + 2 * d.A;
-        var pad = 2 * d.A + 4, Y0 = H + pad, LH = Y0 + all + pad, k = res();
-        var from = H + 2 * d.A + 2, to = -all;
-        /* the water: one layer, sky above the waterline (local Y0), the three bands below it */
-        var LC = layerCanvas(el, W, LH, k); layer = LC.c;
-        function draw(t) {
-          var x = LC.x; x.clearRect(0, 0, W, LH);
-          band(x, true, W, -50, Y0, t, null, 0, d.A, sky, 1);
-          var g = hgrad(x, W, L);
-          band(x, true, W, Y0, Y0 + d.t1, t, 0, 1.3, d.A, g, 1);
-          band(x, true, W, Y0 + d.t1, Y0 + d.t1 + d.t2, t, 1.3, 2.2, d.A, g, 0.5);
-          band(x, true, W, Y0 + d.t1 + d.t2, Y0 + d.t1 + d.t2 + d.t3, t, 2.2, 3.1, d.A, g, 0.25);
-        }
-        draw((now() - T0) / 1000);
-        function y0(e) { return lerp(from, to, e); }
-        /* the page: its top rides just under the waterline, then eases into place (a smooth "max(y, 0)",
-           so it decelerates instead of stopping dead) while the surface carries on over the top */
-        var c = 0.22 * H;
-        function F(y) { return (y + Math.sqrt(y * y + c * c)) / 2; }
-        var F0 = F(to), sc = from / (F(from) - F0);
-        function pageY(e) { return (F(y0(e)) - F0) * sc; }
-        var opts = { duration: ms, easing: "linear", fill: "both" };
-        anims.push(layer.animate(frames(function (e) { return y0(e) - Y0; }), opts));
-        if (o.dive !== false) {
-          var pf = frames(pageY);
-          divers().forEach(function (n) {
-            n.__rpwWC = n.style.willChange; n.style.willChange = "transform"; moved.push(n);
-            try { anims.push(n.animate(pf, opts)); } catch (e) {}
-          });
-        }
-        el.style.background = "transparent";   /* the layer covers exactly what the sky colour did */
-        stopW = wobbler(draw);
-        anims[0].finished.then(finish, function () {});
-        /* a background tab never runs the animation: finish anyway */
-        setTimeout(function () { if (!done && document.hidden) finish(); }, ms + 300);
-        setTimeout(finish, ms + 2500);
+        /* the water first finishes fading in (at most 0.38 s), then rises */
+        if (shown && shown.playState !== "finished") shown.finished.then(function () { if (!done) rise(ms); }, function () { finish(); });
+        else rise(ms);
+        setTimeout(finish, ms + 3500);
       },
       done: function () { return done; },
-      setLook: function (l) { L = look(l || WATER); }
+      setLook: function (l) { L = look(l || WATER); if (rig && !done && !anims.length) { var r = rig; rig = null; loops.forEach(function (a) { try { a.cancel(); } catch (e) {} }); loops = []; r.remove(); build(); if (shown) shown.finish(); } }
     };
     return ctl;
   }
@@ -267,6 +338,31 @@
     });
   }
 
+  /* ===== FIRST SCREEN READY (2026-10-28, Jack: "decrease loading times across the site"): resolves once
+     every image and video that is on the screen right now can be shown (images decoded, videos with a
+     frame), at most `cap` ms (default 1500). A cover should wait for THIS, not the window 'load' event,
+     which also waits for every image further down the page. Call it after the page has built its first
+     screen (DOMContentLoaded or later). */
+  function firstScreen(cap) {
+    cap = cap || 1500;
+    return new Promise(function (res) {
+      function go() {
+        var vw = innerWidth, vh = innerHeight, wait = [];
+        function on(e) { var r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < vh && r.right > 0 && r.left < vw; }
+        [].forEach.call(document.querySelectorAll("img"), function (im) {
+          if ((im.complete && im.naturalWidth) || !on(im)) return;
+          wait.push((im.decode ? im.decode() : new Promise(function (r) { im.addEventListener("load", r, { once: true }); im.addEventListener("error", r, { once: true }); })).catch(function () {}));
+        });
+        [].forEach.call(document.querySelectorAll("video"), function (v) {
+          if (v.readyState >= 2 || !on(v) || v.preload === "none") return;
+          wait.push(new Promise(function (r) { v.addEventListener("loadeddata", r, { once: true }); v.addEventListener("error", r, { once: true }); }));
+        });
+        Promise.race([Promise.all(wait), new Promise(function (r) { setTimeout(r, cap); })]).then(res);
+      }
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go, { once: true }); else go();
+    });
+  }
+
   /* ===== 3. A WHOLE PAGE'S LOAD COVER IN ONE CALL (for simple pages and future sites) =====
      RPWater.page({sky, look, ready, cap}): needs <div id="pageveil"> as the first thing in <body> and, in
      <head>, CSS painting it the sky colour from the first frame:
@@ -298,6 +394,6 @@
     return { hide: hide, ctl: ctl };
   }
 
-  window.RPWater = { ok: OK, veil: veil, sweep: sweep, page: page, settled: settled, look: look, SIG: SIG, WATER: WATER,
+  window.RPWater = { ok: OK, veil: veil, sweep: sweep, page: page, settled: settled, firstScreen: firstScreen, look: look, SIG: SIG, WATER: WATER,
     whenReady: function (fn) { when("ready", fn); }, whenGone: function (fn) { when("gone", fn); }, markReady: function () { mark("ready"); }, markGone: function () { mark("gone"); } };
 })();
