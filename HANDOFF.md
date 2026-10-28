@@ -39,6 +39,15 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-142 RENTALS STICKERS: "LONGER" CABLE WRAP (SANDBAG ONLY), DEPARTMENT BATCHES (2026-10-27)
+
+- Per Jack: new `cable_wrap` value `longer` (enum `cable_wrap_t`, migration `bts-automation/migrations/20261027d_cable_wrap_longer.sql`;
+  NocoDB dropdown option added in noco.db with the container stopped, backup `~/nocodb-data/noco.db.bak_cable_longer_20261027`).
+  Only 3117 Sandbag (25lb) uses it; every other item keeps its wrap. Design v67: `CABLE["longer"] = long + 1.0 in` (2.6 in wrap,
+  item cable tie 4.09 in flat vs 3.09 long), band thickness as long.
+- `make.py dept <department>`: one department's stickers. First run: `~/Desktop/RarePond_Rental_Labels/Print_2026-10-27_Grip_Electric`
+  (6 Cricut sheets, 3 case-number SVGs; recorded in sticker_prints, not yet marked printed).
+
 ### 0.0.-141 DIVING IN, COVERS ON THE COMPOSITOR, SWEEP WAITS FOR THE PAGE (2026-10-27)
 
 - Jack: hops between pages chugged even on the 4090 PC, the sweep finished on an empty Studio and then
