@@ -49,6 +49,8 @@
   (3 case-number SVGs; recorded in sticker_prints, not yet marked printed). Repacked the same day with the new tight packer
   (`rentals_stickers/packing.py`, `make.py repack <batch>`): 6 sheets -> 5 (four full, the fifth a 2.53 in strip of pills).
   Brand sheets (`make.py brand`) keep the old shelf packer (`pack_shelf`). Shelf-packed copy in ~/.Trash.
+  Then per Jack `make.py fillbrand <batch>` filled sheet 05's free space: 101 Rare Pond pills (pills upright beat every tie mix on
+  printed area), sheet now W 6.51 x H 9.06 in. `cable_tie_brand()` takes an optional inset (long-wrap brand ties).
 
 ### 0.0.-141 DIVING IN, COVERS ON THE COMPOSITOR, SWEEP WAITS FOR THE PAGE (2026-10-27)
 

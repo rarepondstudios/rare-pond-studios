@@ -365,6 +365,8 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
 - `make.py dept "Grip & Electric"` makes every sticker of one department (containers, items, sub-items by their root's department).
 - Sheets are packed tight (`rentals_stickers/packing.py`: MaxRects, stickers may turn 90 degrees, each sheet filled as full as
   possible so only the last is partial). `make.py repack <batch>` redoes an existing batch's sheets (same stickers, no new records).
+- `make.py fillbrand <batch>` fills the free space on a batch's last sheet with brand stickers (Rare Pond pills and pill cable
+  ties, no duck bubble), keeping whichever mix prints the most area. Run it once per batch (it adds to the sheet).
 - Every sticker made is a row in `public.sticker_prints`; `printed <batch>` stamps it once the batch is on
   the gear, and `refill` makes only what has no stamped sticker for its current code.
 - Before drawing anything `make.py` checks the batch and stops with a list if a department has no color,
