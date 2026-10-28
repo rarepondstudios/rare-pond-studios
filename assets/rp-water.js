@@ -123,6 +123,11 @@
   /* a wave that repeats every P px (so a layer can drift sideways forever without a seam): the bubble
      rim's two-sine wobble, at P/2 and P/4 */
   function pw(x, P, A, ph) { return A * (0.62 * Math.sin(x / P * 12.566 + ph) + 0.38 * Math.sin(x / P * 25.133 + ph * 1.7)); }
+  function hexRGB(h) {
+    var m = /rgba?\(([^)]+)\)/.exec(h || ""); if (m) return m[1].split(",").slice(0, 3).map(function (v) { return Math.round(parseFloat(v)); });
+    h = String(h || "").replace("#", ""); if (h.length === 3) h = h.replace(/(.)/g, "$1$1");
+    var n = parseInt(h.slice(0, 6), 16); return isNaN(n) ? [0, 0, 0] : [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
   /* the look's colours repeating every P px along x, for the same reason */
   function cgrad(x, w, P, L) {
     var g = x.createLinearGradient(0, 0, w, 0), cs = [L.c1, L.c2, L.c3], i, n = Math.ceil(w / (P / 3)) + 1;
@@ -135,7 +140,7 @@
     var W = el.clientWidth || innerWidth, H = el.clientHeight || innerHeight;
     var A = Math.max(5, 0.011 * H), P = Math.round(0.9 * W);
     /* the layers' edges, in px from the top of the screen while loading */
-    var yM = 0.5 * H, yB = yM - 0.055 * H, yF = yM + 0.05 * H, tF = 0.07 * H, yFB = yF + tF;
+    var yM = 0.5 * H, yB = yM - 0.055 * H, yF = yM + 0.05 * H, tF = 0.07 * H, yFB = yF + tF, TAIL = 0.1 * H;
     /* the page's HEADER (opts.header, default the body's own <header>s) does not ride up with the water: the
        page's blue comes up first, straight out of the water, and the header (white on most pages) comes in
        after (2026-10-28, Jack: "it should lead directly into the blue BG of the website, then the header can
@@ -155,8 +160,12 @@
     }
     /* one drifting layer: the water below a wavy top edge (and above a wavy or straight bottom edge),
        blurred by `blur` px, alpha `al`, drifting P px every `sec` seconds (negative = to the right) */
-    function layer(top, bot, phT, phB, al, blur, sec, fill) {
-      var k = res(), pad = Math.ceil(3 * blur + 2 * A + 4), w = W + P + 2 * pad, h = (bot - top) + 2 * pad;
+    /* tail (px, front layer only): below its bottom edge the layer fades out to nothing over `tail` px, so
+       wherever it meets the page there is no edge at all (2026-10-28, Jack: "a faint harsh line ... should
+       be a seamless transition between the wave and the page background") */
+    function layer(top, bot, phT, phB, al, blur, sec, fill, tail) {
+      tail = tail || 0;
+      var k = res(), pad = Math.ceil(3 * blur + 2 * A + 4), w = W + P + 2 * pad, h = (bot - top) + 2 * pad + tail;
       var c = document.createElement("canvas"); c.className = "rpw"; c.setAttribute("aria-hidden", "true");
       c.width = Math.max(2, Math.round(w * k)); c.height = Math.max(2, Math.round(h * k));
       c.style.cssText = "position:absolute;left:" + (-pad) + "px;top:" + (top - pad) + "px;width:" + w + "px;height:" + h + "px;display:block;pointer-events:none;will-change:transform" + (!CF && blur > 1.5 ? ";filter:blur(" + blur.toFixed(1) + "px)" : "");
@@ -165,8 +174,14 @@
       var step = Math.max(8, W / 120), i, ox = pad;   /* local x = screen x + pad (at drift 0) */
       x.globalAlpha = al; x.fillStyle = fill || cgrad(x, w, P, L); x.beginPath();
       for (i = -pad - 20; i <= w + 20; i += step) { var y = pad + (phT == null ? 0 : pw(i - ox, P, A, phT)); i === -pad - 20 ? x.moveTo(i, y) : x.lineTo(i, y); }
-      for (i = w + 20; i >= -pad - 20; i -= step) x.lineTo(i, h - pad + (phB == null ? pad + 20 : pw(i - ox, P, A, phB)));
+      var yb = (bot - top) + pad;   /* local y of the bottom edge */
+      for (i = w + 20; i >= -pad - 20; i -= step) x.lineTo(i, yb + (tail ? 0 : (phB == null ? pad + 20 : pw(i - ox, P, A, phB))));
       x.closePath(); x.fill();
+      if (tail) {
+        var c3 = hexRGB(fill || L.c2).join(","), tg = x.createLinearGradient(0, yb, 0, yb + tail);
+        tg.addColorStop(0, "rgba(" + c3 + ",1)"); tg.addColorStop(0.45, "rgba(" + c3 + ",.55)"); tg.addColorStop(1, "rgba(" + c3 + ",0)");
+        x.fillStyle = tg; x.fillRect(-pad - 20, yb - 0.5, w + 40, tail + 0.5);
+      }
       scene.appendChild(c);
       if (sec) loops.push(c.animate([{ transform: "translate3d(" + (sec > 0 ? 0 : -P) + "px,0,0)" }, { transform: "translate3d(" + (sec > 0 ? -P : 0) + "px,0,0)" }], { duration: Math.abs(sec) * 1000, iterations: Infinity, easing: "linear" }));
       return c;
@@ -208,15 +223,15 @@
       /* front: solid, medium blur, drifts left. Its colour is the page's own background at its top (opts.join),
          so when the page rises in right under it, the water runs straight into the page's blue (2026-10-28,
          Jack: "the blue of the waves has to stay directly connected to the blue of the top of the background") */
-      var fr = layer(yF, yFB, 0, 3.1, 1, 0.0065 * H, 6.5, o.join || null);
+      var fr = layer(yF, yFB, 0, null, 1, 0.0065 * H, 6.5, o.join || null, TAIL);
       deep = document.createElement("div");
       /* the deep water = the page's own background (opts.deep, a CSS background whose top is the page's top),
          so clearing it on reveal only brings in the page's content, never a change of colour */
-      deep.style.cssText = "position:absolute;left:0;right:0;top:" + (yF + tF / 2) + "px;height:" + (H - yF + 0.1 * H) + "px;will-change:opacity;background:" + (o.deep || ("linear-gradient(180deg," + (o.join || L.c2) + "," + L.c3 + ")")) + ";background-position:0 " + (tF / 2).toFixed(1) + "px;background-repeat:no-repeat;background-color:" + (o.join || L.c2);
+      deep.style.cssText = "position:absolute;left:0;right:0;top:" + (yF + tF / 2) + "px;height:" + (H - yF + 0.1 * H) + "px;will-change:opacity;background:" + (o.deep || ("linear-gradient(180deg," + (o.join || L.c2) + "," + L.c3 + ")")) + ";background-position:0 " + (tF / 2 - 1.2 * A - 2).toFixed(1) + "px;background-repeat:no-repeat;background-color:" + (o.join || L.c2);
       rig.insertBefore(deep, fr);
       el.appendChild(rig);
       /* the water fades in over the white (never just there: no "spawn") */
-      shown = rig.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380, fill: "forwards", easing: "ease-out" });
+      shown = rig.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, fill: "forwards", easing: "ease-out" });
       shown.finished.then(function () { if (!done) el.style.background = "transparent"; }, function () {});
     }
     function finish() {
@@ -234,7 +249,7 @@
     }
     function rise(ms) {
       /* the surface (and the duck) rises until the front layer's bottom edge is off the top */
-      var S = yFB + 3 * A + 0.02 * H;
+      var S = yFB + TAIL + 3 * A + 0.02 * H;
       function ry(e) { return -S * e; }
       /* the page: its top rides exactly on the front layer's bottom edge, so there is never a gap between the
          water and the page (a lag let the page's dark backdrop show through as a hard line, 2026-10-28), and
@@ -271,8 +286,9 @@
         /* already hidden (a sideways sweep is this page's cover), or no canvas: nothing to animate */
         if (el.classList.contains("pv-gone")) { o.signal = false; finish(); return; }   /* the sweep signals "gone" itself */
         if (!rig) { finish(); return; }
-        ms = ms || 2000;
-        /* the water first finishes fading in (at most 0.38 s), then rises */
+        /* (2026-10-28, Jack: "only as long as it needs to be in order to load the page") 1.3 s, was 2 */
+        ms = ms || 1300;
+        /* the water first finishes fading in (at most 0.22 s), then rises */
         if (shown && shown.playState !== "finished") shown.finished.then(function () { if (!done) rise(ms); }, function () { finish(); });
         else rise(ms);
         setTimeout(finish, ms + 3500);
