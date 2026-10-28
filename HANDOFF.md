@@ -143,6 +143,16 @@
   phone), carousel and rentals card / popup screenshots, pop-in audit clean on all six pages in Chrome
   desktop and mobile, WebKit and Firefox (one Firefox hat flag did not repeat).
 
+### 0.0.-143 RENTALS STICKERS v68: ONE-WIDTH PILL CABLE TIES, LARGE BUBBLE (2026-10-28)
+
+- Per Jack: every pill cable tie (sub-item pills and the Rare Pond pill tie) is one width whatever its wrap: band = the
+  pill's full height (sub-item 0.24 in, Rare Pond 0.36 in), no pinch after the pill; only the length differs. Item cable
+  ties unchanged. `stickers.py pill_tie()` / `brand_tie()` are the one place both are drawn (make.py, fillbrand, demo).
+- New brand sticker: the large bubble (`bubble_large()`, 1.25 in round, full Rare Pond Rentals logo COLOR + curved phone,
+  same ring/tiers/shine). `make.py brand` now makes a sheet of them too (third number = count). Not used by fillbrand.
+- Print_2026-10-27_Grip_Electric remade on v68 (repack + fillbrand): 5 sheets; sheet 05 filled with 26 Rare Pond pill ties
+  (13 short, 13 long) + 14 Rare Pond pills (the wider ties now win on printed area). v67 copy in ~/.Trash.
+
 ### 0.0.-142 RENTALS STICKERS: "LONGER" CABLE WRAP (SANDBAG ONLY), DEPARTMENT BATCHES (2026-10-27)
 
 - Per Jack: new `cable_wrap` value `longer` (enum `cable_wrap_t`, migration `bts-automation/migrations/20261027d_cable_wrap_longer.sql`;
