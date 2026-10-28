@@ -75,18 +75,32 @@
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 </script>
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
-<script src="/assets/rp-water.js?v=c1ae8a355e"></script>
+<script src="/assets/rp-water.js?v=428b317eab"></script>
+<!-- Start the page's data downloads with the HTML (2026-10-27): the page builds itself from these and used to
+     request them only once the whole document and its scripts had been read, 150 to 300 ms later. -->
+<link rel="preload" href="/data/site.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/projects.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/team.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/pages.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/stills-hd.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/section-templates.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/bts.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/platforms.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/socials.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/colorlooks.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/video-variants.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/news.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="/data/news-page.json" as="fetch" crossorigin="anonymous">
 <style>
 /* page-load veil - masks first-load asset pop-in; self-removing, never blocks interaction.
    ENTERING THE WATER (2026-10-27, assets/rp-water.js): it starts white like the header, holds while the
-   page loads, then a three-tier waterline rises over the screen and the page is there beneath it. The
-   water's colours = a colour-look (data/site.json -> veil.colorLook). */
+   page loads, then we dive in: a three-tier waterline rises from below and the page rides up with it.
+   The water's colours: the page's own blues ("water", the default) or a colour-look (data/site.json ->
+   veil.colorLook). */
 #pageveil{position:fixed;inset:0;z-index:2147483000;background:#ffffff;pointer-events:none;opacity:1}
 #pageveil.pv-hide{opacity:0;transition:opacity .55s ease}
 #pageveil.pv-gone{display:none}
-@keyframes pvRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.view.pv-rise{animation:pvRise .6s cubic-bezier(.2,.7,.2,1) both}
-@media (prefers-reduced-motion:reduce){#pageveil.pv-hide{transition:none}.view.pv-rise{animation:none}}
+@media (prefers-reduced-motion:reduce){#pageveil.pv-hide{transition:none}}
 /* Directional gradient wipe (Studio <-> Rentals / Media). Signature gradient panel; slides across the page-load boundary. */
 #xwipe{position:fixed;top:0;bottom:0;left:0;width:100vw;z-index:2147483600;background:linear-gradient(90deg,#56c8ff 0%,#3f6bff 50%,#9b5cff 100%);pointer-events:none;display:none}
 html.xw-cover #xwipe,html.xw-active #xwipe{display:block}
@@ -457,6 +471,10 @@ html.xw-active{overflow:hidden}
      stays there (it used to chase the cursor, and some bubbles had it top left). Placeholder until Jack's
      stylised After Effects glare replaces it. */
   .citem.feat .cspec{background:radial-gradient(30% 24% at 82% 16%,rgba(255,255,255,.55),transparent 60%)}
+  /* the featured card's glare fades out (and back in as it leaves the centre), here for the no-WebGL look;
+     the WebGL rim does the same through --rpb-shine (2026-10-27) */
+  .cspec{transition:opacity .6s ease}
+  .citem.feat .cspec{opacity:0}
   .cedge{position:absolute;inset:-2px;z-index:7;border-radius:inherit;pointer-events:none;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.55) 82%,#000 100%);opacity:.4;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
   .citem:hover .cedge{opacity:.9}
   /* "dive in": a small dark pill hugging the words (was a dark band across the whole bottom of the card) */
@@ -1120,6 +1138,9 @@ html.xw-active{overflow:hidden}
   html.rp-fx-lite .glow,html.rp-fx-lite .cglow{filter:none!important}
   html.rp-fx-lite .cbub,html.rp-fx-lite .cbody,html.rp-fx-lite .cglow,html.rp-fx-lite .glow,html.rp-fx-lite .bubble,html.rp-fx-lite .bubble-inner,html.rp-fx-lite .m-bubble,html.rp-fx-lite .orbi{animation-play-state:paused!important}
   body.bg-idle .bgb,body.bg-idle .orbi{animation-play-state:paused}
+  /* an ambient bubble away from the screen does not drift (2026-10-27): every running CSS animation costs
+     the page a little style work on every frame, even one nobody can see; .bgb-off is set by bgbWatch */
+  .bgb.bgb-off{animation-play-state:paused}
   body.u-cover .bgb,body.u-cover .orbi,body.u-cover .bubble-inner,body.u-cover .glow,body.u-cover .cbub,body.u-cover .cbody,body.u-cover .cglow,
   body.u-cover .citem::before,body.u-cover .bubble::before,body.u-cover .m-bubble{animation-play-state:paused!important}
   /* skip rendering the tall, off-screen contact section until it's scrolled near */
@@ -1241,8 +1262,12 @@ html.xw-active{overflow:hidden}
      inward (--rpb-deep 0 -> 1, read by rp-bubble.js), so the rim seems to open up into the world inside
      while the solid rim stays put. Kept moderate so a playing preview reel is never smothered. */
   @property --rpb-deep{syntax:"<number>";inherits:true;initial-value:0}
+  /* the rim's shine (white glare) strength, read by rp-bubble.js: the featured carousel card fades it out
+     (2026-10-27, Jack: the white blob is distracting on the main focus) and it fades back in as the card
+     goes back to being a side bubble */
+  @property --rpb-shine{syntax:"<number>";inherits:true;initial-value:1}
   .edge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-deep .7s cubic-bezier(.2,.8,.2,1),--rpb-rainbow .45s ease}
-  .cedge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-depth .6s,--rpb-deep .7s cubic-bezier(.2,.8,.2,1),--rpb-rainbow .45s ease}
+  .cedge.rp-bubble-on{transition:--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease,--rpb-depth .6s,--rpb-deep .7s cubic-bezier(.2,.8,.2,1),--rpb-rainbow .45s ease,--rpb-shine .6s ease}
   .bubble:hover .edge.rp-bubble-on,.bubble.rpc-kbsel .edge.rp-bubble-on,.bubble.rp-tap .edge.rp-bubble-on,
   .citem:hover .cedge.rp-bubble-on,.citem.rpc-kbsel .cedge.rp-bubble-on,.bubble.rp-zsel .edge.rp-bubble-on,.citem.rp-zsel .cedge.rp-bubble-on{--rpb-deep:1}
   /* "More to come": same V3 bubble, and its rainbow hover now comes THROUGH the bubble (three rainbow
@@ -1264,7 +1289,7 @@ html.xw-active{overflow:hidden}
      crisp V3 rim and made it read blurrier than every other bubble. No extra glow layer either: a masked
      one was tried and read as a faint second outline (Jack, 2026-10-26). */
   .about-anim-slot.rp-rim-on{box-shadow:none}
-  .citem.feat .cedge.rp-bubble-on{--rpb-depth:.5}
+  .citem.feat .cedge.rp-bubble-on{--rpb-depth:.5;--rpb-shine:0}
   /* SHINE (Jack's AE "RP_V3_Bubble_Shine_PRE-COMP", 2026-10-26): the three-tier glare is now drawn by
      rp-bubble.js on the rim canvas, pinned top right (the site's light source). The old CSS speculars
      are switched off wherever that canvas is on; without WebGL they stay exactly as they were. */
@@ -1362,16 +1387,15 @@ html.xw-active{overflow:hidden}
     var v=document.getElementById('pageveil');
     if(!v){window.__revealPage=function(){};return;}
     var done=false;
-    /* ENTERING THE WATER (assets/rp-water.js): white holds while the page loads; a slow load shows the
-       waterline coming up at the bottom (after 450 ms, so a fast load never flickers it); when ready the
-       water rises over the screen. Without canvas / with reduced motion: the old plain fade. */
+    /* ENTERING THE WATER (assets/rp-water.js): white holds while the page loads; when it is ready we dive
+       in: the waterline rises from below the screen and the page rides up with it (2026-10-27). Without
+       canvas / with reduced motion: the old plain fade. */
     var W=window.RPWater, ctl=(W&&W.ok)?W.veil(v,{sky:'#ffffff'}):null;
     window.__veilCtl=ctl;
     if(window.__setThemeColor)window.__setThemeColor('#ffffff');
-    var peekT=setTimeout(function(){if(ctl&&!done)ctl.peek();},450);
-    function gone(){v.classList.add('pv-gone');}
-    function rise(){ try{var vs=document.querySelectorAll('.view');for(var i=0;i<vs.length;i++){if(getComputedStyle(vs[i]).display!=='none')vs[i].classList.add('pv-rise');}}catch(e){} }
-    function hide(){ if(done)return; done=true; clearTimeout(peekT); window.__revealedAt=performance.now(); rise();
+    function gone(){v.classList.add('pv-gone');if(window.RPWater&&RPWater.markGone)RPWater.markGone();}
+    /* (the content no longer does its own small rise: with the water it rides up with the waterline) */
+    function hide(){ if(done)return; done=true; window.__revealedAt=performance.now();
       if(window.__resetThemeColor)window.__resetThemeColor(0);   // veil lifting -> chrome back to dark
       if(ctl){ctl.reveal();return;}
       v.classList.add('pv-hide');
@@ -1545,7 +1569,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= is the file's content hash, set automatically on every commit (tools/stamp-assets.py): never edit it by hand -->
-<script src="/assets/rp-bubble.js?v=276d698d85"></script>
+<script src="/assets/rp-bubble.js?v=9ba254be7c"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2013,14 +2037,16 @@ function bgbFill(field,base,fade){
     field.appendChild(b);
   }
 }
-function bgbInto(field,count,fade){BGB_FIELDS.push([field,count,fade]);bgbFill(field,count,fade);}
+const bgbIO=('IntersectionObserver'in window)?new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('bgb-off',!e.isIntersecting)),{rootMargin:'200px 0px'}):null;
+function bgbWatch(field){if(bgbIO)field.querySelectorAll('.bgb').forEach(b=>bgbIO.observe(b));}
+function bgbInto(field,count,fade){BGB_FIELDS.push([field,count,fade]);bgbFill(field,count,fade);bgbWatch(field);}
 function makeBgBubbles(host,count,fade){
   if(!host)return;
   const c=document.createElement('div');c.className='bg-bubbles'+(fade?' '+fade:'');
   bgbInto(c,count,fade==='fade-b'?[.82,1]:null);
   host.appendChild(c);
 }
-{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{const p=bgbPlan();if(Math.abs(p.a-__bgbP.a)>.12||Math.abs(p.k-__bgbP.k)>.12){__bgbP=p;BGB_FIELDS.forEach(([f,n,fd])=>bgbFill(f,n,fd));}},350);},{passive:true});}
+{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{const p=bgbPlan();if(Math.abs(p.a-__bgbP.a)>.12||Math.abs(p.k-__bgbP.k)>.12){__bgbP=p;BGB_FIELDS.forEach(([f,n,fd])=>{bgbFill(f,n,fd);bgbWatch(f);});}},350);},{passive:true});}
 /* Ambient background bubble count is CMS-driven (Site Settings -> home.bgBubbleCount) so Jack
    can fine-tune density without touching code. Safe fallback = 28. Hard-capped at 60 in code
    to protect rendering perf on weaker devices even if the CMS value is set too high. The
@@ -2275,7 +2301,8 @@ const ORB_SPEC=[
       // never scrolls there used to pay for all of it on every visit. Save-Data keeps the static logo.
       var started=false;
       /* ...and (2026-10-27) never before the first screen is up: the page veil lifts first */
-      function startOnce(){ if(started)return; started=true; Promise.resolve(window.__contentReady).then(function(){ if('requestIdleCallback'in window) requestIdleCallback(start,{timeout:1500}); else setTimeout(start,400); }); }
+      /* (2026-10-27) ...and not while a cover is still moving: its frames decode on the main thread */
+      function startOnce(){ if(started)return; started=true; new Promise(function(r){ if(window.RPWater&&RPWater.whenGone){RPWater.whenGone(r);setTimeout(r,6000);} else Promise.resolve(window.__contentReady).then(r); }).then(function(){ if('requestIdleCallback'in window) requestIdleCallback(start,{timeout:1500}); else setTimeout(start,400); }); }
       if(navigator.connection&&navigator.connection.saveData){ if(ABOUT_SET_ORBITS)ABOUT_SET_ORBITS(1); }
       else if('IntersectionObserver'in window){
         var io=new IntersectionObserver(function(es){ if(es.some(function(e){return e.isIntersecting;})){ io.disconnect(); startOnce(); } },{rootMargin:'150% 0px 150% 0px'});
@@ -3718,8 +3745,8 @@ function __pageFade(swap){
     function startFade(){
       if(started)return;started=true;
       try{__instTop();}catch(e){}                                  // re-assert top: nothing may have scrolled under the cover
-      /* the same water entry as the page load, a little quicker */
-      if(window.RPWater&&RPWater.ok){if(window.__resetThemeColor)window.__resetThemeColor(0);RPWater.veil(v,{sky:'#ffffff',look:window.__veilLook}).reveal(function(){v.style.transition='';v.style.opacity='';},800);return;}
+      /* the same dive into the water as the page load, a little quicker */
+      if(window.RPWater&&RPWater.ok){if(window.__resetThemeColor)window.__resetThemeColor(0);RPWater.veil(v,{sky:'#ffffff',look:window.__veilLook,signal:false}).reveal(function(){v.style.transition='';v.style.opacity='';},1300);return;}
       v.style.transition='opacity .34s ease';v.style.opacity='0';
       if(window.__resetThemeColor)window.__resetThemeColor(340);   // restore chrome as the veil fades out
       var fin=function(){v.classList.add('pv-gone');v.style.transition='';v.style.opacity='';};
@@ -3901,8 +3928,8 @@ __main().catch(e=>console.error("init error",e));</script>
 </script>
 <!-- Shared across rarepond.com + jackcarlsen.com (single source: bts-automation/social_ui.js,
      published by social_ui_sync.py). Contact-bubble hover-glow + social-link transport wipe. -->
-<script src="/assets/social_ui.js?v=1da69add3f" defer></script><script src="/assets/cursor.js?v=9a7b77bd62" defer></script>
-<script src="/assets/xwipe.js?v=85d94ddb64" defer></script>
+<script src="/assets/social_ui.js?v=1da69add3f" defer></script><script src="/assets/cursor.js?v=8a7fb1b6cc" defer></script>
+<script src="/assets/xwipe.js?v=e671f19fe3" defer></script>
 <script src="/assets/xnav.js?v=af1a5e39de" defer></script>
 <script src="/assets/contact.js?v=6ab2016a86" defer></script>
 </body>

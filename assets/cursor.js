@@ -218,12 +218,14 @@
       /* keyboard-engaged element: our hug IS the focus indicator, kill the browser's default
          (square/irregular) focus outline on that element only. */
       ".rpc-kbsel{outline:none!important}.rpc-kbsel:focus,.rpc-kbsel:focus-visible{outline:none!important}" +
+      /* the loader spins only while shown (2026-10-27: it ran at opacity 0 all the time, a little style
+         work on every frame of every page) */
       ".rpc-loader{position:fixed;left:0;top:0;width:44px;height:44px;border-radius:50%;z-index:2147483645;pointer-events:none;opacity:0;will-change:transform;" +
       "background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,.14) 200deg,rgba(255,255,255,.95) 345deg,rgba(255,255,255,0) 350deg);" +
       "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
       "mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
-      "animation:rpc-spin .8s linear infinite;transition:opacity .18s ease}" +
-      "#rp-cursor.loading .rpc-loader{opacity:1}#rp-cursor.loading .rpc-ring{opacity:0}" +
+      "animation:rpc-spin .8s linear infinite paused;transition:opacity .18s ease}" +
+      "#rp-cursor.loading .rpc-loader{opacity:1;animation-play-state:running}#rp-cursor.loading .rpc-ring{opacity:0}" +
       "@keyframes rpc-spin{from{transform:var(--rpc-lt,translate(-50%,-50%)) rotate(0deg)}to{transform:var(--rpc-lt,translate(-50%,-50%)) rotate(360deg)}}" +
       /* ---- footer accessibility line + dynamic-cursor toggle (markup lives in each site's
          footer; the styling + wiring is shared here so every current and future site gets the

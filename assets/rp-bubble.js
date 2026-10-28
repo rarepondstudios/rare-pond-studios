@@ -186,7 +186,7 @@
     "  if(r>1.03){gl_FragColor=vec4(0.);return;}",
     "  float z=uSeed*17.+uT*.11;",
     "  float sa=0.;",
-    "  if(uSh>.5&&length(p-shC())<.62) sa=shineA(p,z);",
+    "  if(uSh>.01&&length(p-shC())<.62) sa=shineA(p,z)*uSh;",
     /* cheap early-out: the clear centre that no band (and no shine) can reach */
     "  if(r<.5-.14*uDeep&&sa<.004){gl_FragColor=vec4(0.);return;}",
     /* ---- ALPHA (Alpha_Shape + Alpha_Effects pre-comps) ----
@@ -227,7 +227,7 @@
     "  vec2 q1=p/uS.x, q2=p/uS.y, q3=p/uS.z;",
     "  float r1=rr(q1), r2=rr(q2), r3=rr(q3);",
     "  float i2=.81-.07*uDeep, i3=.70-.13*uDeep;",
-    "  bool sh=uSh>.5&&length(q1-shC())<.62;",
+    "  bool sh=uSh>.01&&length(q1-shC())<.62;",
     /* CONNECTED LAYERS (Jack, 2026-10-26): every band continues OUTWARD under the layers in front of it,
        all the way to the rim's outer edge, so when the planes separate the parts they uncover are still
        band, never a gap. Only the foreground rim's exterior cutter ends them. */
@@ -242,7 +242,7 @@
     "  float a1=smoothstep(.917-.012*uSoft,.921+.008*uSoft,r1)*cut1;",
     "  float a2=smoothstep(i2-.005-.022*uSoft,i2+.016*uSoft,d2)*.5*cut1;",
     "  float a3=smoothstep(i3-.01-.07*uSoft,i3+.05*uSoft,d3)*.25*uInner*cut1;",
-    "  float sa=sh?shineA(q1,z)*(1.-smoothstep(1.-uPxz/uS.x,1.+uPxz/uS.x,r1)):0.;",
+    "  float sa=sh?shineA(q1,z)*uSh*(1.-smoothstep(1.-uPxz/uS.x,1.+uPxz/uS.x,r1)):0.;",
     "  vec4 acc=vec4(0.);",
     /* the two band planes share ONE colour sample (the nearer plane's; the farther one's where only it
        shows), and none is taken where the opaque rim covers them: once the bands fill the screen this
@@ -628,6 +628,10 @@
     it.depth = parseFloat(cs.getPropertyValue("--rpb-depth")) || 1;
     it.deep = parseFloat(cs.getPropertyValue("--rpb-deep")) || 0;
     it.rb = parseFloat(cs.getPropertyValue("--rpb-rainbow")) || 0;
+    /* the shine (the white glare at the top right) can be faded per bubble: --rpb-shine 1 -> 0 (the
+       featured carousel card, Jack 2026-10-27: "have the bubble reflection fade away when it moves to the
+       center ... not distracting when it's the main focus") */
+    var sh = parseFloat(cs.getPropertyValue("--rpb-shine")); it.shine = isNaN(sh) ? 1 : Math.max(0, Math.min(1, sh));
     if (it.rb) it.pal = palOf(cs.getPropertyValue("--rpb-pal"));
     it.styled = true;
   }
@@ -677,12 +681,12 @@
     } catch (e) {}
     STATS.atlasGrows = (STATS.atlasGrows || 0) + 1;
   }
-  function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep, rb, pal, clip) {
+  function render(cols, W, H, box, rad, t, seed, scale, depth, glow, deep, rb, pal, clip, shine) {
     if ((glc.width < W || glc.height < H) && !zooming) grow(W, H);
     var dbw = gl.drawingBufferWidth || glc.width, dbh = gl.drawingBufferHeight || glc.height;
     var f = Math.min(1, dbw / W, dbh / H);
     var w = Math.max(1, Math.floor(W * f)), h = Math.max(1, Math.floor(H * f));
-    gl.useProgram(prog); params(U); gl.uniform1f(U.uSh, glow ? 0 : 1); gl.uniform1f(U.uClip, clip ? 1 : 0); gl.uniform1f(U.uEll, renderEll ? 1 : 0); gl.uniform1f(U.uOut, renderOut ? 1 : 0);
+    gl.useProgram(prog); params(U); gl.uniform1f(U.uSh, glow ? 0 : (shine == null ? 1 : shine)); gl.uniform1f(U.uClip, clip ? 1 : 0); gl.uniform1f(U.uEll, renderEll ? 1 : 0); gl.uniform1f(U.uOut, renderOut ? 1 : 0);
     gl.viewport(0, dbh - h, w, h);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3fv(U.uC1, cols[0]); gl.uniform3fv(U.uC2, cols[1]); gl.uniform3fv(U.uC3, cols[2]);
@@ -753,12 +757,12 @@
       /* the shape is the ELEMENT's box; the canvas overhangs it by the bleed, where the outer rings live */
       var sE = Math.min(it.w, it.h) / 2;
       renderEll = !!it.opts.ellipse; renderOut = true;
-      src = render(it.cols, W, H, [it.w / 2 / sE, it.h / 2 / sE], it.rad, t, it.opts.seed, [w / 2 / sE, h / 2 / sE], it.depth, false, 0, 0, null, false);
+      src = render(it.cols, W, H, [it.w / 2 / sE, it.h / 2 / sE], it.rad, t, it.opts.seed, [w / 2 / sE, h / 2 / sE], it.depth, false, 0, 0, null, false, it.shine);
       renderEll = false; renderOut = false;
     } else {
       var s = Math.min(w, h), inset = it.opts.inset || 1;
       renderEll = !!it.opts.ellipse;
-      src = render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, [w / s / inset, h / s / inset], it.depth, false, it.deep, it.rb, it.pal, it.clipped);
+      src = render(it.cols, W, H, [w / s, h / s], it.rad, t, it.opts.seed, [w / s / inset, h / s / inset], it.depth, false, it.deep, it.rb, it.pal, it.clipped, it.shine);
       renderEll = false;
     }
     it.ctx.clearRect(0, 0, cw, ch);
@@ -911,7 +915,7 @@
     if (x.opts.liveWhen) { try { if (!x.opts.liveWhen(x.el)) return "still"; } catch (e) {} }
     return x.ref ? "glow" : "live";
   }
-  function sigOf(x) { return [x.cols && x.cols.join(), x.rad, x.depth, x.deep, x.rb, x.w, x.h, x.rw, x.rh, x.rrad].join("|"); }
+  function sigOf(x) { return [x.cols && x.cols.join(), x.rad, x.depth, x.deep, x.rb, x.shine, x.w, x.h, x.rw, x.rrad].join("|"); }
   function frame(now) {
     raf = 0; FR++;
     var gap = last ? now - last : 16; last = now;

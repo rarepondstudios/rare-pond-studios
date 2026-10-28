@@ -36,10 +36,10 @@
       if(slid)return; slid=true;                 // run once: the load-ready path AND the safety timer both call this
       docEl.classList.add('xw-active'); docEl.classList.remove('xw-cover');
       if(window.__resetThemeColor) window.__resetThemeColor(600);
-      var fin=function(){ clearAll(w); };
+      var fin=function(){ clearAll(w); if(window.RPWater&&RPWater.markGone) RPWater.markGone(); };
       if(canSweep()){
-        SW = RPWater.sweep(w,{dir:dir,phase:'out',ms:850,done:fin});
-        setTimeout(fin,1700);
+        SW = RPWater.sweep(w,{dir:dir,phase:'out',ms:800,done:fin});
+        setTimeout(fin,1600);
         return;
       }
       w.style.transition='none'; w.style.transform='translateX(0)'; void w.offsetWidth;
@@ -48,11 +48,34 @@
       w.addEventListener('transitionend',function h(e){ if(e.propertyName!=='transform')return; w.removeEventListener('transitionend',h); fin(); });
       setTimeout(fin,1000);
     }
-    var fonts=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
+    /* WAIT FOR THE PAGE, NOT FOR 'load' (2026-10-27, Jack: "the transition actually completes with an
+       empty page, and then the user sees everything pop in", Rentals -> Studio). The window 'load' event
+       fires before a page that builds itself from data (the Studio) is built: the sweep used to slide
+       off ~600 ms before the content was there. Now it waits for the page's own "ready to be seen"
+       signal: its load cover starting to lift (RPWater.whenReady, fired by the cover of every page
+       that has one, with each page's own rules: fonts, the first screen's images, live data, layout
+       holding still), then two frames. Pages without a cover fall back to 'load'. Never longer than
+       3.5 s. */
     var loaded=new Promise(function(r){document.readyState==='complete'?r():addEventListener('load',r,{once:true});});
-    Promise.all([fonts,loaded]).then(function(){ requestAnimationFrame(function(){ requestAnimationFrame(slide); }); });
-    setTimeout(slide,2500);                    // safety: never stay covered
+    var ready=(window.RPWater&&RPWater.whenReady)?new Promise(function(r){RPWater.whenReady(r); if(!document.getElementById('pageveil')) loaded.then(r);}):loaded;
+    ready.then(function(){ requestAnimationFrame(function(){ requestAnimationFrame(slide); }); });
+    setTimeout(slide,3500);                    // safety: never stay covered
   })();
+
+  /* ---------- PREFETCH (2026-10-27, Jack: "the loading of the side transitions is really long"): the moment a
+     pointer rests on (or a finger touches, or the keyboard reaches) a sideways link, the next page's
+     document is fetched in the background, so the hop does not wait on the network after the sweep has
+     covered the screen. Once per link target; nothing on Save-Data. ---------- */
+  var pre={};
+  function prefetch(e){
+    var a=e.target&&e.target.closest&&e.target.closest('a[data-wipe]'); if(!a) return;
+    if(navigator.connection&&navigator.connection.saveData) return;
+    var u; try{ u=new URL(a.getAttribute('href')||'',location.href); }catch(_){ return; }
+    if(u.origin!==location.origin||u.pathname===location.pathname||pre[u.pathname]) return;
+    pre[u.pathname]=1;
+    var l=document.createElement('link'); l.rel='prefetch'; l.href=u.pathname; document.head.appendChild(l);
+  }
+  ['pointerover','touchstart','focusin'].forEach(function(ev){ document.addEventListener(ev,prefetch,{passive:true,capture:true}); });
 
   /* ---------- SOURCE: intercept a [data-wipe] link and slide the panel IN to cover ---------- */
   var busy=false;   /* in-flight guard: a rapid second click must never restart the panel mid-wipe */
@@ -77,8 +100,8 @@
     var did=false, go=function(){ if(did)return; did=true; location.href=url.href; };
     w.style.display='block';
     if(canSweep()){
-      SW = RPWater.sweep(w,{dir:dir,phase:'in',ms:700,done:go});
-      setTimeout(go,1000);
+      SW = RPWater.sweep(w,{dir:dir,phase:'in',ms:600,done:go});
+      setTimeout(go,950);
       return;
     }
     w.style.transition='none'; w.style.transform='translateX('+startX+')'; void w.offsetWidth;
