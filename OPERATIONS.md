@@ -716,8 +716,10 @@ Standard for every site: `AI_System_Context/procedures/website-quality.md`. Engi
   only when its first screen is ready: Studio = fonts (max 1.2 s) + `__markContentReady` from `__main`;
   Rentals = fonts (max 1.2 s) + load + the live catalog redraw (`window.__rpLive`, max 1.2 s) + a still
   layout; Media = fonts + load; legal = text drawn + logo decoded (`RPWater.page`). Caps 3 to 4 s.
-- The lift is "diving in" (`RPWater.veil`, 2 s): the waterline rises from below the screen in three bands
-  and every top-level element of the page rides up with it (`data-no-dive` opts an element out). Colours:
+- The cover (`RPWater.veil`): while loading, mid-screen water in three depth layers with the painted duck
+  floating (`opts.duck`); when ready the duck and water rise (2 s) and every top-level element of the page
+  rides up under them (`data-no-dive` opts an element out). Readiness helper for new pages:
+  `RPWater.firstScreen(cap)` (on-screen images and video, never the window load event). Colours:
   data/site.json `veil.colorLook`, "water" = the Studio background blues (default), or a colour look's
   name; "enabled: off" shows the page with no cover.
 - Both covers MOVE on the compositor (Web Animations on pre-drawn canvas layers), never from a JS frame
@@ -731,6 +733,13 @@ Standard for every site: `AI_System_Context/procedures/website-quality.md`. Engi
   banner), so nothing competes with or pops over the cover's motion.
 - New page: copy the legal pages' pattern (cover CSS + div + `RPWater.page`). Check with
   `node ~/bts-automation/site_popin_audit.mjs <url> --mobile` (and `--engine=webkit|firefox`).
+
+## Social icons (Rare Pond, since 2026-10-28)
+
+`assets/soc-bubbles.js` restyles the header, footer and phone-menu icons that `assets/socials.js` renders:
+colours from the network's colour look (NocoDB colour looks: youtube, instagram, linkedin, facebook, tiktok,
+vimeo, imdb), glyphs from socials.js, rings from rp-bubble.js splash mode. Styling: chrome.css "RARE POND
+SOCIAL ICONS, V3". jackcarlsen.com keeps its own icons.
 
 ## Asset versions (every page, automatic, since 2026-10-27)
 

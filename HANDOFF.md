@@ -39,6 +39,34 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-142 DUCK LOADER, V3 SOCIAL ICONS, RIM WAVES FOLLOW THE SHAPE, FASTER FIRST SCREENS (2026-10-28)
+
+- Load cover (rp-water.js `veil`, master `bts-automation/rp_water.js`): while loading, the sky over the top
+  half, mid-screen water in three depth layers (top to bottom: back 25% most blur, middle 50% sharp, front
+  solid medium blur) over opaque deep water, each layer drifting sideways on the compositor, and the painted
+  duck (`opts.duck`, `/media/logos/duck-painted.webp`) bobbing between the middle and front layers. It fades
+  in over the white (0.38 s). On ready: the deep water clears, the surface and the duck rise off the top
+  (2 s) and the page rides up under the front layer. Blur is baked into the canvases (canvas filter; CSS
+  blur where unsupported). Rare Pond pages pass the duck (Studio, Rentals, Media, privacy, terms, Studio
+  SPA swaps); jackcarlsen.com keeps its plain fade.
+- Duck asset: cut from the brand kit's RP_Logo_Duck_PAINTED.png (lilypad keyed out, eye kept; Jack's call)
+  into `Website Repository/Rare Pond Brand (Web)/Logos/duck-painted.png`; brand_media_sync.py publishes it
+  as a lossy WebP (new 5th manifest field "lossy"), 560 px, 23 KB.
+- Social icons V3 (`assets/soc-bubbles.js` + chrome.css "RARE POND SOCIAL ICONS, V3"): rebuilt in code from
+  the brand kit's RP_*_CIRCLE design: a disc in the network's colour look (data/colorlooks.json via
+  RP_LOOKS, defaults in the file), the white glyph from socials.js, and the inverted tiers as rings
+  (rp-bubble.js splash, still, wobble on hover; CSS glow without WebGL, e.g. Media). Header, footer, phone
+  menu; team members' links unchanged. Rare Pond only.
+- rp-bubble.js: `uWf` keeps a round bubble's wave count on any outline (Ramanujan perimeter), the wobble
+  scales with the band depth, and `--rpb-band` (px) sets the tiers' width on any element size. Featured
+  card: fewer, gentler waves. Rentals: card rim `--rpb-band:22px`, popup `26px` and above the close button.
+- Load times: fonts the first screen uses are preloaded (Studio, Rentals, Media); Media's cover waits for
+  `RPWater.firstScreen()` (on-screen images / video, max 1.5 s) instead of window load: 0.45 to 0.6 s to
+  reveal (was 1.5 to 1.6 s live). Studio fonts done at ~0.5 s (were 0.7 to 1.3 s).
+- Verified: recordings of the loader and rise (Studio desktop with a throttled connection, Rentals, Media
+  phone), carousel and rentals card / popup screenshots, pop-in audit clean on all six pages in Chrome
+  desktop and mobile, WebKit and Firefox (one Firefox hat flag did not repeat).
+
 ### 0.0.-142 RENTALS STICKERS: "LONGER" CABLE WRAP (SANDBAG ONLY), DEPARTMENT BATCHES (2026-10-27)
 
 - Per Jack: new `cable_wrap` value `longer` (enum `cable_wrap_t`, migration `bts-automation/migrations/20261027d_cable_wrap_longer.sql`;
