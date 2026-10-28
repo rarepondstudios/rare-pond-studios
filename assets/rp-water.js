@@ -119,7 +119,16 @@
      KEYFRAMES), so the water keeps moving smoothly while the page is busy loading under it. The blur is
      drawn into the layers once (canvas filter; a CSS blur where a browser lacks that). opts.duck: the
      floating image (Rare Pond pages pass /media/logos/duck-painted.webp); no duck = just the water. */
-  var CF = (function () { try { var x = document.createElement("canvas").getContext("2d"); x.filter = "blur(2px)"; return x.filter === "blur(2px)"; } catch (e) { return false; } })();
+  /* canvas blur that really works: some browsers accept ctx.filter but draw nothing different (WebKit,
+     2026-10-28 cross-device test), so it is tested by drawing: a blurred square must bleed past its edge */
+  var CF = (function () {
+    try {
+      var c = document.createElement("canvas"); c.width = c.height = 24; var x = c.getContext("2d");
+      x.filter = "blur(3px)"; if (x.filter !== "blur(3px)") return false;
+      x.fillStyle = "#000"; x.fillRect(8, 8, 8, 8);
+      return x.getImageData(5, 12, 1, 1).data[3] > 8;
+    } catch (e) { return false; }
+  })();
   /* a wave that repeats every P px (so a layer can drift sideways forever without a seam): the bubble
      rim's two-sine wobble, at P/2 and P/4 */
   function pw(x, P, A, ph) { return A * (0.62 * Math.sin(x / P * 12.566 + ph) + 0.38 * Math.sin(x / P * 25.133 + ph * 1.7)); }
