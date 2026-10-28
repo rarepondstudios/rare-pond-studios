@@ -85,7 +85,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <!-- the duck floating on the load cover (assets/rp-water.js) -->
 <link rel="preload" as="image" href="/media/logos/duck-painted.webp" fetchpriority="high">
-<script src="/assets/rp-water.js?v=79adf18214"></script>
+<script src="/assets/rp-water.js?v=86b0bfe717"></script>
 <!-- Start the page's data downloads with the HTML (2026-10-27): the page builds itself from these and used to
      request them only once the whole document and its scripts had been read, 150 to 300 ms later. -->
 <link rel="preload" href="/data/site.json" as="fetch" crossorigin="anonymous">
@@ -777,7 +777,9 @@ html.xw-active{overflow:hidden}
      The defaults below are the "signature" look so it still looks right with no JS. */
   .about-anim-slot{position:relative;width:100%;max-width:460px;aspect-ratio:1/1;margin:0 auto;border-radius:50%;
     --bub-c1:#3f6bff;--bub-c2:#9b5cff;--bub-c3:#56c8ff;
-    background:radial-gradient(circle at 50% 45%,rgba(246,250,255,.93),rgba(232,242,255,.72) 37%,rgba(210,229,255,.40) 57%,rgba(188,213,250,.14) 72%,rgba(255,255,255,0) 80%);
+    /* the inside is WHITE with a subtle blue vignette at the edge (2026-10-28, Jack: like the brand kit's
+       RP_BG-Vignette_WHITE background, whose edge runs #dfeffa and corners #b9dbf4); was a faded gradient */
+    background:radial-gradient(circle closest-side at 50% 50%,#ffffff 0%,#ffffff 56%,#f7fbfe 68%,#ecf5fc 80%,#ddedfa 92%,#d2e7f8 100%);
     box-shadow:0 0 46px 3px color-mix(in srgb,var(--bub-c3) 55%,transparent),
       0 0 96px 12px color-mix(in srgb,var(--bub-c1) 38%,transparent),
       0 24px 60px -16px rgba(0,10,40,.55),

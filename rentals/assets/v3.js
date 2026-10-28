@@ -9,8 +9,7 @@
    - a gear card under the pointer or the keyboard selection: a rim in that department's colour look
      (one still frame), made when the card is entered and LET GO of shortly after it is left, so a page
      of 100 cards never holds more than a couple of rims. It replaces the card's thin hover outline (the glow stays).
-   - the open gear popup: a still rim (drawn once, redrawn only if its size changes) in the department
-     look, around the whole panel.
+   - (the open gear popup had a rim too; removed 2026-10-28, Jack: "the popup should just stay clean")
    No WebGL (or reduced data paths that fail) = nothing changes: the old CSS outlines stay. */
 (function () {
   if (!window.RPBubble || !RPBubble.supported()) return;
@@ -95,10 +94,6 @@
       var sp = rimIn(lw, "v3splash");
       if (RPBubble.attach(sp, { look: { c1: "#ffffff", c2: "#ffffff", c3: "#ffffff" }, seed: 3.3, ellipse: true, splash: true, still: true })) lw.classList.add("v3-splash");
       else sp.remove();
-    }
-    var dpc = document.querySelector("#dp.show .dpc");
-    if (dpc && !dpc.querySelector(".v3rim")) {
-      RPBubble.attach(rimIn(dpc, "v3dp"), { look: lookOfEl(dpc), seed: 6.1, still: true });
     }
   }
   var pend = 0;

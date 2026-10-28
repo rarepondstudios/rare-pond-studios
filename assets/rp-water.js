@@ -141,7 +141,7 @@
     var A = Math.max(5, 0.011 * H), P = Math.round(0.9 * W);
     /* the layers' edges, in px from the top of the screen while loading */
     /* the waterline sits on the lower third (Jack, 2026-10-28; it was the middle) */
-    var yM = 0.66 * H, yB = yM - 0.055 * H, yF = yM + 0.05 * H, tF = 0.07 * H, yFB = yF + tF, TAIL = 0.1 * H;
+    var yM = 0.66 * H, yB = yM - 0.055 * H, yF = yM + 0.05 * H, tF = 0.11 * H, yFB = yF + tF, TAIL = 0.1 * H;
     /* the page's HEADER (opts.header, default the body's own <header>s) does not ride up with the water: the
        page's blue comes up first, straight out of the water, and the header (white on most pages) comes in
        after (2026-10-28, Jack: "it should lead directly into the blue BG of the website, then the header can
@@ -237,7 +237,7 @@
       deep = document.createElement("div");
       /* the deep water = the page's own background (opts.deep, a CSS background whose top is the page's top),
          so clearing it on reveal only brings in the page's content, never a change of colour */
-      deep.style.cssText = "position:absolute;left:0;right:0;top:" + (yF + tF / 2) + "px;height:" + (H - yF + 0.1 * H) + "px;will-change:opacity;background:" + (o.deep || ("linear-gradient(180deg," + (o.join || L.c2) + "," + L.c3 + ")")) + ";background-position:0 " + (tF / 2 - 1.2 * A - 2).toFixed(1) + "px;background-repeat:no-repeat;background-color:" + (o.join || L.c2);
+      deep.style.cssText = "position:absolute;left:0;right:0;top:" + (yF + tF / 2) + "px;height:" + (H - yF + 0.1 * H) + "px;will-change:opacity;background:" + (o.deep || ("linear-gradient(180deg," + (o.join || L.c2) + "," + L.c3 + ")")) + ";background-position:0 " + (tF / 2 - 1.2 * A - 2 - 0.065 * H).toFixed(1) + "px;background-repeat:no-repeat;background-color:" + (o.join || L.c2);
       rig.insertBefore(deep, fr);
       el.appendChild(rig);
       /* the water fades in over the white (never just there: no "spawn") */
@@ -252,7 +252,7 @@
       if (rig) { rig.remove(); rig = null; }
       el.style.background = "";
       /* the header comes in: a short fade and drop into place */
-      headIn.forEach(function (h) { try { h.animate([{ opacity: 0, transform: "translate3d(0,-14px,0)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: "cubic-bezier(.2,.7,.2,1)" }); } catch (e) {} });
+      headIn.forEach(function (h) { try { h.animate([{ opacity: 0, transform: "translate3d(0,-10px,0)" }, { opacity: 1, transform: "none" }], { duration: 720, easing: "cubic-bezier(.33,0,.15,1)" }); } catch (e) {} });
       headIn = [];
       if (o.signal !== false) mark("gone");
       if (fin) { var f = fin; fin = null; try { f(); } catch (e) {} }
@@ -264,8 +264,13 @@
       /* the page: its top rides exactly on the front layer's bottom edge, so there is never a gap between the
          water and the page (a lag let the page's dark backdrop show through as a hard line, 2026-10-28), and
          it stops at its place; by then the rise is nearly done, so the stop is all but motionless */
-      /* (tucked a wave's height under the edge, which wobbles: the page's top is the edge's own colour) */
-      function pageY(e) { return Math.max(0, yFB - 1.2 * A - 2 + ry(e)); }
+      /* (tucked a wave's height under the edge.) It EASES into its place (2026-10-28, Jack: the movement "ends
+         abruptly when it gets to the final position"): over the last cE px it slows smoothly to a stop
+         (u^2 / 2cE, continuous in position and speed), running slightly AHEAD of the water's edge, never
+         behind it, so it stays under the front layer's solid part (tF is sized for that) and nothing ever
+         shows between the water and the page. */
+      var cE = 0.13 * H;
+      function pageY(e) { var u = yFB - 1.2 * A - 2 + ry(e); return u <= 0 ? 0 : (u < cE ? u * u / (2 * cE) : u - cE / 2); }
       var opts = { duration: ms, easing: "linear", fill: "both" };
       anims.push(rig.animate(frames(ry), opts));
       /* the deep water clears as it starts to rise, so the page is there under the surface */
