@@ -39,6 +39,16 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-144 LOADER: WATER FADES INTO THE PAGE, SHORTER (2026-10-28)
+
+- Jack: still a faint harsh line between the wave and the page background during the opening transition;
+  it must be seamless, and only as long as the page needs to load.
+- rp-water.js `veil`: the front water layer no longer ends in an edge: below it a tail (10% of the screen
+  height) fades its colour out to nothing, so the page's background shows through gradually whatever its
+  exact colour; the page's top stays tucked under the solid part; the rise travels the extra tail. The
+  water fades in over 0.22 s (was 0.38) and the rise takes 1.3 s (was 2), so the cover lasts only the
+  load plus the rise. Checked on full-resolution frames of a throttled Studio load: no line at any point.
+
 ### 0.0.-143 THE WATER JOINS THE PAGE'S BLUE, HEADER AFTER, DUCK ROCKS, ICON RINGS (2026-10-28)
 
 - Jack: the rising water must lead straight into the page's own blue background, the white header coming
