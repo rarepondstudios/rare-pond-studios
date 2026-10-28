@@ -39,6 +39,42 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-141 DIVING IN, COVERS ON THE COMPOSITOR, SWEEP WAITS FOR THE PAGE (2026-10-27)
+
+- Jack: hops between pages chugged even on the 4090 PC, the sweep finished on an empty Studio and then
+  everything popped in (Rentals / Media -> Studio); side transitions and the first load slow; the
+  waterline visibly "spawned" at the bottom; wanted slower water, no purple, and the page to rise WITH
+  the water ("diving in") instead of a curtain lifting.
+- Cause (measured, `~/claude_perf/hop.mjs`, `hoptrace.mjs`): xwipe.js slid the sweep off on the window
+  `load` event, ~600 ms before the Studio was built (`__contentReady`); and both covers were moved AND
+  drawn from JavaScript every frame, during the arriving page's first style / layout pass (100 to 150 ms
+  long tasks at 4x CPU), so the motion froze and jumped.
+- rp-water.js (master `bts-automation/rp_water.js`): the water entry and the sweep are pre-drawn canvas
+  layers moved by Web Animations (compositor thread, sampled keyframes from one curve); JS only refreshes
+  the edge wobble at ~30 fps when idle. Water entry: no peek (`peek()` is a no-op), dives in over 2 s,
+  every top-level body element rides up with the waterline (`data-no-dive` opts out; covers and the
+  cursor excluded), default colours `RPWater.WATER` = the Studio background blues (site.json
+  `veil.colorLook` is now "water"; a look name still overrides). Sweep: three half-plane layers (25%,
+  1/3, solid) stack to the three tiers, 0.6 s in / 0.8 s out. New signals `RPWater.whenReady` (a page's
+  cover starts to lift) and `RPWater.whenGone` (the cover has gone).
+- xwipe.js: the sweep-out waits for `whenReady` (each page's own readiness), cap 3.5 s; prefetches the
+  next page on hover / touch / focus of a `[data-wipe]` link.
+- Studio: the 13 data JSON files are `<link rel=preload as=fetch>` in head (content ready ~300 ms
+  sooner); About logo frames start after `whenGone`; off-screen ambient bubbles pause (`.bgb-off`,
+  IntersectionObserver); old `pv-rise` removed. Rentals: cover readiness quicker (fonts max 1.2 s, live
+  catalog max 1.2 s, settle 200 ms).
+- Carousel: the featured card's shine fades out and back in (`--rpb-shine`, registered, .6 s; read by
+  rp-bubble.js as the shader's `uSh` strength; `.cspec` does the same without WebGL).
+- Shared: contact.js consent banner slides in after `whenGone`; cursor.js loader animation paused unless
+  shown. site_popin_audit.mjs: an element that comes into view on a running transform animation (the
+  diving page) is an entrance, not a pop.
+- Background bubbles question (Jack): measured on the mini at 1440x900@2x, steady state: all on vs
+  ambient bubbles hidden vs rims frozen vs both = 120 fps in every case, main thread ~230 ms/s and GPU
+  ~150 to 175 ms/s either way. They are already one pre-rendered still frame moved by CSS; not the cause.
+- Verified: pop-in audit clean on /, /rentals, /media, /privacy/, /terms/, /team in Chrome desktop and
+  mobile, WebKit, Firefox; recordings of the dive (desktop, phone, WebKit) and of Rentals / Media ->
+  Studio (the page is complete when the sweep slides off; no long tasks during the sweep at 4x CPU).
+
 ### 0.0.-140 WIDER WATER BANDS, WATERLINE EASES IN (2026-10-27)
 
 - Jack: more distance between the three layers in the water entry and the sideways sweep, the 25% band

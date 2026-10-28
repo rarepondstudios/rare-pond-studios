@@ -709,13 +709,21 @@ Standard for every site: `AI_System_Context/procedures/website-quality.md`. Engi
 
 - Every page paints its cover (`#pageveil`, the page's header colour) from the first frame and lifts it
   only when its first screen is ready: Studio = fonts (max 1.2 s) + `__markContentReady` from `__main`;
-  Rentals = fonts + load + the live catalog redraw (`window.__rpLive`, max 1.6 s) + a still layout; Media
-  = fonts + load; legal = text drawn + logo decoded (`RPWater.page`). Caps 3 to 4 s.
-- The lift is "entering the water" (`RPWater.veil`): the waterline rises over the screen in three bands.
-  Its colours = Pages CMS "Page-load fade" colour look (data/site.json `veil.colorLook`); "enabled: off"
-  shows the page with no cover.
+  Rentals = fonts (max 1.2 s) + load + the live catalog redraw (`window.__rpLive`, max 1.2 s) + a still
+  layout; Media = fonts + load; legal = text drawn + logo decoded (`RPWater.page`). Caps 3 to 4 s.
+- The lift is "diving in" (`RPWater.veil`, 2 s): the waterline rises from below the screen in three bands
+  and every top-level element of the page rides up with it (`data-no-dive` opts an element out). Colours:
+  data/site.json `veil.colorLook`, "water" = the Studio background blues (default), or a colour look's
+  name; "enabled: off" shows the page with no cover.
+- Both covers MOVE on the compositor (Web Animations on pre-drawn canvas layers), never from a JS frame
+  loop: the arriving page's first build blocks the main thread for 100 ms+ and a JS-driven cover stutters.
+  Keep it that way for any new transition.
 - Studio / Rentals / Media hops: `assets/xwipe.js` + `RPWater.sweep` (three bands with parallax across
-  the page load). In-page view changes use View Transitions (fallback: the water entry).
+  the page load). The second half waits for `RPWater.whenReady` (the destination's own cover readiness),
+  never the bare `load` event. Links are prefetched on hover / touch. In-page view changes use View
+  Transitions (fallback: the water entry).
+- After a cover: `RPWater.whenGone(fn)` for optional heavy work (About logo frames) and late UI (consent
+  banner), so nothing competes with or pops over the cover's motion.
 - New page: copy the legal pages' pattern (cover CSS + div + `RPWater.page`). Check with
   `node ~/bts-automation/site_popin_audit.mjs <url> --mobile` (and `--engine=webkit|firefox`).
 
