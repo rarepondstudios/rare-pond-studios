@@ -140,7 +140,8 @@
     var W = el.clientWidth || innerWidth, H = el.clientHeight || innerHeight;
     var A = Math.max(5, 0.011 * H), P = Math.round(0.9 * W);
     /* the layers' edges, in px from the top of the screen while loading */
-    var yM = 0.5 * H, yB = yM - 0.055 * H, yF = yM + 0.05 * H, tF = 0.07 * H, yFB = yF + tF, TAIL = 0.1 * H;
+    /* the waterline sits on the lower third (Jack, 2026-10-28; it was the middle) */
+    var yM = 0.66 * H, yB = yM - 0.055 * H, yF = yM + 0.05 * H, tF = 0.07 * H, yFB = yF + tF, TAIL = 0.1 * H;
     /* the page's HEADER (opts.header, default the body's own <header>s) does not ride up with the water: the
        page's blue comes up first, straight out of the water, and the header (white on most pages) comes in
        after (2026-10-28, Jack: "it should lead directly into the blue BG of the website, then the header can
@@ -175,12 +176,18 @@
       x.globalAlpha = al; x.fillStyle = fill || cgrad(x, w, P, L); x.beginPath();
       for (i = -pad - 20; i <= w + 20; i += step) { var y = pad + (phT == null ? 0 : pw(i - ox, P, A, phT)); i === -pad - 20 ? x.moveTo(i, y) : x.lineTo(i, y); }
       var yb = (bot - top) + pad;   /* local y of the bottom edge */
-      for (i = w + 20; i >= -pad - 20; i -= step) x.lineTo(i, yb + (tail ? 0 : (phB == null ? pad + 20 : pw(i - ox, P, A, phB))));
+      /* with a tail the shape runs on down to the canvas bottom, in one piece (two blurred pieces meeting at
+         the edge left a faint seam where both blurs thinned out); the fade is then cut out of it afterwards,
+         unblurred */
+      for (i = w + 20; i >= -pad - 20; i -= step) x.lineTo(i, tail ? h + 20 : yb + (phB == null ? pad + 20 : pw(i - ox, P, A, phB)));
       x.closePath(); x.fill();
       if (tail) {
-        var c3 = hexRGB(fill || L.c2).join(","), tg = x.createLinearGradient(0, yb, 0, yb + tail);
-        tg.addColorStop(0, "rgba(" + c3 + ",1)"); tg.addColorStop(0.45, "rgba(" + c3 + ",.55)"); tg.addColorStop(1, "rgba(" + c3 + ",0)");
-        x.fillStyle = tg; x.fillRect(-pad - 20, yb - 0.5, w + 40, tail + 0.5);
+        x.filter = "none"; x.globalAlpha = 1; x.globalCompositeOperation = "destination-out";
+        var tg = x.createLinearGradient(0, yb, 0, yb + tail);
+        tg.addColorStop(0, "rgba(0,0,0,0)"); tg.addColorStop(0.55, "rgba(0,0,0,.45)"); tg.addColorStop(1, "rgba(0,0,0,1)");
+        x.fillStyle = tg; x.fillRect(-pad - 20, yb, w + 40, tail);
+        x.fillStyle = "#000"; x.fillRect(-pad - 20, yb + tail, w + 40, h);
+        x.globalCompositeOperation = "source-over";
       }
       scene.appendChild(c);
       if (sec) loops.push(c.animate([{ transform: "translate3d(" + (sec > 0 ? 0 : -P) + "px,0,0)" }, { transform: "translate3d(" + (sec > 0 ? -P : 0) + "px,0,0)" }], { duration: Math.abs(sec) * 1000, iterations: Infinity, easing: "linear" }));
