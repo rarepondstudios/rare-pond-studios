@@ -275,7 +275,8 @@ html.xw-active{overflow:hidden}
   .citem.hide{--off:0;width:150px;height:150px;opacity:0;z-index:1;pointer-events:none}
   .cglow{position:absolute;inset:-16px;border-radius:42%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);mask:radial-gradient(closest-side,transparent 36%,rgba(0,0,0,.4) 58%,rgba(0,0,0,.85) 80%,transparent 100%);filter:blur(6px);opacity:.2;transition:opacity .45s ease,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;/* two animations: hue (paused until hover) and bob (always, in step with .cbub). animation-play-state takes one entry per animation, which is how they differ. */animation:bob calc(7s + var(--i,0)*0.8s) ease-in-out infinite alternate}
   .citem.feat .cglow{opacity:.32;border-radius:18%}
-  .citem:hover .cglow{opacity:.9}
+  /* (2026-10-29, Jack: no glow OUTSIDE the bubbles on hover. The rim still takes the project look and
+     opens up inward; the halo bleed and the brighter glow ring are gone, mouse and keyboard alike.) */
 
   /* ===== HOVER GLOW BLEED =========================================================
      At rest the glow is contained by the bubble. On hover we want light to look like it
@@ -333,7 +334,7 @@ html.xw-active{overflow:hidden}
      have been applied to hue as well and left the halo spinning at a different speed. */
   .bubble::before{animation-duration:calc(7s + var(--i,0)*0.9s)}
   .citem.feat::before{border-radius:16%/24%}
-  .citem:hover::before,.bubble:hover::before{opacity:.42;visibility:visible;transition:opacity .45s ease,visibility 0s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease}
+  /* (the hover halo bleed below is switched off since 2026-10-29: see the note at .cglow) */
   /* A special look (Rainbow) hands over its whole gradient. The halo only exists on hover in
      the first place, so this needs no :hover qualifier - it can never show at rest. */
   .citem.rp-glow-special::before,.bubble.rp-glow-special::before{background:var(--rp-glow)}
@@ -519,7 +520,7 @@ html.xw-active{overflow:hidden}
   .bubble.placeholder{cursor:default}
   .glow{position:absolute;inset:-16px;border-radius:50%;z-index:0;background:conic-gradient(from var(--ang),var(--gg1),var(--gg2),var(--gg3),var(--gg2),var(--gg1));-webkit-mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);mask:radial-gradient(closest-side,transparent 40%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.85) 78%,transparent 100%);filter:blur(9px);opacity:.32;transition:opacity .45s,--gg1 .4s ease,--gg2 .4s ease,--gg3 .4s ease;animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
   .bubble.placeholder .glow{opacity:.2}
-  .bubble.placeholder:hover .glow,.bubble.placeholder.rp-tap .glow,.bubble.placeholder.rpc-kbsel .glow{background:var(--rainbow);opacity:.85}
+  .bubble.placeholder:hover .glow,.bubble.placeholder.rp-tap .glow,.bubble.placeholder.rpc-kbsel .glow{background:var(--rainbow)}
   .bubble-inner{position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;-webkit-clip-path:circle(50%);clip-path:circle(50%);/* NO box-shadow here: clip-path clips it away. The shadow is cast by .bubble::after. */animation:bob calc(7s + var(--i,0)*0.9s) ease-in-out infinite alternate}
   .bubble.placeholder .bubble-inner{opacity:.7}
   .bubble__media{position:absolute;inset:-3%;width:106%;height:106%;object-fit:cover;display:block}
@@ -603,8 +604,6 @@ html.xw-active{overflow:hidden}
   .bubble.rpc-kbsel .caption .t{opacity:1;transform:translateY(0)}
   /* v19 (Jack): no ring band on RP bubbles - the kb indicator is the bubble's own standard
      glow (the .rpc-kbsel mirrors below: halo, .glow, .edge, scale, caption). */
-  .citem.rpc-kbsel::before,.bubble.rpc-kbsel::before{opacity:.42;visibility:visible}
-  .bubble:hover .glow,.bubble.rpc-kbsel .glow{opacity:1;filter:blur(12px)}
   .bubble:hover .edge,.bubble.rpc-kbsel .edge{opacity:.95}
 
   body.webkit .glass .spec,body.webkit .cspec{opacity:.55}
