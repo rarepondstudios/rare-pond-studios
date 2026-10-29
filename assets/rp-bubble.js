@@ -536,6 +536,11 @@
   (function startWorker() {
     try {
       if (TIER === "css" || /[?&]rpw=0\b/.test(location.search)) return;
+      /* NOT FIREFOX (measured 2026-10-29 on the mini, Firefox 1xx): its worker canvases are drawn and handed to
+         the screen far more slowly than its own page-thread renderer, so after a page change the page ran at a
+         third of its frame rate (52 frames in 2 s instead of 137). Firefox keeps the page-thread renderer;
+         ?rpw=1 forces the worker anyway, for testing. */
+      if (/\bFirefox\//.test(navigator.userAgent) && !/[?&]rpw=1\b/.test(location.search)) return;
       if (!(window.Worker && window.OffscreenCanvas && window.HTMLCanvasElement && HTMLCanvasElement.prototype.transferControlToOffscreen && window.Blob && window.URL && URL.createObjectURL)) return;
       var src = "var VS=" + JSON.stringify(VS) + ";var FS=" + JSON.stringify(FS) + ";(" + workerMain.toString() + ")();";
       WK = new Worker(URL.createObjectURL(new Blob([src], { type: "text/javascript" })));
