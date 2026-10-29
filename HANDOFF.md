@@ -143,6 +143,11 @@
   phone), carousel and rentals card / popup screenshots, pop-in audit clean on all six pages in Chrome
   desktop and mobile, WebKit and Firefox (one Firefox hat flag did not repeat).
 
+### 0.0.-147 RENTALS STICKERS v72: M / L BUBBLES SAY JUST 'RARE POND' (2026-10-28)
+
+- Per Jack: 'Rentals' removed from the medium / large bubbles; only 'Rare Pond' (Kaushan Script, 0.6 of the bubble wide)
+  curves under the duck above the phone. Test: `~/Desktop/RarePond_Rental_Labels/Test_v72_Bubbles/` (renamed from Test_v71_Bubbles).
+
 ### 0.0.-146 RENTALS STICKERS v71: ONE-LINE 'RARE POND RENTALS' ON THE M / L BUBBLES (2026-10-28)
 
 - Per Jack: the typed text logo on the medium / large bubbles is one curved line ('Rare Pond' Kaushan Script + 'Rentals'
