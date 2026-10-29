@@ -39,6 +39,44 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-153 PRE-RENDERED AMBIENT BUBBLE LOOPS, 3 RANDOM VARIANTS, AUTO RE-RENDER (2026-10-29)
+
+- Jack: "option 1": pre-render the ambient background bubbles into looping animations, 3 variants picked at
+  random on each visit, each curated to loop seamlessly with an even spread and good motion, re-rendered on
+  every back-end change, and document how long a change takes to show on the site.
+- Renderer `~/bts-automation/bgb_render.mjs`: reads the inputs from the repo (Site Settings
+  `home.bgBubbleCount`, the `signature` colour look in data/colorlooks.json, the `.bgb` CSS in index.html,
+  assets/rp-bubble.js for the ring), draws one bubble body in headless Chrome with the site's own CSS and the
+  ring with `RPBubble.spriteAsync`, then animates the bubbles frame by frame on a torus (the same bgdrift
+  keyframes and easing, every period a whole fraction of the 30 s loop, so frame 240 is frame 0: seamless).
+  Layout: Poisson-disk positions (no clumps), stratified phases (bubbles never all fade at once), depth-scaled
+  size / opacity / drift. Curation: 24 random layouts per size, scored by spread over a 6x6 grid across 36
+  moments plus steadiness of the total over time; the best 3 are kept. Tiles: desktop 1600x1200 CSS px (20
+  bubbles, about 0.8 MB), phone 800x1000 (8 bubbles, about 0.3 MB), animated AVIF, 8 fps
+  (`avifenc -q 30 --qalpha 40`, libavif from Homebrew).
+- Bake `~/bts-automation/bgb_bake.py` (LaunchAgent com.rarepond.bgbbake, every 10 min, RunAtLoad): pulls
+  rp_site_work, hashes the inputs, and only when they changed renders, writes media/bgb/<variant>-<hash>.avif
+  (old tiles removed) and data/bgb.json (inputs hash, render time, per-tile sizes), commits path-scoped and
+  pushes main. `--force` re-renders anyway, `--dry` renders to a temp folder only. Log bgbbake.log.
+- index.html PRE-RENDERED AMBIENT BUBBLES: fetches data/bgb.json (preloaded) and checks AVIF support; picks
+  one variant at random per visit (phone tile at 700 px wide or less); each field (home, projects, news)
+  shows it as a repeated background from a random offset, fading in once decoded, the field's bottom fade as
+  a mask. Falls back to the live CSS bubbles when bgb.json or AVIF is missing, and stays on them in WebKit
+  wider than 700 px (see below). `?bgb=0` / `?bgb=1` force it off / on.
+- WebKit desktop exception, measured (Playwright WebKit, 1440x900, scripted 4 s scroll): looping image 34 to
+  59 frames over 34 ms, live CSS bubbles 2 to 5. Phone-width WebKit, Chrome and Firefox: no measurable cost
+  from the image. Every iPad / iPhone browser is WebKit, so iPads keep the CSS bubbles, iPhones get the tiles.
+- Results, live -> preview, bench.mjs. Chrome 4x CPU desktop: idle main thread 306 -> 238 ms/s (style 483 ->
+  335 ms), page changes 346 -> 300 ms/s (worst 67 -> 50 ms), film 442 -> 376 ms/s (over 34 ms 2 -> 1), scroll
+  and carousel unchanged (already 0 long frames). Chrome 4x phone: scroll 416 -> 379 ms/s, film 321 -> 295.
+  The remaining style cost is the other running CSS animations (carousel bubbles bobbing, orbits, glows).
+  Pop-in audit clean on 5 pages in Chrome desktop / mobile, WebKit desktop / mobile, Firefox (one Chrome /news
+  run reported no cover at first paint, not reproduced on the re-run; live and preview both clean).
+- HOW LONG A CHANGE TAKES TO SHOW: up to 10 min until the bake notices (launchd interval), about 80 s to
+  render and encode 6 tiles (measured 79 s; about 4 s render and 9 to 12 s encode each), about 1 min for the
+  Cloudflare Pages deploy: about 3 to 12 minutes in all. Until then the site keeps the previous tiles. An
+  edit to rp-bubble.js also triggers a re-render (the ring look comes from it).
+
 ### 0.0.-152 PERFORMANCE PASS: RENDER WORKER, ONE SURFACE, PAGES KEPT READY (2026-10-29)
 
 - Jack: lag spikes scrolling, changing pages, on every device; do options 6 (page-change freeze), 3 (bubble

@@ -744,8 +744,26 @@ Standard for every site: `AI_System_Context/procedures/website-quality.md`. Engi
 - Bubbles draw in a worker (rp-bubble.js RENDER WORKER, one batched surface per frame) where supported,
   except Firefox; page-thread renderer otherwise. `RPBubble.debug().state.renderer` says which.
 - Hidden views are `.vw-off` (kept rendered, skipped), prewarmed after the load cover.
+- Ambient bubbles are pre-rendered loops (see Ambient bubble loops), not running CSS animations, except
+  in WebKit wider than a phone.
 - Measure before and after any heavy change: `node ~/claude_perf/bench.mjs <base> chrome 4 <tag>` (and
   `webkit 1`); compare frames over 34 ms and worst frame per scenario.
+
+## Ambient bubble loops (pre-rendered, since 2026-10-29)
+
+The ambient background bubbles (home, projects, news) are pre-rendered looping AVIF tiles, 3 variants per size,
+one picked at random per visit. They are generated, never edited by hand:
+
+- Inputs (change any of these and the loops re-render): Site Settings bubble count (`home.bgBubbleCount`), the
+  `signature` colour look (NocoDB color_looks), the `.bgb` / `bgdrift` CSS in index.html, assets/rp-bubble.js,
+  and the renderer `~/bts-automation/bgb_render.mjs` itself.
+- Job: LaunchAgent `com.rarepond.bgbbake` runs `~/bts-automation/bgb_bake.py` every 10 minutes; it does nothing
+  unless the inputs hash differs from `inputs` in data/bgb.json. Output: media/bgb/*.avif + data/bgb.json,
+  committed and pushed to main by the job. Log `~/bts-automation/bgbbake.log`.
+- Time to show on the site after a change: up to 10 min to notice + about 80 s render + about 1 min deploy,
+  so about 3 to 12 minutes. Force it now: `python3 ~/bts-automation/bgb_bake.py --force`.
+- Fallbacks: no data/bgb.json, no AVIF, or WebKit wider than 700 px (iPad, desktop Safari) = the live CSS
+  bubbles. `?bgb=0` / `?bgb=1` force it per visit for testing.
 
 ## Bubble clock rule (since 2026-10-29)
 
