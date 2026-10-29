@@ -39,6 +39,16 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-149 SOCIAL ICONS: THREE CLEAR TIERS AT ICON SIZE (2026-10-29)
+
+- Jack: on the small header icons the three tiers blurred into one soft edge; same size, but the tiers must
+  read clearly. The splash rings' edge softness scaled with the ring size, so on a 19 px radius the 25% ring
+  was nearly all blur. rp-bubble.js: new per-element `--rpb-soft` (edge softness multiplier) and
+  `--rpb-ring2-a` / `--rpb-ring3-a` (ring opacities, default .5 / .25), next to `--rpb-ring2/3` and
+  `--rpb-wobble`. chrome.css `.soc3-ring`: depth 1, rings to 1.3 / 1.62, opacities .5 / .24, soft .12,
+  wobble .35; soc-bubbles.js bleed 16. Compared live vs preview at 1x and 2x: solid / 50% / 25% now read as
+  three crisp steps. Header, footer and phone menu icons alike.
+
 ### 0.0.-148 NO GLOW OUTSIDE THE BUBBLES ON HOVER (2026-10-29)
 
 - Jack (after a side-by-side of the live site): remove the glow outside the bubbles on hover. index.html: the
