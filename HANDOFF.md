@@ -143,6 +143,12 @@
   phone), carousel and rentals card / popup screenshots, pop-in audit clean on all six pages in Chrome
   desktop and mobile, WebKit and Firefox (one Firefox hat flag did not repeat).
 
+### 0.0.-145 RENTALS STICKERS v70: M / L BUBBLES WITH THE TEXT LOGO TYPED UNDER THE DUCK (2026-10-28)
+
+- Per Jack: medium and large bubbles now have the outline duck on top and 'Rare Pond' (Kaushan Script, typed from the
+  brand kit font) over 'Rentals' (Heebo Light) under it, curved like the phone (`stickers.py arc_word()`, `script_font()`,
+  `BUBBLE_WORDS`). Small bubble unchanged. Test sheet now `~/Desktop/RarePond_Rental_Labels/Test_v70/` (v69 test in Trash).
+
 ### 0.0.-144 RENTALS STICKERS v69: DETAILS JOINED, SHORT WRAP 0.5 IN, S/M/L BUBBLES (2026-10-28)
 
 - Per Jack: a sticker with details (`sticker_details` on, and every container) now prints and cuts as ONE shape (details +
