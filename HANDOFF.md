@@ -39,6 +39,19 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-151 AMBIENT BUBBLES NEVER CUT BY THEIR FIELD'S EDGE (2026-10-29)
+
+- Jack: near the footer the rising bubbles showed a harsh line where they "spawn". Cause: every ambient
+  bubble field (bgbFill: home, projects, news, any new one) clips its bubbles (overflow:hidden), and a
+  bubble's spot was a random % of the field's height with its size added below it, so low, big bubbles
+  reached past the bottom edge and rose out of a straight cut. Measured with `~/claude_perf/bgbclip.mjs`
+  (bubbles visibly cut by their field's edge, sampled 8 s): live projects 80 cut samples (opacity up to .46),
+  news 80 (.57); now 0 on home, projects and news, desktop and phone.
+- index.html `bgbFill`: the spot is `calc(fEnd*100%*t - (size+50px)*t)`, so the bubble's lowest point (its
+  size plus the 46 px it starts below its spot) stays above the end of the fade band (50 px above the bottom
+  without a fade) whatever height the field ends up at; the fade dims by the same t, so the bubbles thin
+  out gradually toward the bottom.
+
 ### 0.0.-150 SOCIAL ICON PROPORTIONS; NO WOBBLE JUMP WHEN A FILM LANDS (ENGINE LEVEL) (2026-10-29)
 
 - Social icons (Jack: the logos looked small in their circles next to the brand kit's; keep the logos, make
