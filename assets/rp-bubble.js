@@ -1246,7 +1246,14 @@
     var hide = (o.hide || []).filter(Boolean);
     it.cv.style.visibility = "hidden";
     hide.forEach(function (h) { h.style.setProperty("opacity", "0", "important"); });   /* the halo fades on its own opacity transition */
-    var ms = o.ms || 1400, t0 = performance.now(), tBase = simT + seed * 3.7;
+    /* ONE CLOCK (2026-10-29, Jack: closing a film, the bubble's waves "correct themselves with a noticeable
+       jump cut"). The flight animates the rim's wobble, while the page's own bubble clock (simT) stands
+       still under the film (u-cover). The flight used to START at the bubble's time and run on, so the way
+       back landed 1.15 s of wobble AHEAD of the bubble it hands over to, which then snapped back. Now a
+       flight always meets the page's clock where the page shows the bubble: the way in starts at it, the
+       way back ENDS at it (it starts the flight's length earlier). Engine level, so every bubble a film can
+       open from or close into, on any page, hands over without a jump. */
+    var ms = o.ms || 1400, t0 = performance.now(), tBase = simT + seed * 3.7 - (o.dir === "out" ? ms / 1000 * P.speed : 0);
     Z = { o: o, it: it, hide: hide, raf: 0 };
     var z = Z;
     var first = true, lastNow = 0, gAcc = 0, gN = 0, kMin = 0.3;
@@ -1288,7 +1295,7 @@
       gl.uniform2f(UZ.uBox, box[0], box[1]); gl.uniform2f(UZ.uRad, rad0[0], rad0[1]); gl.uniform1f(UZ.uWf, wfOf(box, rad0)); gl.uniform1f(UZ.uDepth, depth); gl.uniform1f(UZ.uDeep, deep);
       if (rb && pal && pal.n > 1) { gl.uniform1f(UZ.uRb, rb); gl.uniform1f(UZ.uPalN, pal.n); gl.uniform3fv(UZ.uPal, pal.flat); }
       else gl.uniform1f(UZ.uRb, 0);
-      gl.uniform1f(UZ.uT, tBase + (now - t0) / 1000 * P.speed); gl.uniform1f(UZ.uSeed, seed); gl.uniform1f(UZ.uSh, 1);
+      gl.uniform1f(UZ.uT, tBase + Math.min(ms, Math.max(0, now - t0)) / 1000 * P.speed); gl.uniform1f(UZ.uSeed, seed); gl.uniform1f(UZ.uSh, 1);
       gl.uniform3f(UZ.uS, s[0], s[1], s[2]);
       gl.uniform2f(UZ.uCen, cx * kb, cy * bh / vh); gl.uniform2f(UZ.uView, bw, bh);
       gl.uniform1f(UZ.uSpx, S * kb); gl.uniform1f(UZ.uPxz, 1.2 / (S * kb));
