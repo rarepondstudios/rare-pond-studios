@@ -2085,7 +2085,12 @@ function bgbWatch(field){if(bgbIO)field.querySelectorAll('.bgb').forEach(b=>bgbI
    in once decoded, with the field's bottom fade as a mask. No bgb.json, no AVIF support: the live CSS bubbles
    below, as before. */
 let BGB=null;
-try{const m=__d[13],ok=__d[14];if(m&&ok&&m.tiles){const l=m.tiles[innerWidth<=700?'m':'d']||[];if(l.length)BGB=l[Math.floor(Math.random()*l.length)];}}catch(e){BGB=null;}
+/* Not in Safari / WebKit wider than a phone (measured 2026-10-29: scrolling the home page there dropped 34 to 59
+   frames in 4 s with the looping image against 2 to 5 with the live bubbles; on a phone-width page, in Chrome
+   and in Firefox it costs nothing measurable). Every iPad and iPhone browser is WebKit. ?bgb=0 / ?bgb=1 force it. */
+const BGB_WK=/AppleWebKit/.test(navigator.userAgent)&&!/Chrome\/|Chromium|Edg\//.test(navigator.userAgent);
+const BGB_Q=(location.search.match(/[?&]bgb=([01])\b/)||[])[1];
+try{const m=__d[13],ok=__d[14],want=BGB_Q?BGB_Q==='1':!(BGB_WK&&innerWidth>700);if(m&&ok&&want&&m.tiles){const l=m.tiles[innerWidth<=700?'m':'d']||[];if(l.length)BGB=l[Math.floor(Math.random()*l.length)];}}catch(e){BGB=null;}
 const bgbImg=BGB?new Promise(r=>{const im=new Image();im.onload=im.onerror=()=>r(im);im.src=BGB.url;(im.decode?im.decode():Promise.resolve()).then(()=>r(im),()=>r(im));}):null;
 function bgbBake(field,fade){
   field.textContent='';field.classList.add('bgb-baked');
