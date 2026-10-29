@@ -39,6 +39,39 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-152 PERFORMANCE PASS: RENDER WORKER, ONE SURFACE, PAGES KEPT READY (2026-10-29)
+
+- Jack: lag spikes scrolling, changing pages, on every device; do options 6 (page-change freeze), 3 (bubble
+  drawing off the page thread) and 4 (one drawing surface) and measure. Option 1 (pre-rendered loops, with 3
+  variants re-rendered on every back-end change) only if this is not enough.
+- Benchmark: `~/claude_perf/bench.mjs <base> <chrome|webkit|firefox> <cpu throttle> <tag>` (idle, scroll,
+  carousel, page changes, film open / close; frames over 34 ms, worst frame, main-thread busy, time in
+  rp-bubble.js / style / layout / paint; `QS='?rpw=0'` appends a query). Results in bench_<tag>.json.
+- rp-bubble.js RENDER WORKER (3 + 4): where OffscreenCanvas WebGL works in a worker (Chrome, Edge, Safari
+  17+), a Blob worker owns the WebGL context and every bubble canvas (transferControlToOffscreen); the page
+  thread still decides what to draw (reads styles, sizes, schedule) and posts one list per frame; the worker
+  packs that frame's bubbles in rows into one canvas, snapshots it ONCE (transferToImageBitmap) and copies
+  each piece out. The shaders compile in the worker; calibration and self-check run there too. Fallback to
+  the page-thread renderer (unchanged) when unsupported, the worker's self-check fails or it does not answer
+  in 8 s; `?rpw=0` forces the fallback, `?rpw=1` forces the worker. NOT in Firefox: measured slower there
+  (52 frames in 2 s after a page change instead of 137). The depth-zoom flight stays on the page thread; on
+  landing the overlay stays until the worker has the bubble's new frame (landDone, max 150 ms).
+  RPBubble.spriteAsync() (blob: URL) for the ambient bubbles' still ring; debug() shows renderer / worker.
+- index.html PAGES KEPT READY (6): views that are not showing are `.vw-off` (content-visibility:hidden,
+  absolute, 0 height) instead of display:none once prewarmViews has worked each out in idle time after the
+  load cover; zoomHost / bubbleOrigin skip `.vw-off`. Effect measured modest on its own (Chrome 4x page-change
+  worst frame 117 -> 100 ms). Page-change fallback without View Transitions (Firefox) is a plain cross-fade
+  again (the water dive there dropped frames for 1.3 s).
+- Results, live -> preview. Chrome 4x CPU: scroll frames over 34 ms 2 -> 0, main thread 551 -> 374 ms/s;
+  carousel worst 83 -> 17 ms; page changes worst 117 -> 33 ms, over 34 ms 4 -> 0; film worst 133 -> 50 ms;
+  idle main thread 268 -> 127 ms/s. Chrome 1x: no frame over 17 ms in any scenario. WebKit: scroll 3 -> 0 and
+  carousel 2 -> 0 long frames (worst 72 -> 25 ms); page changes 13 -> 11-12 long frames (View Transition
+  snapshot cost; the white-veil fade measured 1 long frame per change, hidden under the veil); Firefox
+  unchanged. Pop-in audit clean on 7 pages in Chrome desktop / mobile, WebKit, Firefox; loader frames
+  (coversuite) unchanged; film landing (landdiff) clean.
+- Next biggest cost: style recalculation for the running CSS animations (ambient bubbles' drift, bobbing,
+  orbits), now the largest main-thread item in every scenario. Option 1 would remove most of it.
+
 ### 0.0.-151 AMBIENT BUBBLES NEVER CUT BY THEIR FIELD'S EDGE (2026-10-29)
 
 - Jack: near the footer the rising bubbles showed a harsh line where they "spawn". Cause: every ambient

@@ -739,6 +739,14 @@ Standard for every site: `AI_System_Context/procedures/website-quality.md`. Engi
 - New page: copy the legal pages' pattern (cover CSS + div + `RPWater.page`). Check with
   `node ~/bts-automation/site_popin_audit.mjs <url> --mobile` (and `--engine=webkit|firefox`).
 
+## Performance architecture (since 2026-10-29)
+
+- Bubbles draw in a worker (rp-bubble.js RENDER WORKER, one batched surface per frame) where supported,
+  except Firefox; page-thread renderer otherwise. `RPBubble.debug().state.renderer` says which.
+- Hidden views are `.vw-off` (kept rendered, skipped), prewarmed after the load cover.
+- Measure before and after any heavy change: `node ~/claude_perf/bench.mjs <base> chrome 4 <tag>` (and
+  `webkit 1`); compare frames over 34 ms and worst frame per scenario.
+
 ## Bubble clock rule (since 2026-10-29)
 
 Anything that draws a bubble outside its own canvas (the depth-zoom flight, any future overlay) must use the
