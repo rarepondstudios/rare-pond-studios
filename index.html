@@ -1588,7 +1588,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= is the file's content hash, set automatically on every commit (tools/stamp-assets.py): never edit it by hand -->
-<script src="/assets/rp-bubble.js?v=46661e0fe0"></script>
+<script src="/assets/rp-bubble.js?v=50a4e55cba"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2023,7 +2023,7 @@ function makeGridBubble(p,i){
 }
 PROJECTS.forEach((p,i)=>grid.appendChild(makeGridBubble(p,i)));
 /* ambient bubbles wear one still frame of the V3 bubble in the signature look (see html.rp-bgb-ring CSS) */
-(function(){if(!window.RPBubble||!RPBubble.supported())return;RPBubble.ready(()=>{const sg=LOOKS_BY_KEY.signature||{c1:'#3f6bff',c2:'#9b5cff',c3:'#56c8ff'};const url=RPBubble.sprite(sg,256,2.4);if(!url)return;document.documentElement.style.setProperty('--bgb-ring','url('+url+')');document.documentElement.classList.add('rp-bgb-ring');});})();   /* ready(): once the shaders are built (they build in the background) */
+(function(){if(!window.RPBubble||!RPBubble.supported())return;RPBubble.ready(()=>{const sg=LOOKS_BY_KEY.signature||{c1:'#3f6bff',c2:'#9b5cff',c3:'#56c8ff'};const put=url=>{if(!url)return;document.documentElement.style.setProperty('--bgb-ring','url('+url+')');document.documentElement.classList.add('rp-bgb-ring');};if(RPBubble.spriteAsync)RPBubble.spriteAsync(sg,256,2.4,put);else put(RPBubble.sprite(sg,256,2.4));});})();   /* ready(): once the shaders are built (they build in the background) */
 /* AMBIENT BUBBLE DENSITY scales with the screen (Jack, 2026-10-26: right on desktop, far too dense
    on a phone). The CMS count (home.bgBubbleCount) is the count for a 1440x900 desktop; smaller screens
    get proportionally fewer (by screen area, at least 30%) and smaller (by width, at least half size)

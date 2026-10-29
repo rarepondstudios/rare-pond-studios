@@ -269,6 +269,184 @@
      (2026-10-26): the gradients moved way too fast at the AE rate, slow and subtle wanted -> 0.3,
      then "still too fast" -> 0.15, then "too slow now" -> 0.22, about one turn per 45 s. The rim's band
      wobble keeps the AE speed. */
+  /* ===== RENDER WORKER (2026-10-29, Jack: "lag spikes ... transition between pages, etc. This website NEEDS
+     to be viewable on every device") =====
+     Where the browser allows it (OffscreenCanvas with WebGL in a worker: Chrome, Edge, Firefox, Safari 17+),
+     the bubbles are drawn in a background thread, not on the page's own thread:
+       - the page thread only decides WHAT to draw (which bubbles, their colours / size / shape, read from the
+         page as before) and posts that as one list per frame;
+       - the worker owns the one WebGL context (the shaders also compile there, so a slow compile on Windows
+         can no longer freeze the page) and every bubble canvas (handed over with transferControlToOffscreen);
+       - ONE SURFACE: all the bubbles of a frame are drawn side by side into one shared canvas (packed in
+         rows), that canvas is snapshotted ONCE (transferToImageBitmap) and each bubble's canvas copies its
+         piece from that snapshot. Before, every bubble was drawn and copied out on its own, each copy a
+         separate GPU hand-over on the page thread (and in Firefox / Safari a copy of the whole canvas).
+     So scrolling, page changes and the film flights no longer wait for bubble drawing, and bubble drawing no
+     longer waits for them. Everything that is not per-frame bubble drawing stays where it was (the depth-zoom
+     flight, which must stay in step with the page frame by frame, is still drawn on the page thread).
+     Falls back to the page-thread renderer below automatically (no OffscreenCanvas WebGL, the worker's own
+     self-check failing, no answer within 8 s), and ?rpw=0 forces the fallback for testing. */
+  function workerMain() {
+    var cv = null, gl = null, prog = null, U = {}, outs = {}, ready = false, CAL = { rx: 1, ox: 0, ry: 1, oy: 0 }, MAXA = 2048;
+    var NM = ["uC1", "uC2", "uC3", "uBox", "uScale", "uGlow", "uPal", "uPalN", "uRb", "uDeep", "uDepth", "uRad", "uT", "uSeed", "uPx", "uWob", "uSoft", "uSpin", "uInner", "uCol", "uSh", "uClip", "uEll", "uOut", "uWf", "uRg", "uRa"];
+    function post(m, tr) { try { self.postMessage(m, tr || []); } catch (e) {} }
+    function fail(why) { ready = false; post({ type: "ready", ok: false, why: why }); }
+    function link() {
+      var p = gl.createProgram();
+      [[gl.VERTEX_SHADER, VS], [gl.FRAGMENT_SHADER, FS]].forEach(function (d) { var x = gl.createShader(d[0]); gl.shaderSource(x, d[1]); gl.compileShader(x); gl.attachShader(p, x); });
+      gl.bindAttribLocation(p, 0, "a"); gl.linkProgram(p);
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error("link: " + gl.getProgramInfoLog(p));
+      return p;
+    }
+    function build(at) {
+      var t0 = performance.now();
+      prog = link();
+      var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+      U = {}; NM.forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+      gl.useProgram(prog);
+      var gpu = ""; try { var dri = gl.getExtension("WEBGL_debug_renderer_info"); gpu = dri ? String(gl.getParameter(dri.UNMASKED_RENDERER_WEBGL)) : ""; } catch (e) {}
+      try { var mt = gl.getParameter(gl.MAX_TEXTURE_SIZE), mv = gl.getParameter(gl.MAX_VIEWPORT_DIMS); MAXA = Math.min(4096, mt || 2048, mv ? Math.min(mv[0], mv[1]) : 4096); } catch (e) {}
+      var cal = calibrate(), sc = selfCheck();
+      ready = sc.ok;
+      post({ type: "ready", ok: sc.ok, why: sc.ok ? "" : "self-check " + sc.res, gpu: gpu, compileMs: Math.round(performance.now() - t0), calib: cal, selfcheck: sc.res, maxAtlas: MAXA });
+    }
+    /* draws one bubble into the shared canvas at (x, yTop), w x h drawing-buffer px */
+    function render(j, x, yTop, w, h) {
+      var dbh = gl.drawingBufferHeight || cv.height, u = j.u;
+      gl.uniform1f(U.uWob, u.wob); gl.uniform2f(U.uRg, u.rg[0], u.rg[1]); gl.uniform2f(U.uRa, u.ra[0], u.ra[1]); gl.uniform1f(U.uSoft, u.soft);
+      gl.uniform1f(U.uSpin, u.spin); gl.uniform1f(U.uInner, u.inner); gl.uniform1f(U.uCol, u.col);
+      gl.uniform1f(U.uSh, u.sh); gl.uniform1f(U.uWf, u.wf); gl.uniform1f(U.uClip, u.clip); gl.uniform1f(U.uEll, u.ell); gl.uniform1f(U.uOut, u.out);
+      gl.viewport(x, dbh - yTop - h, w, h);
+      gl.uniform3fv(U.uC1, u.c[0]); gl.uniform3fv(U.uC2, u.c[1]); gl.uniform3fv(U.uC3, u.c[2]);
+      gl.uniform2f(U.uBox, u.box[0], u.box[1]); gl.uniform2f(U.uRad, u.rad[0], u.rad[1]); gl.uniform1f(U.uDepth, u.depth); gl.uniform1f(U.uDeep, u.deep);
+      if (u.rb && u.pal && u.paln > 1) { gl.uniform1f(U.uRb, u.rb); gl.uniform1f(U.uPalN, u.paln); gl.uniform3fv(U.uPal, u.pal); }
+      else gl.uniform1f(U.uRb, 0);
+      gl.uniform1f(U.uT, u.t); gl.uniform1f(U.uSeed, u.seed);
+      gl.uniform2f(U.uScale, u.scale[0], u.scale[1]); gl.uniform1f(U.uGlow, u.glow);
+      gl.uniform1f(U.uPx, 2.4 / Math.min(w, h));
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+    function size(w, h) { if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; gl.useProgram(prog); } }
+    function snap() { return cv.transferToImageBitmap(); }
+    /* the copy measures itself once (same idea as the page-thread COPY CALIBRATION): a grid of known colours,
+       copied the way the bubbles are, read back */
+    function calibrate() {
+      try {
+        var GW = 512, GH = 256, NX = 32, NY = 16, DW = 256, DH = 128;
+        size(Math.max(cv.width, 1024), Math.max(cv.height, 512));
+        var dbh = gl.drawingBufferHeight;
+        gl.viewport(0, 0, gl.drawingBufferWidth, dbh); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.enable(gl.SCISSOR_TEST);
+        for (var i = 0; i < NY; i++) for (var k = 0; k < NX; k++) { gl.scissor(k * (GW / NX), dbh - (i + 1) * (GH / NY), GW / NX, GH / NY); gl.clearColor((k * 8 + 4) / 255, (i * 16 + 8) / 255, 0.5, 1); gl.clear(gl.COLOR_BUFFER_BIT); }
+        gl.disable(gl.SCISSOR_TEST);
+        var bm = snap(), oc = new OffscreenCanvas(DW, DH), x = oc.getContext("2d", { willReadFrequently: true });
+        x.drawImage(bm, 0, 0, GW, GH, 0, 0, DW, DH); bm.close();
+        var d = x.getImageData(0, 0, DW, DH).data;
+        function fit(al) {
+          var pts = [], prev = null, n = al === "x" ? DW : DH;
+          for (var q = 0; q < n; q++) {
+            var o = al === "x" ? ((DH >> 1) * DW + q) * 4 : (q * DW + (DW >> 1)) * 4;
+            var v = al === "x" ? Math.round((d[o] - 4) / 8) : Math.round((d[o + 1] - 8) / 16);
+            if (prev !== null && v === prev + 1) pts.push([q, v * (al === "x" ? GW / NX : GH / NY)]);
+            prev = v;
+          }
+          if (pts.length < 6) return null;
+          var mx = 0, my = 0; pts.forEach(function (p) { mx += p[0]; my += p[1]; }); mx /= pts.length; my /= pts.length;
+          var sxy = 0, sxx = 0; pts.forEach(function (p) { sxy += (p[0] - mx) * (p[1] - my); sxx += (p[0] - mx) * (p[0] - mx); });
+          var a = sxy / sxx; return { a: a, b: my - a * mx };
+        }
+        var fx = fit("x"), fy = fit("y");
+        if (!fx || !fy) return "unreadable";
+        var rx = fx.a / (GW / DW), ry = fy.a / (GH / DH);
+        if (!(rx > 0.5 && rx < 2 && ry > 0.5 && ry < 2)) return "out of range";
+        var off = Math.abs(rx - 1) > 0.015 || Math.abs(ry - 1) > 0.015 || Math.abs(fx.b) > 3 || Math.abs(fy.b) > 3;
+        if (off) CAL = { rx: rx, ox: fx.b, ry: ry, oy: fy.b };
+        return [rx, fx.b, ry, fy.b].map(function (v) { return Math.round(v * 1000) / 1000; }).join(" / ") + (off ? " (corrected)" : " (exact)");
+      } catch (e) { return "error " + e.message; }
+    }
+    function copy(ctx, bm, sx, sy, sw, sh, W, H) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.drawImage(bm, sx + (-CAL.ox / CAL.rx), sy + (-CAL.oy / CAL.ry), sw / CAL.rx, sh / CAL.ry, 0, 0, W, H);
+    }
+    function selfCheck() {
+      try {
+        var W = 300, H = 170, s0 = Math.min(W, H);
+        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+        render({ u: { wob: 1, rg: [1.22, 1.5], ra: [0.5, 0.25], soft: 1, spin: 1, inner: 1, col: 0.22, sh: 1, wf: 1, clip: 0, ell: 0, out: 0, c: [[0.25, 0.42, 1], [0.6, 0.36, 1], [0.34, 0.78, 1]], box: [W / s0, H / s0], rad: [0.3, 0.45], depth: 1, deep: 0, rb: 0, t: 0, seed: 0.5, scale: [W / s0, H / s0], glow: 0 } }, 0, 0, W, H);
+        var bm = snap(), oc = new OffscreenCanvas(W, H), x = oc.getContext("2d", { willReadFrequently: true });
+        copy(x, bm, 0, 0, W, H, W, H); bm.close();
+        var d = x.getImageData(0, 0, W, H).data, A = function (px, py) { return d[(py * W + px) * 4 + 3]; };
+        var edges = [A(W >> 1, 3), A(W >> 1, H - 4), A(3, H >> 1), A(W - 4, H >> 1)], mid = A(W >> 1, H >> 1);
+        var ok = edges.every(function (a) { return a > 90; }) && mid < 40;
+        return { ok: ok, res: (ok ? "ok" : "FAILED") + " (edges " + edges.join("/") + ", middle " + mid + ")" };
+      } catch (e) { return { ok: false, res: "error " + e.message }; }
+    }
+    /* ONE SURFACE: pack the frame's bubbles in rows, draw them all, snapshot once, copy each piece out */
+    function batch(jobs) {
+      var t0 = performance.now(), done = [], i = 0;
+      while (i < jobs.length) {
+        var need = [0, 0];
+        jobs.forEach(function (j) { need[0] = Math.max(need[0], j.W); need[1] = Math.max(need[1], j.H); });
+        var aw = Math.min(MAXA, Math.max(cv.width, Math.ceil(need[0] / 64) * 64)), ah = Math.min(MAXA, Math.max(cv.height, Math.ceil(need[1] / 64) * 64));
+        size(aw, ah);
+        var dbw = gl.drawingBufferWidth || aw, dbh = gl.drawingBufferHeight || ah;
+        gl.viewport(0, 0, dbw, dbh); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+        var x = 0, y = 0, rowH = 0, placed = [];
+        for (; i < jobs.length; i++) {
+          var j = jobs[i], f = Math.min(1, dbw / j.W, dbh / j.H), w = Math.max(1, Math.floor(j.W * f)), h = Math.max(1, Math.floor(j.H * f));
+          if (x + w > dbw) { x = 0; y += rowH + 2; rowH = 0; }
+          if (y + h > dbh) { if (placed.length) break; x = 0; y = 0; }
+          render(j, x, y, w, h);
+          placed.push([j, x, y, w, h]);
+          x += w + 2; rowH = Math.max(rowH, h);
+        }
+        var bm = snap(), kx = aw / dbw, ky = ah / dbh;
+        placed.forEach(function (p) {
+          var j = p[0], o = outs[j.id]; if (!o) return;
+          if (o.c.width !== j.cw || o.c.height !== j.ch) { o.c.width = j.cw; o.c.height = j.ch; }
+          copy(o.x, bm, p[1] * kx, p[2] * ky, p[3] * kx, p[4] * ky, j.cw, j.ch);
+          done.push(j.id);
+        });
+        bm.close();
+      }
+      return { ids: done, ms: performance.now() - t0 };
+    }
+    self.onmessage = function (e) {
+      var m = e.data;
+      try {
+        if (m.type === "init") {
+          cv = new OffscreenCanvas(m.atlas[0], m.atlas[1]);
+          gl = cv.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false, powerPreference: "low-power" });
+          if (!gl) { fail("no WebGL in a worker"); return; }
+          cv.addEventListener("webglcontextlost", function (ev) { ev.preventDefault(); ready = false; post({ type: "lost" }); });
+          cv.addEventListener("webglcontextrestored", function () { try { build(); } catch (er) { fail("restore: " + er.message); } });
+          build();
+        } else if (m.type === "add") {
+          outs[m.id] = { c: m.canvas, x: m.canvas.getContext("2d", { alpha: true }) };
+        } else if (m.type === "drop") {
+          delete outs[m.id];
+        } else if (m.type === "size") {
+          var o = outs[m.id]; if (o) { o.c.width = m.w; o.c.height = m.h; }
+        } else if (m.type === "batch") {
+          if (!ready) { post({ type: "done", seq: m.seq, ids: [], ms: 0, skipped: true }); return; }
+          var r = batch(m.jobs);
+          post({ type: "done", seq: m.seq, ids: r.ids, ms: r.ms, n: m.jobs.length });
+        } else if (m.type === "sprite") {
+          if (!ready) return;
+          var px = m.px;
+          size(Math.max(cv.width, px), Math.max(cv.height, px));
+          gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+          render(m.job, 0, 0, px, px);
+          var bm = snap(), oc = new OffscreenCanvas(px, px);
+          copy(oc.getContext("2d"), bm, 0, 0, px, px, px, px); bm.close();
+          oc.convertToBlob({ type: "image/png" }).then(function (b) { post({ type: "sprite", key: m.key, blob: b }); });
+        }
+      } catch (er) { post({ type: "error", msg: String(er && er.message || er) }); }
+    };
+  }
+
   var P = { wobble: 1, soft: 1, spin: 1, inner: 1, speed: 1, color: 0.22, zres: 0.6 };
   /* PERFORMANCE BUDGET (2026-10-26, after the first live version cost real frame rate):
      - 24 fps, the AE comp's own rate. The motion is one slow turn per 10 s, so more is invisible.
@@ -348,6 +526,115 @@
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   var canCheckVis = typeof Element !== "undefined" && "checkVisibility" in Element.prototype;
 
+  /* ---- the render worker, page side (see RENDER WORKER) ----
+     W_MODE: "pending" (the worker is building), "worker" (it draws the bubbles), "main" (the page thread
+     draws them, the renderer further down). */
+  var W_MODE = "main", WK = null, wReady = false, wSeq = 0, wInflight = 0, wBatch = [], wNextId = 1, wById = {}, wLand = null, wSpriteQ = [], wSpriteCbs = {};
+  function engineReady() { return W_MODE === "main" ? progReady : (W_MODE === "worker" && wReady); }
+  function cvW(x) { return x.tx ? x.cw : x.cv.width; }
+  function cvH(x) { return x.tx ? x.ch : x.cv.height; }
+  (function startWorker() {
+    try {
+      if (TIER === "css" || /[?&]rpw=0\b/.test(location.search)) return;
+      if (!(window.Worker && window.OffscreenCanvas && window.HTMLCanvasElement && HTMLCanvasElement.prototype.transferControlToOffscreen && window.Blob && window.URL && URL.createObjectURL)) return;
+      var src = "var VS=" + JSON.stringify(VS) + ";var FS=" + JSON.stringify(FS) + ";(" + workerMain.toString() + ")();";
+      WK = new Worker(URL.createObjectURL(new Blob([src], { type: "text/javascript" })));
+      W_MODE = "pending";
+      WK.onmessage = onWorker;
+      WK.onerror = function (e) { workerFail("worker error: " + (e && e.message)); };
+      WK.postMessage({ type: "init", atlas: [1024, 1024] });
+      setTimeout(function () { if (W_MODE === "pending") workerFail("no answer from the worker in 8 s"); }, 8000);
+    } catch (e) { W_MODE = "main"; WK = null; }
+  })();
+  /* the worker cannot be used (before any canvas was handed to it): the page thread draws, as before */
+  function workerFail(why) {
+    STATS.worker = "off: " + why;
+    if (W_MODE !== "pending") { wReady = false; return; }
+    W_MODE = "main"; wReady = false;
+    try { WK.terminate(); } catch (e) {}
+    WK = null;
+    if (gl && !prog) { STATS.compileStart = performance.now(); prog = startLink(FS); }
+    kick();
+  }
+  function transfer(it) {
+    if (it.tx || !wReady || it.noTx) return;
+    try {
+      var off = it.cv.transferControlToOffscreen();
+      if (!it.id) it.id = wNextId++;
+      wById[it.id] = it;
+      WK.postMessage({ type: "add", id: it.id, canvas: off }, [off]);
+      it.tx = true; it.cw = 16; it.ch = 16;
+    } catch (e) { it.noTx = true; }
+  }
+  function flushBatch() {
+    if (!wBatch.length || !WK) return;
+    WK.postMessage({ type: "batch", seq: ++wSeq, jobs: wBatch });
+    wBatch = []; wInflight++;
+  }
+  function onWorker(e) {
+    var m = e.data || {};
+    if (m.type === "ready") {
+      if (!m.ok) { if (W_MODE === "pending") workerFail(m.why || "self-check"); else { wReady = false; STATS.worker = "lost: " + m.why; } return; }
+      var again = W_MODE === "worker";
+      W_MODE = "worker"; wReady = true;
+      STATS.worker = "on" + (again ? " (restored)" : ""); STATS.gpu = m.gpu || STATS.gpu; STATS.compileMs = m.compileMs; STATS.calib = m.calib; STATS.selfcheck = m.selfcheck; STATS.parallel = "worker";
+      if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(m.gpu || "")) { SOFT = true; STATS.soft = true; setTier("lite", "software renderer (no GPU)", false); }
+      items.forEach(function (x) { transfer(x); x.drawn = false; });
+      var cbs = readyCbs; readyCbs = []; cbs.forEach(function (f) { try { f(); } catch (er) {} });
+      wSpriteQ.splice(0).forEach(function (q) { WK.postMessage(q); });
+      /* the depth-zoom program builds on the page thread (the flight is drawn there), in idle time */
+      if (gl && !progZ) (window.requestIdleCallback || function (f) { return setTimeout(f, 300); })(function () {
+        try { if (gl && !progZ) { STATS.zStart = performance.now(); progZ = startLink(FSZ); kick(); } } catch (er) {}
+      });
+      kick();
+    } else if (m.type === "done") {
+      wInflight = Math.max(0, wInflight - 1);
+      if (!m.skipped) { STATS.draws += m.ids.length; STATS.drawMs += m.ms; STATS.batches = (STATS.batches || 0) + 1; if (m.ms > STATS.drawMax) STATS.drawMax = m.ms; }
+      for (var i = 0; i < m.ids.length; i++) {
+        var it = wById[m.ids[i]]; if (!it) continue;
+        if (!it.shownOnce) { it.shownOnce = true; it.cv.style.opacity = "1"; }
+        if (wLand && wLand.it === it) landDone();
+      }
+      kick();
+    } else if (m.type === "lost") {
+      wReady = false; STATS.worker = "context lost"; items.forEach(function (x) { x.drawn = false; });
+    } else if (m.type === "sprite") {
+      var url = URL.createObjectURL(m.blob); spriteCache[m.key] = url;
+      (wSpriteCbs[m.key] || []).splice(0).forEach(function (f) { try { f(url); } catch (er) {} });
+    } else if (m.type === "error") {
+      STATS.workerErr = m.msg;
+    }
+  }
+  /* everything one bubble's draw needs, as plain data for the worker (the same values render() sets) */
+  function jobOf(it, t, W, H, w, h, cw, ch) {
+    var u = { wob: P.wobble, rg: [1.22, 1.5], ra: [0.5, 0.25], soft: P.soft, spin: P.spin, inner: P.inner, col: P.color, sh: 1, wf: 1, clip: 0, ell: 0, out: 0,
+      c: it.cols, box: [1, 1], rad: [1, 1], depth: 1, deep: 0, rb: 0, pal: null, paln: 0, t: t, seed: it.opts.seed, scale: [1, 1], glow: 0 };
+    if (it.ref) {
+      var bw = it.rw || w, bh = it.rh || h, sb = Math.min(bw, bh) / 2;
+      u.box = [bw / 2 / sb, bh / 2 / sb]; u.rad = it.rrad == null ? [1, 1] : it.rrad; u.scale = [w / 2 / sb, h / 2 / sb];
+      u.glow = 1; u.sh = 0; u.wf = wfOf(u.box, u.rad);
+      if (it.rb && it.pal && it.pal.n > 1) { u.rb = it.rb; u.pal = Array.prototype.slice.call(it.pal.flat); u.paln = it.pal.n; }
+    } else if (it.opts.splash) {
+      var sE = Math.min(it.w, it.h) / 2;
+      u.ell = it.opts.ellipse ? 1 : 0; u.out = 1; u.rg = it.rg || [1.22, 1.5]; u.wob = P.wobble * (it.wobK == null ? 1 : it.wobK); u.ra = it.ra || [0.5, 0.25]; u.soft = P.soft * (it.softK == null ? 1 : it.softK);
+      u.box = [it.w / 2 / sE, it.h / 2 / sE]; u.rad = it.rad; u.scale = [w / 2 / sE, h / 2 / sE]; u.depth = it.depth || 1; u.sh = it.shine == null ? 1 : it.shine;
+    } else {
+      var s = Math.min(w, h), inset = it.opts.inset || 1;
+      u.ell = it.opts.ellipse ? 1 : 0; u.wob = P.wobble * (it.wobK == null ? 1 : it.wobK);
+      u.box = [w / s, h / s]; u.rad = it.rad; u.scale = [w / s / inset, h / s / inset]; u.depth = it.depth || 1; u.deep = it.deep || 0;
+      u.clip = it.clipped ? 1 : 0; u.sh = it.shine == null ? 1 : it.shine; u.wf = wfOf(u.box, u.rad);
+      if (it.rb && it.pal && it.pal.n > 1) { u.rb = it.rb; u.pal = Array.prototype.slice.call(it.pal.flat); u.paln = it.pal.n; }
+    }
+    return { id: it.id, W: W, H: H, cw: cw, ch: ch, u: u };
+  }
+  /* a film's flight has landed (worker mode): the overlay stays until the bubble's own canvas has its new
+     frame, so the rim never blinks out for a frame */
+  function landDone() {
+    var l = wLand; if (!l) return; wLand = null; clearTimeout(l.t);
+    l.it.cv.style.visibility = "";
+    if (!Z && !zooming) { glc.remove(); glc.style.cssText = ""; }
+  }
+
   function hex3(h) {
     h = String(h || "").trim().replace("#", "");
     if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
@@ -389,7 +676,7 @@
          after the bubble one, so it can never freeze a carousel move either. */
       PAR = gl.getExtension("KHR_parallel_shader_compile");
       STATS.compileStart = performance.now();
-      prog = startLink(FS);
+      if (W_MODE === "main") prog = startLink(FS);   /* worker mode: the worker builds it (see RENDER WORKER) */
       var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       gl.enableVertexAttribArray(0);
@@ -403,7 +690,7 @@
       SOFT = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(STATS.gpu);
       if (SOFT) { STATS.soft = true; setTier("lite", "software renderer (no GPU)", false); }
       glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
-      if (!PAR && !ready(true)) return false;   /* no extension: build now, as before */
+      if (W_MODE === "main" && !PAR && !ready(true)) return false;   /* no extension: build now, as before */
       return true;
     } catch (e) { gl = false; if (window.console) console.warn("RPBubble", e); return false; }
   }
@@ -514,6 +801,7 @@
   }
   /* is the bubble program built? force: wait for it (only when something cannot go on without it) */
   function ready(force) {
+    if (W_MODE !== "main") return W_MODE === "worker" && wReady;
     if (progReady) return true;
     if (!gl || !prog) return false;
     if (!force && !linkDone(prog)) return false;
@@ -772,15 +1060,24 @@
     var FW = Math.max(16, Math.round(w * base * k)), FH = Math.max(16, Math.round(h * base * k));
     var q = Q.scale * (it.trans ? 0.7 : 1);
     var W = Math.max(16, Math.round(FW * q)), H = Math.max(16, Math.round(FH * q));
-    var cw = it.cv.width, ch = it.cv.height;
+    if (W_MODE === "worker" && !it.tx) { transfer(it); if (!it.tx) return false; }
+    var cw = cvW(it), ch = cvH(it);
     if (!it.hold && (cw < FW || ch < FH)) {
       var gw = Math.ceil(FW / 64) * 64, gh = Math.ceil(FH / 64) * 64;
       /* growing WHILE its shape changes (a side card becoming the featured one): straight to the size of
          the largest bubble canvas on the page, so the move costs one resize instead of one per 64 px */
-      if (it.shapeT > 0) for (var mi = 0; mi < items.length; mi++) if (!items[mi].ref && !items[mi].opts.splash) { gw = Math.max(gw, items[mi].cv.width); gh = Math.max(gh, items[mi].cv.height); }
+      if (it.shapeT > 0) for (var mi = 0; mi < items.length; mi++) if (!items[mi].ref && !items[mi].opts.splash) { gw = Math.max(gw, cvW(items[mi])); gh = Math.max(gh, cvH(items[mi])); }
       cw = Math.max(cw, Math.min(gw, MAXPX + 64)); ch = Math.max(ch, Math.min(gh, MAXPX + 64));
-      it.cv.width = cw; it.cv.height = ch; it.resizes = (it.resizes || 0) + 1;
+      if (it.tx) { it.cw = cw; it.ch = ch; } else { it.cv.width = cw; it.cv.height = ch; }
+      it.resizes = (it.resizes || 0) + 1;
     }
+    if (W_MODE === "worker") {
+      /* drawn by the worker, together with the frame's other bubbles (see RENDER WORKER) */
+      wBatch.push(jobOf(it, t, W, H, w, h, cw, ch));
+      it.lastSrc = [W, H]; it.lastWH = [W, H]; it.drawn = true; it.lastDraw = performance.now();
+      return true;
+    }
+    if (!it.ctx) it.ctx = it.cv.getContext("2d", { alpha: true });
     var src;
     if (it.ref) {
       var bw = it.rw || w, bh = it.rh || h, sb = Math.min(bw, bh) / 2;
@@ -965,11 +1262,12 @@
     if (DBG.freeze || AT.on) { if (gl) raf = requestAnimationFrame(frame); return; }
     if (!paused && !reduce) simT += Math.min(0.1, gap / 1000) * P.speed;
     var wants = false;
-    if (gl && !progReady) {   /* shaders still building in the background: check again next frame */
+    if (W_MODE !== "main") { if (!wReady) return; }   /* the worker is still building: it kicks the loop when ready */
+    else if (gl && !progReady) {   /* shaders still building in the background: check again next frame */
       if (!ready(false)) { if (gl) raf = requestAnimationFrame(frame); return; }
     }
     if (progZ && !zReady && gl && !zooming && linkDone(progZ)) { try { ensureZ(); warmZ(); } catch (e) {} }
-    if (gl && !zooming && !hidden) {
+    if ((gl || W_MODE === "worker") && !zooming && !hidden) {
       var t0 = performance.now(), n = items.length, todo = [];
       /* FAIR: each frame starts one bubble further along, so when the budget runs out the same bubbles
          are not always the ones left waiting (on a slow machine only the first few bubbles on the page
@@ -1021,6 +1319,8 @@
       for (c = 0; c < todo.length; c++) {
         x = todo[c][0];
         if (x.drawn && nDrawn > 0 && pri(x) < 2 && performance.now() - tD > BUDGET) continue;   /* over budget: next frame (never a rim changing shape) */
+        /* worker mode: at most two frames' work waiting in the worker; anything but a rim changing shape waits */
+        if (W_MODE === "worker" && wInflight >= 2 && x.drawn && pri(x) < 2) { wants = true; continue; }
         nDrawn++;
         var iv = 1000 / (todo[c][1] === "glow" ? GLOW_FPS : Q.fps);
         x.next = x.drawn ? now + iv : now + iv * Math.random();   /* first draw: random phase, so they spread out */
@@ -1038,7 +1338,8 @@
         if (x.drawnF === FR) x.moveMiss = 0;
         else if (++x.moveMiss >= 3) { x.moveMiss = 0; staleMoves++; STATS.starved = staleMoves; }   /* counted for ?perf=1 only: no ring in full */
       }
-      if (grewF === FR) {   /* the shared canvas grew this frame: draw these again next frame, and re-check the copy */
+      if (W_MODE === "worker") flushBatch();
+      if (W_MODE === "main" && grewF === FR) {   /* the shared canvas grew this frame: draw these again next frame, and re-check the copy */
         for (c = 0; c < todo.length; c++) if (todo[c][0].drawnF === FR) todo[c][0].dirty = Math.max(todo[c][0].dirty, 1);
         STATS.atlasGrow = ATLAS.join("x") + " " + selfCheck(true);
         wants = true;
@@ -1114,7 +1415,7 @@
     el.appendChild(cv);
     el.classList.add("rp-bubble-on");
     it = {
-      el: el, cv: cv, ctx: cv.getContext("2d", { alpha: true }),
+      el: el, cv: cv, ctx: null,   /* made on the first page-thread draw; in worker mode the canvas goes to the worker */
       opts: { seed: opts.seed != null ? opts.seed : Math.random() * 10, inset: opts.inset, max: opts.max, res: opts.glow ? 0.5 : (opts.res || 1), still: !!opts.still, liveWhen: opts.liveWhen || null, ellipse: !!opts.ellipse, splash: !!opts.splash },
       ref: opts.glow ? (opts.ref || el) : null, bleed: bleed,
       vars: opts.look ? null : (opts.vars || ["--gg1", "--gg2", "--gg3"]),
@@ -1125,6 +1426,7 @@
     /* inside a clipping parent the PARENT's rounded clip is the only edge: a canvas with its own
        border-radius antialiased a second time, letting a hairline of the photo show around the rim */
     items.push(it);
+    if (W_MODE === "worker") transfer(it);
     if (io) io.observe(el);
     if (ro) ro.observe(el);
     kick();
@@ -1138,6 +1440,7 @@
     if (ro) ro.unobserve(el);
     var h = items[i].host;
     if (h) for (var c = h.firstElementChild; c; c = c.nextElementSibling) if (c.hasAttribute("data-rpb-edge")) { c.removeAttribute("data-rpb-edge"); c.style.removeProperty("clip-path"); }
+    if (items[i].tx && WK) { try { WK.postMessage({ type: "drop", id: items[i].id }); } catch (e) {} delete wById[items[i].id]; }
     items[i].cv.remove(); el.classList.remove("rp-bubble-on"); items.splice(i, 1);
   }
   function setParam(k, v) {
@@ -1149,11 +1452,23 @@
     px = px || 256; t = t || 0;
     var key = [look && look.c1, look && look.c2, look && look.c3, px, t].join("|");
     if (spriteCache[key]) return spriteCache[key];
+    if (W_MODE !== "main") { spriteAsync(look, px, t, function () {}); return ""; }
     if (!initGL() || !ready(true)) return "";
     var src = render(lookVec(look), px, px, [1, 1], [1, 1], t, 0.5, [1, 1], 1, false);
     var c = document.createElement("canvas"); c.width = c.height = px;
     copyOut(c.getContext("2d"), src, px, px);
     return (spriteCache[key] = c.toDataURL("image/png"));
+  }
+  /* the same still frame, from the worker when it draws the bubbles (a blob: URL), else at once */
+  function spriteAsync(look, px, t, cb) {
+    px = px || 256; t = t || 0;
+    var key = [look && look.c1, look && look.c2, look && look.c3, px, t].join("|");
+    if (spriteCache[key]) { cb(spriteCache[key]); return; }
+    if (W_MODE === "main") { var u0 = sprite(look, px, t); if (u0) cb(u0); return; }
+    (wSpriteCbs[key] = wSpriteCbs[key] || []).push(cb);
+    if (wSpriteCbs[key].length > 1) return;
+    var msg = { type: "sprite", key: key, px: px, job: { u: { wob: P.wobble, rg: [1.22, 1.5], ra: [0.5, 0.25], soft: P.soft, spin: P.spin, inner: P.inner, col: P.color, sh: 1, wf: 1, clip: 0, ell: 0, out: 0, c: lookVec(look), box: [1, 1], rad: [1, 1], depth: 1, deep: 0, rb: 0, pal: null, paln: 0, t: t, seed: 0.5, scale: [1, 1], glow: 0 } } };
+    if (wReady) WK.postMessage(msg); else wSpriteQ.push(msg);
   }
   /* ===== DEPTH ZOOM: open a film by flying through the bubble (Jack, 2026-10-26) =====
      The bubble's three tiers become three planes of a stage set: the solid rim is the foreground,
@@ -1170,6 +1485,16 @@
     if (!Z) return;
     var z = Z; Z = null;
     cancelAnimationFrame(z.raf);
+    if (W_MODE === "worker") {
+      /* the overlay stays up until the worker has the bubble's new frame (landDone), at most 150 ms */
+      zooming = false;
+      z.hide.forEach(function (h) { h.style.removeProperty("opacity"); });
+      if (wLand) landDone();
+      try { readStyle(z.it); if (draw(z.it, z.it.opts.still ? z.it.opts.seed * 3.7 : simT + z.it.opts.seed * 3.7)) { flushBatch(); wLand = { it: z.it, t: setTimeout(landDone, 150) }; } else { z.it.cv.style.visibility = ""; glc.remove(); glc.style.cssText = ""; } } catch (e) { z.it.cv.style.visibility = ""; glc.remove(); glc.style.cssText = ""; }
+      z.it.drawn = false; kick();
+      if (run && z.o.onDone) z.o.onDone();
+      return;
+    }
     glc.remove(); glc.style.cssText = "";
     glc.width = ATLAS[0]; glc.height = ATLAS[1];   /* back to the bubbles' fixed size (see ATLAS) */
     zooming = false;
@@ -1202,6 +1527,7 @@
   function zoom(o) {
     o = o || {};
     zoomStop(true);
+    if (wLand) landDone();   /* a landing still waiting for the worker: settle it before a new flight */
     if (reduce || !o.el || !initGL() || !ready(true)) return false;
     try { if (!ensureZ()) return false; } catch (e) { return false; }
     var it = find(o.el); if (!it) return false;
@@ -1356,7 +1682,8 @@
     if (o.el && o.resizeTest != null) {
       var rt = find(o.el);
       if (rt) {
-        if (o.resizeTest) { rt.hold = true; rt.cv.width = Math.max(16, Math.round(rt.cv.width * o.resizeTest)); rt.cv.height = Math.max(16, Math.round(rt.cv.height * o.resizeTest)); }
+        if (o.resizeTest && rt.tx) { rt.hold = true; rt.cw = Math.max(16, Math.round(rt.cw * o.resizeTest)); rt.ch = Math.max(16, Math.round(rt.ch * o.resizeTest)); WK.postMessage({ type: "size", id: rt.id, w: rt.cw, h: rt.ch }); }
+        else if (o.resizeTest) { rt.hold = true; rt.cv.width = Math.max(16, Math.round(rt.cv.width * o.resizeTest)); rt.cv.height = Math.max(16, Math.round(rt.cv.height * o.resizeTest)); }
         else rt.hold = false;
         rt.drawn = false; kick();
       }
@@ -1364,7 +1691,7 @@
     var now = performance.now(), lost = null, maxTex = null;
     try { if (gl) { lost = gl.isContextLost(); maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE); } } catch (e) {}
     out.state = {
-      ver: CODE_VER, tier: TIER, why: TIER_WHY, moveRing: MOVE_RING, staleMoves: staleMoves, q: { scale: r1(Q.scale * 10) / 10, fps: Q.fps }, dbg: { freeze: DBG.freeze, scale: DBG.scale },
+      ver: CODE_VER, renderer: W_MODE, workerReady: wReady, workerInflight: wInflight, worker: STATS.worker || null, tier: TIER, why: TIER_WHY, moveRing: MOVE_RING, staleMoves: staleMoves, q: { scale: r1(Q.scale * 10) / 10, fps: Q.fps }, dbg: { freeze: DBG.freeze, scale: DBG.scale },
       atlas: ATLAS.slice(), atlasMax: ATLAS_MAX.slice(), atlasGrow: STATS.atlasGrow || null, glc: glc ? [glc.width, glc.height] : null, dbuf: gl ? [gl.drawingBufferWidth, gl.drawingBufferHeight] : null,
       cal: CAL, gl: gl === false ? "off" : gl ? "on" : "not started", progReady: progReady, zReady: zReady, par: !!PAR, soft: SOFT, reduce: !!reduce,
       pace: { cadence: STATS.cadence || null, test: STATS.paceTest || null, bubblesAreTheCost: AT.bound, testing: !!AT.on, retestEvery: AT.every },
@@ -1376,7 +1703,7 @@
       return {
         i: i, el: selOf(x.el), parent: selOf(pe), gp: selOf(pe && pe.parentElement), kind: kindOf(x), still: x.opts.still, glow: !!x.ref, splash: x.opts.splash,
         seed: r1(x.opts.seed), rect: [r.left, r.top, r.width, r.height].map(Math.round), cvRect: [cr.left, cr.top, cr.width, cr.height].map(r1),
-        cv: [x.cv.width, x.cv.height], resizes: x.resizes || 0, hold: !!x.hold, lastWH: x.lastWH || null, lastSrc: x.lastSrc ? x.lastSrc.map(r1) : null, wh: [r1(x.w), r1(x.h)], bleed: x.bleed,
+        cv: [cvW(x), cvH(x)], inWorker: !!x.tx, resizes: x.resizes || 0, hold: !!x.hold, lastWH: x.lastWH || null, lastSrc: x.lastSrc ? x.lastSrc.map(r1) : null, wh: [r1(x.w), r1(x.h)], bleed: x.bleed,
         clipped: x.clipped, host: selOf(x.host), rad: x.rad ? x.rad.map(function (v) { return Math.round(v * 1000) / 1000; }) : null, br: x.br, depth: x.depth, deep: x.deep, rb: x.rb,
         onScreen: x.onScreen, shown: x.shown, drawn: x.drawn, shownOnce: !!x.shownOnce, dirty: x.dirty, trans: x.trans, shapeT: x.shapeT || 0, ring: x.ring || false, moveMiss: x.moveMiss || 0,
         lastDrawAgo: x.lastDraw ? Math.round(now - x.lastDraw) : null, drawnF: x.drawnF || null, cols: x.cols.map(hexOf),
@@ -1387,13 +1714,13 @@
   }
   window.RPBubble = {
     zoom: zoom, zoomStop: function (finish) { zoomStop(!!finish); },
-    attach: attach, setLook: setLook, detach: detach, sprite: sprite, params: P, setParam: setParam, quality: Q,
+    attach: attach, setLook: setLook, detach: detach, sprite: sprite, spriteAsync: spriteAsync, params: P, setParam: setParam, quality: Q,
     redraw: function () { items.forEach(function (x) { x.drawn = false; }); kick(); },
     supported: function () { return initGL(); },
     tier: function () { return { tier: TIER, why: TIER_WHY, moveRing: MOVE_RING }; },
     setTier: function (t) { if (t === "css") setTier(t, "set by the page", true, true); else setTier(t, "set by the page", true); },
     /* run f once the shaders are built (at once if they already are) */
-    ready: function (f) { if (!initGL()) return; if (progReady) f(); else { readyCbs.push(f); kick(); } },
+    ready: function (f) { if (!initGL()) return; if (engineReady()) f(); else { readyCbs.push(f); kick(); } },
     stats: STATS,
     debug: debug,
     /* the internal canvas of a bubble element (the probe reads its pixels) */
