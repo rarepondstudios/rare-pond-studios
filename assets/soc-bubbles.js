@@ -59,7 +59,7 @@
     a.insertBefore(face, a.firstChild); a.insertBefore(ring, a.firstChild);
     if (GL) {
       var ok = RPBubble.attach(ring, {
-        look: { c1: a.__soc3, c2: a.__soc3, c3: a.__soc3 }, splash: true, bleed: 14, seed: Math.random() * 10,
+        look: { c1: a.__soc3, c2: a.__soc3, c3: a.__soc3 }, splash: true, bleed: 16, seed: Math.random() * 10,
         liveWhen: function () { return a.matches(":hover") || a.matches(":focus-visible"); }
       });
       if (ok) { a.classList.add("soc3-gl"); rings.push(ring); }
@@ -79,7 +79,7 @@
       var a = l[i], was = a.__soc3; paint(a);
       if (a.__soc3 !== was && a.classList.contains("soc3-gl")) {
         var r = a.querySelector(".soc3-ring");
-        try { RPBubble.detach(r); RPBubble.attach(r, { look: { c1: a.__soc3, c2: a.__soc3, c3: a.__soc3 }, splash: true, bleed: 14, seed: Math.random() * 10, liveWhen: function () { return this.matches(":hover"); }.bind(a) }); } catch (e) {}
+        try { RPBubble.detach(r); RPBubble.attach(r, { look: { c1: a.__soc3, c2: a.__soc3, c3: a.__soc3 }, splash: true, bleed: 16, seed: Math.random() * 10, liveWhen: function () { return this.matches(":hover"); }.bind(a) }); } catch (e) {}
       }
     }
   }

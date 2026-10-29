@@ -126,7 +126,9 @@ a.soc3>.soc3-face{position:absolute;inset:0;border-radius:50%;z-index:-1;pointer
   background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 52%,var(--s3) 100%)}
 /* rings (2026-10-28, Jack: the 50% ring was barely visible, the 25% ring too far out, too much wiggle): the
    50% ring wider (to 1.34), the 25% ring just beyond it (to 1.52), the wobble at 45% */
-a.soc3>.soc3-ring{position:absolute;inset:0;border-radius:50%;z-index:-2;pointer-events:none;--rpb-depth:.9;--rpb-ring2:1.34;--rpb-ring3:1.52;--rpb-wobble:.45;
+/* (2026-10-29, Jack: at icon size the tiers blurred into one soft edge) crisp ring edges (--rpb-soft), a wider
+   25% ring, so solid / 50% / 25% read as three clear steps at the size they are on screen */
+a.soc3>.soc3-ring{position:absolute;inset:0;border-radius:50%;z-index:-2;pointer-events:none;--rpb-depth:1;--rpb-ring2:1.3;--rpb-ring3:1.62;--rpb-ring2-a:.5;--rpb-ring3-a:.24;--rpb-soft:.12;--rpb-wobble:.35;
   box-shadow:0 0 3px 4px var(--sr50),0 0 7px 7px var(--sr25)}
 a.soc3.soc3-gl>.soc3-ring{box-shadow:none}
 a.soc3 svg,a.soc3 .soc-ico{position:relative;z-index:1;fill:#fff}
