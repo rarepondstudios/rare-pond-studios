@@ -143,6 +143,15 @@
   phone), carousel and rentals card / popup screenshots, pop-in audit clean on all six pages in Chrome
   desktop and mobile, WebKit and Firefox (one Firefox hat flag did not repeat).
 
+### 0.0.-144 RENTALS STICKERS v69: DETAILS JOINED, SHORT WRAP 0.5 IN, S/M/L BUBBLES (2026-10-28)
+
+- Per Jack: a sticker with details (`sticker_details` on, and every container) now prints and cuts as ONE shape (details +
+  QR joined, `make.py sheet_groups()`); short cable wrap 1.0 -> 0.5 in (item and pill ties); bubbles sized like the item
+  tiers: S = the 0.75 in duck bubble as is, M 1.0 in and L 2.0 in with the full Rare Pond Rentals logo (`bubble_tier()`,
+  replaces v68's 1.25 in `bubble_large()`). `make.py brand` = bubbles, Rare Pond pills, medium, large. Rare Pond pill unchanged.
+- Test sheet `~/Desktop/RarePond_Rental_Labels/Test_v69/` (standalone `_generator.py`, not recorded). Print_2026-10-27_Grip_Electric
+  is still v68 (add-ons separate, 1.0 in short wraps) until Jack says to remake it.
+
 ### 0.0.-143 RENTALS STICKERS v68: ONE-WIDTH PILL CABLE TIES, LARGE BUBBLE (2026-10-28)
 
 - Per Jack: every pill cable tie (sub-item pills and the Rare Pond pill tie) is one width whatever its wrap: band = the

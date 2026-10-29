@@ -361,7 +361,7 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   `~/Desktop/RarePond_Rental_Labels/Print_<date>_<mode>/` (Cricut Print Then Cut sheets, vinyl case
   numbers as SVG, manifest.csv, README.txt); the demo sheet lives in `.../Demo/`.
 - Per-item settings in NocoDB (items view): `sticker_size` (S / M / L), `sticker_details` (the logo + item-name piece; `sticker_addon` until 2026-10-27), `cable_tie`,
-  `cable_wrap` (short / long / longer; longer = long + 1 in of band, only 3117 Sandbag). Prefilled by rule 2026-10-23; containers are always L.
+  `sticker_details` on = details + QR print as one joined shape (v69). `cable_wrap` (short 0.5 in / long / longer; longer = long + 1 in of band, only 3117 Sandbag). Prefilled by rule 2026-10-23; containers are always L.
 - `make.py dept "Grip & Electric"` makes every sticker of one department (containers, items, sub-items by their root's department).
 - Sheets are packed tight (`rentals_stickers/packing.py`: MaxRects, stickers may turn 90 degrees, each sheet filled as full as
   possible so only the last is partial). `make.py repack <batch>` redoes an existing batch's sheets (same stickers, no new records).
