@@ -39,6 +39,27 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-150 SOCIAL ICON PROPORTIONS; NO WOBBLE JUMP WHEN A FILM LANDS (ENGINE LEVEL) (2026-10-29)
+
+- Social icons (Jack: the logos looked small in their circles next to the brand kit's; keep the logos, make
+  the circles smaller). Measured the brand kit RP_*_CIRCLE PNGs: the logo is 70% of the disc's width.
+  chrome.css "PROPORTIONS": `--soc-g` = logo size (unchanged: 18 px header, 16 on small phones, 20 footer),
+  the disc and rings are inset to `--soc-g / 0.7` inside the same button (click area unchanged); each logo
+  is scaled by `--soc-k` so its artwork (socials.js, different share of the 24-unit box per network) fills
+  `--soc-g` across its widest side, like the brand kit.
+- Film close jump (Jack: leaving a film onto the home page, the bubble's animation "corrects itself with a
+  noticeable jump cut"; wanted a system-level fix). Cause, measured with `~/claude_perf/landdiff.mjs`
+  (screencast frames, mean change in the bubble's rim per frame around the landing): the depth-zoom flight
+  in rp-bubble.js animates the rim's wobble with its own time, starting at the page's bubble clock
+  (simT), while simT stands still under the film (u-cover); the way back therefore landed 1.15 s of wobble
+  ahead of the bubble it hands over to, which snapped back. rp-bubble.js `zoom()`: the way in starts at the
+  page clock, the way back ENDS at it (starts the flight's length earlier), and the flight time is clamped
+  to the flight's length. Engine level: every bubble a film opens from or closes into, on any page, now and
+  later. Landing-frame change: home featured card 5.6 -> 1.0, projects grid bubble 4.0 -> 1.0 (normal
+  motion just before landing 0.5 to 2). Checked separately: the page presents a frame every 16 ms through
+  the landing (trace, `landframes.mjs`; the ~270 ms gap in screencast captures is a capture artifact), and
+  the featured reel resumes from where it paused (the cut seen ~0.7 s after landing is the reel's own edit).
+
 ### 0.0.-149 SOCIAL ICONS: THREE CLEAR TIERS AT ICON SIZE (2026-10-29)
 
 - Jack: on the small header icons the three tiers blurred into one soft edge; same size, but the tiers must

@@ -739,6 +739,14 @@ Standard for every site: `AI_System_Context/procedures/website-quality.md`. Engi
 - New page: copy the legal pages' pattern (cover CSS + div + `RPWater.page`). Check with
   `node ~/bts-automation/site_popin_audit.mjs <url> --mobile` (and `--engine=webkit|firefox`).
 
+## Bubble clock rule (since 2026-10-29)
+
+Anything that draws a bubble outside its own canvas (the depth-zoom flight, any future overlay) must use the
+engine's clock (`simT + seed * 3.7`) at the moment it hands over to or takes over from the page's bubble,
+or the wobble jumps. `zoom()` does this: the way in starts at simT, the way back ends at it. Check a hand-over
+with `node ~/claude_perf/landdiff.mjs <base> <bubble selector> <path>` (landing-frame change should be no
+bigger than normal motion).
+
 ## Social icons (Rare Pond, since 2026-10-28)
 
 `assets/soc-bubbles.js` restyles the header, footer and phone-menu icons that `assets/socials.js` renders:
