@@ -177,6 +177,14 @@ html.xw-active{overflow:hidden}
      final say, it just no longer has to undo a wrong paint. */
   .view{display:block}
   #view-projects,#view-team,#view-page,#view-news{display:none}
+  /* PAGES KEPT READY (2026-10-29, Jack: lag spikes changing pages). A page that is not showing used to be
+     display:none, which throws away everything the browser worked out for it (styles, layout), so every
+     page change rebuilt the whole incoming page in one go: 60 to 95 ms on a mid-range CPU, the visible
+     hitch. A page that is not showing is now .vw-off instead: skipped for drawing (content-visibility:
+     hidden, which KEEPS that work), taking no room, invisible, not focusable and hidden from screen
+     readers. After the load cover has gone each page is worked out once, in idle time (prewarmViews), so
+     switching to it later is cheap. Before that, the first-paint display:none rules above stay in charge. */
+  .view.vw-off{display:block!important;content-visibility:hidden;position:absolute;left:0;right:0;top:0;height:0;overflow:hidden;pointer-events:none}
   /* The banner itself is position:fixed; THIS is the spacer that holds its place in the
      flow. It has to exist in the stylesheet (not only in the CSS looks.js injects later),
      or the space is not reserved until after the banner has already arrived - which is
@@ -2806,6 +2814,7 @@ function bubbleOrigin(key){
                ...document.querySelectorAll('.citem.feat'+sel),
                ...document.querySelectorAll('.citem'+sel)];
   for(const el of cands){
+    if(el.closest('.vw-off'))continue;   /* a page that is not showing (kept ready, see PAGES KEPT READY) */
     const r=el.getBoundingClientRect();
     if(r.width>4&&r.height>4) return {x:r.left+r.width/2,y:r.top+r.height/2};
   }
@@ -2868,6 +2877,7 @@ function zoomHost(key){
                ...document.querySelectorAll('.citem.feat'+sel+' .cedge.rp-bubble-on'),
                ...document.querySelectorAll('.citem'+sel+' .cedge.rp-bubble-on')];
   for(const el of cands){
+    if(el.closest('.vw-off'))continue;   /* a page that is not showing (kept ready, see PAGES KEPT READY) */
     const r=el.getBoundingClientRect();
     if(r.width>4&&r.height>4&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth){
       const host=el.closest('.bubble,.citem');
@@ -3629,11 +3639,28 @@ makeBgBubbles(document.getElementById('news-page'),Math.round(BG_BUBBLES*0.6),'f
 function __instTop(){const de=document.documentElement;const p=de.style.scrollBehavior;de.style.scrollBehavior='auto';try{window.scrollTo({top:0,left:0,behavior:'instant'});}catch(_){window.scrollTo(0,0);}de.style.scrollBehavior=p;}
 function showView(name,scrollTo){
   if(newsOpen&&name!=='news')closeNews(true);   /* leaving the News view drops any expanded article instantly */
-  activeView=name;viewHome.style.display=name==='home'?'block':'none';viewProjects.style.display=name==='projects'?'block':'none';viewTeam.style.display=name==='team'?'block':'none';viewPage.style.display=name==='page'?'block':'none';viewNews.style.display=name==='news'?'block':'none';
+  activeView=name;
+  /* (see "PAGES KEPT READY": once warmed, a page is switched with .vw-off instead of display) */
+  [[viewHome,'home'],[viewProjects,'projects'],[viewTeam,'team'],[viewPage,'page'],[viewNews,'news']].forEach(([el,n])=>{
+    if(el._vwWarm){el.style.display='block';el.classList.toggle('vw-off',n!==name);}
+    else{el.classList.remove('vw-off');el.style.display=n===name?'block':'none';}
+  });
   document.getElementById('navProjects').classList.toggle('active',name==='projects');
   document.getElementById('navNews').classList.toggle('active',name==='news');
   if(scrollTo){const t=document.querySelector(scrollTo);if(t){__instTop();requestAnimationFrame(()=>t.scrollIntoView({behavior:'smooth'}));}}else __instTop();
 }
+/* PAGES KEPT READY (see the .vw-off CSS): once the load cover has gone, each page that is not showing is
+   switched to .vw-off and worked out once (a forced layout of the skipped page), one page per idle moment,
+   so a later switch to it does not have to build it from nothing. */
+(function prewarmViews(){
+  const views=[viewHome,viewProjects,viewTeam,viewPage,viewNews];
+  const idle=window.requestIdleCallback?(f=>requestIdleCallback(f,{timeout:2500})):(f=>setTimeout(f,250));
+  const go=()=>{const q=views.slice();(function next(){const el=q.shift();if(!el)return;
+    if(!el._vwWarm){const off=el.style.display==='none'||getComputedStyle(el).display==='none';el._vwWarm=true;
+      if(off){el.classList.add('vw-off');el.style.display='block';try{const c=el.firstElementChild;if(c)c.getBoundingClientRect();}catch(e){}}}
+    idle(next);})();};
+  if(window.RPWater&&RPWater.whenGone)RPWater.whenGone(()=>setTimeout(()=>idle(go),400));else addEventListener('load',()=>setTimeout(()=>idle(go),1500),{once:true});
+})();
 /* slug <-> key (auto from title; optional "slug" in projects.json overrides) */
 const slugify=s=>(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');
 const SLUG2KEY={},KEY2SLUG={};
