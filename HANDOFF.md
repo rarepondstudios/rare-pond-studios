@@ -39,6 +39,15 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-148 NO GLOW OUTSIDE THE BUBBLES ON HOVER (2026-10-29)
+
+- Jack (after a side-by-side of the live site): remove the glow outside the bubbles on hover. index.html: the
+  hover halo bleed (`.citem::before` / `.bubble::before` at .42) and the brighter glow ring (`.cglow` .9,
+  `.glow` 1 + blur 12) are off, for mouse hover and keyboard selection alike; the placeholder keeps its
+  rainbow colour on hover at its resting strength. On hover the rim still takes the project's colour look
+  and its bands still open inward. The halo CSS stays in place (hidden), so it can come back by restoring
+  those three rules. Checked on the preview: carousel side bubble and projects page bubble hovered.
+
 ### 0.0.-147 MEDIA COVER STARTS WHITE, RENTALS LOGO BACKDROP ROOMIER (2026-10-28)
 
 - Media (media/index.html): the load cover starts white like every page (`#pageveil` CSS and `sky:'#ffffff'`;
