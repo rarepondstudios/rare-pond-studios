@@ -143,6 +143,17 @@
   phone), carousel and rentals card / popup screenshots, pop-in audit clean on all six pages in Chrome
   desktop and mobile, WebKit and Firefox (one Firefox hat flag did not repeat).
 
+### 0.0.-148 RENTALS STICKERS v73: SHAPE NESTING ON THE FULL CRICUT AREA, G&E + CAMERA FILL BATCH (2026-10-28)
+
+- Per Jack: M / L bubbles have no text (the S duck bubble scaled by the tier factor). Sheets now use the full Print Then
+  Cut area 6.75 x 9.25 in and are nested by real outlines in any of 4 orientations (`packing.nest_sheets` + `nest_check`).
+- New `make.py dept X --fill Y`: Y's stickers that are in no batch fill the space left on X's sheets and are recorded with
+  the batch (`Fill_Y.csv`); `make.py status` now shows printed / in a batch / in no batch per department.
+- Batch `~/Desktop/RarePond_Rental_Labels/Print_2026-10-28_Grip_Electric_plus_Camera`: all 188 G&E stickers + 29 Camera
+  (27 on the sheets incl. CAM 01 / CAM 02 cards, + their 2 vinyl case numbers) on 5 sheets (sheets 1-4 have no room left
+  for even a pill at the 0.11 in gap); 94 Camera stickers still in no batch. The unprinted v68 G&E batch was superseded:
+  its 188 sticker_prints rows deleted, folder in ~/.Trash. Bubbles test: `Test_v73_Bubbles`.
+
 ### 0.0.-147 RENTALS STICKERS v72: M / L BUBBLES SAY JUST 'RARE POND' (2026-10-28)
 
 - Per Jack: 'Rentals' removed from the medium / large bubbles; only 'Rare Pond' (Kaushan Script, 0.6 of the bubble wide)

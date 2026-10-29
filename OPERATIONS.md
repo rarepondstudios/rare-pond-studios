@@ -363,8 +363,9 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
 - Per-item settings in NocoDB (items view): `sticker_size` (S / M / L), `sticker_details` (the logo + item-name piece; `sticker_addon` until 2026-10-27), `cable_tie`,
   `sticker_details` on = details + QR print as one joined shape (v69). `cable_wrap` (short 0.5 in / long / longer; longer = long + 1 in of band, only 3117 Sandbag). Prefilled by rule 2026-10-23; containers are always L.
 - `make.py dept "Grip & Electric"` makes every sticker of one department (containers, items, sub-items by their root's department).
-- Sheets are packed tight (`rentals_stickers/packing.py`: MaxRects, stickers may turn 90 degrees, each sheet filled as full as
-  possible so only the last is partial). `make.py repack <batch>` redoes an existing batch's sheets (same stickers, no new records).
+- Sheets use the full 6.75 x 9.25 in Print Then Cut area and are nested by the stickers' real outlines (`rentals_stickers/packing.py`
+  `nest_sheets`, any of 4 orientations, each sheet filled as full as possible). `make.py dept X --fill Y` fills the space left with
+  department Y's stickers that are in no batch yet (recorded with the batch); `make.py status` shows each department's state. `make.py repack <batch>` redoes an existing batch's sheets (same stickers, no new records).
 - `make.py fillbrand <batch>` fills the free space on a batch's last sheet with brand stickers (Rare Pond pills and pill cable
   ties, no duck bubble), keeping whichever mix prints the most area. Run it once per batch (it adds to the sheet).
 - Every sticker made is a row in `public.sticker_prints`; `printed <batch>` stamps it once the batch is on
