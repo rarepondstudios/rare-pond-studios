@@ -215,8 +215,8 @@ site, at least 10 digits). It also travels in `rp_order_data` as `p:<phone>` (`s
 
 - *Request is in*: Jotform's own autoresponder, unchanged (em dashes removed 2026-10-24).
 - *Did not go through*: the failsafe above.
-- *Confirmed*: sent once when the order reaches confirmed. It lists pickup (after 11:00 AM) and
-  return (by 12:00 PM) with the time zone, the gear and estimated total, **Changes from your
+- *Confirmed*: sent once when the order reaches confirmed. It lists the pickup and return windows with the time
+  zone (see "Pickup and return windows" below), the gear and estimated total, **Changes from your
   request** (what was asked for vs what is booked, so adjustments made on our side show), and
   **A note from us** = `orders.confirm_note` if you typed one in NocoDB before confirming.
 - To raise a concern between the request and the confirmation, just reply to the customer
@@ -241,6 +241,14 @@ Pages CMS: Rentals Sub Site, "Admin: rental operations (change with care)", whic
 many days a customer gets to return a missing part (default 7). The website reads it from
 `data/rentals.json` (`operations`); `rentals_mail.py` copies it into the database within a few
 minutes of a save.
+
+**Pickup and return windows (since 2026-10-30, Jack).** Pickup on the first rental day 11:00 AM to 5:00 PM,
+return on the last rental day 11:00 AM to 5:00 PM; earlier times by request with advance notice. One place to change
+them: Pages CMS, Rentals Sub Site, "Admin: rental operations" (`pickupWindow`, `returnWindow`, `timesNote` in
+data/rentals.json). The cart reads them directly; `rentals_mail.py` copies them into `rp_settings` and
+`bts-automation/rp_times.py` hands them to the confirmation email, the booking details email, the scan app order
+page and the quote PDF. The liability agreement on the Jotform Booking Details form repeats them in its own text
+(edit it there if the policy changes). Availability still keeps 2 days after a return free for turnaround.
 
 **Pricing is inclusive of both days.** A Jul 27 → Jul 30 rental is **4 days, not 3**. It is
 computed server-side in Postgres (see the Supabase section).
