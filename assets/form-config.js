@@ -19,6 +19,19 @@
 
 window.FORMS = {
 
+  /* ---- Website quote (cart "Download a quote", 2026-10-30) ----------------
+     Jotform "Rare Pond Rentals: Website Quote". Posted in the background when someone downloads a quote PDF;
+     bts-automation/rentals_quotes.py makes the quote row + HubSpot contact + deal at Quote Sent (no gear held).
+     Input names read off the live form (the Jotform builder named them). */
+  rentalQuote: {
+    formId: "263026456977064",
+    fields: {
+      quoteNumber: "q2_q2_textbox0", firstName: "q3_q3_textbox1", lastName: "q4_q4_textbox2", email: "q5_q5_email3",
+      phone: "q6_q6_textbox4", project: "q7_q7_textbox5", company: "q8_q8_textbox6", startDate: "q9_q9_textbox7",
+      endDate: "q10_q10_textbox8", total: "q11_q11_textbox9", gear: "q12_q12_textarea10", data: "q13_q13_textarea11"
+    }
+  },
+
   /* ---- Rental quote request (opens from the cart) ------------------------ */
   rentalRequest: {
     formId: "261817432074052",

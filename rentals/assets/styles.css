@@ -366,3 +366,7 @@ html.rp-v3 .home .logowrap{border-radius:50%}
 .home .logowrap.v3-splash{overflow:visible;background:radial-gradient(closest-side,#fff 95.5%,rgba(255,255,255,0) 100%);box-shadow:none;isolation:isolate}
 .home .logowrap.v3-splash::before{display:none}
 .home .logowrap.v3-splash>.v3splash{z-index:-1}
+
+/* "Download a quote (PDF)" under the request button (2026-10-30, quote-cart.js): a secondary outline button */
+.pf button.dlq{margin-top:8px;padding:10px 12px;background:transparent;border:1px solid rgba(191,227,255,.45);color:#dbeaff;font-weight:700;font-size:14px}
+.pf button.dlq:hover{background:rgba(255,255,255,.08);border-color:rgba(191,227,255,.7)}
