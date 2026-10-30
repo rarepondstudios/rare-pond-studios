@@ -362,6 +362,21 @@ content:
             type: number
             default: 7
             description: "Used in the 'a few items are missing' email: return it within this many days and there is no charge; after that the replacement cost would be billed. Nothing is ever charged automatically."
+          - name: pickupWindow
+            label: "Pickup window (first rental day)"
+            type: string
+            default: "11:00 AM to 5:00 PM"
+            description: "Shown everywhere a pickup time appears: the cart's date note, the confirmation email, the booking details email, the quote PDF and the scan app. Write it as it should read after the date, e.g. 11:00 AM to 5:00 PM. The mini picks it up within a few minutes."
+          - name: returnWindow
+            label: "Return window (last rental day)"
+            type: string
+            default: "11:00 AM to 5:00 PM"
+            description: "Same places as the pickup window, for the return day."
+          - name: timesNote
+            label: "Note under the pickup / return times"
+            type: string
+            default: "Earlier pickup or return times are available by request with advance notice."
+            description: "One sentence printed with the times (cart, emails, quote PDF). Leave as is unless the policy changes."
       - name: cart
         label: Cart UI labels
         type: object

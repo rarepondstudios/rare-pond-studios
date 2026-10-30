@@ -63,7 +63,10 @@
   },
   "operations": {
     "timezone": "America/Los_Angeles",
-    "missingReturnDays": 7
+    "missingReturnDays": 7,
+    "pickupWindow": "11:00 AM to 5:00 PM",
+    "returnWindow": "11:00 AM to 5:00 PM",
+    "timesNote": "Earlier pickup or return times are available by request with advance notice."
   },
   "cart": {
     "title": "Your rental cart",

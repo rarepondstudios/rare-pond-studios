@@ -124,7 +124,7 @@ body{margin:0;font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-ser
 .cd.bad .num{color:#fff}
 @keyframes badflash{0%,100%{background:transparent}50%{background:#e24b4a;box-shadow:0 0 12px rgba(226,75,74,.9)}}
 .calwarn{min-height:16px;color:#ff9a9a;font-size:12.5px;font-weight:600;text-align:center;margin-top:8px;opacity:0;transition:.2s}.calwarn.show{opacity:1}
-.calsum{margin-top:10px;text-align:center;font-size:13.5px;color:#dceaff}.dpsub{margin:-6px 0 12px;font-size:12.5px;color:#bcd9f7}.calnote{margin-top:9px;text-align:center;font-size:12px;color:#bcd9f7;line-height:1.55}.calnote b{color:#eaf3ff}
+.calsum{margin-top:10px;text-align:center;font-size:13.5px;color:#dceaff}.dpsub{margin:-6px 0 12px;font-size:12.5px;color:#bcd9f7}.calnote{margin-top:9px;text-align:center;font-size:12px;color:#bcd9f7;line-height:1.55}.calnote b{color:#eaf3ff}.calnote .calnote2{font-size:11.5px;opacity:.85}
 .calacts{display:flex;gap:10px;margin-top:14px}.calacts button{flex:1;padding:11px;border-radius:11px;border:0;font-weight:700;cursor:pointer}
 .calacts .ap{background:linear-gradient(90deg,#5aa0ff,#8f7bff);color:#fff}.calacts .cl{background:rgba(255,255,255,.14);color:#fff}
 .rfoot{position:relative;margin-top:32px;padding:190px clamp(18px,5vw,60px) 46px;text-align:center;overflow:hidden;background:linear-gradient(180deg,rgba(18,48,86,0) 0%,rgba(13,45,86,.5) 30%,#0c2c57 62%,#06122b 100%)}

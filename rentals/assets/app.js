@@ -420,7 +420,10 @@ function calRender(){
  el.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{pick=b.dataset.pick;calRender();});
  el.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{calRef=new Date(calRef.getFullYear(),calRef.getMonth()+ +b.dataset.nav,1);calRender();});
  el.querySelectorAll('.cd[data-d]').forEach(c=>c.onclick=()=>pickDay(c.dataset.d));}
-function calNote(){if(!(D.s&&D.e))return '';return '<div class="calnote"><b>Pickup</b> '+fmtOne(D.s)+' after 11:00 AM '+rpTZAbbr(D.s)+'&nbsp; ·&nbsp; <b>Return</b> '+fmtOne(D.e)+' by 12:00 PM '+rpTZAbbr(D.e)+'</div>';}
+/* Pickup / return windows (2026-10-30, Jack): Pages CMS -> Rentals Sub Site -> Admin: rental operations (operations.pickupWindow,
+   returnWindow, timesNote); the emails, the scan app and the quote PDF read the same values (bts-automation/rp_times.py). */
+function rpTimes(){var o={};try{o=(window.RP_RENTALS||{}).operations||{};}catch(e){}return {pickup:o.pickupWindow||'11:00 AM to 5:00 PM',ret:o.returnWindow||'11:00 AM to 5:00 PM',note:(o.timesNote==null?'Earlier pickup or return times are available by request with advance notice.':o.timesNote)};}
+function calNote(){if(!(D.s&&D.e))return '';var t=rpTimes();return '<div class="calnote"><b>Pickup</b> '+fmtOne(D.s)+', '+esc(t.pickup)+' '+rpTZAbbr(D.s)+'&nbsp; ·&nbsp; <b>Return</b> '+fmtOne(D.e)+', '+esc(t.ret)+' '+rpTZAbbr(D.e)+(t.note?'<br><span class="calnote2">'+esc(t.note)+'</span>':'')+'</div>';}
 function calSum(){if(D.s&&D.e)return '<b style="color:'+CS+'">'+fmtOne(D.s)+'</b> → <b style="color:'+CE+'">'+fmtOne(D.e)+'</b> · '+days()+' day'+(days()>1?'s':'');if(D.s)return '<b style="color:'+CS+'">'+fmtOne(D.s)+'</b>, now pick an end date';return 'Pick your start date';}
 function pickDay(is){badDay=null;
  if(tooEarly(is)){badDay=is;calRender();var we=$('calwarn');if(we){we.textContent="Rentals need at least 3 business days' notice, so the earliest date is "+fmtOne(minStartISO())+".";we.classList.add('show');}setTimeout(function(){badDay=null;calRender();},2200);return;}
