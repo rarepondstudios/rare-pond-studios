@@ -39,6 +39,24 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-155 QUOTES: WEBSITE PDF STAYS OUT OF THE SYSTEM; HUBSPOT OPT-IN; FORM BUTTONS FILL EVERYWHERE (2026-10-30)
+
+- Jack: the website quote tool must not create records; the internal tool gets an option for whether the quote goes
+  into the system. Done: the cart's "Download a quote" makes the PDF on the device only (no Jotform post, no quote
+  row, no HubSpot); rentals_quotes.py no longer reads website quotes; the Jotform form "Rare Pond Rentals: Website
+  Quote" is unused (Jack can delete it in Jotform); HubSpot property rp_quote_data archived. Scan app quotes have a
+  "Put this quote in HubSpot" tick box (quotes.in_hubspot, migration 20261030b): contact + deal at Quote Sent,
+  amount kept in step, Lost -> Closed Lost. Tested on a throwaway quote (deal made, amount 15.00 after a qty change,
+  closedlost, no order), then removed. Jack's preview test (W-261030-NGQQ: quote row, HubSpot deal, note, contact)
+  deleted.
+- Form buttons: the cart quote form's button did not fill as fields were completed (reproduced: stuck at 4%).
+  Fixed at the base with the shared engine `assets/rp-fill.js` (master bts-automation/rp_fill.js, in
+  social_ui_sync FILES): every form's submit button fills from its required fields, popups included; buttons with
+  their own fill code carry data-fill-own (rentals request qnext, crew rpc-next). Rule added to
+  procedures/website-quality.md section 6.
+- Pickup / return windows 11:00 AM to 5:00 PM both days, early times by request: Pages CMS Rentals > Admin: rental
+  operations; see OPERATIONS "Pickup and return windows".
+
 ### 0.0.-154 RENTAL QUOTES: BRANDED QUOTE PDF, SCAN APP QUOTES PAGE, CONVERT TO BOOKING, CLIENT DETAILS FORM (2026-10-30)
 
 - Jack: a branded PDF gear list by department with department and rental totals, to hand to whoever approves
@@ -61,10 +79,8 @@
 - PDF: ONE renderer, master `bts-automation/scan_static/quote_pdf.js` (jsPDF 2.5.2 vendored). Helvetica only
   (Latin-1; other characters are mapped or dropped). Copy at `rentals/assets/quote_pdf.js` on the branch.
 - Website (branch `rentals-quote`, PREVIEW ONLY, awaiting Jack's OK): a secondary "Download a quote (PDF) for
-  approval" button under Request rental quote (rentals/assets/quote-cart.js). Asks name, email, production;
-  downloads the PDF; posts a copy to Jotform "Rare Pond Rentals: Website Quote" (263026456977064,
-  FORMS.rentalQuote in form-config.js). rentals_quotes.py turns it into a quote + HubSpot deal at Quote Sent with
-  `rp_quote_data` (never rp_order_data: no gear held). Pop-in audit clean (desktop, mobile, WebKit, Firefox).
+  approval" button under Request rental quote (rentals/assets/quote-cart.js). SUPERSEDED in 0.0.-155: the PDF is
+  made on the device only, nothing is sent. Pop-in audit clean (desktop, mobile, WebKit, Firefox).
   When merging: add quote_pdf.js to a sync so the site copy follows the master (social_ui_sync.py FILES pushes
   to both sites; the JC site does not need it).
 - Client details: Jotform "Rare Pond Rentals: Booking Details" (263026985745064), prefilled by link (quote

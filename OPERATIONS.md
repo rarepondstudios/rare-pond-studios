@@ -258,20 +258,24 @@ computed server-side in Postgres (see the Supabase section).
 A quote is a branded PDF gear list (by department, department totals, rental total; full price first, then each
 discount, then the total; replacement value small, as the amount to insure, never a charge). Two ways in:
 
-- **Website cart:** "Download a quote (PDF) for approval" (rentals/assets/quote-cart.js). Name, email and
-  production are required. The PDF is drawn in the browser and a copy goes to the Jotform form "Rare Pond Rentals:
-  Website Quote"; `rentals_quotes.py` makes the quote row and a HubSpot deal at **Quote Sent** carrying
-  `rp_quote_data`. It never carries `rp_order_data`, so the n8n sync makes no order and **no gear is held**.
+- **Website cart:** "Download a quote (PDF) for approval" (rentals/assets/quote-cart.js, preview branch
+  `rentals-quote`). Name and production required. The PDF is drawn on the visitor's device and downloaded; **nothing
+  is sent or saved anywhere** (Jack 2026-10-30: the public tool must not create records). No Jotform, no HubSpot, no
+  quote row, no gear held.
 - **Scan app `/quotes`** (scan.rarepond.com/quotes): Rare Pond gear from a picker (day rate starts at the
   website price, editable per quote), outside gear (never booked against the inventory), crew, fees, discounts:
   per line (Off %), per department or the whole of Rare Pond gear / outside gear / crew / fees (a department rule
   replaces the all-departments one for that department), and the whole order (after the others). Every edit
   saves itself; totals always come from the database, so the page, the PDF and the booking agree.
+- **Put this quote in HubSpot** (tick box on the quote, off by default): makes the contact and a deal at Quote Sent
+  (no rp_order_data, so no order or hold), keeps the deal amount equal to the quote total, and moves the deal to
+  Closed Lost when the quote is marked Lost. Off: the quote lives only on the Quotes page and in NocoDB until it is
+  converted. Converting always goes into HubSpot (it reuses the deal if there is one).
 - **Convert to booking** (scan app, two taps): every Rare Pond line must be free for the dates (pending holds
   count) or nothing happens. Then: HubSpot contact found by email or made, deal at Start Invoice Sent with
   `rp_order_data` and the quote total as the amount, gear booked **confirmed**, the order linked to the quote (its
   total stays the quote total, discounts, crew and fees included), the PDF attached to the deal as a private note.
-  A website quote that is converted reuses its deal. A converted quote is locked; change the order from then on.
+  A converted quote is locked; change the order from then on.
 - **Client details:** ticked per quote: certificate of insurance (otherwise the client signs the liability
   agreement on the form) and photo ID. Converting emails the client the Jotform form "Rare Pond Rentals: Booking
   Details" (prefilled, with the quote's private token); "Email details form now" sends it any time. The answers are
