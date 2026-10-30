@@ -149,7 +149,7 @@
     h+='<div class="rpc-lab">Do you have production insurance?</div><div class="rpc-seg" id="rpc-seg">'+["Yes","No"].map(function(o){return '<button class="rpc-segb'+(S.ins===o?" rpc-on":"")+'" data-ins="'+o+'">'+o+'</button>';}).join("")+'</div>';
     h+='<div class="rpc-lab">Your budget</div><input class="rpc-in" id="rpc-bd" placeholder="'+(cType('budget')==='number'?'e.g. 2000':'e.g. around $2,000 for the shoot')+'" value="'+esc(S.budget)+'">';
     h+='<div class="rpc-lab">Tell us about your set</div><textarea class="rpc-ta" id="rpc-nt" placeholder="Project, location, what you are shooting, and what you need...">'+esc(S.notes)+'</textarea>';
-    h+='<div class="rpc-warn" id="rpc-warn">'+esc(S.warn)+'</div><button class="rpc-send rpc-pbtn" id="rpc-next"><span>Review request →</span></button></div>';
+    h+='<div class="rpc-warn" id="rpc-warn">'+esc(S.warn)+'</div><button class="rpc-send rpc-pbtn" id="rpc-next" data-fill-own><span>Review request →</span></button></div>';
     pop.innerHTML=h;
 
     g('rpc-x').onclick=close;

@@ -5,6 +5,7 @@
      2. posts the same details and the cart to the Jotform form "Rare Pond Rentals: Website Quote" (FORMS.rentalQuote in
         form-config.js), which bts-automation/rentals_quotes.py turns into a quote row + HubSpot contact + deal at
         Quote Sent. That deal carries rp_quote_data, never rp_order_data: nothing is booked and no gear is held.
+   The Download button fills as the form is completed: assets/rp-fill.js does it for every form (fields marked required).
    Runs after app.js and reads its globals (cart, cartOrder, RENTALS, BUILDERS, D, CATS, LABELS, COL, days...). */
 (function () {
   'use strict';
@@ -62,7 +63,7 @@
   function inp(k) {
     var f = FIELDS.filter(function (x) { return x[0] === k; })[0];
     var t = k === 'email' ? 'email' : (k === 'phone' ? 'tel' : 'text');
-    return '<div class="crewlab">' + esc(f[1]) + '</div><input class="crewin" data-qk="' + k + '" type="' + t + '"' + (k === 'phone' ? ' inputmode="tel"' : '') + ' value="' + esc(qData[k] || '') + '">';
+    return '<div class="crewlab">' + esc(f[1]) + '</div><input class="crewin" data-qk="' + k + '" type="' + t + '"' + (k === 'phone' ? ' inputmode="tel"' : '') + (f[2] ? ' required' : '') + ' value="' + esc(qData[k] || '') + '">';
   }
   function render() {
     var h;
@@ -71,7 +72,7 @@
         '<p class="crewlede">A branded PDF of this cart, by department with totals, to share with whoever approves the rental. Nothing is booked or held.</p>' +
         '<div class="rgrid2"><div>' + inp('firstName') + '</div><div>' + inp('lastName') + '</div></div>' +
         '<div class="rgrid2"><div>' + inp('email') + '</div><div>' + inp('phone') + '</div></div>' + inp('film') + inp('company') +
-        '<div class="reqwarn" id="qqwarn">' + esc(qErr) + '</div><button class="crewsend pbtn ready" id="qqgo"><span>Download quote PDF</span></button></div>';
+        '<div class="reqwarn" id="qqwarn">' + esc(qErr) + '</div><button class="crewsend pbtn" id="qqgo"><span>Download quote PDF</span></button></div>';
     } else {
       h = '<div class="reqbox reqdone"><button class="dpx" id="qqx" aria-label="Close">&times;</button><div class="checkmk">&#10003;</div><h2>Your quote is downloading</h2>' +
         '<p class="crewlede">Quote <b>' + esc(qNum) + '</b> for <b>' + esc(qData.film) + '</b>. When it is approved, send the rental request and we will confirm it. ' +

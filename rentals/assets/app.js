@@ -505,7 +505,7 @@ function renderReq(){
    else{inner+=reqFieldHTML(flds[i]);i++;}
   }
   h='<div class="reqbox"><button class="dpx" id="reqx" aria-label="Close">&times;</button><h2>Request your rental</h2><p class="crewlede">A few details so we can put your quote together.</p>'
-   +inner+'<div class="reqwarn" id="qwarn">'+esc(reqErr)+'</div><button class="crewsend pbtn" id="qnext"><span>Review request →</span></button></div>';
+   +inner+'<div class="reqwarn" id="qwarn">'+esc(reqErr)+'</div><button class="crewsend pbtn" id="qnext" data-fill-own><span>Review request →</span></button></div>';
  } else if(reqStep===1){
   const dd=days();const ids=cartOrder.filter(id=>id in cart);
   var _gl=ids.map(id=>cart[id]+'× '+esc(RENTALS[id].name));crateReviewLines().forEach(function(x){_gl.push(x);});const gear=_gl.join('<br>');
