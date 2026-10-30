@@ -19,6 +19,8 @@
   var JSPDF_DEFAULT = '/assets/vendor/jspdf.umd.min.js?v=d93ad20f62';   // the page can point elsewhere with window.RP_JSPDF_SRC
   var INK = [27, 34, 48], MUTE = [95, 107, 125], LINE = [227, 232, 240], SOFT = [244, 247, 251], BLUE = [47, 95, 174], GREEN = [31, 138, 76];
   var W = 612, H = 792, M = 40;
+  /* fallbacks only: the real windows come in d.terms (Pages CMS > Rentals > Admin: rental operations; rp_times.py) */
+  var PICKUP = '11:00 AM to 5:00 PM', RETURN = '11:00 AM to 5:00 PM', NOTE = 'Earlier pickup or return times are available by request with advance notice.';
 
   function money(v) {
     var n = Math.round((Number(v) || 0) * 100) / 100, neg = n < 0; n = Math.abs(n);
@@ -114,8 +116,8 @@
     font(11, true); color(INK); if (d.title) { pdf.text(pdf.splitTextToSize(clean(d.title), W - M - colB), colB, ry); ry += 14 * pdf.splitTextToSize(clean(d.title), W - M - colB).length; }
     font(10); color(INK);
     var t = d.terms || {};
-    if (d.starts_on) { txt('Pickup  ' + fdate(d.starts_on) + ', ' + (t.pickup || 'after 11:00 AM') + (t.tz ? ' ' + t.tz : ''), colB, ry); ry += 13; }
-    if (d.ends_on) { txt('Return  ' + fdate(d.ends_on) + ', ' + (t.ret || 'by 12:00 PM') + (t.tz ? ' ' + t.tz : ''), colB, ry); ry += 13; }
+    if (d.starts_on) { txt('Pickup  ' + fdate(d.starts_on) + ', ' + (t.pickup || PICKUP) + (t.tz ? ' ' + t.tz : ''), colB, ry); ry += 13; }
+    if (d.ends_on) { txt('Return  ' + fdate(d.ends_on) + ', ' + (t.ret || RETURN) + (t.tz ? ' ' + t.tz : ''), colB, ry); ry += 13; }
     if (d.days) { color(MUTE); txt(d.days + ' rental day' + (d.days === 1 ? '' : 's') + ' (pickup and return days both count)', colB, ry); ry += 13; }
     y = Math.max(ly, ry) + 10;
 
@@ -215,7 +217,8 @@
       font(8, true); color(MUTE); txt('NOTE', M, y); y += 12; font(9.5); color(INK); pdf.text(np, M, y); y += np.length * 12 + 8;
     }
     var terms = [
-      'Pickup ' + (t.pickup || 'after 11:00 AM') + ' on the first day, return ' + (t.ret || 'by 12:00 PM') + ' on the last day. Both days count as rental days.',
+      'Pickup on the first rental day, ' + (t.pickup || PICKUP) + '; return on the last rental day, ' + (t.ret || RETURN) + (t.tz ? ' (' + t.tz + ')' : '') +
+        '. Both days count as rental days. ' + (t.note == null ? NOTE : t.note),
       d.valid_until ? 'Prices are held until ' + fdate(d.valid_until) + '. Gear is reserved only once the rental is confirmed.' : 'Gear is reserved only once the rental is confirmed.',
       'All prices in US dollars.'
     ];

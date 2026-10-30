@@ -56,7 +56,7 @@
     return { number: qNum, label: 'Quote', estimate: true, created: iso(new Date()), valid_until: iso(vu), title: qData.film,
              prepared_for: { name: (qData.firstName + ' ' + qData.lastName).trim(), company: qData.company, email: qData.email, phone: qData.phone },
              starts_on: D.s, ends_on: D.e, days: days(), sections: sections, order_discount: null,
-             full_total: total, discount_total: 0, total: total, rv_total: rvTotal, terms: { pickup: 'after 11:00 AM', ret: 'by 12:00 PM', tz: 'PT' } };
+             full_total: total, discount_total: 0, total: total, rv_total: rvTotal, terms: (function () { var t = rpTimes(); return { pickup: t.pickup, ret: t.ret, note: t.note, tz: rpTZAbbr(D.s) || 'PT' }; })() };
   }
 
   function inp(k) {

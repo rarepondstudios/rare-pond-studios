@@ -39,6 +39,45 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-154 RENTAL QUOTES: BRANDED QUOTE PDF, SCAN APP QUOTES PAGE, CONVERT TO BOOKING, CLIENT DETAILS FORM (2026-10-30)
+
+- Jack: a branded PDF gear list by department with department and rental totals, to hand to whoever approves
+  the money; downloadable from the website cart, and made by hand on the back end for gigs (outside gear, crew,
+  fees, discounts by department / overall / line, Rare Pond gear and outside gear discounted separately; full
+  price first, then the discounts, then the total; replacement value secondary). An approved quote becomes a
+  live booking from the back end, HubSpot updated, and missing client info requested by an automatic email
+  (COI or a signed liability agreement, photo ID, each tickable per quote). First real use: LMU Yoga Day film.
+- Database (migrations/20261030a_quotes.sql in bts-automation): `quotes`, `quote_lines` (kinds gear, package,
+  outside, crew, fee), `orders.quote_id`. ONE pricing function `rp_quote_calc(id)` feeds the PDF, the Quotes
+  page and the order (`rp_recompute_order` uses the quote total for an order made from a quote, so the HubSpot
+  amount and the price audit agree). RLS on, anon cannot read or execute anything new (checked). NocoDB shows
+  the tables as quotes / quote_lines. Numbers Q-YYYY-NNN (back end), W-YYMMDD-XXXX (website).
+- Back end: scan app `/quotes` (scan_quotes.py + scan_static/quotes.js). Convert: availability check first
+  (nothing booked if short), HubSpot contact found or made, deal made at Quote Sent with no rp_order_data (so
+  the n8n sync leaves it alone), then one transaction makes the order through `hubspot_sync_order` at Start
+  Invoice Sent with gear confirmed and `hs_last_synced` left behind so the sync holds it, then the deal is moved
+  to Start Invoice Sent with rp_order_data + amount and the PDF attached as a private note. Tested end to end on
+  a throwaway quote (order, bookings, deal all correct), then removed.
+- PDF: ONE renderer, master `bts-automation/scan_static/quote_pdf.js` (jsPDF 2.5.2 vendored). Helvetica only
+  (Latin-1; other characters are mapped or dropped). Copy at `rentals/assets/quote_pdf.js` on the branch.
+- Website (branch `rentals-quote`, PREVIEW ONLY, awaiting Jack's OK): a secondary "Download a quote (PDF) for
+  approval" button under Request rental quote (rentals/assets/quote-cart.js). Asks name, email, production;
+  downloads the PDF; posts a copy to Jotform "Rare Pond Rentals: Website Quote" (263026456977064,
+  FORMS.rentalQuote in form-config.js). rentals_quotes.py turns it into a quote + HubSpot deal at Quote Sent with
+  `rp_quote_data` (never rp_order_data: no gear held). Pop-in audit clean (desktop, mobile, WebKit, Firefox).
+  When merging: add quote_pdf.js to a sync so the site copy follows the master (social_ui_sync.py FILES pushes
+  to both sites; the JC site does not need it).
+- Client details: Jotform "Rare Pond Rentals: Booking Details" (263026985745064), prefilled by link (quote
+  number, token, COI/ID required, name, email, project, company). rentals_quotes.py (launchd
+  com.rarepond.rentalsquotes, every 2 min) saves the answers on the quote, checks them itself (COI or signed
+  agreement, ID if asked, billing address), updates the HubSpot contact, attaches the submission PDF and uploads
+  to the deal as private notes. rentals_mail.py holds the confirmation email until the details are in.
+- HubSpot deal properties added: rp_quote_number, rp_quote_data, rp_booking_details (Requested / Complete).
+- OWNER ACTIONS: (1) Jotform API key (Settings > API, read access) into ~/.config/rarepond/jotform_api_key;
+  until then the job is YELLOW and website quotes / details forms are not read. (2) The Booking Details form's
+  show/hide rules (the Jotform AI builder would not set them): listed in OPERATIONS "Quotes".
+  (3) Review the LMU draft Q-2026-001 (gear list, shoot days Nov 7 to 8 assumed).
+
 ### 0.0.-153 PRE-RENDERED AMBIENT BUBBLE LOOPS, 3 RANDOM VARIANTS, AUTO RE-RENDER (2026-10-29)
 
 - Jack: "option 1": pre-render the ambient background bubbles into looping animations, 3 variants picked at
