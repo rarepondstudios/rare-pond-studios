@@ -1,17 +1,14 @@
 /* Rentals cart: "Download a quote (PDF)" (2026-10-30, Jack). For someone who has to hand a price to whoever approves
-   the money before they can request the rental. Asks for name, email and the production, then:
-     1. draws the branded quote PDF in the browser (assets/quote_pdf.js, master bts-automation/scan_static/quote_pdf.js;
-        jsPDF from /assets/vendor, both loaded only when the button is used) and downloads it;
-     2. posts the same details and the cart to the Jotform form "Rare Pond Rentals: Website Quote" (FORMS.rentalQuote in
-        form-config.js), which bts-automation/rentals_quotes.py turns into a quote row + HubSpot contact + deal at
-        Quote Sent. That deal carries rp_quote_data, never rp_order_data: nothing is booked and no gear is held.
-   The Download button fills as the form is completed: assets/rp-fill.js does it for every form (fields marked required).
+   the money before they can request the rental. Asks who it is for and the production, then draws the branded quote
+   PDF in the browser (assets/quote_pdf.js, master bts-automation/scan_static/quote_pdf.js; jsPDF from /assets/vendor,
+   loaded on first use) and downloads it. NOTHING is sent or saved anywhere (Jack: the website tool must not create
+   records; quotes that go into the system are made in the scan app Quotes page). The Download button fills as the
+   form is completed: assets/rp-fill.js does it for every form (fields marked required).
    Runs after app.js and reads its globals (cart, cartOrder, RENTALS, BUILDERS, D, CATS, LABELS, COL, days...). */
 (function () {
   'use strict';
-  var QCFG = (window.FORMS && window.FORMS.rentalQuote) || null;
   var qData = { firstName: '', lastName: '', email: '', phone: '', film: '', company: '' }, qStep = 0, qErr = '', qNum = '';
-  var FIELDS = [['firstName', 'First name', 1, 1], ['lastName', 'Last name', 1, 1], ['email', 'Email', 1, 1], ['phone', 'Phone (optional)', 0, 1],
+  var FIELDS = [['firstName', 'First name', 1, 1], ['lastName', 'Last name', 1, 1], ['email', 'Email (optional)', 0, 1], ['phone', 'Phone (optional)', 0, 1],
                 ['film', 'Project or production', 1, 0], ['company', 'Company or school (optional)', 0, 0]];
   function el(id) { return document.getElementById(id); }
   function iso(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
@@ -69,7 +66,7 @@
     var h;
     if (qStep === 0) {
       h = '<div class="reqbox"><button class="dpx" id="qqx" aria-label="Close">&times;</button><h2>Download a quote</h2>' +
-        '<p class="crewlede">A branded PDF of this cart, by department with totals, to share with whoever approves the rental. Nothing is booked or held.</p>' +
+        '<p class="crewlede">A branded PDF of this cart, by department with totals, to share with whoever approves the rental. It is made on your device: nothing is sent, saved, booked or held.</p>' +
         '<div class="rgrid2"><div>' + inp('firstName') + '</div><div>' + inp('lastName') + '</div></div>' +
         '<div class="rgrid2"><div>' + inp('email') + '</div><div>' + inp('phone') + '</div></div>' + inp('film') + inp('company') +
         '<div class="reqwarn" id="qqwarn">' + esc(qErr) + '</div><button class="crewsend pbtn" id="qqgo"><span>Download quote PDF</span></button></div>';
@@ -93,26 +90,13 @@
     }
   }
   function download() { return loadPdf().then(function () { return window.RPQuotePDF.download(cartDoc(), { logoUrl: '/media/logos/rare-pond-rentals-color.webp' }); }); }
-  function send(doc) {
-    if (!QCFG || !QCFG.formId) return;
-    var F = QCFG.fields, ids = cartOrder.filter(function (id) { return id in cart; });
-    var pairs = ids.map(function (id) { var p = RENTALS[id]; return (p.pkgId != null ? ('k' + p.pkgId) : p.dbid) + ':' + cart[id]; }).concat(crateOrderPairs())
-      .filter(function (s) { return s.indexOf('null') < 0 && s.indexOf('undefined') < 0; });
-    var gear = [];
-    doc.sections.forEach(function (s) { s.groups.forEach(function (g) { g.lines.forEach(function (l) { gear.push(l.qty + 'x ' + l.name + ' (' + fmt(l.rate) + '/day)'); }); }); });
-    var v = { quoteNumber: qNum, firstName: qData.firstName, lastName: qData.lastName, email: qData.email, phone: qData.phone, project: qData.film,
-              company: qData.company, startDate: D.s, endDate: D.e, total: doc.total.toFixed(2), gear: gear.join('\n'),
-              data: 's:' + D.s + '|e:' + D.e + '|i:' + pairs.join(',') };
-    var fd = new FormData(); Object.keys(v).forEach(function (k) { if (F[k]) fd.append(F[k], v[k] == null ? '' : v[k]); });
-    fetch('https://submit.jotform.com/submit/' + QCFG.formId, { method: 'POST', body: fd, mode: 'no-cors' }).catch(function (e) { console.warn('[RP Rentals] quote copy not saved', e); });
-  }
   function go() {
     var miss = FIELDS.filter(function (f) { return f[2] && !String(qData[f[0]] || '').trim(); }).map(function (f) { return f[1].toLowerCase(); });
     if (qData.email && !/.+@.+\..+/.test(qData.email)) miss.push('a valid email');
     if (miss.length) { qErr = 'Please add: ' + miss.join(', ') + '.'; el('qqwarn').textContent = qErr; return; }
     qErr = ''; qNum = qNum || newNumber();
     var b = el('qqgo'); b.disabled = true; b.textContent = 'Making your PDF...';
-    download().then(function () { send(cartDoc()); qStep = 1; render(); })
+    download().then(function () { qStep = 1; render(); })
       .catch(function (e) { b.disabled = false; b.textContent = 'Download quote PDF'; el('qqwarn').textContent = 'The PDF could not be made (' + e.message + '). Please try again.'; });
   }
   function open() {
