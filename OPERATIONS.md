@@ -245,6 +245,45 @@ minutes of a save.
 **Pricing is inclusive of both days.** A Jul 27 → Jul 30 rental is **4 days, not 3**. It is
 computed server-side in Postgres (see the Supabase section).
 
+### Quotes (since 2026-10-30)
+
+A quote is a branded PDF gear list (by department, department totals, rental total; full price first, then each
+discount, then the total; replacement value small, as the amount to insure, never a charge). Two ways in:
+
+- **Website cart:** "Download a quote (PDF) for approval" (rentals/assets/quote-cart.js). Name, email and
+  production are required. The PDF is drawn in the browser and a copy goes to the Jotform form "Rare Pond Rentals:
+  Website Quote"; `rentals_quotes.py` makes the quote row and a HubSpot deal at **Quote Sent** carrying
+  `rp_quote_data`. It never carries `rp_order_data`, so the n8n sync makes no order and **no gear is held**.
+- **Scan app `/quotes`** (scan.rarepond.com/quotes): Rare Pond gear from a picker (day rate starts at the
+  website price, editable per quote), outside gear (never booked against the inventory), crew, fees, discounts:
+  per line (Off %), per department or the whole of Rare Pond gear / outside gear / crew / fees (a department rule
+  replaces the all-departments one for that department), and the whole order (after the others). Every edit
+  saves itself; totals always come from the database, so the page, the PDF and the booking agree.
+- **Convert to booking** (scan app, two taps): every Rare Pond line must be free for the dates (pending holds
+  count) or nothing happens. Then: HubSpot contact found by email or made, deal at Start Invoice Sent with
+  `rp_order_data` and the quote total as the amount, gear booked **confirmed**, the order linked to the quote (its
+  total stays the quote total, discounts, crew and fees included), the PDF attached to the deal as a private note.
+  A website quote that is converted reuses its deal. A converted quote is locked; change the order from then on.
+- **Client details:** ticked per quote: certificate of insurance (otherwise the client signs the liability
+  agreement on the form) and photo ID. Converting emails the client the Jotform form "Rare Pond Rentals: Booking
+  Details" (prefilled, with the quote's private token); "Email details form now" sends it any time. The answers are
+  checked by `rentals_quotes.py`, saved on the quote, copied to the HubSpot contact (company, phone, address) and
+  attached to the deal (submission PDF, COI, ID, all private). The "Confirmed" email waits until they are in; the
+  HubSpot deal shows **Booking details form** = Requested / Complete.
+- **Expiry:** a sent quote past its valid-until date (14 days by default, `rp_settings.quoteValidDays`) is marked
+  expired. No email.
+- **Setup still needed (owner):** the Jotform API key, read access, in the private config file named in
+  `rentals_quotes.py` (until then the job shows YELLOW); and the Booking Details form's conditions, set by hand in
+  the Jotform builder (Settings > Conditions):
+  1. COI Required is Yes: show "Insurance and Liability" and the COI question; require the COI question.
+  2. COI question is "Yes, I will upload it now": show and require "Certificate of Insurance".
+  3. COI Required is No: show "Insurance and Liability", the agreement text, the agreement checkbox and Signature;
+     require the checkbox and Signature.
+  4. COI question is "No, I will accept liability for the gear instead": show the agreement text, checkbox and
+     Signature; require the checkbox and Signature.
+  5. ID Required is Yes: show "Pickup Verification", the pickup name and the photo ID; require both.
+  The job checks the same things itself, so a form that slips through incomplete keeps the booking waiting.
+
 ### Item numbers, containers, unit letters and kits (since 2026-10-22, containers first since 2026-10-23, from x001)
 
 The database numbers gear itself (`bts-automation/migrations/20261022_rentals_numbering.sql`,
