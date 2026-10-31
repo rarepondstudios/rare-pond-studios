@@ -39,6 +39,28 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-157 LAURELS NOT SHOWING ON RAREPOND: THE PROJECTS EXPORTER HAD NEVER IMPORTED ITS GIT LOCK (2026-10-31)
+
+- Jack dropped 4 new Geri-Action laurels into `Projects (Web)/Geri-Action/Laurels/` on 2026-10-28; jackcarlsen.com
+  showed all 6, rarepond.com still showed 2. The folder -> PNG -> NocoDB half of 0.0.-57 worked (PNGs published and
+  committed 2026-10-30 15:13/15:16 by projects_media_sync.py, NocoDB `laurels` had 6 lines).
+- ROOT CAUSE: `bts-automation/projects_sync.py` (launchd `rpprojsync`) called `_rp_gitlock.repo_lock` without
+  importing `_rp_gitlock`, since bts a5b762b (2026-08-08). Every time the rarepond catalogue changed it WROTE
+  `data/projects.json`, then died with NameError before committing (rpprojsync.launchd.err.log, 2026-10-30 15:17).
+  Every later run compared the database to the file on disk, saw "in sync" and exited 0, so the change sat
+  uncommitted forever and the job looked green. Every rarepond catalogue change since 2026-08-08 needed a hand
+  commit (that is also part of why 2026-09-14 stalled, alongside the index.lock).
+- FIX (bts 5776c6f): the import; commit failures are now logged; new `_rp_gitlock.unpublished(repo, paths)` (read
+  only, tracked files only) lets both catalogue exporters (projects_sync.py, jc_projects_sync.py) notice a
+  `projects.json` an earlier run left uncommitted and publish it on the next run, instead of saying "in sync".
+  A crash that keeps recurring now exits non-zero every run, so health goes red instead of hiding.
+  `check_gitlock_coverage.py` now also fails any script that uses `_rp_gitlock` without importing it.
+- VERIFIED: kickstarted rpprojsync, log "in sync with the database, but an earlier run left it uncommitted;
+  publishing now" -> "git: pushed" (rp b5a5930); live `/data/projects.json` lists 6 laurels, all 6 PNGs 200;
+  Playwright on the mini at 1440 and 390 on `/geriaction`: 6 of 6 laurel images loaded, no horizontal scroll.
+- Drop-in still works the same: put the white FilmFreeway PNG in `<Film>/Laurels/`, both sites update within
+  about 10 minutes (media sync, then the exporter).
+
 ### 0.0.-156 CUSTOM CURSOR FAST ON ANY DEVICE; ONE CSS RULE WAS RE-STYLING THE PAGE ON EVERY CURSOR MOVE (2026-10-31)
 
 - Jack: the custom cursor works well on his devices but lags on lower-end computers and makes the site look worse;
