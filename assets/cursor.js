@@ -1570,6 +1570,22 @@
       var dbgEl = document.createElement("div");
       dbgEl.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:2147483647;pointer-events:none;font:12px/1.4 ui-monospace,Menlo,monospace;color:#3f3;background:rgba(0,0,0,.82);padding:7px 9px;border-radius:6px;white-space:pre;max-width:70vw;overflow:hidden";
       document.body.appendChild(dbgEl);
+      /* event log: what changed and which browser event caused it, so the box still explains a glitch after
+         the pointer has left the window to report it */
+      var dbgLog = [], dbgT0 = performance.now();
+      var dbgL = function (s) { dbgLog.push(((performance.now() - dbgT0) / 1000).toFixed(1) + "s " + s); if (dbgLog.length > 16) dbgLog.shift(); };
+      var dbgEv = function () { try { var e = window.event; return e ? e.type + (e.target && e.target.nodeType === 1 ? " on " + e.target.tagName.toLowerCase() + (e.target.className && typeof e.target.className === "string" ? "." + e.target.className.split(" ")[0] : "") : "") : "no event"; } catch (_) { return "?"; } };
+      var dbgShow = show, dbgHide = hide;
+      show = function () { if (!shown && !cursorOff) dbgL("SHOW (" + dbgEv() + ")"); dbgShow(); };
+      hide = function () { if (shown) dbgL("HIDE (" + dbgEv() + ")"); dbgHide(); };
+      try {
+        new MutationObserver(function () { dbgL("root -> [" + root.className + "] ring [" + ring.className + "]"); }).observe(root, { attributes: true, attributeFilter: ["class"] });
+        new MutationObserver(function () { dbgL("ring -> [" + ring.className + "]"); }).observe(ring, { attributes: true, attributeFilter: ["class"] });
+      } catch (_) {}
+      var dbgLast = 0;
+      addEventListener("mousemove", function () { var t = performance.now(); if (t - dbgLast < 1000) return; dbgLast = t;
+        try { dbgL("move " + mx + "," + my + " root[" + root.className + "] ring op " + getComputedStyle(ring).opacity + " dot op " + getComputedStyle(dot).opacity + " under " + (function (e) { return e ? e.tagName.toLowerCase() + "." + String(e.className).split(" ")[0] : "-"; })(document.elementFromPoint(mx, my))); } catch (_) {} }, { passive: true });
+      dbgL("boot, loading " + loading + ", shown " + shown);
       setInterval(function () {
         try {
           var cs = getComputedStyle(ring), gs = getComputedStyle(glow), de = document.documentElement, why = [];
@@ -1585,7 +1601,7 @@
             "\nhover: " + (hoverEl ? hoverEl.tagName + "." + String(hoverEl.className).slice(0, 40) : "none") + "  special " + hoverSpecial + "  kb " + kbActive +
             "\nloading " + loading + "  since " + Math.round(loadSince) + "  overlay: " + why.join(", ") +
             "\nfx " + FX + " (" + FX_WHY + ")  test: " + (AB.res || "-") +
-            "\nrunning " + running + "  idle " + Math.round(idleMs) + "ms  DT " + DT.toFixed(1) + "  frames " + frame + "  err " + (window.__rpcErr || "-");
+            "\nrunning " + running + "  idle " + Math.round(idleMs) + "ms  DT " + DT.toFixed(1) + "  frames " + frame + "  err " + (window.__rpcErr || "-") + "\n--- log ---\n" + dbgLog.join("\n");
         } catch (e) { dbgEl.textContent = "debug error " + e.message; }
       }, 200);
     }
