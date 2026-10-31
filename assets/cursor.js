@@ -1573,17 +1573,28 @@
       /* event log: what changed and which browser event caused it, so the box still explains a glitch after
          the pointer has left the window to report it */
       var dbgLog = [], dbgT0 = performance.now();
-      var dbgL = function (s) { dbgLog.push(((performance.now() - dbgT0) / 1000).toFixed(1) + "s " + s); if (dbgLog.length > 16) dbgLog.shift(); };
+      var dbgL = function (s) { dbgLog.push(((performance.now() - dbgT0) / 1000).toFixed(1) + "s " + s); if (dbgLog.length > 26) dbgLog.shift(); };
       var dbgEv = function () { try { var e = window.event; return e ? e.type + (e.target && e.target.nodeType === 1 ? " on " + e.target.tagName.toLowerCase() + (e.target.className && typeof e.target.className === "string" ? "." + e.target.className.split(" ")[0] : "") : "") : "no event"; } catch (_) { return "?"; } };
       var dbgShow = show, dbgHide = hide;
       show = function () { if (!shown && !cursorOff) dbgL("SHOW (" + dbgEv() + ")"); dbgShow(); };
       hide = function () { if (shown) dbgL("HIDE (" + dbgEv() + ")"); dbgHide(); };
       try {
-        new MutationObserver(function () { dbgL("root -> [" + root.className + "] ring [" + ring.className + "]"); }).observe(root, { attributes: true, attributeFilter: ["class"] });
+        new MutationObserver(function () { dbgL("root -> [" + root.className + "] ring [" + ring.className + "]" + (loading ? " overlay: " + dbgWhy() : "")); }).observe(root, { attributes: true, attributeFilter: ["class"] });
         new MutationObserver(function () { dbgL("ring -> [" + ring.className + "]"); }).observe(ring, { attributes: true, attributeFilter: ["class"] });
       } catch (_) {}
+      var dbgWhy = function () {
+        var de = document.documentElement, why = [];
+        if (window.__cursorLoadingFlag) why.push("flag");
+        if (de.classList.contains("xw-cover")) why.push("xw-cover");
+        if (de.classList.contains("xw-active")) why.push("xw-active");
+        if (document.querySelector(".rp-soctransport")) why.push("soctransport");
+        var xt = document.querySelector(".xtransport"); if (xt) { var xc = getComputedStyle(xt); why.push("xtransport " + xc.display + "/" + xc.opacity + "/" + xc.visibility); }
+        var pv = document.getElementById("pageveil"); if (pv) why.push("veil[" + pv.className + "] " + getComputedStyle(pv).opacity);
+        return why.join(", ");
+      };
+      addEventListener("pageshow", function (e) { dbgL("pageshow persisted " + e.persisted + " loading " + loading); });
       var dbgLast = 0;
-      addEventListener("mousemove", function () { var t = performance.now(); if (t - dbgLast < 1000) return; dbgLast = t;
+      addEventListener("mousemove", function () { var t = performance.now(); if (t - dbgLast < 1500) return; dbgLast = t;
         try { dbgL("move " + mx + "," + my + " root[" + root.className + "] ring op " + getComputedStyle(ring).opacity + " dot op " + getComputedStyle(dot).opacity + " under " + (function (e) { return e ? e.tagName.toLowerCase() + "." + String(e.className).split(" ")[0] : "-"; })(document.elementFromPoint(mx, my))); } catch (_) {} }, { passive: true });
       dbgL("boot, loading " + loading + ", shown " + shown);
       setInterval(function () {
