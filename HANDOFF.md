@@ -39,6 +39,47 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-158 SAFARI LONE-DOT CURSOR FIXED; MEDIA + RENTALS HEADERS MATCH THE STUDIO; CURSOR STRESS TEST (2026-10-31)
+
+- Jack, Safari 27 on the mini: after Media -> Projects the cursor was sometimes only the dot (no ring) on empty
+  parts of the page (screenshot: dot on the white header). Two of about ten runs. Playwright's WebKit never
+  showed it, and real Safari cannot be driven by WebDriver from the mini (session times out, even with "Allow
+  remote automation" on and Safari restarted), so it was read from Jack's Safari window with a diagnostic box.
+- CAUSE (best supported): the ring's opacity came only from descendant rules keyed to classes on `#rp-cursor`
+  (`.on` / `.loading`), a `display:contents` element. Arriving from Media the page boots in the loading state
+  (pointer position carried over, load cover up); when the cover lifted, Safari sometimes never restyled the
+  ring, so it kept opacity 0 while the dot, styled earlier, stayed. Since 0.0.-156 the ring's inline style is
+  only rewritten when it changes, so nothing else forced that restyle. The glitch never appeared while the
+  diagnostic box was reading the ring's computed style every 200 ms, which fits.
+- FIX (cursor.js master, bts-automation 02981e2): `syncVis()` writes the
+  opacity of the ring, dot, ghost ring and loader inline from the engine's own state (shown / loading /
+  textish / faded / hugging), on every state change and every frame, writing only on a change. The class
+  rules remain as the first-paint default. Jack then ran Media -> Projects 8 times in Safari: ring every time.
+- DIAGNOSTIC kept: `?cursordebug=1` on any page shows a green box (bottom-left) with the engine state and an
+  event log (show/hide with the browser event that caused it, class changes, why a loading cover is thought
+  to be up, pageshow, 1.5 s samples). Sticky for the tab (sessionStorage `rpcDbg`); close the tab to end it.
+- STRESS TEST (scratch, `tools/_cursorlab/stress.mjs` + `stress_nav.mjs`): every state transition (rest,
+  zigzag, idle sleep, hug, special fade, scroll, keyboard, blur/focus, mouseleave, film open/close, resize,
+  toggle off/on, page links, Back/Forward, reload) in Chromium, installed Google Chrome, WebKit and Firefox,
+  full and lite, checking the ring is actually DRAWN (screenshot with and without the ring, pixel diff),
+  plus Media -> Projects repeated at DPR 2, and the same suite on jackcarlsen.com. Final results, all green:
+  rarepond.com live 120/120 (Chrome, Chromium, WebKit, Firefox; full + lite), Media -> Projects 9/9 live and
+  15/15 local, jackcarlsen.com 90/90, test-bubble-glow-only all green, pop-in audit 0 on /media/ and /rentals/.
+- SECOND BUG the stress test found (jackcarlsen.com first, both sites affected): after arrowing with the keyboard,
+  moving the mouse onto empty space left the hug glued to the keyboard's element until the pointer crossed into
+  another element (pointerover fires BEFORE the mousemove that hands control back, while the keyboard still
+  owns the selection, so it was skipped). The hover decision is now `resolveHover()`, also run on that hand-back
+  mousemove. bts-automation 87f4f5d.
+- NOTE for the next session: com.rarepond.socialuisync publishes the master's WORKING file on its own schedule,
+  committed or not, so an edit to ~/bts-automation/cursor.js can go live before it is tested. Develop in a copy
+  (this session used `tools/_cursorlab/`) and copy it over the master only when it has passed.
+- HEADERS (Jack: News on the Media page opened Contact, Contact missing; the three headers should match apart
+  from branding): media/index.html and rentals/index.html relabelled three fixed anchors by position, so when
+  News joined `site.json` nav, "News" landed on the Contact anchor. Both now BUILD the header from the nav
+  list's header items with the footer's link rules (go -> /team, /projects, /news; contact -> the popup), and
+  the static markup has the same four items so first paint matches. Media's row tightens below 1240px and
+  hides below 1180px (was 1040px), where xnav.js's burger takes the links. Commit 64ee1b3. Studio unchanged.
+
 ### 0.0.-157 LAURELS NOT SHOWING ON RAREPOND: THE PROJECTS EXPORTER HAD NEVER IMPORTED ITS GIT LOCK (2026-10-31)
 
 - Jack dropped 4 new Geri-Action laurels into `Projects (Web)/Geri-Action/Laurels/` on 2026-10-28; jackcarlsen.com
