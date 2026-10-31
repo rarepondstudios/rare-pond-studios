@@ -303,6 +303,7 @@
         mini = root.querySelector(".rpc-mini"),
         skins = [root.querySelector(".rpc-glow"), root.querySelector(".rpc-fill"), root.querySelector(".rpc-bord")],
         ldr = root.querySelector(".rpc-ldw"),
+        ldrSpin = root.querySelector(".rpc-loader"),
         glow = root.querySelector(".rpc-glow");
 
     /* ---- LOOK TIER: full | lite (see PERFORMANCE CONTRACT at the top) ----
@@ -450,8 +451,30 @@
     var kbActive = false;              // keyboard spatial-nav owns the selection until the mouse moves
     var kbSelEl = null;                // element carrying .rpc-kbsel (site CSS mirrors its hover glow; UA outline suppressed)
 
-    function show() { if (cursorOff) return; if (!shown) { shown = true; root.classList.add("on"); } }
-    function hide() { if (shown) { shown = false; root.classList.remove("on"); } }
+    function show() { if (cursorOff) return; if (!shown) { shown = true; root.classList.add("on"); } syncVis(); }
+    function hide() { if (shown) { shown = false; root.classList.remove("on"); } syncVis(); }
+    /* VISIBILITY IS WRITTEN ON EACH ELEMENT, NOT ONLY INHERITED FROM #rp-cursor's CLASSES (2026-10-31, Safari).
+       Jack, Safari 27 on the mini: Media -> Projects left a lone dot, no ring, on empty parts of the page,
+       intermittently (two of roughly ten runs). The stylesheet decides the ring's opacity from classes on
+       #rp-cursor (.on / .loading), a display:contents element, and since 2026-10-31 the ring's inline style is
+       only rewritten when it changes, so nothing else made Safari restyle the ring after the loading cover
+       lifted: it kept the "loading" opacity 0 while the dot (styled earlier) stayed. Playwright's WebKit never
+       showed it. Now each element's opacity is set inline from the engine's own state, every frame and on every
+       state change, so the visible state can never disagree with the engine. The class rules stay as the
+       first-paint default. */
+    var visKey = "";
+    function syncVis() {
+      var faded = ring.classList.contains("faded");
+      var rOp = !shown || cursorOff ? 0 : loading ? 0 : textish ? .3 : faded ? 0 : 1;
+      var dOp = shown && !cursorOff ? 1 : 0;
+      var mOp = shown && !cursorOff && root.classList.contains("hugging") ? .6 : 0;
+      var lOp = loading && !cursorOff ? 1 : 0;
+      var k = rOp + "|" + dOp + "|" + mOp + "|" + lOp;
+      if (k === visKey) return;
+      visKey = k;
+      ring.style.opacity = rOp; dot.style.opacity = dOp; mini.style.opacity = mOp;
+      ldrSpin.style.opacity = lOp; ldrSpin.style.animationPlayState = lOp ? "running" : "paused";
+    }
 
     /* ---- pointer tracking ---- */
     addEventListener("mousemove", function (e) {
@@ -1212,6 +1235,7 @@
         loadSince = 0;
         if (loading) { loading = false; root.classList.remove("loading"); }
       }
+      syncVis();
     }
 
     /* ---- MEASURE PHASE (2026-10-31) ----
@@ -1515,6 +1539,7 @@
         ring.style.width = tw + "px"; ring.style.height = th + "px"; ring.style.borderRadius = tr;
         for (var ki = 0; ki < 3; ki++) skins[ki].style.borderRadius = tr;   /* see the skins CSS: no inherit */
       }
+      syncVis();   /* cheap: compares one string, writes only on a change */
       var dtf = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
       if (dtf !== wDot) { wDot = dtf; dot.style.transform = dtf; mini.style.transform = dtf; }   /* ghost ring rides the dot 1:1 */
       if (loading || loadSince) {   /* the loader wrapper only follows while a cover is (about to be) up */
@@ -1556,7 +1581,7 @@
         var px = +pos[0], py = +pos[1];
         if (px > 0 && py > 0 && px < innerWidth && py < innerHeight) {
           mx = px; my = py; rx = px; ry = py; pmx = px; pmy = py;
-          if (overlayUp()) { show(); loadSince = 1; loading = true; root.classList.add("loading"); }
+          if (overlayUp()) { show(); loadSince = 1; loading = true; root.classList.add("loading"); syncVis(); }
         }
       }
     } catch (_) {}
