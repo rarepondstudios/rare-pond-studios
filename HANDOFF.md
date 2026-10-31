@@ -39,6 +39,45 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-156 CUSTOM CURSOR FAST ON ANY DEVICE; ONE CSS RULE WAS RE-STYLING THE PAGE ON EVERY CURSOR MOVE (2026-10-31)
+
+- Jack: the custom cursor works well on his devices but lags on lower-end computers and makes the site look worse;
+  it must be quick and responsive on any device. Master `~/bts-automation/cursor.js` (commit e3d8c8a), published by
+  social_ui_sync.py to both sites (rp 1add000, jc ee32b1e). Measured on the mini with Playwright + real GPU, home
+  page, CPU slowed 6x, same 6 s circular mouse path (scratch: `tools/_cursorlab/`, untracked).
+- WHY IT LAGGED, three causes:
+  1. Motion was frame-based: every easing ran per frame, so a 60 Hz screen trailed twice as far behind as Jack's
+     120 Hz screens and a 30 fps machine four times. Now all motion (follow, spring stretch, angle, tilt, release
+     travel, ease-outs) is scaled by real frame time, with the per-frame constants Jack's 120 Hz screens already
+     used, so every machine gets the feel he approved. Ring lag on the slowed run: 29 px -> 20 px.
+  2. The rAF callback READ layout (rects, computed styles, elementFromPoint) and so forced a mid-frame style recalc
+     of the whole page. Reads now happen in a post-frame MessageChannel task ("MEASURE PHASE" in cursor.js) where
+     layout is already clean; the frame only writes. cursor.js script time per run: ~1080 ms -> ~180 ms.
+  3. `assets/chrome.css` had `html:has(> body[style*="overflow: hidden"])`. An attribute selector inside `:has()`
+     makes Chrome re-check html's `:has()` on EVERY inline style change anywhere on the page (traced: one re-check
+     per cursor/carousel style write, each re-styling .spec/.cspec/.m-spec and the news article). Removed; every
+     script that locks body that way also opens a popup that has its own class entry (#dp.show, .rpd-show,
+     .rpc-show). This also speeds the page up without the cursor: 78 -> 108 fps on the slowed run.
+  Result on the slowed run: page 52-57 fps with the old cursor -> 84-89 fps now (no cursor at all: 108).
+- Also: the colour band's counter-rotation is a transform on its own layer (was a conic-gradient angle, a repaint
+  every frame of fast movement); the loader rides a wrapper transform (was a CSS variable inside its keyframes);
+  unchanged styles are never re-written; the skins no longer use border-radius:inherit; watchdogs run on
+  wall-clock intervals, staggered. Removed the computed `cursor:pointer` fallback in pointerover: it could never
+  match because the engine's own `cursor:none!important` makes every computed cursor "none" (checked in Chrome),
+  so it only cost style reads. New clickables are picked up by SEL or `data-cursor="link"`, as before in practice.
+- LOOK TIERS (like rp-bubble's): `#rp-cursor.full` has the glass blur under the free ring and the difference-blend
+  dot + ghost ring; `.lite` has neither (dot and ghost ring get a thin dark edge). Motion, hug and three tiers are
+  identical. Lite when rp-bubble put the page in lite/css, on Save-Data or a very small device, or when a PACE
+  TEST shows the full look is the cost (frames slow while moving -> 40 frames in lite -> 20%+ faster = lite,
+  remembered in localStorage `rp-cursor-fx` for CUR_VER; else back to full, re-test 60 s doubling to 5 min; a
+  steady ~33 ms is treated as a cap and never tested). `?cursorfx=full|lite` forces it for the tab;
+  `window.__rpcFx` shows the tier and why. Bump CUR_VER when the tiers change.
+- Verified: tools/test-bubble-glow-only.mjs all green on the new code; site_popin_audit 0 pop-ins on /, /rentals/,
+  /media/ in Chrome, WebKit, Firefox and mobile; cursor moves and hugs nav links in all three engines with no page
+  errors; screenshots of rest / stretch / hug / loader match the old cursor in full and look right in lite. Not
+  provable on the mini: the GPU saving of lite (the M4 GPU never struggles); its pace test was checked to stay in
+  full when the page, not the cursor, is the bottleneck.
+
 ### 0.0.-155 QUOTES: WEBSITE PDF STAYS OUT OF THE SYSTEM; HUBSPOT OPT-IN; FORM BUTTONS FILL EVERYWHERE (2026-10-30)
 
 - Jack: the website quote tool must not create records; the internal tool gets an option for whether the quote goes

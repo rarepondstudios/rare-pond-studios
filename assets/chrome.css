@@ -195,8 +195,13 @@ a.soc3[data-net="threads"]{--soc-k:1.429}a.soc3[data-net="x"]{--soc-k:1.086}a.so
 /* PERFORMANCE (2026-10-27): every selector below looks only at <body>'s direct children (all these popups
    are appended to <body>). The first version searched the WHOLE page for them (html:has(.x)), and the
    browser re-ran that search on most style updates: profiled as the biggest single style cost of a home
-   carousel move. Keep any new popup lock in this child-only form. */
-html:has(> body[style*="overflow: hidden"]),
+   carousel move. Keep any new popup lock in this child-only form.
+   NO ATTRIBUTE SELECTORS inside :has() here (2026-10-31): the old catch-all html:has(> body[style*="overflow: hidden"])
+   made the browser re-check html's :has() on EVERY inline style change anywhere on the page (the custom cursor
+   writes four per frame, the carousel and bubbles more), and each re-check re-styled every .spec/.cspec/.m-spec
+   and the news article: measured on the mini as the largest per-frame cost the cursor caused. Every script that
+   locks <body> the old way also opens a popup that IS listed here (#dp.show, .rpd-show, .rpc-show), so it was
+   redundant. A new popup gets its own class entry. */
 html:has(> body > #dp.show),html:has(> body > #dpop.show),html:has(> body > #reqpop.show),html:has(> body > #ovl.show),
 html:has(> body > .rpd-show),html:has(> body > .rpc-show),html.rpc-open{overflow:hidden!important;overscroll-behavior:none}
 html:has(> body > .rpd-show) .universe,html:has(> body > .rpc-show) .universe,html.rpc-open .universe,
