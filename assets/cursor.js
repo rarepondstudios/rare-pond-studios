@@ -1560,6 +1560,35 @@
         }
       }
     } catch (_) {}
+    /* DIAGNOSTIC BOX (2026-10-31): add ?cursordebug=1 to any page URL and a small green box in the bottom-left
+       shows the engine's live state (classes, opacity, position, what is hovered, why it thinks a loading cover is
+       up, the look tier). It stays on for the tab (sessionStorage rpcDbg) so it follows page changes; close the
+       tab to end it. Built to read a Safari-only glitch from a screenshot; inert without the flag. */
+    var dbgOn = /[?&]cursordebug=1/.test(location.search);
+    try { if (dbgOn) sessionStorage.setItem("rpcDbg", "1"); else dbgOn = sessionStorage.getItem("rpcDbg") === "1"; } catch (_) {}
+    if (dbgOn) {
+      var dbgEl = document.createElement("div");
+      dbgEl.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:2147483647;pointer-events:none;font:12px/1.4 ui-monospace,Menlo,monospace;color:#3f3;background:rgba(0,0,0,.82);padding:7px 9px;border-radius:6px;white-space:pre;max-width:70vw;overflow:hidden";
+      document.body.appendChild(dbgEl);
+      setInterval(function () {
+        try {
+          var cs = getComputedStyle(ring), gs = getComputedStyle(glow), de = document.documentElement, why = [];
+          if (window.__cursorLoadingFlag) why.push("flag");
+          if (de.classList.contains("xw-cover")) why.push("xw-cover");
+          if (de.classList.contains("xw-active")) why.push("xw-active");
+          if (document.querySelector(".rp-soctransport")) why.push("soctransport");
+          var xt = document.querySelector(".xtransport"); if (xt) why.push("xtransport " + getComputedStyle(xt).display + "/" + getComputedStyle(xt).opacity);
+          var pv = document.getElementById("pageveil"); if (pv) why.push("veil[" + pv.className + "] op " + getComputedStyle(pv).opacity);
+          dbgEl.textContent = "root: " + root.className + "\nring: " + ring.className + "  op " + cs.opacity + "  vis " + cs.visibility + "  " + ring.style.width + " x " + ring.style.height +
+            "\nring tf: " + ring.style.transform + "\nglow: op " + gs.opacity + "  tf " + (glow.style.transform || "-") +
+            "\nmouse " + mx + "," + my + "   ring " + rx.toFixed(1) + "," + ry.toFixed(1) +
+            "\nhover: " + (hoverEl ? hoverEl.tagName + "." + String(hoverEl.className).slice(0, 40) : "none") + "  special " + hoverSpecial + "  kb " + kbActive +
+            "\nloading " + loading + "  since " + Math.round(loadSince) + "  overlay: " + why.join(", ") +
+            "\nfx " + FX + " (" + FX_WHY + ")  test: " + (AB.res || "-") +
+            "\nrunning " + running + "  idle " + Math.round(idleMs) + "ms  DT " + DT.toFixed(1) + "  frames " + frame + "  err " + (window.__rpcErr || "-");
+        } catch (e) { dbgEl.textContent = "debug error " + e.message; }
+      }, 200);
+    }
     wake();
   }
 })();
