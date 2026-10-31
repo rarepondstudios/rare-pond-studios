@@ -54,7 +54,8 @@
   only, tracked files only) lets both catalogue exporters (projects_sync.py, jc_projects_sync.py) notice a
   `projects.json` an earlier run left uncommitted and publish it on the next run, instead of saying "in sync".
   A crash that keeps recurring now exits non-zero every run, so health goes red instead of hiding.
-  `check_gitlock_coverage.py` now also fails any script that uses `_rp_gitlock` without importing it.
+  `check_gitlock_coverage.py` now also fails any script that uses `_rp_gitlock` without importing it, and
+  autoheal runs it every 10 min (issue `gitlock-code`, emails rp_admin after 3 failing runs in a row).
 - VERIFIED: kickstarted rpprojsync, log "in sync with the database, but an earlier run left it uncommitted;
   publishing now" -> "git: pushed" (rp b5a5930); live `/data/projects.json` lists 6 laurels, all 6 PNGs 200;
   Playwright on the mini at 1440 and 390 on `/geriaction`: 6 of 6 laurel images loaded, no horizontal scroll.
