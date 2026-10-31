@@ -77,6 +77,9 @@
   errors; screenshots of rest / stretch / hug / loader match the old cursor in full and look right in lite. Not
   provable on the mini: the GPU saving of lite (the M4 GPU never struggles); its pace test was checked to stay in
   full when the page, not the cursor, is the bottleneck.
+- RULE (Jack, 2026-10-31, procedures/website-quality.md section 2): never check `style` inside `:has()`; scripts
+  rewrite inline styles 175 to 440 times a second (measured on /, /rentals/, /media/), classes and data-* change on
+  clicks only. Check: `git grep -n ':has([^{]*\[style'` finds nothing (chrome.css comment reworded so it does).
 
 ### 0.0.-155 QUOTES: WEBSITE PDF STAYS OUT OF THE SYSTEM; HUBSPOT OPT-IN; FORM BUTTONS FILL EVERYWHERE (2026-10-30)
 
