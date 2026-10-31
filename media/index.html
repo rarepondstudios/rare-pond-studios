@@ -79,7 +79,11 @@ a{color:inherit}
 .mnav{display:flex;gap:2px;margin-left:14px}
 .mnav a{padding:9px 14px;border-radius:50px;font-weight:700;font-size:14.5px;color:#cfe0ff;text-decoration:none;transition:.18s;white-space:nowrap;cursor:pointer}
 .mnav a:hover{background:rgba(255,255,255,.09);color:#fff}
-@media(max-width:1040px){.mnav{display:none}}
+.mhdr .bn-rare{white-space:nowrap}.mhdr .hdr-logo{flex-shrink:0}
+/* four header items since 2026-10-31 (News, like the studio): tighter below 1240px, and the row hides below
+   1180px (was 1040px with three) so it never runs into the wordmark */
+@media(max-width:1240px){.mnav{margin-left:8px}.mnav a{padding:8px 10px;font-size:13.5px}.mhright{gap:10px}}
+@media(max-width:1180px){.mnav{display:none}}
 .mhright{margin-left:auto;display:flex;align-items:center;gap:14px}
 @media(max-width:780px){:root{--header-h:78px}.mhdr{height:78px}.mhdr .bn-rare{font-size:32px}.mhdr .hdr-duck{height:50px}}
 @media(max-width:520px){.mhdr .brandname{display:none}.mhright .hsoc{display:none}}
@@ -207,7 +211,7 @@ html.xw-active{overflow:hidden}
     <img class="hdr-duck" src="/media/logos/duck-media.webp" alt="Rare Pond Media">
     <span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-sub">Media</span></span>
   </a>
-  <nav class="mnav"><a href="/#team">Our&nbsp;Team</a><a href="/#projects">Projects</a><a href="#" data-contact>Contact</a></nav>
+  <nav class="mnav"><a href="/team">Our&nbsp;Team</a><a href="/projects">Projects</a><a href="/news">News</a><a href="#" data-contact>Contact</a></nav>
   <div class="mhright">
     <div class="xnav xnav-dark">
       <span class="xchip xcur" data-site="media">Media</span>
@@ -382,11 +386,20 @@ html.xw-active{overflow:hidden}
     var tag=document.querySelector('.mfoot .tag');
     if(tag&&ft.tagline)tag.textContent=ft.tagline;
     var NAV=(d&&Array.isArray(d.nav)&&d.nav.length)?d.nav:(ft.links||[]);
-    /* Header nav labels come from the same shared list, matched in order to the header items
-       (team / projects / contact), one list drives header and footer, like the studio. */
+    /* Header nav = the shared list's header items (site.json nav, header:true), built from the list itself,
+       the same items and order as the studio header. (2026-10-31: it used to relabel three fixed anchors by
+       position; when News was added to the list, "News" landed on the Contact anchor, so News opened the
+       contact form and Contact disappeared.) Same link rules as the footer below. */
     var headerItems=NAV.filter(function(l){return l&&l.header;});
-    var mn=document.querySelectorAll('.mnav a');
-    headerItems.forEach(function(l,i){ if(mn[i]&&l.label) mn[i].innerHTML=esc(l.label).replace(/ /g,'&nbsp;'); });
+    var mnav=document.querySelector('.mnav');
+    if(mnav&&headerItems.length){
+      mnav.innerHTML=headerItems.map(function(l){
+        var label=esc(l.label||'').replace(/ /g,'&nbsp;');
+        if(l.go==='contact')return '<a href="#" data-contact>'+label+'</a>';
+        var href=l.href?l.href:(l.go?(l.go==='home'?'/':'/'+l.go):'#');
+        return '<a href="'+esc(href)+'">'+label+'</a>';
+      }).join('');
+    }
     var fnav=NAV.filter(function(l){return l&&l.footer!==false;});
     var fl=document.querySelector('.mfoot .flinks');
     if(fl&&fnav.length){

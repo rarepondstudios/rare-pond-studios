@@ -5,7 +5,7 @@
 </head><body><div id="pageveil" aria-hidden="true"></div><div id="xwipe" aria-hidden="true"></div><script>/* page-load veil: self-removing, never blocks interaction. ENTERING THE WATER (assets/rp-water.js, 2026-10-27): white like the header while loading, then we dive in: the three-tier waterline rises from below and the page rides up with it */(function(){var v=document.getElementById('pageveil');if(!v)return;var done=false;var W=window.RPWater,ctl=(W&&W.ok)?W.veil(v,{sky:'#ffffff',duck:'/media/logos/duck-painted.webp',join:'#2e71b7',deep:'linear-gradient(180deg,#2e71b7 0px,#2866a2 100px,#225c94 200px,#1f548d 300px,#1b4a81 450px,#184175 600px,#0e2a50 900px)'}):null;if(window.__setThemeColor)window.__setThemeColor('#ffffff');var peekT=setTimeout(function(){if(ctl&&!done)ctl.peek();},450);function gone(){v.classList.add('pv-gone');}function hide(){if(done)return;done=true;clearTimeout(peekT);if(window.__resetThemeColor)window.__resetThemeColor(0);if(ctl){ctl.reveal();return;}v.classList.add('pv-hide');var t=setTimeout(gone,900);v.addEventListener('transitionend',function(){clearTimeout(t);gone();},{once:true});}var fonts=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();var loaded=new Promise(function(r){document.readyState==='complete'?r():addEventListener('load',r,{once:true});});/* 2026-10-27 pop-in audit: the gear list is re-drawn when the live catalog arrives, which moved the whole first screen after the cover had lifted; wait for it (at most 1.6 s) and for the layout to hold still */Promise.all([Promise.race([fonts,new Promise(function(r){setTimeout(r,1200);})]),loaded]).then(function(){return Promise.race([window.__rpLive||0,new Promise(function(r){setTimeout(r,1200);})]);}).then(function(){return (window.RPWater&&RPWater.settled)?RPWater.settled(document.getElementById('stage'),200,1200):0;}).then(function(){requestAnimationFrame(function(){requestAnimationFrame(hide);});});setTimeout(hide,4000);addEventListener('error',function(){setTimeout(hide,60);},{once:true});})();</script>
 <header class="site-header"><div class="hdr-bg"></div>
  <a class="hdr-logo" id="rpHome" href="/rentals" data-cursor="glow" title="Rare Pond Rentals home"><img id="hdrMark" src="/media/logos/duck-mark.webp" alt="Rare Pond Rentals"><span class="brandname"><span class="bn-rare">Rare Pond</span><span class="bn-sub">Rentals</span></span></a>
- <nav class="hnav"><a href="/#team">Our&nbsp;Team</a><a href="/#projects">Projects</a><a href="/#contact" data-contact>Contact</a></nav>
+ <nav class="hnav"><a href="/team">Our&nbsp;Team</a><a href="/projects">Projects</a><a href="/news">News</a><a href="/#contact" data-contact>Contact</a></nav>
  <div class="hright"><div class="xnav"><a class="xchip" href="/media" data-wipe="R" data-dir="l" data-site="media" title="Go to Rare Pond Media"><span class="xar">&larr;</span>Media</a><a class="xchip" href="/" data-wipe="R" data-dir="l" data-site="studio" title="Go to the Rare Pond Studios site"><span class="xar">&larr;</span>Studio</a><span class="xchip xcur" data-site="rentals">Rentals</span></div><div class="hsoc rp-soc" id="hsoc"></div></div>
 </header>
 <div class="wrap"><div id="rp-eventbanner-mount"></div><div class="tabs" id="tabs"></div><div class="tabline" id="tabline"></div><div id="stage"></div></div>
@@ -95,13 +95,20 @@
       const link=ut?`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(ut)}</a>`:'';
       cp.innerHTML=(link&&c)?(link+' · '+esc(c)):(link||esc(c));
     }
-    /* Header nav labels + footer links both come from the ONE shared list (site.json → nav),
-       the same list the studio uses. Header anchors are matched in order to the header items
-       (team / projects / contact); the footer renders the full list. */
+    /* Header nav + footer links both come from the ONE shared list (site.json → nav), the same list
+       the studio uses. The header is BUILT from the header items (2026-10-31: it used to relabel three
+       fixed anchors by position, so adding News put "News" on the Contact anchor). */
     const NAV=(Array.isArray(site.nav)&&site.nav.length)?site.nav:(ft.links||[]);
     const headerItems=NAV.filter(l=>l&&l.header);
-    const hn=document.querySelectorAll('.hnav a');
-    headerItems.forEach((l,i)=>{ if(hn[i]&&l.label) hn[i].innerHTML=esc(l.label).replace(/ /g,'&nbsp;'); });
+    const hnav=document.querySelector('.hnav');
+    if(hnav&&headerItems.length){
+      hnav.innerHTML=headerItems.map(l=>{
+        const label=esc(l.label||'').replace(/ /g,'&nbsp;');
+        if(l.go==='contact')return `<a href="/#contact" data-contact>${label}</a>`;
+        const href=l.href?l.href:(l.go?(l.go==='home'?'/':'/'+l.go):'#');
+        return `<a href="${esc(href)}">${label}</a>`;
+      }).join('');
+    }
     const fnav=NAV.filter(l=>l&&l.footer!==false);
     const fl=document.querySelector('.rfoot .flinks');
     if(fl&&fnav.length){
