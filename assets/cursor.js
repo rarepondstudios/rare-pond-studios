@@ -481,8 +481,10 @@
       /* REAL movement hands control back to the pointer. Chrome also fires a SYNTHETIC
          mousemove (same coordinates) whenever content shifts under a stationary cursor,
          e.g. a carousel rotating, which must NOT cancel an active keyboard selection. */
-      if (kbActive && (Math.abs(e.clientX - mx) > 3 || Math.abs(e.clientY - my) > 3)) { kbActive = false; kbSynth(null); }
+      var handBack = kbActive && (Math.abs(e.clientX - mx) > 3 || Math.abs(e.clientY - my) > 3);
+      if (handBack) { kbActive = false; kbSynth(null); }
       mx = e.clientX; my = e.clientY;
+      if (handBack && !cursorOff) resolveHover(e.target);   /* see resolveHover */
       show(); wake();
     }, { passive: true });
     document.addEventListener("mouseleave", hide);
@@ -523,7 +525,13 @@
       if (cursorOff) return;              /* toggle off = fully native mouse behaviour */
       if (e.isTrusted === false) return;  /* our own kb-parity synthetic hover events must never loop back */
       if (kbActive) return;            /* scrolling under a stationary mouse fires pointerover, don't let it steal a keyboard selection */
-      var t = e.target;
+      resolveHover(e.target);
+    }, true);
+    /* the hover decision for whatever element is under the pointer: pointerover, and the mouse move that hands
+       control back from the keyboard (2026-10-31 stress test: pointerover fires BEFORE that mousemove, while the
+       keyboard still owns the selection, so it was skipped and the hug stayed glued to the keyboard's element
+       while the pointer moved over empty space, until it happened to cross into another element) */
+    function resolveHover(t) {
       if (!t || t.nodeType !== 1) { queueClear(false); return; }
       /* Cross-origin embeds (HubSpot / Jotform forms) own the pointer, the browser stops
          reporting the mouse inside them, so the custom cursor HANDS OFF: unmorph + fade out
@@ -555,7 +563,7 @@
       }
       if (el) applyHover(el, txt, attrSp); else queueClear(txt);
       wake();
-    }, true);
+    }
 
     /* Hover-out GRACE: when the pointer leaves one target, wait ~120ms before relaxing to the
        circle. Crossing the small gap between two adjacent buttons then morphs DIRECTLY from
