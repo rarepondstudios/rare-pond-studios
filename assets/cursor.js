@@ -34,9 +34,11 @@
        a WHITE orbiting arc with a trail around the dot; it restores after.
 
    STANDARDIZED INTERACTIVE DETECTION (future-proof, new buttons "just work"):
-   an element is interactive if it matches the SEL list (a[href], button, form
-   controls, [role=button], summary, [data-cursor="link"]) OR any of its first 5
-   ancestors computes cursor:pointer. Opt out per element: data-cursor="off".
+   an element is interactive if it, or an ancestor, matches the SEL list
+   (a[href], button, form controls, [role=button], summary, [onclick],
+   [data-cursor="link"]). Opt out per element: data-cursor="off". (A computed
+   cursor:pointer fallback was listed here until 2026-10-31; it never worked
+   with the engine on, see pointerover.)
    Text fields keep the native I-beam (the ring dims instead of morphing).
    Oversized targets (bigger than ~60% of the viewport axis) never morph, so a
    full-bleed link can't become a screen-sized blob.
@@ -48,9 +50,36 @@
      colours come from that look's c1/c2/c3 in data/colorlooks.json (default =
      the site's own "signature" look, so JC is automatically purple).
 
-   PERFORMANCE CONTRACT: 3 tiny fixed elements, transform-driven, one rAF loop
-   that pauses when the tab is hidden or the mouse has been idle; no filters,
-   no per-frame layout except one getBoundingClientRect while morph-hovering.
+   PERFORMANCE CONTRACT (rewritten 2026-10-31, Jack: "on lower end computers it
+   lags ... it needs to work regardless of device extremely quickly"):
+     - MOTION IS TIME-BASED, not frame-based. Every easing, spring and timer is
+       scaled by the real frame time, so the ring follows the pointer with the
+       same feel at 30, 60 or 120 fps: the feel Jack tuned on his 120 Hz screens.
+       Before this the smoothing ran per frame, so a 60 Hz screen trailed twice as
+       far behind as Jack's, and a machine managing 30 fps four times as far:
+       exactly the lag that showed on weaker computers.
+     - EVERY PER-FRAME WRITE IS A COMPOSITOR TRANSFORM. The colour band's
+       counter-rotation used to rewrite a CSS variable inside a conic gradient on
+       every frame of fast movement (a full repaint of the masked ring each frame);
+       it is now a rotate() on the band's own layer. The loader's position is a
+       wrapper transform, not a variable inside its keyframes. Unchanged values
+       are never re-written.
+     - TWO LOOKS, ONE MOTION (same idea as rp-bubble's effect tiers): "full" has
+       the glass blur under the ring and the auto-contrast (difference blend) dot
+       and ghost ring. Those two are the only GPU-heavy parts: a blur re-sampled
+       under a moving element and a blend that makes the browser re-composite the
+       page under it on every frame. "lite" draws the same ring without them (dot
+       and ghost ring get a thin dark edge so they still read on light AND dark).
+       The motion, hug, tiers and colours are identical. A device goes lite when
+       rp-bubble already put the page in its lite/css tier, on Save-Data or a very
+       small device, or when the engine MEASURES that the full look is what slows
+       it: frames clearly slow while the cursor moves -> 1 s with the lite look ->
+       frames come back = lite, remembered for this code version (CUR_VER); they
+       do not = a frame-rate cap, full is kept and re-tested later with backoff.
+       Force for testing: ?cursorfx=full|lite (kept for the tab).
+     - The loop sleeps when idle in the free state and when the tab is hidden;
+       periodic checks (loading cover, colour look, iframe and occlusion
+       watchdogs) run on wall-clock intervals, staggered so they never stack.
    Disabled entirely on touch/coarse pointers and under prefers-reduced-motion.
    ========================================================================== */
 (function () {
@@ -173,30 +202,36 @@
          mix-blend-mode can blend against the PAGE (auto black/white contrast). */
       "#rp-cursor{display:contents}" +
       ".rpc-ring{position:fixed;left:0;top:0;width:50px;height:50px;border-radius:50%;z-index:2147483644;pointer-events:none;opacity:0;will-change:transform;" +
-      "-webkit-backdrop-filter:blur(1.3px) saturate(1.2);backdrop-filter:blur(1.3px) saturate(1.2);" +   /* liquid-glass: subtle distortion under the orb */
       "box-shadow:0 0 14px -3px color-mix(in srgb,var(--rpc-a) 55%,transparent),inset 0 0 9px -3px color-mix(in srgb,var(--rpc-b) 40%,transparent);" +   /* the ring band GLOWS both outward and inward */
       "transition:width .22s cubic-bezier(.3,.9,.3,1),height .22s cubic-bezier(.3,.9,.3,1),border-radius .22s cubic-bezier(.3,.9,.3,1),opacity .16s ease,--rpc-a .45s ease,--rpc-b .45s ease,--rpc-c .45s ease}" +
       /* tracking = the hugged ELEMENT itself is in motion (carousel rotation), the ring is
          glued to it per-frame, so its own size transitions must not fight the element's */
       ".rpc-ring.tracking{transition:opacity .16s ease,--rpc-a .45s ease,--rpc-b .45s ease,--rpc-c .45s ease}" +
       "#rp-cursor.on .rpc-ring{opacity:1}" +
+      /* liquid-glass: subtle distortion under the FREE ring, full look only (see PERFORMANCE CONTRACT:
+         the blur is re-sampled under the moving ring every frame, the costliest thing the cursor did) */
+      "#rp-cursor.full .rpc-ring:not(.hover):not(.faded){-webkit-backdrop-filter:blur(1.3px) saturate(1.2);backdrop-filter:blur(1.3px) saturate(1.2)}" +
       /* SPECIAL objects (category tabs / bubbles / wordmarks): the ring's colour FADES OUT as the
          object's own glow fades in (the glow visibly "transfers" to the object) leaving only the
          faint ghost ring (.rpc-mini) at the pointer. Fades back in when the pointer leaves. */
       "#rp-cursor.on .rpc-ring.faded{opacity:0}" +
       ".rpc-ring.hover,.rpc-ring.faded{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}" +   /* no blur / free-ring glow once snapped to an element */
       /* two stacked skins that crossfade: glowing open ring (free) vs hug-fill (hover) */
-      ".rpc-glow,.rpc-fill{position:absolute;inset:0;border-radius:inherit;transition:opacity .18s ease}" +
+      /* the three skins take the ring's radius from JS (written only when it changes), NOT border-radius:inherit:
+         an explicitly inherited value makes the browser re-resolve every child's style whenever the PARENT's
+         style changes, and the ring's transform changes every frame, so each frame re-resolved four heavy
+         gradient + mask styles for nothing (2026-10-31) */
+      ".rpc-glow,.rpc-fill{position:absolute;inset:0;border-radius:50%;transition:opacity .18s ease}" +
       /* FREE state: an OPEN RING, solid gradient band at the rim (loader silhouette, not animated),
          clear empty gap between the band and the centre dot. Band = feathered radial mask. */
-      ".rpc-glow{background:conic-gradient(from calc(210deg + var(--rpc-spin,0rad)),color-mix(in srgb,var(--rpc-a) 95%,transparent),color-mix(in srgb,var(--rpc-b) 95%,transparent),color-mix(in srgb,var(--rpc-c) 95%,transparent),color-mix(in srgb,var(--rpc-a) 95%,transparent));" +
+      ".rpc-glow{will-change:transform;background:conic-gradient(from 210deg,color-mix(in srgb,var(--rpc-a) 95%,transparent),color-mix(in srgb,var(--rpc-b) 95%,transparent),color-mix(in srgb,var(--rpc-c) 95%,transparent),color-mix(in srgb,var(--rpc-a) 95%,transparent));" +
       /* rarepond: THREE TIERS, the V3 bubble's opacity design in miniature: a solid rim (100%), a mid
          band at 50% and an inner band at 25%, in the AE comp's proportions (TIERS above) */
       "-webkit-mask:" + TIERS + ";mask:" + TIERS + "}" +
       ".rpc-fill{opacity:0;background:color-mix(in srgb,var(--rpc-a) 10%,transparent);box-shadow:0 0 18px -4px color-mix(in srgb,var(--rpc-b) 55%,transparent)}" +
       /* hug BORDER: a 3px band that inherits the page's colour-look gradient. The xor-mask
          (content-box vs full box) leaves only the border band visible at any border-radius. */
-      ".rpc-bord{position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .18s ease;padding:" + (JC ? "3px" : "2.4px") + ";" +
+      ".rpc-bord{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .18s ease;padding:" + (JC ? "3px" : "2.4px") + ";" +
       "background:conic-gradient(from 140deg,var(--rpc-a),var(--rpc-b),var(--rpc-c),var(--rpc-a));" +
       "-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;" +
       "mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}" +
@@ -207,26 +242,33 @@
       ".rpc-ring.hover .rpc-glow{opacity:0}.rpc-ring.hover .rpc-fill{opacity:1}.rpc-ring.hover .rpc-bord{opacity:1}" +
       "#rp-cursor.on .rpc-ring.textish{opacity:.3}" +
       ".rpc-dot{position:fixed;left:0;top:0;width:5px;height:5px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
-      "background:#fff;mix-blend-mode:difference;transition:opacity .15s ease}" +   /* difference vs the page = always contrasts (white on dark, black on light) */
+      "background:#fff;transition:opacity .15s ease}" +
       "#rp-cursor.on .rpc-dot{opacity:1}" +
       /* while the ring is HUGGING an element, a faint ghost ring stays at the dot marking where
          the circle collapses back to. Same auto-contrast treatment as the dot (difference blend),
          60% of the dot's opacity; fades away when the hug releases and the coloured ring returns. */
       ".rpc-mini{position:fixed;left:0;top:0;width:50px;height:50px;border-radius:50%;z-index:2147483646;pointer-events:none;opacity:0;will-change:transform;" +
-      "border:1.5px solid #fff;mix-blend-mode:difference;transition:opacity .2s ease}" +
+      "border:1.5px solid #fff;transition:opacity .2s ease}" +
+      /* full look: difference blend vs the page = always contrasts (white on dark, black on light).
+         lite look: no blend (it makes the browser re-composite the page under the dot every frame),
+         a thin dark edge keeps the white dot and ghost ring readable on light pages instead. */
+      "#rp-cursor.full .rpc-dot,#rp-cursor.full .rpc-mini{mix-blend-mode:difference}" +
+      "#rp-cursor.lite .rpc-dot{box-shadow:0 0 0 1px rgba(0,0,0,.42)}" +
+      "#rp-cursor.lite .rpc-mini{border-color:rgba(255,255,255,.92);box-shadow:0 0 0 1px rgba(0,0,0,.26),inset 0 0 0 1px rgba(0,0,0,.26)}" +
       "#rp-cursor.on.hugging .rpc-mini{opacity:.6}" +
       /* keyboard-engaged element: our hug IS the focus indicator, kill the browser's default
          (square/irregular) focus outline on that element only. */
       ".rpc-kbsel{outline:none!important}.rpc-kbsel:focus,.rpc-kbsel:focus-visible{outline:none!important}" +
       /* the loader spins only while shown (2026-10-27: it ran at opacity 0 all the time, a little style
          work on every frame of every page) */
-      ".rpc-loader{position:fixed;left:0;top:0;width:44px;height:44px;border-radius:50%;z-index:2147483645;pointer-events:none;opacity:0;will-change:transform;" +
+      ".rpc-ldw{position:fixed;left:0;top:0;width:0;height:0;z-index:2147483645;pointer-events:none;will-change:transform}" +
+      ".rpc-loader{position:absolute;left:-22px;top:-22px;width:44px;height:44px;border-radius:50%;pointer-events:none;opacity:0;" +
       "background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,.14) 200deg,rgba(255,255,255,.95) 345deg,rgba(255,255,255,0) 350deg);" +
       "-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
       "mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));" +
       "animation:rpc-spin .8s linear infinite paused;transition:opacity .18s ease}" +
       "#rp-cursor.loading .rpc-loader{opacity:1;animation-play-state:running}#rp-cursor.loading .rpc-ring{opacity:0}" +
-      "@keyframes rpc-spin{from{transform:var(--rpc-lt,translate(-50%,-50%)) rotate(0deg)}to{transform:var(--rpc-lt,translate(-50%,-50%)) rotate(360deg)}}" +
+      "@keyframes rpc-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}" +
       /* ---- footer accessibility line + dynamic-cursor toggle (markup lives in each site's
          footer; the styling + wiring is shared here so every current and future site gets the
          identical widget: <button data-rpc-toggle role="switch"> toggles the whole cursor). */
@@ -248,7 +290,7 @@
     var root = document.createElement("div");
     root.id = "rp-cursor";
     root.setAttribute("aria-hidden", "true");
-    root.innerHTML = '<div class="rpc-ring"><div class="rpc-glow"></div><div class="rpc-fill"></div><div class="rpc-bord"></div></div><div class="rpc-loader"></div><div class="rpc-mini"></div><div class="rpc-dot"></div>';
+    root.innerHTML = '<div class="rpc-ring"><div class="rpc-glow"></div><div class="rpc-fill"></div><div class="rpc-bord"></div></div><div class="rpc-ldw"><div class="rpc-loader"></div></div><div class="rpc-mini"></div><div class="rpc-dot"></div>';
     document.body.appendChild(root);
     /* the dynamic cursor is ON by default; the footer toggle persists an opt-out */
     var cursorOff = false;
@@ -259,7 +301,70 @@
     var ring = root.querySelector(".rpc-ring"),
         dot = root.querySelector(".rpc-dot"),
         mini = root.querySelector(".rpc-mini"),
-        ldr = root.querySelector(".rpc-loader");
+        skins = [root.querySelector(".rpc-glow"), root.querySelector(".rpc-fill"), root.querySelector(".rpc-bord")],
+        ldr = root.querySelector(".rpc-ldw"),
+        glow = root.querySelector(".rpc-glow");
+
+    /* ---- LOOK TIER: full | lite (see PERFORMANCE CONTRACT at the top) ----
+       CUR_VER keys the remembered decision to this version of the code, so every update re-tests
+       every device (website-quality procedure, section 4). Bump it when the look tiers change. */
+    var CUR_VER = "2026-10-31a";
+    var FX = "full", FX_WHY = "default", FX_LOCK = false;   /* FX_LOCK: forced by ?cursorfx, never changed by measurement */
+    var AB = { on: 0, base: 0, gaps: [], next: 0, wait: 60000, res: "" };
+    function fxNote() { window.__rpcFx = { t: FX, why: FX_WHY, test: AB.res, testing: !!AB.on }; }   /* QC breadcrumb */
+    function fxSave(why) { try { localStorage.setItem("rp-cursor-fx", JSON.stringify({ t: "lite", why: why, v: CUR_VER, at: Date.now() })); } catch (_) {} }
+    function setFx(t, why) {
+      FX_WHY = why;
+      if (t !== FX) { root.classList.remove(FX); FX = t; root.classList.add(t); }
+      fxNote();
+    }
+    function pageLite() { var c = document.documentElement.classList; return c.contains("rp-fx-lite") || c.contains("rp-fx-css"); }
+    (function pickFx() {
+      var q = (location.search.match(/[?&]cursorfx=(full|lite)\b/) || [])[1];
+      try { if (q) sessionStorage.setItem("rp-cursor-fx-force", q); else q = sessionStorage.getItem("rp-cursor-fx-force"); } catch (_) {}
+      if (q) { FX = q; FX_WHY = "forced (?cursorfx=" + q + ")"; FX_LOCK = true; return; }
+      var sv = null; try { sv = JSON.parse(localStorage.getItem("rp-cursor-fx") || "null"); } catch (_) {}
+      if (sv && sv.v === CUR_VER && sv.t === "lite" && Date.now() - sv.at < 14 * 864e5) { FX = "lite"; FX_WHY = "remembered on this device: " + sv.why; return; }
+      var cn = navigator.connection, mem = navigator.deviceMemory, cores = navigator.hardwareConcurrency;
+      if (pageLite()) { FX = "lite"; FX_WHY = "page effects tier is lite"; }
+      else if (cn && cn.saveData) { FX = "lite"; FX_WHY = "Save-Data"; }
+      else if ((mem && mem <= 2) || (cores && cores <= 2)) { FX = "lite"; FX_WHY = "small device"; }
+    })();
+    root.classList.add(FX);
+    fxNote();
+    /* PACE TEST. Only frames where the cursor is actually moving count, and a gap over 100 ms is a hitch
+       or a sleep, not a cadence. Slow = a median gap over 20 ms (under ~50 fps) across 45 moving frames.
+       A STEADY ~33 ms (90% of gaps within a few ms) is a frame-rate cap (Energy Saver, Low Power Mode, a
+       30 Hz screen, remote desktop): never blamed on the cursor. Anything else is TESTED: the lite look for
+       40 moving frames, then compare. Lite clearly faster (20%+) = the full look was the cost: stay lite,
+       remembered. Not faster = the page or the machine, not the cursor: back to full, re-test later
+       (60 s, doubling to 5 min). Same rule as rp-bubble: the look only drops for slowness it is shown
+       to cause. */
+    function med(a) { var x = a.slice().sort(function (p, q) { return p - q; }); return x.length ? x[x.length >> 1] : 0; }
+    function backoff(now) { AB.next = now + AB.wait; AB.wait = Math.min(AB.wait * 2, 300000); }
+    function pace(now, dt, moving) {
+      if (FX_LOCK || cursorOff || (FX === "lite" && !AB.on)) return;
+      if (!moving || dt > 100) return;
+      AB.gaps.push(dt);
+      if (AB.on) {
+        if (AB.gaps.length < 40) return;
+        var m2 = med(AB.gaps.slice(6));   /* the first frames after the switch carry the one-off re-raster */
+        AB.on = 0; AB.gaps = [];
+        if (m2 < AB.base * 0.8) { AB.res = "lite helped: " + AB.base.toFixed(1) + " -> " + m2.toFixed(1) + " ms"; fxSave(AB.res); setFx("lite", AB.res); }
+        else { AB.res = "not the cursor: " + AB.base.toFixed(1) + " vs " + m2.toFixed(1) + " ms"; backoff(now); setFx("full", "default"); }
+        return;
+      }
+      if (AB.gaps.length < 45) return;
+      var g = AB.gaps; AB.gaps = [];
+      if (now < AB.next) return;
+      var m = med(g);
+      if (m <= 20) return;
+      var srt = g.slice().sort(function (p, q) { return p - q; });
+      if (Math.abs(m - 33.3) < 3 && srt[Math.floor(srt.length * .9)] - srt[Math.floor(srt.length * .1)] < 6) {
+        AB.res = "steady ~30 fps cap"; backoff(now); fxNote(); return;
+      }
+      AB.base = m; AB.on = now; setFx("lite", "testing");
+    }
 
     /* ---- state ---- */
     var mx = -100, my = -100;          // real pointer
@@ -334,7 +439,14 @@
     var hoverAttrSp = false, hoverKb = false;   // last applyHover args, for the settled-size re-scan
     var clearT = null;                 // hover-out grace timer (kills the between-buttons flash)
     var shown = false, loading = false, loadSince = 0, down = false;
-    var idleFrames = 0, running = false, frame = 0;
+    var idleMs = 0, running = false, frame = 0;
+    /* frame clock: DT = real ms since the last frame, F = DT in 120 Hz frames (1 at 120 fps, 2 at 60, 4 at 30).
+       Every easing constant below is the per-frame value the engine was tuned with on Jack's own screens,
+       which run at 120 Hz (measured on the mini 2026-10-31: 8.3 ms frames). Scaling by F gives every
+       machine that exact feel: a 60 Hz or 30 fps machine no longer trails two or four times further behind. */
+    var lastNow = 0, DT = 8.333, F = 1;
+    var nLoad = 0, nLook = 0, nIfr = 0, nOcc = 0;      /* wall-clock schedule of the periodic checks */
+    var wTf = "", wGlow = "", wDot = "", wLdr = "";      /* last values written (never re-write an unchanged style) */
     var kbActive = false;              // keyboard spatial-nav owns the selection until the mouse moves
     var kbSelEl = null;                // element carrying .rpc-kbsel (site CSS mirrors its hover glow; UA outline suppressed)
 
@@ -398,14 +510,12 @@
       if (t.tagName === "IFRAME" || t.tagName === "OBJECT" || t.tagName === "EMBED") { applyHover(null, false); hide(); return; }
       var el = null;
       try { el = t.closest(SEL); } catch (_) {}
-      if (!el) {
-        /* fallback: anything styled cursor:pointer counts, future components auto-adhere */
-        var n = t, i = 0;
-        while (n && n.nodeType === 1 && i < 5) {
-          try { if (getComputedStyle(n).cursor === "pointer") { el = n; break; } } catch (_) { break; }
-          n = n.parentElement; i++;
-        }
-      }
+      /* (2026-10-31) There used to be a fallback here: walk 5 ancestors and treat any computed
+         cursor:pointer as interactive. It could never fire: this engine's own rule
+         html.rpc-on *{cursor:none!important} makes every computed cursor "none" (checked in Chrome),
+         so all it did was force a style read up to 5 times on every element boundary the mouse
+         crossed. Removed; behaviour is unchanged. A new clickable thing is picked up by SEL above
+         (a link, a button, role=button, [onclick]) or by data-cursor="link". */
       if (el && dcHas(el, "off")) el = null;
       var txt = false;
       if (el && isTextField(el)) { txt = true; el = null; }
@@ -486,11 +596,19 @@
       pick(el, 0);
       return bx;
     }
-    function scanShape(el) {
-      var best = { px: 0, pct: false, py: 0 }, rr = null;
+    function scanShape(el, quick) {
+      var best = { px: 0, pct: false, py: 0 }, rr = null, nodes = [];
+      /* QUICK (every other frame while the hugged element morphs): re-read only the radii of the nodes the
+         last full scan chose, no rect reads, no tree walk. The full scan runs on engage and on settle. */
+      if (quick && el.__rpcShape) {
+        for (var qn = 0; qn < el.__rpcShape.length; qn++) takeRad(el.__rpcShape[qn]);
+        hoverRad = best.px; hoverPct = best.pct; hoverRadY = best.pct ? best.py : 0;
+        return { best: best, rr: null };
+      }
       try { rr = el.getBoundingClientRect(); } catch (_) {}
       function takeRad(node) {
         if (dcHas(node, "noscan")) return;
+        if (!quick) nodes.push(node);
         try {
           var raw = getComputedStyle(node).borderTopLeftRadius || "";
           var parts = raw.split(/\s+/);
@@ -520,6 +638,7 @@
       hoverRad = best.px;
       hoverPct = best.pct;
       hoverRadY = best.pct ? best.py : 0;
+      el.__rpcShape = nodes;
       return { best: best, rr: rr };
     }
     function applyHover(el, txt, attrSp, kb) {
@@ -552,6 +671,7 @@
         var sres = scanShape(el);
         var best = sres.best, rr = sres.rr;
         hoverBoxEl = findBox(el);
+        hoverR = rr; hoverBR = null; shapeDue = 0;
         lookApply(lookRead(el));   /* the hug adopts the project's color look immediately */
         /* SPECIAL objects never get the ring outline, the object reacts instead.
            Auto: any large circular target (project bubbles / carousel side circles / JC hbubs;
@@ -1083,6 +1203,7 @@
       return false;
     }
     function pollLoading(now) {
+      if (FX === "full" && !FX_LOCK && !AB.on && pageLite()) setFx("lite", "page effects tier is lite");   /* rp-bubble dropped mid-visit */
       var up = overlayUp();
       if (up) {
         if (!loadSince) loadSince = now;
@@ -1093,24 +1214,38 @@
       }
     }
 
-    /* ---- the one rAF loop ---- */
-    /* Wrapped in try/finally: a one-off exception (e.g. a hovered element getting replaced
-       mid-frame by the SPA) can NEVER kill the loop, worst case that frame is skipped, the
-       error is captured on window.__rpcErr, and the next frame heals. */
-    function tick(now) {
-      var keep = true;
-      try { tickBody(now); } catch (e) { if (!window.__rpcErr) window.__rpcErr = (e && e.message) || String(e); applyHover(null, false); }
-      finally {
-        window.__rpcTick = frame;
-        keep = !cursorOff && !(idleFrames > 90 || document.hidden);
-        running = keep;
-        if (keep) requestAnimationFrame(tick);
-      }
+    /* ---- MEASURE PHASE (2026-10-31) ----
+       Reading layout (getBoundingClientRect, getComputedStyle, elementFromPoint) inside the rAF callback
+       FORCED the browser to recalculate the page's style in the middle of the frame, and the page's own
+       animation callbacks then dirtied it again, so every frame paid for the page's style twice. Measured
+       on the mini (home page, CPU slowed 6x, real GPU): the cursor added ~6 ms to every frame, half of it
+       that second recalculation, and the page dropped from ~49 to ~35 frames a second. Now the frame only
+       WRITES, using values measured right AFTER the previous frame was drawn (a MessageChannel task runs
+       after rendering), when layout is already clean and reading it costs nothing. The periodic checks
+       (loading cover, colour look, iframe and occlusion watchdogs) moved here for the same reason. The
+       rect is one frame old: 8 ms at 120 Hz, invisible, and the hug was already easing toward it. */
+    var mch = null, mQueued = false, hoverR = null, hoverBR = null, shapeDue = 0;   /* shapeDue: 1 quick re-scan, 2 full */
+    try { mch = new MessageChannel(); mch.port1.onmessage = measure; } catch (_) {}
+    function queueMeasure() {
+      if (mQueued) return;
+      mQueued = true;
+      if (mch) mch.port2.postMessage(0); else setTimeout(measure, 0);
     }
-    function tickBody(now) {
-      frame++;
-      if (frame % 12 === 0) pollLoading(now);
-      if (frame % 12 === 3) {
+    function measure() {
+      mQueued = false;
+      try {
+        if (hoverEl) {
+          hoverR = hoverEl.getBoundingClientRect();
+          hoverBR = (hoverBoxEl && hoverBoxEl !== hoverEl) ? hoverBoxEl.getBoundingClientRect() : null;
+          if (shapeDue) { var sfull = shapeDue === 2; shapeDue = 0; scanShape(hoverEl, !sfull); }
+        } else { hoverR = hoverBR = null; shapeDue = 0; }
+        checks(performance.now());
+      } catch (e) { if (!window.__rpcErr) window.__rpcErr = (e && e.message) || String(e); }
+    }
+    function checks(now) {
+      if (now >= nLoad) { nLoad = now + 200; pollLoading(now); }
+      if (now >= nLook) {
+        nLook = now + 200;
         /* re-resolve every ~200ms EVEN WHILE something is hovered/selected: the element's own
            look can change under a stationary selection (the home carousel swaps which project
            is featured, hover-look vars transition in) - colour must follow the element, not
@@ -1121,7 +1256,8 @@
       }
       /* iframe WATCHDOG: if the pointer has stopped reporting and it last sat over an embed
          (contact/rental forms), fade out so the ring can never park at the form's edge. */
-      if (frame % 18 === 0 && shown && !loading) {
+      if (now >= nIfr && shown && !loading) {
+        nIfr = now + 300;
         try {
           var under = document.elementFromPoint(mx, my);
           if (under && (under.tagName === "IFRAME" || under.tagName === "OBJECT" || under.tagName === "EMBED")) { applyHover(null, false); hide(); }
@@ -1131,7 +1267,8 @@
          a photo), the hug and its glow must never keep shining THROUGH the overlay. If the
          selection's centre is now covered by an unrelated element, release the hug; the next
          arrow press re-engages among the overlay's own (visible) controls. */
-      if (frame % 12 === 6 && hoverEl) {
+      if (now >= nOcc && hoverEl) {
+        nOcc = now + 200;
         try {
           if (!hoverEl.isConnected) applyHover(null, false);   /* SPA re-render removed it */
           else if (kbActive) {
@@ -1167,16 +1304,47 @@
         } catch (_) {}
       }
 
+    }
+
+    /* ---- the one rAF loop ---- */
+    /* Wrapped in try/finally: a one-off exception (e.g. a hovered element getting replaced
+       mid-frame by the SPA) can NEVER kill the loop, worst case that frame is skipped, the
+       error is captured on window.__rpcErr, and the next frame heals. */
+    function tick(now) {
+      var keep = true;
+      try { tickBody(now); } catch (e) { if (!window.__rpcErr) window.__rpcErr = (e && e.message) || String(e); applyHover(null, false); }
+      finally {
+        window.__rpcTick = frame;
+        keep = !cursorOff && !(idleMs > 1500 || document.hidden);
+        running = keep;
+        if (keep) requestAnimationFrame(tick);
+        queueMeasure();
+      }
+    }
+    function tickBody(now) {
+      frame++;
+      if (!lastNow) { DT = 8.333; nLoad = now; nLook = now + 50; nIfr = now + 100; nOcc = now + 150; }   /* first frame after a wake: one normal frame, checks re-staggered */
+      else DT = Math.max(1, Math.min(100, now - lastNow));
+      lastNow = now;
+      F = DT / 8.333;
       /* springy velocity stretch (from real pointer deltas), bouncy, liquid.
          Fast mouse pulls the ring into a clear OVAL along the travel direction; the spring
          relaxes it back to a perfect circle when the mouse stops. */
       var dxm = mx - pmx, dym = my - pmy;
       pmx = mx; pmy = my;
-      var sp = Math.min(Math.sqrt(dxm * dxm + dym * dym), 70);  /* clamp: an OS pointer teleport can't detonate the oval */
+      var spRaw = Math.sqrt(dxm * dxm + dym * dym);
+      /* speed in px per 120 Hz frame whatever the real frame rate (a 30 fps frame covers twice the distance,
+         which used to read as twice the speed and over-stretch the oval on slow machines) */
+      var sp = Math.min(spRaw / F, 70);  /* clamp: an OS pointer teleport can't detonate the oval */
+      pace(now, DT, spRaw > .5 && shown && !loading);
       var k = Math.min(sp * .034, .72);
-      kV += (k - kS) * .3;               /* spring toward target stretch */
-      kV *= .78;                          /* damping = a little overshoot/bounce */
-      kS = Math.max(0, Math.min(.72, kS + kV));
+      /* spring toward the target stretch (.3 stiffness, .78 damping per 120 Hz frame = a little bounce), sub-stepped
+         so a long frame integrates the same curve instead of overshooting */
+      for (var si = 0, sn = Math.min(4, Math.ceil(F / 1.5)), sh = F / sn; si < sn; si++) {
+        kV += (k - kS) * .3 * sh;
+        kV *= Math.pow(.78, sh);
+        kS = Math.max(0, Math.min(.72, kS + kV * sh));
+      }
       /* orientation: an ellipse is 180°-symmetric, so take the SHORTEST path modulo π.
          (The old raw-atan2 smoothing spun the long way around on direction reversals,
          that was the "pops in unnatural directions" glitch.) Ignore micro-jitter (<2px). */
@@ -1184,14 +1352,14 @@
         var a = Math.atan2(dym, dxm), dA = a - angS;
         while (dA > 1.5707963) dA -= 3.14159265;
         while (dA < -1.5707963) dA += 3.14159265;
-        angS += dA * .28;
+        angS += dA * (1 - Math.pow(.72, F));
       }
 
       /* ring target */
       var tx, ty, tw, th, tr;
       if (hoverEl) {
-        var r;
-        try { r = hoverEl.getBoundingClientRect(); } catch (_) { r = null; }
+        var r = hoverR;   /* measured after the last frame (see MEASURE PHASE); read live only on the first frame of a hug */
+        if (!r) { try { r = hoverR = hoverEl.getBoundingClientRect(); } catch (_) { r = null; } }
         if (!r || !r.width) { applyHover(null, false); tx = mx; ty = my; tw = 50; th = 50; tr = "50%"; }
         else {
           var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
@@ -1239,20 +1407,17 @@
               trackN = 8; ring.classList.add("tracking");
               /* the visible surface's border-radius can be MORPHING too (.cbub 50% → 13%/20%
                  over .6s), follow it live so the outline parallels the visible edge exactly */
-              if (frame % 2 === 0) scanShape(hoverEl);
+              if (shapeDue < 2) shapeDue = 1;   /* quick re-scan, done in the measure phase */
             } else if (trackN > 0 && --trackN === 0) {
               ring.classList.remove("tracking");
-              scanShape(hoverEl);   /* settled re-scan: final radius for the grown card */
+              shapeDue = 2;   /* settled re-scan (full, in the measure phase): final radius for the grown card */
             }
             /* the outline is ATTACHED to the element's edges: exact box, exact radius,
                zero magnetic drift, moving inside the button moves the BUTTON (tilt),
                never the outline. */
             /* the outline draws around the VISIBLE SURFACE (findBox): a bobbing inner layer
                floats while the anchor stays still, the ring must bob WITH the visual. */
-            var vb = r;
-            if (hoverBoxEl && hoverBoxEl !== hoverEl) {
-              try { var vb2 = hoverBoxEl.getBoundingClientRect(); if (vb2 && vb2.width) vb = vb2; } catch (_) {}
-            }
+            var vb = (hoverBR && hoverBR.width) ? hoverBR : r;
             if (frame % 30 === 0) window.__rpcBox = hoverBoxEl ? (hoverBoxEl === hoverEl ? "self" : String(hoverBoxEl.className).slice(0, 30)) : "null";   /* QC breadcrumb */
             tx = vb.left + vb.width / 2; ty = vb.top + vb.height / 2;
             /* +3px per side = the .rpc-bord band's own width: the band is drawn INSIDE the
@@ -1268,7 +1433,7 @@
              composited on its base transform; specials also scale up slightly.
              tiltP eases 0→1 so the reaction GROWS IN fluidly instead of popping. */
           if (tiltEl) {
-            tiltP += (1 - tiltP) * .16;
+            tiltP += (1 - tiltP) * (1 - Math.pow(.84, F));
             tiltNx = Math.max(-1, Math.min(1, (mx - cx) / (r.width / 2 || 1)));
             tiltNy = Math.max(-1, Math.min(1, (my - cy) / (r.height / 2 || 1)));
             tiltEl.style.transform = (tiltBase ? tiltBase + " " : "") +
@@ -1282,7 +1447,7 @@
       if (relEls.length) {
         for (var qi = relEls.length - 1; qi >= 0; qi--) {
           var rl = relEls[qi];
-          rl.p *= .8;
+          rl.p *= Math.pow(.8, F);
           if (rl.p < .04 || !rl.el.isConnected) {
             try { rl.el.style.transform = rl.orig; } catch (_) {}
             relEls.splice(qi, 1);
@@ -1297,7 +1462,7 @@
       }
 
       var free = !hoverEl || hoverSpecial;    /* over a special object the ring behaves exactly like free */
-      var ease = free ? .22 : (trackN > 0 ? .85 : .35);   /* glued while the hugged element is in motion */
+      var ease = 1 - Math.pow(1 - (free ? .22 : (trackN > 0 ? .85 : .35)), F);   /* glued while the hugged element is in motion; per-120Hz-frame values, time-scaled */
       rx += (tx - rx) * ease;
       ry += (ty - ry) * ease;
 
@@ -1305,7 +1470,7 @@
          point to the LIVE pointer (~14 frames, matching the 0.22s size shrink) so the whole
          shrinking outline visibly travels the button→dot distance instead of snapping. */
       if (travT > 0 && free) {
-        travT -= 1 / 14;
+        travT -= F / 14;
         var te = 1 - Math.max(travT, 0);
         var teased = 1 - Math.pow(1 - te, 3);
         rx = travX + (mx - travX) * teased;
@@ -1330,25 +1495,32 @@
       var moved = Math.abs(tx - rx) + Math.abs(ty - ry) + Math.abs(kS);
       var tf = "translate(" + rx.toFixed(2) + "px," + ry.toFixed(2) + "px) translate(-50%,-50%)";
       var sc = down ? " scale(.9)" : "";
+      var rtf = tf + sc, gtf = "";
       if (free && kS > .012 && travT <= 0) {   /* no stretch-rotate mid-travel, the shrinking outline must stay true to its shape */
-        ring.style.transform = tf + " rotate(" + angS.toFixed(3) + "rad) scale(" + (1 + kS).toFixed(3) + "," + (1 - kS * .62).toFixed(3) + ")" + sc;
+        rtf = tf + " rotate(" + angS.toFixed(3) + "rad) scale(" + (1 + kS).toFixed(3) + "," + (1 - kS * .62).toFixed(3) + ")" + sc;
         /* the stretch ROTATES the ring element, without compensation the conic gradient spins
            with it and mouse shakes read as the colours FLIPPING (the smoothed angle jumps by
            ~pi on direction reversals). The gradient's from-angle counter-rotates so the colour
-           band stays FIXED in screen space no matter how the oval turns. */
-        if (ring.__sp !== angS) { ring.__sp = angS; ring.style.setProperty("--rpc-spin", (-angS).toFixed(3) + "rad"); }
-      } else {
-        ring.style.transform = tf + sc;
-        if (ring.__sp) { ring.__sp = 0; ring.style.setProperty("--rpc-spin", "0rad"); }
+           band stays FIXED in screen space no matter how the oval turns.
+           2026-10-31: the counter-rotation is a rotate() on the band's own layer (.rpc-glow has
+           will-change:transform), not the gradient's from-angle: changing the angle repainted the masked
+           ring on every frame of fast movement, a transform is composited for free. Same picture:
+           R(a) S R(-a) either way. */
+        gtf = "rotate(" + (-angS).toFixed(3) + "rad)";
       }
+      if (rtf !== wTf) { wTf = rtf; ring.style.transform = rtf; }
+      if (gtf !== wGlow) { wGlow = gtf; glow.style.transform = gtf; }
       if (ring.__w !== tw || ring.__h !== th || ring.__r !== tr) {
         ring.__w = tw; ring.__h = th; ring.__r = tr;
         ring.style.width = tw + "px"; ring.style.height = th + "px"; ring.style.borderRadius = tr;
+        for (var ki = 0; ki < 3; ki++) skins[ki].style.borderRadius = tr;   /* see the skins CSS: no inherit */
       }
-      dot.style.transform = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
-      mini.style.transform = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";   /* ghost ring rides the dot 1:1 */
-      var lt = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
-      if (ldr.__lt !== lt) { ldr.__lt = lt; ldr.style.setProperty("--rpc-lt", lt); }
+      var dtf = "translate(" + mx + "px," + my + "px) translate(-50%,-50%)";
+      if (dtf !== wDot) { wDot = dtf; dot.style.transform = dtf; mini.style.transform = dtf; }   /* ghost ring rides the dot 1:1 */
+      if (loading || loadSince) {   /* the loader wrapper only follows while a cover is (about to be) up */
+        var ltf = "translate(" + mx + "px," + my + "px)";
+        if (ltf !== wLdr) { wLdr = ltf; ldr.style.transform = ltf; }
+      }
 
       /* sleep when idle (nothing moving, loading, tilted, or easing back out).
          NEVER while hugging a FLOATING surface (hoverBoxEl != anchor): its ease-in-out bob
@@ -1359,13 +1531,14 @@
          after leaving a project page survived precisely because the loop slept before the
          section swap finished). Sleep only in the free-ring idle state. */
       var floating = !!(hoverEl && hoverBoxEl && hoverBoxEl !== hoverEl);
-      if (!hoverEl && !floating && moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length && travT <= 0 && trackN <= 0) idleFrames++; else idleFrames = 0;
+      if (!hoverEl && !floating && moved < .06 && sp < .1 && !loading && !loadSince && !tiltEl && !relEls.length && travT <= 0 && trackN <= 0) idleMs += DT; else idleMs = 0;
     }
     function wake() {
       if (running || cursorOff) return;
       /* the loop may have slept for seconds, a stale previous-pointer would read as one
          giant instantaneous delta and detonate the stretch ("pops"). Resync first. */
       pmx = mx; pmy = my;
+      lastNow = 0;   /* the first frame after a sleep is a normal frame, not one giant DT */
       running = true;
       requestAnimationFrame(tick);
     }
