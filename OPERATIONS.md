@@ -797,6 +797,9 @@ Standard for every site: `AI_System_Context/procedures/website-quality.md`. Engi
 - Hidden views are `.vw-off` (kept rendered, skipped), prewarmed after the load cover.
 - Ambient bubbles are pre-rendered loops (see Ambient bubble loops), not running CSS animations, except
   in WebKit wider than a phone.
+- No usable GPU (no WebGL, or a software renderer): lite tier for the visit (sessionStorage `rp-hw`), `html.rp-nogpu`,
+  and every looping animation held on a still frame (rp-bubble.js `hwSoft`; media/index.html checks on its own).
+  Test with Chrome `--disable-gpu --disable-gpu-compositing` (`tools/_loadlab/loadbench.mjs`, `NOGPU=1`).
 - Measure before and after any heavy change: `node ~/claude_perf/bench.mjs <base> chrome 4 <tag>` (and
   `webkit 1`); compare frames over 34 ms and worst frame per scenario.
 

@@ -39,6 +39,54 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-159 SLOW PAGE LOADS ON A LAPTOP WITH NO USABLE GPU; NEWS FOLDER TABS + FILTERS (2026-11-01)
+
+- Jack: fine on his machines, "extremely long load times between pages" on someone else's laptop (first visit and the
+  Studio / Rentals / Media switches); fix without touching the look. Measured on the mini (scratch
+  `tools/_loadlab/`: loadbench.mjs = cold first visit + the three sweeps on fast / laptop (CPU 4x, 30 Mbps) / weak
+  (CPU 6x, 10 Mbps) profiles; idletrace.mjs; firstclick.mjs). With a GPU the times are mostly the designed animations
+  (sweep in 0.6 s, out 0.8 s, the dive about 1.3 s): first click to navigation 0.65 s every time. WITHOUT a usable
+  GPU (Chrome with hardware acceleration off or a blocklisted / broken driver, a VM, remote desktop: `--disable-gpu`)
+  the Studio's main thread was busy 3 of every 4 seconds (59 long tasks, 5 s, on first visit), a Studio -> Rentals
+  switch took 2.7 s just to start and Rentals -> Media 2.2 s. That matches "someone else's laptop".
+- CAUSE: with no WebGL at all, rp-bubble.js left the tier at FULL (only a software renderer like SwiftShader set lite),
+  so every looping effect (animated ambient AVIF tile, bobbing, blurred halos, the hover spin) kept running and the CPU
+  recomposited the whole screen for each frame. Media (no rp-bubble) never checked at all: its 80 px blurred aura and
+  hero zoom ran on the CPU.
+- FIX, nothing changes on a device with a GPU:
+  - `assets/rp-bubble.js`: no WebGL -> lite ("no WebGL (no usable GPU)"), like a software renderer. `hwSoft()` notes it
+    for the visit (sessionStorage `rp-hw` = soft, so the next page starts lite from its first frame), adds
+    `html.rp-nogpu`, and holds every LOOPING animation on a still frame (document.getAnimations, iterations Infinity;
+    cover, sweep and cursor excluded). The hover spin (index.html, `--ang` loop) does not start under rp-nogpu.
+  - `media/index.html`: a one-time WebGL check at the end of the page (none / software renderer -> `rp-fx-lite
+    rp-nogpu`, shared via `rp-hw`), lite rules hold the aura and hero zoom still, same loop hold.
+  - Result with the GPU off: Studio idle main thread 2.6 s / 4 s -> 0.3 s (pointer on a bubble) and ~0 (pointer on the
+    page); first visit long tasks 5.0 s -> 0.3 s; Studio -> Rentals start 2.7 -> 1.4 s, Rentals -> Media 2.2 -> 1.0 s
+    (loadbench's click timing, which also reads about 1.3 s for the first click WITH a GPU; firstclick.mjs reads 0.65 s);
+    Media first visit fully shown 4.0 -> 2.9 s.
+- ALSO (slow connections): Media's image helper dropped every srcset, so each visitor downloaded the 2048 px "-full"
+  JPEGs (845 KB for one section photo on a 1x screen); it now keeps the page's responsive set when the CMS image is in
+  it (Media first visit 2.0 MB -> 1.2 MB, uncompressed local measure). The Studio's ambient tile (~800 KB) loads at low
+  priority so the first screen's images go first (it fades in on its own). Not changed: the About logo's 94 animation
+  frames (~3.5 MB, low priority, after the cover, only when About is within 1.5 screens); converting them to one
+  animated file is the next lever if slow connections are still a problem.
+- NEWS FOLDER TABS (Jack: the category pill looked AI-designed; a folder tab at the top left of each story, in the
+  story's own look, carried through the open animation): `.ntab` sits above the card's square top-left corner, the
+  story's look gradient with a slanted right side; a 2 px coloured folder edge runs on across the top. Its size follows
+  the photo's width (`--iw`, ResizeObserver on cards, newsFit on the popup), so the popup's tab is the card's tab at
+  popup size and the uniform open / close flight carries it with no jump. Clip shapes start at the tab's top
+  (`newsClip()`), the popup sits half a tab lower so panel + tab are centred (`newsFlipFrom` accounts for it), the
+  panel no longer clips (overflow visible; `.na-scroll` only when a screen is too short even for the smallest photo),
+  and on phones the post starts below the X so the tab never sits under it. The meta line keeps the date only.
+- NEWS FILTERS: a row of folder tabs above the grid (All + every category in the stories, alphabetical, with counts)
+  on a white baseline, the chosen one white and joined to the line, and a Newest / Oldest switch on the right. Changes
+  FLIP the grid (leaving cards fade, the rest glide, arriving fade up; reduced motion: instant). Remembered for the
+  visit (sessionStorage `rp-news-view`). The popup's arrows step through what the grid shows. CHANGE: the page now
+  orders strictly by date in both directions; the exporter's pinned-first order no longer applies on /news.
+- Verified: News flights and filters screenshotted in Chromium, WebKit and Firefox, desktop and phone, no page errors;
+  pop-in audit 0 on /news, /, /media/, /rentals/ in Chrome, WebKit, Firefox and mobile; test-bubble-glow-only green;
+  check-page-switches OK.
+
 ### 0.0.-158 SAFARI LONE-DOT CURSOR FIXED; MEDIA + RENTALS HEADERS MATCH THE STUDIO; CURSOR STRESS TEST (2026-10-31)
 
 - Jack, Safari 27 on the mini: after Media -> Projects the cursor was sometimes only the dot (no ring) on empty

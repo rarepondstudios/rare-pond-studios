@@ -492,6 +492,10 @@
     var q = (location.search.match(/[?&]fx=(full|lite|css)\b/) || [])[1];
     try { if (q) sessionStorage.setItem("rp-fx-force", q); else q = sessionStorage.getItem("rp-fx-force"); } catch (e) {}
     if (q) { TIER = q; TIER_WHY = "forced (?fx=" + q + ")"; return; }
+    /* NO USABLE GPU, already found on an earlier page of this visit (2026-11-01): start lite from the first frame
+       instead of after the detection below; media/index.html reads the same note (its own effects) */
+    var hw = null; try { hw = sessionStorage.getItem("rp-hw"); } catch (e) {}
+    if (hw === "soft") { TIER = "lite"; TIER_WHY = "no GPU (found earlier this visit)"; setTimeout(hwSoft, 0); return; }
     var sv = null; try { sv = JSON.parse(localStorage.getItem("rp-fx") || "null"); } catch (e) {}
     if (sv && sv.v === CODE_VER && Date.now() - sv.at < 14 * 864e5 && (sv.t === "lite" || sv.t === "css")) { TIER = sv.t; TIER_WHY = "remembered on this device: " + sv.why; return; }
     var cn = navigator.connection, mem = navigator.deviceMemory, cores = navigator.hardwareConcurrency;
@@ -501,6 +505,29 @@
   try { document.documentElement.classList.add("rp-fx-" + TIER); } catch (e) {}
   /* t: the new tier; save: remember it on this device (this code version); reload: apply it by reloading
      the page once (only used for css, which cannot be switched to while bubbles already exist) */
+  /* NO USABLE GPU: remember it for the visit, mark the page (html.rp-nogpu) and hold every LOOPING animation on a
+     still frame (bob, drift, spins). With a GPU those are free compositor work; without one the CPU recomposites the
+     whole screen for each frame of them: measured on the mini with the GPU off, the Studio's main thread stayed 60%
+     busy in lite until the loops stopped. One-shot animations (entrances) and the cover / sweep / cursor are left alone.
+     The website-quality rule: a struggling device gets a still frame, never a choppy one. */
+  var hwHeld = false;
+  function hwSoft() {
+    try { sessionStorage.setItem("rp-hw", "soft"); } catch (e) {}
+    try { document.documentElement.classList.add("rp-nogpu"); } catch (e) {}
+    if (hwHeld || !document.getAnimations) return;
+    hwHeld = true;
+    var hold = function () {
+      try {
+        document.getAnimations().forEach(function (a) {
+          var t = a.effect && a.effect.target, tm = a.effect && a.effect.getTiming && a.effect.getTiming();
+          if (!tm || tm.iterations !== Infinity || a.playState !== "running") return;
+          if (t && t.closest && t.closest("#rp-cursor,#pageveil,#xwipe,.rpw")) return;
+          a.pause();
+        });
+      } catch (e) {}
+    };
+    hold(); setInterval(hold, 1500);
+  }
   function setTier(t, why, save, reload) {
     if (save) fxSave(t, why);
     if (t === TIER) return;
@@ -583,7 +610,7 @@
       var again = W_MODE === "worker";
       W_MODE = "worker"; wReady = true;
       STATS.worker = "on" + (again ? " (restored)" : ""); STATS.gpu = m.gpu || STATS.gpu; STATS.compileMs = m.compileMs; STATS.calib = m.calib; STATS.selfcheck = m.selfcheck; STATS.parallel = "worker";
-      if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(m.gpu || "")) { SOFT = true; STATS.soft = true; setTier("lite", "software renderer (no GPU)", false); }
+      if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(m.gpu || "")) { SOFT = true; STATS.soft = true; hwSoft(); setTier("lite", "software renderer (no GPU)", false); }
       items.forEach(function (x) { transfer(x); x.drawn = false; });
       var cbs = readyCbs; readyCbs = []; cbs.forEach(function (f) { try { f(); } catch (er) {} });
       wSpriteQ.splice(0).forEach(function (q) { WK.postMessage(q); });
@@ -671,7 +698,13 @@
       glc = document.createElement("canvas");
       glc.width = ATLAS[0]; glc.height = ATLAS[1];
       gl = glc.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false, powerPreference: "low-power" });
-      if (!gl) { gl = false; return false; }
+      /* NO WEBGL AT ALL (2026-11-01, Jack: "extremely long load times between pages" on someone else's laptop).
+         Chrome with hardware acceleration off or an unusable GPU gives no WebGL, and the tier used to stay FULL:
+         the bubbles fell back to CSS rims but every continuous page effect (the animated ambient tile, bobbing,
+         blurred halos) kept running, drawn by the CPU. Measured on the mini with the GPU disabled: the Studio's
+         main thread was busy 3 of every 4 seconds and a Studio -> Rentals switch took 2.7 s to even start.
+         Same treatment as a software renderer below: lite, for this visit. */
+      if (!gl) { gl = false; hwSoft(); setTier("lite", "no WebGL (no usable GPU)", false); return false; }
       /* SHADERS BUILD IN THE BACKGROUND (2026-10-27, Jack: on two Windows PCs, one very high end, the
          bubbles took "a long while to pop in" and the carousel stuttered). On Windows the browser turns
          WebGL into Direct3D and compiling a shader this size can take a long time; asking whether it
@@ -693,7 +726,7 @@
          page animation. The bubbles then draw once and redraw only when they change, at lower
          resolution, and html.rp-soft-gpu lets the page drop its continuous effects (index.html). */
       SOFT = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(STATS.gpu);
-      if (SOFT) { STATS.soft = true; setTier("lite", "software renderer (no GPU)", false); }
+      if (SOFT) { STATS.soft = true; hwSoft(); setTier("lite", "software renderer (no GPU)", false); }
       glc.addEventListener("webglcontextlost", function (e) { e.preventDefault(); gl = false; });
       if (W_MODE === "main" && !PAR && !ready(true)) return false;   /* no extension: build now, as before */
       return true;

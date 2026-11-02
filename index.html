@@ -663,7 +663,47 @@ html.xw-active{overflow:hidden}
   .nimg.ph::after{content:"Photo coming soon";position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.85)}
   .ncard h2{font-size:clamp(18px,1.5vw,21px);line-height:1.2;font-weight:800;letter-spacing:-.01em;color:#0b2c55;margin:2px 0 0}
   .ncard-meta,.na-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:#0e3e7a}
-  .ncat{color:#fff;background:linear-gradient(90deg,var(--h1),var(--h2));padding:5px 10px;border-radius:50px;letter-spacing:.16em;font-size:10.5px}
+  /* FOLDER TAB (2026-11-01, Jack: the category pill "looks like it was designed by AI"): every story is a folder and
+     its category sits on a tab at its top left, in the story's own colour look. The tab's size follows the photo's
+     width (--iw, set by newsSizeTabs / newsFit), so the card's tab and the popup's tab are one tab at two sizes:
+     the open and close flights scale the popup uniformly from the card's photo and the tab rides along. Square top
+     left corner under the tab, and a thin coloured folder edge runs on from the tab across the top. */
+  .ncard,.na-panel{--tabh:calc(var(--iw,330px) * .078)}
+  .ncard.has-tab,.na-panel.has-tab{border-top-left-radius:0}
+  .ncard.has-tab{margin-top:var(--tabh)}
+  .ntab{position:absolute;left:0;bottom:100%;height:var(--tabh);display:flex;align-items:center;padding:0 .7em 0 1.15em;box-sizing:border-box;
+    font-size:calc(var(--iw,330px) * .031);font-weight:800;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;line-height:1;color:#fff;
+    text-shadow:0 1px 2px rgba(0,20,60,.28);background:linear-gradient(90deg,var(--h1),var(--h2) calc(100% - .9em));
+    border-radius:calc(var(--tabh) * .42) 0 0 0;z-index:2;pointer-events:none}
+  /* the slanted right side: a parallelogram leaning out from under the tab's right edge, top corner rounded */
+  .ntab::after{content:"";position:absolute;top:0;bottom:0;left:calc(100% - var(--tabh) * .62);width:calc(var(--tabh) * .62);z-index:-1;
+    background:var(--h2);border-top-right-radius:calc(var(--tabh) * .42);transform:skewX(26deg);transform-origin:0 0}
+  .ncard.has-tab::after,.na-panel.has-tab::after{content:"";position:absolute;inset:0;border-radius:inherit;padding-top:2px;pointer-events:none;
+    background:linear-gradient(90deg,var(--h2),var(--h1) 70%,var(--h3));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+    mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
+  /* FILTERS (2026-11-01): a row of folder tabs (All + every category in the stories) on a white baseline, and the
+     date order on the right. Same tab shape as the stories', neutral colours, the chosen one solid white and joined
+     to the line like a divider in a filing drawer. */
+  .news-filter{position:relative;z-index:2;max-width:1180px;margin:26px auto 0;display:flex;align-items:flex-end;gap:12px;border-bottom:2px solid #fff}
+  .news-filter[hidden]{display:none}
+  .nf-tabs{flex:1;min-width:0;display:flex;align-items:flex-end;gap:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:6px 26px 0 0}
+  .nf-tabs::-webkit-scrollbar{display:none}
+  .nf-tab,.nf-sort{position:relative;flex:none;border:0;margin:0 18px 0 0;height:36px;display:inline-flex;align-items:center;gap:8px;padding:0 6px 0 16px;
+    font:inherit;font-size:11.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#13427c;cursor:pointer;
+    background:#d6e8f9;border-radius:14px 0 0 0;transition:background .2s ease,color .2s ease}
+  .nf-tab::after,.nf-sort::after{content:"";position:absolute;top:0;bottom:0;left:calc(100% - 22px);width:22px;z-index:-1;background:inherit;
+    border-top-right-radius:14px;transform:skewX(26deg);transform-origin:0 0}
+  .nf-tab,.nf-sort{isolation:isolate}
+  .nf-tab:hover,.nf-sort:hover,.nf-tab.rpc-kbsel,.nf-sort.rpc-kbsel{background:#e9f3fd}
+  .nf-tab[aria-pressed="true"]{background:#fff;color:#0b2c55}
+  .nf-tab .nf-n{font-weight:700;letter-spacing:.06em;opacity:.55}
+  .nf-sort{margin:0 18px 0 0;background:#c7def5}
+  .nf-sort svg{width:13px;height:13px;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+  .nf-sort[data-sort="old"] svg{transform:rotate(180deg)}
+  .nf-tab:focus-visible,.nf-sort:focus-visible{outline:3px solid #0b59c4;outline-offset:2px}
+  @media(max-width:620px){.news-filter{gap:6px}.nf-tab,.nf-sort{height:32px;font-size:10.5px;padding:0 4px 0 12px;margin-right:16px}.nf-sort .nf-sort-x{display:none}}
+  .ncard[hidden]{display:none}
   .ncard-meta time,.na-meta time{color:#1f4e86;letter-spacing:.12em}
   .nbody{color:#1f3f66;font-size:14.5px;line-height:1.6}
   .nbody p{margin:0 0 .8em}.nbody p:last-child{margin:0}
@@ -696,7 +736,7 @@ html.xw-active{overflow:hidden}
   .news-art.open{visibility:visible;opacity:1;transition:opacity .28s ease,visibility 0s}
   @media(prefers-reduced-motion:reduce){.news-art,.news-art.open{transition:none}}
   /* the article panel: a card at popup size, centred, scrolls inside itself when taller than the screen */
-  .na-panel{position:absolute;left:50%;top:50%;width:min(92vw,520px);max-height:min(90vh,calc(100vh - 40px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  .na-panel{position:absolute;left:50%;top:50%;width:min(92vw,520px);max-height:calc(min(90vh,100vh - 40px) - var(--tabh));overflow:visible;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;margin-top:calc(var(--tabh) / 2);
     transform:translate(-50%,-50%);transform-origin:0 0;will-change:transform;cursor:default;
     display:flex;flex-direction:column;gap:12px;padding:14px 14px 20px;border-radius:24px;color:#0b2c55;background:rgba(255,255,255,.96);box-shadow:0 30px 80px rgba(0,0,0,.55);
     transition:transform .42s cubic-bezier(.6,0,.2,1),opacity .3s ease,clip-path .34s cubic-bezier(.2,.7,.2,1),box-shadow .3s ease}
@@ -738,18 +778,17 @@ html.xw-active{overflow:hidden}
     /* height = the smaller of the screen height and what the WIDTH allows next to the text column
        (the screen minus BOTH peek slivers + 16px air each side, minus text, gap 22, padding 36), so a
        near-square window never overflows sideways and the neighbours' slivers never touch the panel */
-    .na-panel .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px,calc(((100vw - 2 * (var(--peek,56px) + 16px)) - clamp(280px,30vw,420px) - 58px) * 4 / 3));width:auto;max-width:none;align-self:flex-start}
-    .na-panel{overflow-x:hidden}
+    .na-panel .nimg{height:min(calc((min(90vh,100vh - 40px) - 28px) / 1.0585),760px,calc(((100vw - 2 * (var(--peek,56px) + 16px)) - clamp(280px,30vw,420px) - 58px) * 4 / 3));width:auto;max-width:none;align-self:flex-start}
     .na-text{width:clamp(280px,30vw,420px);justify-content:center;overflow-y:auto}
     .na-peek{flex-direction:row;align-items:center;width:auto;max-width:none;padding:14px}
-    .na-peek .nimg{height:min(calc(min(90vh,100vh - 40px) - 28px),760px,calc(((100vw - 2 * (var(--peek,56px) + 16px)) - clamp(280px,30vw,420px) - 58px) * 4 / 3));width:auto;max-width:none}
+    .na-peek .nimg{height:min(calc((min(90vh,100vh - 40px) - 28px) / 1.0585),760px,calc(((100vw - 2 * (var(--peek,56px) + 16px)) - clamp(280px,30vw,420px) - 58px) * 4 / 3));width:auto;max-width:none}
     .na-peek h2{width:clamp(280px,30vw,420px)}
   }
   .news-art.closing .na-panel{transition:transform .34s cubic-bezier(.6,0,.2,1),opacity .22s ease}
   .na-panel h1{font-size:clamp(21px,2.4vw,27px);line-height:1.15;font-weight:800;letter-spacing:-.015em;color:#0b2c55;margin:2px 0 0}
   .na-panel .nbody{font-size:16px;line-height:1.65}
   /* previous / next: a sliver at each edge (same card art, dimmed), the arrows sit on top */
-  .na-peek{position:absolute;top:50%;width:min(92vw,520px);max-height:min(90vh,calc(100vh - 40px));overflow:hidden;border-radius:24px;background:rgba(255,255,255,.55);padding:14px;color:#0b2c55;pointer-events:none;opacity:.45;
+  .na-peek{position:absolute;top:50%;width:min(92vw,520px);max-height:calc(min(90vh,100vh - 40px) - var(--tabh,0px));margin-top:calc(var(--tabh,0px) / 2);overflow:hidden;border-radius:24px;background:rgba(255,255,255,.55);padding:14px;color:#0b2c55;pointer-events:none;opacity:.45;
     display:flex;flex-direction:column;gap:12px;transition:transform .42s cubic-bezier(.6,0,.2,1),opacity .3s ease}
   .na-peek.prev{left:0;transform:translate(calc(-100% + var(--peek,56px)),-50%) scale(.9);transform-origin:100% 50%}
   .na-peek.next{right:0;transform:translate(calc(100% - var(--peek,56px)),-50%) scale(.9);transform-origin:0 50%}
@@ -757,7 +796,10 @@ html.xw-active{overflow:hidden}
   .na-peek.off{opacity:0}
   @media(max-width:700px){.news-art{--peek:26px}.na-panel{width:min(calc(100vw - 2 * (var(--peek) + 8px)),520px)}.na-peek{width:min(calc(100vw - 2 * (var(--peek) + 8px)),520px)}}
   /* phones: the card's text size in the popup too, so the photo keeps more of the screen */
-  @media(max-width:700px) and (orientation:portrait){.na-panel .nbody{font-size:14.5px;line-height:1.55}.na-panel h1{font-size:20px}.na-panel{gap:10px;padding:12px 12px 16px}}
+  @media(max-width:700px) and (orientation:portrait){.na-panel .nbody{font-size:14.5px;line-height:1.55}.na-panel h1{font-size:20px}.na-panel{gap:10px;padding:12px 12px 16px}
+    /* the folder tab must clear the X at the top left: the post starts below it */
+    .na-panel,.na-peek{max-height:calc(100vh - 40px - var(--tabh,0px) - 56px);margin-top:calc(var(--tabh,0px) / 2 + 28px)}}
+  .na-panel.na-scroll{overflow-y:auto}
   @media(orientation:landscape) and (max-height:500px){.na-panel .nbody{font-size:14px;line-height:1.5}.na-panel h1{font-size:19px}.na-text{gap:8px}}
   /* X (top-left, the site standard) + arrows reuse the lightbox chrome (.lb-close / .lb-nav) */
   .news-art .lb-close{z-index:3}
@@ -1560,6 +1602,7 @@ html.xw-active{overflow:hidden}
     <section id="news-page">
       <div class="surface-rays"></div>
       <div class="pp-head news-head"><div class="ey">What we're up to</div><h1>News</h1><p>Festival runs, events, new projects and studio updates from the pond.</p></div>
+      <div class="news-filter" id="newsFilter" hidden><div class="nf-tabs" id="newsTabs" role="group" aria-label="Show stories"></div><button type="button" class="nf-sort" id="newsSort" data-sort="new"><span class="nf-sort-l">Newest</span><span class="nf-sort-x"> first</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v11M3.5 8.5 8 13l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
       <div class="news-grid" id="newsList"></div>
       <footer class="site-footer rp-footer" data-footer></footer>
     </section>
@@ -1596,7 +1639,7 @@ html.xw-active{overflow:hidden}
   </div>
 
 <!-- ?v= is the file's content hash, set automatically on every commit (tools/stamp-assets.py): never edit it by hand -->
-<script src="/assets/rp-bubble.js?v=96f0f86345"></script>
+<script src="/assets/rp-bubble.js?v=0fe7dfdcf0"></script>
 <script>async function __main(){
 
 const __d=await Promise.all([
@@ -2091,7 +2134,7 @@ let BGB=null;
 const BGB_WK=/AppleWebKit/.test(navigator.userAgent)&&!/Chrome\/|Chromium|Edg\//.test(navigator.userAgent);
 const BGB_Q=(location.search.match(/[?&]bgb=([01])\b/)||[])[1];
 try{const m=__d[13],ok=__d[14],want=BGB_Q?BGB_Q==='1':!(BGB_WK&&innerWidth>700);if(m&&ok&&want&&m.tiles){const l=m.tiles[innerWidth<=700?'m':'d']||[];if(l.length)BGB=l[Math.floor(Math.random()*l.length)];}}catch(e){BGB=null;}
-const bgbImg=BGB?new Promise(r=>{const im=new Image();im.onload=im.onerror=()=>r(im);im.src=BGB.url;(im.decode?im.decode():Promise.resolve()).then(()=>r(im),()=>r(im));}):null;
+const bgbImg=BGB?new Promise(r=>{const im=new Image();im.fetchPriority='low';/* (2026-11-01) the ambient tile fades in on its own; on a slow connection its ~800 KB must not hold back the first screen's images */im.onload=im.onerror=()=>r(im);im.src=BGB.url;(im.decode?im.decode():Promise.resolve()).then(()=>r(im),()=>r(im));}):null;
 function bgbBake(field,fade){
   field.textContent='';field.classList.add('bgb-baked');
   field.style.setProperty('--bgb-tile',BGB.w+'px '+BGB.h+'px');
@@ -2624,7 +2667,8 @@ document.addEventListener('visibilitychange',()=>{document.body.classList.toggle
     active.forEach(function(el){ el.style.setProperty('--ang',a); });
     raf=requestAnimationFrame(frame);
   }
-  function enter(el){ if(reduce||active.has(el))return; active.add(el); if(!raf){ last=0; raf=requestAnimationFrame(frame); } }
+  /* rp-nogpu (assets/rp-bubble.js hwSoft, 2026-11-01): no usable GPU, the spin holds still like every other loop */
+  function enter(el){ if(reduce||active.has(el)||document.documentElement.classList.contains('rp-nogpu'))return; active.add(el); if(!raf){ last=0; raf=requestAnimationFrame(frame); } }
   function leave(el){ if(!active.has(el))return; active.delete(el); el.style.setProperty('--ang',ang.toFixed(2)+'deg'); } // freeze where it stopped
   document.addEventListener('pointerover',function(e){ var el=e.target.closest&&e.target.closest(SEL); if(el)enter(el); });
   document.addEventListener('pointerout', function(e){ var el=e.target.closest&&e.target.closest(SEL); if(el && !el.contains(e.relatedTarget))leave(el); });
@@ -3294,7 +3338,7 @@ const viewPage=document.getElementById('view-page');
 /* ===== NEWS ==========================================================================
    Data: /data/news.json  (GENERATED by bts-automation/news_sync.py from the NocoDB `news` table;
          never hand-edit) + /data/news-page.json (Pages CMS -> "News page": the switch + headings).
-   URL:  /news            the grid (pinned first, newest first, as exported)
+   URL:  /news            the grid (newest first by date, or oldest first / one category: the filter row)
          /news/<key>      one article in the popup over the grid (deep-linkable; the edge function
                           in functions/_middleware.js injects its title/description/OG/JSON-LD so
                           crawlers and link previews see the article without running this script)
@@ -3376,12 +3420,14 @@ function newsSocials(list,project){
 }
 /* one article's inner markup: image, title, category + date, body, Learn more (card and popup share it) */
 function newsInner(a,big,eager){
-  const meta=`<div class="${big?'na-meta':'ncard-meta'}">${a.category?`<span class="ncat">${_wEsc(a.category)}</span>`:''}${a.date?`<time datetime="${_wEsc(a.date)}">${_wEsc(newsDate(a.date))}</time>`:''}</div>`;
+  /* the category is the folder tab now (.ntab), the meta line keeps the date */
+  const meta=a.date?`<div class="${big?'na-meta':'ncard-meta'}"><time datetime="${_wEsc(a.date)}">${_wEsc(newsDate(a.date))}</time></div>`:'';
+  const tab=a.category?`<span class="ntab">${_wEsc(a.category)}</span>`:'';
   const title=big?`<h1>${_wEsc(a.title)}</h1>`:`<h2>${_wEsc(a.title)}</h2>`;
   const img=newsImage(a,big?'(max-width:700px) 94vw, 720px':'(max-width:620px) 94vw, (max-width:980px) 46vw, 360px',eager);
   const text=`${title}${meta}<div class="nbody">${newsMd(a.body)}</div>${newsSocials(a.socials,a.project)}`;
   /* the popup wraps the text so a landscape screen can lay it BESIDE the image (.na-text) */
-  return big?`${img}<div class="na-text">${text}</div>`:`${img}${text}`;
+  return big?`${tab}${img}<div class="na-text">${text}</div>`:`${tab}${img}${text}`;
 }
 function renderNewsList(){
   const host=document.getElementById('newsList');if(!host)return;
@@ -3392,9 +3438,26 @@ function renderNewsList(){
   /* lazy on purpose: the News view sits display:none under every other page, and a lazy image in
      a display:none subtree is never fetched (an eager one is: 3 article images rode along with the
      home page). On /news itself the in-view cards load immediately regardless. */
-  host.innerHTML=NEWS.map(a=>`<article class="ncard" role="button" tabindex="0" data-cursor="nohug" data-news="${_wEsc(a.key)}" style="${newsLookStyle(a)}" aria-label="${_wEsc(a.title)}">${newsInner(a,false,false)}</article>`).join('');
+  host.innerHTML=NEWS.map(a=>`<article class="ncard${a.category?' has-tab':''}" role="button" tabindex="0" data-cursor="nohug" data-news="${_wEsc(a.key)}" style="${newsLookStyle(a)}" aria-label="${_wEsc(a.title)}">${newsInner(a,false,false)}</article>`).join('');
+  newsSizeTabs();
 }
-function newsIdx(key){return NEWS.findIndex(a=>a.key===key);}
+/* the tab follows its photo's width (see FOLDER TAB): every card's --iw tracks its photo, live */
+const newsTabRO=('ResizeObserver'in window)?new ResizeObserver(es=>es.forEach(e=>{const c=e.target.closest('.ncard');const w=e.target.offsetWidth;if(c&&w)c.style.setProperty('--iw',w+'px');})):null;
+function newsSizeTabs(){document.querySelectorAll('#newsList .ncard').forEach(c=>{const im=c.querySelector('.nimg');if(!im)return;if(im.offsetWidth)c.style.setProperty('--iw',im.offsetWidth+'px');if(newsTabRO)newsTabRO.observe(im);});}
+/* ===== WHICH STORIES, IN WHICH ORDER (filters, 2026-11-01) =====
+   NEWS_VIEW.cat: '' = all, else one category. NEWS_VIEW.sort: 'new' (newest first, the default) or 'old'.
+   Strictly by date in both orders: a pinned story first under "Oldest first" read as a sorting bug, so the
+   exporter's pinned-first order no longer applies on this page. Remembered for the visit (sessionStorage rp-news-view). The popup's arrows step through what the grid shows. */
+const NEWS_VIEW=(()=>{let v={cat:'',sort:'new'};try{const x=JSON.parse(sessionStorage.getItem('rp-news-view')||'null');if(x&&typeof x==='object')v={cat:String(x.cat||''),sort:x.sort==='old'?'old':'new'};}catch(e){}return v;})();
+function newsShown(){
+  const cats=new Set(NEWS.map(a=>a.category).filter(Boolean));if(NEWS_VIEW.cat&&!cats.has(NEWS_VIEW.cat))NEWS_VIEW.cat='';
+  const dir=NEWS_VIEW.sort==='old'?1:-1;
+  return NEWS.filter(a=>!NEWS_VIEW.cat||a.category===NEWS_VIEW.cat).map((a,i)=>[a,i])
+    .sort((x,y)=>(dir*String(x[0].date||'').localeCompare(String(y[0].date||'')))||(x[1]-y[1])).map(x=>x[0]);
+}
+/* the list the popup steps through: the grid's stories when the open one is among them, else every story */
+function newsSeq(key){const v=newsShown();return v.some(a=>a.key===key)?v:NEWS;}
+function newsIdx(key){return newsSeq(key).findIndex(a=>a.key===key);}
 /* FIT THE WHOLE POST ON SCREEN, NO SCROLL. The panel is capped at the viewport height; when an
    article is taller than that, only the IMAGE gives way: its box narrows (and so shortens) at its
    exact 3:4, centred, until panel and content are the same height. The crop never changes, the text
@@ -3402,7 +3465,14 @@ function newsIdx(key){return NEWS.findIndex(a=>a.key===key);}
    image width so the neighbours match. Re-run on resize / font load. A floor keeps the image
    recognisable; only a viewport too short even for that falls back to scrolling inside the panel. */
 const NEWS_WIDE=window.matchMedia?matchMedia('(orientation:landscape) and (min-width:760px)'):null;
-function newsFit(){newsFitCore();newsPeekGuard();}
+function newsFit(){
+  const img=newsPanel.querySelector('.nimg'), peeks=[newsPeekPrev,newsPeekNext];
+  const setIw=()=>{const w=img?img.offsetWidth:0;[newsPanel,...peeks].forEach(el=>{if(el){if(w&&newsPanel.classList.contains('has-tab'))el.style.setProperty('--iw',w+'px');else el.style.setProperty('--iw','0px');}});};
+  newsPanel.classList.remove('na-scroll');
+  setIw();newsFitCore();setIw();   /* the tab's height comes off the post's height, so size it from the photo before and after the fit */
+  if(newsPanel.scrollHeight-newsPanel.clientHeight>1&&!(NEWS_WIDE&&NEWS_WIDE.matches))newsPanel.classList.add('na-scroll');   /* a screen too short even for the smallest photo */
+  newsPeekGuard();
+}
 /* A neighbour's sliver may never overlap the article. The CSS reserves room for it; if a viewport
    still cannot fit sliver + 8px air beside the panel, the slivers are hidden (arrows and swipe stay). */
 function newsPeekGuard(){
@@ -3444,14 +3514,15 @@ addEventListener('resize',()=>{if(newsOpen)newsFit();});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(newsOpen)newsFit();});
 function renderNewsPopup(key){
   const a=NEWS_BY_KEY[key];if(!a)return;
-  const i=newsIdx(key), prev=NEWS[i-1], next=NEWS[i+1];
+  const seq=newsSeq(key), i=seq.findIndex(a=>a.key===key), prev=seq[i-1], next=seq[i+1];
   newsPanel.innerHTML=newsInner(a,true,true);
+  newsPanel.classList.toggle('has-tab',!!a.category);
   newsArt.setAttribute('style',newsLookStyle(a));
   const peek=(el,o)=>{if(!o){el.classList.add('off');el.innerHTML='';return;}el.classList.remove('off');el.setAttribute('style',newsLookStyle(o));el.innerHTML=`${newsImage(o,'520px',false)}<h2>${_wEsc(o.title)}</h2>`;};
   peek(newsPeekPrev,prev);peek(newsPeekNext,next);
   newsFit();
   newsPrevBtn.disabled=!prev;newsNextBtn.disabled=!next;
-  newsArt.classList.toggle('single',NEWS.length<2);
+  newsArt.classList.toggle('single',seq.length<2);
   document.title=a.title+' | Rare Pond Studios';
 }
 /* FLIP: the panel starts exactly on the card's rectangle (measured AFTER the body lock, same
@@ -3471,7 +3542,8 @@ function newsFlipFrom(key,keep){
   /* the panel's resting transform is translate(-50%,-50%) with origin 0 0 at left:50% top:50%, so its
      untransformed top-left is the viewport centre; ox/oy = the image's offset inside the panel */
   const ox=tgt.left-to.left, oy=tgt.top-to.top;
-  const dx=from.left-innerWidth/2-s*ox, dy=from.top-innerHeight/2-s*oy;
+  const mt=parseFloat(getComputedStyle(newsPanel).marginTop)||0;   /* the panel sits half a tab lower, so panel + tab are centred */
+  const dx=from.left-innerWidth/2-s*ox, dy=from.top-innerHeight/2-mt-s*oy;
   newsPanel.style.transform=`translate(${dx}px,${dy}px) scale(${s})`;newsPanel.style.opacity=keep?'1':'.6';
 }
 /* ===== choreography helpers ===== */
@@ -3481,30 +3553,35 @@ let newsFx={timers:[],undo:null};
 function newsFxLater(ms,fn){newsFx.timers.push(setTimeout(fn,ms));}
 function newsFxCancel(){newsFx.timers.forEach(clearTimeout);newsFx.timers=[];const u=newsFx.undo;newsFx.undo=null;if(u)u();}
 function newsCardOf(key){return document.querySelector(`.ncard[data-news="${CSS.escape(key)}"]`);}
-const newsCardKids=card=>[...card.children].filter(c=>!c.classList.contains('nimg'));
+const newsCardKids=card=>[...card.children].filter(c=>!c.classList.contains('nimg')&&!c.classList.contains('ntab'));
+/* the clip shape of a story with its folder tab: the clip starts at the tab's top (above the box) and its top left
+   corner is the tab's corner; no tab = the old rounded rectangle */
+function newsClip(el,t,r,b,l){const tab=el.querySelector(':scope > .ntab');const th=tab?tab.offsetHeight:0;const tr=tab?parseFloat(getComputedStyle(tab).borderTopLeftRadius)||0:24;
+  return `inset(${t-th}px ${r}px ${b}px ${l}px round ${tr}px 24px 24px 24px)`;}
 /* the card collapsed to its photo: clip to photo + its padding, text slid up under the photo (never
    above the photo's top: at most one photo-height), faded */
 function newsCardTuck(card,on,instant){
   const img=card.querySelector('.nimg');if(!img)return;
   card.classList.add('nanim');card.classList.toggle('snap',!!instant);
-  if(!on){card.style.clipPath='inset(0px 0px 0px 0px round 24px)';newsCardKids(card).forEach(k=>{k.style.transform='';k.style.opacity='';});return;}
+  if(!on){card.style.clipPath=newsClip(card,0,0,0,0);newsCardKids(card).forEach(k=>{k.style.transform='';k.style.opacity='';});return;}
   const pad=img.offsetLeft, b=Math.max(0,card.offsetHeight-(img.offsetTop+img.offsetHeight+pad));
   const up=Math.min(img.offsetHeight,card.offsetHeight-(img.offsetTop+img.offsetHeight));
-  if(!card.style.clipPath){card.style.clipPath='inset(0px 0px 0px 0px round 24px)';void card.offsetWidth;}
-  card.style.clipPath=`inset(0px 0px ${b}px 0px round 24px)`;
+  if(!card.style.clipPath){card.style.clipPath=newsClip(card,0,0,0,0);void card.offsetWidth;}
+  card.style.clipPath=newsClip(card,0,0,b,0);
   newsCardKids(card).forEach(k=>{k.style.transform=`translateY(${-up}px)`;k.style.opacity='0';});
 }
 function newsCardReset(card){if(!card)return;card.classList.remove('nanim','snap');card.style.clipPath='';card.style.visibility='';newsCardKids(card).forEach(k=>{k.style.transform='';k.style.opacity='';});}
 /* the panel collapsed to its photo (+ the panel padding), text tucked behind it toward the side it
    will unfold from. Geometry is read untransformed (offset*), so it is right mid-FLIP too. */
 function newsPanelTuckClip(){
-  const img=newsPanel.querySelector('.nimg');if(!img)return 'inset(0px 0px 0px 0px round 24px)';
+  const img=newsPanel.querySelector('.nimg');if(!img)return newsClip(newsPanel,0,0,0,0);
   const pad=parseFloat(getComputedStyle(newsPanel).paddingTop)||14, W=newsPanel.offsetWidth, H=newsPanel.offsetHeight;
   const t=Math.max(0,img.offsetTop-pad), l=Math.max(0,img.offsetLeft-pad);
   const r=Math.max(0,W-(img.offsetLeft+img.offsetWidth+pad)), b=Math.max(0,H-(img.offsetTop+img.offsetHeight+pad));
-  return `inset(${t}px ${r}px ${b}px ${l}px round 24px)`;
+  return newsClip(newsPanel,0,r,b,l);   /* from the tab's top: the folder keeps its tab while it is only its photo */
 }
-const NEWS_FULL='inset(0px 0px 0px 0px round 24px)';
+const NEWS_FULL_PLAIN='inset(0px 0px 0px 0px round 24px)';
+const newsFull=()=>newsClip(newsPanel,0,0,0,0);
 function openNews(key){
   const a=NEWS_BY_KEY[key];if(!a)return false;
   if(currentOpen)closeUniverse(currentOpen);
@@ -3542,7 +3619,7 @@ function openNews(key){
     newsPanel.style.transform='';
   });
   /* 3. the text unfolds out of the photo (right side on landscape, below on portrait) */
-  newsFxLater(210+440,()=>{newsPanel.style.clipPath=NEWS_FULL;newsPanel.classList.remove('tucked');});
+  newsFxLater(210+440,()=>{newsPanel.style.clipPath=newsFull();newsPanel.classList.remove('tucked');});
   /* 4. tidy: the scrim becomes the normal one, the card is restored under it */
   newsFxLater(210+440+380,()=>{newsFx.undo=null;newsPanel.style.clipPath='';newsArt.classList.remove('fx');newsCardReset(card);newsBusy=false;newsFx.timers=[];});
   return true;
@@ -3583,7 +3660,7 @@ function closeNews(instant){
      the scrim fades, 3. the card takes over and its text slides back down from under the photo */
   newsArt.classList.add('fx','moving');
   newsPanel.style.setProperty('--tuck-tx',newsWideNow()?'translateX(-28px)':'translateY(-28px)');
-  newsPanel.style.clipPath=NEWS_FULL;void newsPanel.offsetWidth;
+  newsPanel.style.clipPath=newsFull();void newsPanel.offsetWidth;
   newsPanel.classList.add('tucked');newsPanel.style.clipPath=newsPanelTuckClip();
   newsCardTuck(card,true,true);card.style.visibility='hidden';
   /* the fx scrim (::before) has already faded out by the end, so the popup must vanish INSTANTLY:
@@ -3606,7 +3683,7 @@ function newsMoving(ms){newsArt.classList.add('moving');clearTimeout(newsMoveTim
    so Back closes the popup like the lightbox, never walks back through every article you flipped past. */
 function newsStep(dir,toKey){
   if(newsBusy||!newsOpen)return;
-  const i=newsIdx(newsOpen);const t=toKey?NEWS_BY_KEY[toKey]:NEWS[i+dir];if(!t)return;
+  const seq=newsSeq(newsOpen), i=seq.findIndex(a=>a.key===newsOpen);const t=toKey?NEWS_BY_KEY[toKey]:seq[i+dir];if(!t)return;
   if(newsRM()){newsOpen=t.key;renderNewsPopup(t.key);try{history.replaceState({},'','/news/'+encodeURIComponent(t.key));}catch(e){}return;}
   newsBusy=true;newsMoving(620);
   /* SWIPE: a snapshot of the current article (ghost) slides fully off one side while the real panel,
@@ -3662,6 +3739,54 @@ newsArt.addEventListener('click',e=>{
   newsArt.addEventListener('touchend',e=>{if(!on)return;on=false;const t=e.changedTouches[0];const dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)newsStep(dx<0?1:-1);},{passive:true});
 })();
 renderNewsList();
+/* ===== FILTER ROW: category tabs + date order (2026-11-01) =====
+   Built from the stories themselves: All, then every category in use (alphabetical). Changing either control
+   re-arranges the grid with a FLIP: leaving cards fade down, the rest glide to their new places (transform only),
+   arriving cards fade up. Reduced motion: no animation. */
+(function newsFilters(){
+  const bar=document.getElementById('newsFilter'), tabs=document.getElementById('newsTabs'), sortBtn=document.getElementById('newsSort'), host=document.getElementById('newsList');
+  if(!bar||!tabs||!sortBtn||!host||!NEWS.length)return;
+  const cats=[...new Set(NEWS.map(a=>a.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const count=c=>NEWS.filter(a=>!c||a.category===c).length;
+  tabs.innerHTML=['',...cats].map(c=>`<button type="button" class="nf-tab" data-cat="${_wEsc(c)}" aria-pressed="false">${c?_wEsc(c):'All'} <span class="nf-n">${count(c)}</span></button>`).join('');
+  bar.hidden=false;
+  const save=()=>{try{sessionStorage.setItem('rp-news-view',JSON.stringify(NEWS_VIEW));}catch(e){}};
+  function paint(){
+    tabs.querySelectorAll('.nf-tab').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cat===NEWS_VIEW.cat?'true':'false'));
+    sortBtn.dataset.sort=NEWS_VIEW.sort;
+    const lab=NEWS_VIEW.sort==='old'?'Oldest':'Newest';
+    sortBtn.querySelector('.nf-sort-l').textContent=lab;sortBtn.setAttribute('aria-label','Order by date: '+lab.toLowerCase()+' first. Change');
+  }
+  let anims=[];
+  function arrange(animate){
+    const shown=newsShown(), keep=new Set(shown.map(a=>a.key));
+    const cards=[...host.querySelectorAll('.ncard')], byKey=new Map(cards.map(c=>[c.dataset.news,c]));
+    const rm=newsRM()||!animate||activeView!=='news';
+    anims.forEach(a=>{try{a.cancel();}catch(e){}});anims=[];
+    const before=new Map();if(!rm)cards.forEach(c=>{if(!c.hidden)before.set(c,c.getBoundingClientRect());});
+    const place=()=>{
+      shown.forEach(a=>{const c=byKey.get(a.key);if(c){c.hidden=false;host.appendChild(c);}});
+      cards.forEach(c=>{if(!keep.has(c.dataset.news))c.hidden=true;});
+      newsSizeTabs();
+    };
+    if(rm){place();return;}
+    const leaving=cards.filter(c=>!c.hidden&&!keep.has(c.dataset.news));
+    const go=()=>{
+      leaving.forEach(c=>{c.style.opacity='';});
+      place();
+      cards.forEach(c=>{if(c.hidden)return;const f=before.get(c);const l=c.getBoundingClientRect();
+        if(f){const dx=f.left-l.left,dy=f.top-l.top;if(Math.abs(dx)+Math.abs(dy)>1)anims.push(c.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:420,easing:'cubic-bezier(.2,.7,.2,1)'}));}
+        else anims.push(c.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:340,delay:90,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'}));});
+    };
+    if(!leaving.length){go();return;}
+    let left=leaving.length;
+    leaving.forEach(c=>{const a=c.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(10px) scale(.98)'}],{duration:180,easing:'ease-in',fill:'forwards'});anims.push(a);
+      a.onfinish=()=>{c.style.opacity='0';a.cancel();if(--left===0)go();};});
+  }
+  tabs.addEventListener('click',e=>{const b=e.target.closest('.nf-tab');if(!b||b.dataset.cat===NEWS_VIEW.cat)return;NEWS_VIEW.cat=b.dataset.cat;save();paint();arrange(true);});
+  sortBtn.addEventListener('click',()=>{NEWS_VIEW.sort=NEWS_VIEW.sort==='old'?'new':'old';save();paint();arrange(true);});
+  paint();arrange(false);
+})();
 makeBgBubbles(document.getElementById('news-page'),Math.round(BG_BUBBLES*0.6),'fade-b');
 
 /* INSTANT scroll reset (no smooth glide). html{scroll-behavior:smooth} turns a bare
