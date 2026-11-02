@@ -72,7 +72,9 @@
   animated file is the next lever if slow connections are still a problem.
 - NEWS FOLDER TABS (Jack: the category pill looked AI-designed; a folder tab at the top left of each story, in the
   story's own look, carried through the open animation): `.ntab` sits above the card's square top-left corner, the
-  story's look gradient with a slanted right side; a 2 px coloured folder edge runs on across the top. Its size follows
+  story's look gradient with both top corners rounded and a small inward curve at the bottom right into the card's
+  top edge (the first version's slanted edge was replaced the same day at Jack's request); a 2 px coloured folder edge
+  runs on across the top. The filter tabs have the same rounded tops. Its size follows
   the photo's width (`--iw`, ResizeObserver on cards, newsFit on the popup), so the popup's tab is the card's tab at
   popup size and the uniform open / close flight carries it with no jump. Clip shapes start at the tab's top
   (`newsClip()`), the popup sits half a tab lower so panel + tab are centred (`newsFlipFrom` accounts for it), the
