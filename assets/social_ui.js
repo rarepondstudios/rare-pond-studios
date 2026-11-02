@@ -107,6 +107,20 @@
      so the social bubbles did nothing on mobile. On touch we navigate the SAME tab once the wipe
      has covered the screen (always works, and the wipe stays covering during the hand-off); on
      desktop we keep the new-tab behaviour. */
+  /* OPEN A NEW TAB SO IT IS NEVER SILENTLY BLOCKED (2026-11-02, Jack: the social icons on the News page "are not
+     working"; it was every outbound social link on both sites, in Safari). A browser only allows window.open() as a
+     result of a click. Chrome and Firefox remember the click for 5 s / 1 s; Safari carries it only into TIMERS of up
+     to 1 s that were started by the click, never into an animation event. The tab used to open from the wipe's
+     transitionend, so Safari blocked it, quietly: window.open returned null, nothing threw, nothing happened. Now
+     (1) the tab opens from a timer started by the click (see runTransport) and (2) if a browser still refuses, the
+     link opens in this tab instead of doing nothing. "noopener" is dropped from the call only because it makes
+     window.open return null even on success (so a block could not be seen); the opener link is cut straight away. */
+  function openTab(href) {
+    var w = null;
+    try { w = window.open(href, "_blank"); } catch (e) { w = null; }
+    if (w) { try { w.opener = null; } catch (e) {} return; }
+    location.href = href;
+  }
   var IS_TOUCH = false;
   try { IS_TOUCH = (window.matchMedia && matchMedia("(pointer:coarse)").matches) || ("ontouchstart" in window) || navigator.maxTouchPoints > 0; } catch (e) {}
   var busy = false;
@@ -131,8 +145,9 @@
     document.body.appendChild(d);
     // tint the browser chrome to the wipe colour so iOS Safari's bars blend into it
     if (window.__setThemeColor) window.__setThemeColor(o.c1);
-    var opened = false, cleaned = false;
-    var doOpen = function () { if (opened) return; opened = true; o.open(); };
+    var opened = false, cleaned = false, grew = false;
+    /* the link opens from the timer below, never from transitionend (see openTab); cleanup waits for both */
+    var doOpen = function () { if (opened) return; opened = true; o.open(); if (grew) cleanup(); };
     var cleanup = function () {
       if (cleaned || o.hold) return; cleaned = true;              // hold: keep covering through the navigation
       d.classList.add("done");
@@ -141,11 +156,11 @@
     };
     // grow -> when fully covered, open the link
     requestAnimationFrame(function () { requestAnimationFrame(function () { d.classList.add("go"); }); });
-    var grew = false;
     d.addEventListener("transitionend", function (e) {
       if (e.propertyName.indexOf("clip-path") < 0) return;
       if (!grew) {
-        grew = true; doOpen();
+        grew = true;
+        if (!opened) return;   /* the timer opens it (and then cleans up) */
         // Desktop opens a NEW TAB, which backgrounds this one; a clip-path RETRACT would then
         // freeze part-way and leave the circle's edge stuck in the far corners. So on desktop we
         // hold the FULL cover and fade it out by opacity (cleanup) instead of retracting. Touch
@@ -164,8 +179,9 @@
       busy = false;
     };
     document.addEventListener("visibilitychange", onHide);
-    // safety net if transitionend is missed (background tab / interrupted)
-    setTimeout(function () { doOpen(); }, 560);
+    // THE open: a timer started by the click, at the end of the .5 s grow (2 frames + 500 ms + a little). Safari
+    // forwards the click's permission to timers of up to 1 s set during it; Chrome / Firefox allow 5 s / 1 s.
+    setTimeout(function () { doOpen(); }, 580);
     setTimeout(function () { cleanup(); }, 1500);
   }
   /* HANDOFF (cross-site seamlessness): a HELD same-tab wipe covers this page right up to the
@@ -191,7 +207,7 @@
         if (o.hold) href = handoffHref(href, o.x, o.y, c1, c2, c3);   // held same-tab wipe → destination retracts it
         location.href = href; return;
       }
-      try { window.open(href, "_blank", "noopener"); } catch (e) { location.href = href; }
+      openTab(href);
     };
     runTransport({ x: o.x, y: o.y, c1: c1, c2: c2, c3: c3, open: open, hold: !!o.hold });
   };
@@ -208,7 +224,7 @@
       x: ox, y: oy, c1: col.c1, c2: col.c2, c3: col.c3,
       open: function () {
         if (IS_TOUCH) { location.href = href; return; }           // reliable on mobile (no popup block)
-        try { window.open(href, "_blank", "noopener"); } catch (e) { location.href = href; }
+        openTab(href);
       }
     });
   }
