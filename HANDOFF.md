@@ -39,6 +39,26 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-160 SOCIAL ICONS DID NOTHING IN SAFARI, SITE-WIDE (BOTH SITES); FIXED IN THE SHARED social_ui.js (2026-11-02)
+
+- Jack: the News page's social icons were not working; make sure it is not part of a larger issue. It was larger:
+  EVERY outbound social link on both sites (header, footer, Team, film pages, News cards and popup, Media, Rentals,
+  jackcarlsen.com) goes through the shared click-origin wipe in `assets/social_ui.js` (master
+  `~/bts-automation/social_ui.js`), and on desktop the new tab was opened from the wipe's `transitionend`.
+  Browsers only allow `window.open` as a result of a click; Safari carries a click only into timers of up to 1 s
+  started by it, never into an animation event, so it blocked the tab silently (`window.open` with "noopener"
+  returns null either way, nothing threw, the fallback never ran). Chrome (5 s) and Firefox (1 s) count time since
+  the click, which is why it worked there.
+- FIX (bts-automation fcb08f1, published to both sites): the tab opens from a 580 ms timer started by the click (the
+  end of the .5 s grow); `openTab()` calls `window.open` without "noopener" so a refusal is visible, cuts
+  `opener` straight away, and if the browser still refuses, the link opens in this tab instead of doing nothing.
+  Touch devices unchanged (same-tab navigation after the wipe).
+- Verified (scratch `tools/_soclab/`: soc.mjs clicks every visible social link on News cards + popup, Home, a film
+  page, Team, Media, Rentals; newssoc.mjs the News ones): with Firefox set to a strict popup rule (0.3 s), the old
+  code did NOTHING on every social link of every page and the new code opens all of them; normal Chromium, WebKit and
+  Firefox open them all. Real Safari cannot be automated from the mini (WebDriver times out), so the Safari rule is
+  from WebKit's documented behaviour plus the strict-browser test; Jack to confirm with one click in Safari.
+
 ### 0.0.-159 SLOW PAGE LOADS ON A LAPTOP WITH NO USABLE GPU; NEWS FOLDER TABS + FILTERS (2026-11-01)
 
 - Jack: fine on his machines, "extremely long load times between pages" on someone else's laptop (first visit and the
