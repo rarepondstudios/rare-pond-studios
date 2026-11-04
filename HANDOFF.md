@@ -39,6 +39,24 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-161 SCAN APP: CHECK OTHER COPIES IN / OUT IN THE SAME SAVE (2026-11-03)
+
+- Jack: scanning one copy of an item with several copies also shows the other copies, so they can be checked in
+  or out together. Unit pages (`/u/####-X`, what every item QR opens) now list "Other copies (n)" with a tick box
+  each and their state (in storage / out in-house / out on an order / in repair). Which boxes can be ticked follows
+  the action picked (bts-automation `scan_static/app.js` rpAlsoSync; the server checks every one again):
+  Bring IN = copies that are out; OUT in-house = copies in storage (the note goes on them too); OUT for a booking =
+  copies in storage or in-house (straight from in-house, like do_swap), one per booking that order still has open
+  for the item, extras reported as not sent. Each copy is saved and logged like its own scan (`scan_service.py`
+  also_block / do_also); the confirm page lists what was also done and what was not, with the reason. The parts
+  checklist is for the scanned copy only. Containers never show the list. Help sheet (scan_help.py) updated.
+- Test: `bts-automation/scan_also_test.py` (3110's six copies + a throwaway order, restores everything) ALL PASS;
+  scan_swap_test ALL PASS; headless check of the page (rows enabled for the action, All ticks only those).
+  scan_stress_test's final exact-restore check FAILED and scan_edge_test crashes on a unit code that no longer exists
+  (1115-A): both are stale against today's data (new container contents, renumbered gear), not this change (the new code
+  only runs when a copy is ticked). Data checked consistent afterwards (presence vs last scan, container moves,
+  rentals_audit). Caution: these tests restore every unit to their snapshot, so a real scan made while one runs is undone.
+
 ### 0.0.-160 SOCIAL ICONS DID NOTHING IN SAFARI, SITE-WIDE (BOTH SITES); FIXED IN THE SHARED social_ui.js (2026-11-02)
 
 - Jack: the News page's social icons were not working; make sure it is not part of a larger issue. It was larger:
