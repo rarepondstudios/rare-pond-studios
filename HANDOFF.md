@@ -39,6 +39,21 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-163 SCAN APP: THE SCANNED ITEM IS THE FIRST ROW OF ITS CHECKLIST (2026-11-05)
+
+- Jack asked why 2110 (Aputure F10 Barn Doors) listed its dish, safety cable and box but not the barn doors. Not missing
+  data: the item is what the QR and the scan record; the checklist is its sub-items only (same for every item). For
+  clarity the checklist now starts with the scanned item itself ("this item (scanned)", unit code on unit pages, item
+  number on item pages), ticked and locked (bts-automation `scan_service.py` checklist_block `head`). Display only: the
+  row has no field name, so nothing new is saved or logged and All present / None leave it alone. Help sheet updated.
+- Test fixes: scan_also_test and scan_swap_test deleted their container_moves rows before restoring units, so the
+  restore's own moves stayed in the log (3 stray 'manual' put_in rows for 3110-A/B/C on 2026-11-05, removed); they now
+  delete again after the restore. scan_move_test counts from after its start reset (3110 can already be in a case).
+- Verified: headless check of 2110-A, 2110, 2100-A, 2109-A on the live app (first row, locked, survives None, no page
+  errors); scan_also_test, scan_swap_test, scan_packages_test ALL PASS and scan_move_test ALL PASS on a test instance.
+  Caution: scan_also / swap / packages / stress / edge restore EVERY unit to their snapshot, so do not run them while
+  someone is scanning (Jack was using the app on 2026-11-05); scan_move_test only touches 3110 and 3100-A.
+
 ### 0.0.-162 SCAN APP: MOVE SEVERAL COPIES INTO A CONTAINER IN ONE SAVE (2026-11-04)
 
 - Jack: scanning a copy should let him tick the other copies of that item and move them all into a container at once,
