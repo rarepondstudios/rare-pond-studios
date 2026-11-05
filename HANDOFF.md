@@ -39,6 +39,26 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-164 RENTALS: 3116 C-STANDS MERGED INTO 3115 (A-F), 3116 EMPTY, IMPACT GOBO HEAD 3106-C (2026-11-05)
+
+- Jack: all C-stands from 3116 join 3115, relettered; 3115 has 6 stands A-F; 3116 stays empty to be filled later;
+  stand A is one gobo head short; one more gobo head (Impact) under Grip & Electric.
+- Database only (bts-automation `rentals_cstand_merge_20261105_apply.py`, backup `backups/rentals_cstand_merge_20261105/`):
+  3116-A/B/C and every part copy were MOVED (units.item_id update, so scan and sticker history stay with them):
+  stands are 3115-D/E/F (details "Neewer C-Stand (Junior Pin Compatible Base)"), bases 3115.001-D/E/F (details
+  "Junior Pin Compatible"), caps and arms .002-.005 D-F, gobo heads 3115.006-G..L. `rp_items_parts_per_copy_trg`
+  was switched off inside the transaction only (it would have made new 3115 part copies as the stands arrived).
+- Stand A one gobo head short: the per-copy rule keeps 12 gobo-head copies (6 x 2), so the shortfall is 3115.006-L
+  marked **missing** (damage_events note says why; it shows on Problem Gear). Kit availability is unaffected.
+- 3116 keeps its number with 0 copies and no parts (a kit's parts cannot sit at 0 under the per-copy rule, so its six
+  empty part rows were deleted; refill by typing a qty and re-adding parts). Hidden from the site while empty.
+- 3106 Gobo Head (2.5") gained 3106-C (details "Impact 2-1/2\" Gobo Head", no container); description now says
+  Kupo and/or Impact. Stickers: 3115-D/E/F, their part pills and 3106-C need printing (`make.py refill` sees them,
+  printed stamps were for the old 3116 codes); the old 3116 stickers come off.
+- Verified: `rentals_id_audit.py` all OK; `rentals_print_ready_test.py` 34/38, the 4 failures are not this change
+  (units still bulk "out" from the 2026-11-01 sticker tracking block two delete tests, quote_lines references
+  1182 in the delete test, the department-move test hits a printed number).
+
 ### 0.0.-163 SCAN APP: THE SCANNED ITEM IS THE FIRST ROW OF ITS CHECKLIST (2026-11-05)
 
 - Jack asked why 2110 (Aputure F10 Barn Doors) listed its dish, safety cable and box but not the barn doors. Not missing
