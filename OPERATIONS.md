@@ -469,6 +469,8 @@ One system makes every rental sticker: `~/bts-automation/rentals_stickers/` (`ma
   deleted), profile button (sign out for Google sign-ins), Edit in NocoDB on item pages. Test: `scan_ui_test.py`.
 - Other copies (2026-11-03): a unit page lists the item's other copies; tick them to check them in or out in the same
   save (OUT for a booking: one per open booking on that order). Test: `scan_also_test.py`.
+- Moving several copies (2026-11-04): the Container card on a gear page is a checklist (scanned copy ticked, other
+  copies listed) with one Move ticked into a container or out; packing mode's banner the same. Test: `scan_move_test.py`.
 - Staff phones with iCloud Private Relay (2026-10-25): Private Relay sends Safari through Apple's relays, which can
   never reach the tailnet. So the scan app, NocoDB and n8n also live at `scan.rarepond.com`, `nocodb.rarepond.com`
   and `n8n.rarepond.com`: Cloudflare Tunnel `pond` (launchd com.rarepond.cloudflared, connects out, no open port)

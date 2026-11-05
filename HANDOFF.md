@@ -39,6 +39,29 @@
 
 ## 0. LATEST SESSION (2026-10-26), READ THIS FIRST
 
+### 0.0.-162 SCAN APP: MOVE SEVERAL COPIES INTO A CONTAINER IN ONE SAVE (2026-11-04)
+
+- Jack: scanning a copy should let him tick the other copies of that item and move them all into a container at once,
+  instead of one at a time. The Container card on gear pages is now one checklist and one **Move ticked** button
+  (bts-automation `scan_service.py` location_block / move_many / move_msg): on a unit page (`/u/####-X`, what every
+  item QR opens) the scanned copy is ticked under "This copy" and the other copies are listed under it with where each
+  one is (All / None, `scan_static/app.js` rpTick); on the item page (`/i/####`) every copy is listed, preselected only
+  when there is one. The dropdown holds the department's containers plus "Not in a container (take out)"; it starts on
+  the scanned copy's container, or on "Move to..." (must pick) when it is in none. Packing mode's banner works the
+  same way ("Put ticked in ..."), with copies already inside listed as such.
+- Server: `POST /c/move` with `multi=1`, `item` and several `unit` values. Copies of other items, unknown ids and copies
+  already there are reported, not moved; the rest go in ONE update (copies of one item pass or fail the database checks
+  alike: department, sub-items, containers), so container_moves logs each copy like a single move (reason
+  moved_in_scan_app). The page says what moved, what was already there and what was refused and why. The old single
+  moves (container page Take out, `/c/put`, `/api/put` scan to put in) are unchanged. Help sheet updated.
+- Test: `bts-automation/scan_move_test.py` (3110's six copies, 3100-A as the wrong item, G&E 3001-3003, Camera 1001
+  as the wrong department; restores only the units it touches and removes only their move rows). ALL PASS on a test
+  instance with the 8-phone stress run (120 concurrent saves + 60 page loads, no errors, moves logged = moves reported,
+  every copy's container matches its last logged move) and ALL PASS on the live app after the restart
+  (`SCAN_TEST_STRESS=0`). A six-copy save takes about 2.4 s including the page. Container moves queue one at a time
+  (the existing "c" save lock, held through the page render), so 8 phones saving at once wait about 20 s each.
+  scan_also_test and scan_swap_test ALL PASS. Headless phone-width check: rows, All / None, a real Move and take out.
+
 ### 0.0.-161 SCAN APP: CHECK OTHER COPIES IN / OUT IN THE SAME SAVE (2026-11-03)
 
 - Jack: scanning one copy of an item with several copies also shows the other copies, so they can be checked in
