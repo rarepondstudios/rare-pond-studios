@@ -55,6 +55,9 @@
 - 3106 Gobo Head (2.5") gained 3106-C (details "Impact 2-1/2\" Gobo Head", no container); description now says
   Kupo and/or Impact. Stickers: 3115-D/E/F, their part pills and 3106-C need printing (`make.py refill` sees them,
   printed stamps were for the old 3116 codes); the old 3116 stickers come off.
+- Later the same day (Jack): 3116 deleted outright and its number cleared, so the next new Grip & Electric gear takes
+  3116 (`rentals_numbers.py`: gap [3116], next 3116; the gap check flags it until then). Its Sandbag accessory link went
+  with it. Row backup `backups/rentals_cstand_merge_20261105/item_3116_before_delete.json`.
 - Verified: `rentals_id_audit.py` all OK; `rentals_print_ready_test.py` 34/38, the 4 failures are not this change
   (units still bulk "out" from the 2026-11-01 sticker tracking block two delete tests, quote_lines references
   1182 in the delete test, the department-move test hits a printed number).
